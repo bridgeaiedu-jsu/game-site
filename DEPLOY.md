@@ -11,7 +11,13 @@ python -m http.server 8765
 # 모바일 뷰포트 하네스: http://127.0.0.1:8765/_mobile-test.html
 ```
 
-## 1. Vercel 배포 (GitHub 연동 방식 — 재배포 자동)
+## 0. 현재 호스팅 = Cloudflare Pages (2026-08-23 이전 완료 · Vercel 프로젝트 삭제됨)
+
+- 프로젝트 `hanpango` · GitHub `bridgeaiedu-jsu/game-site` main 푸시 = 자동 배포 · 빌드 없음
+- 도메인: `CNAME @ hanpango.pages.dev` · `CNAME www hanpango.pages.dev`(프록시) · Redirect Rule 'www → root' 301 · Email Address Obfuscation OFF
+- 아래 §1~§2의 Vercel 절차는 **역사 기록**이다 — 새로 따라 하지 않는다.
+
+## 1. (구) Vercel 배포 (GitHub 연동 방식 — 재배포 자동)
 1. GitHub에 저장소 생성: `gh repo create game-site --public --source . --push`
    (계정 bridgeaiedu-jsu 로그인 상태 확인됨)
 2. https://vercel.com → **Sign Up / Log in with GitHub**
