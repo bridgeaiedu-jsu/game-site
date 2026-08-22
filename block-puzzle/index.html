@@ -6,7 +6,7 @@
 <meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>블록 퍼즐 — 심심할 때 한 판 | Block Puzzle</title>
-<meta name="description" content="설치 없이 브라우저에서 바로 하는 블록 퍼즐. 10×10 판에 블록을 끌어다 놓고 줄을 지워 점수를 올리세요. 한 판 1~3분, 모바일 최적화. Free block puzzle game — play instantly in your browser.">
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 블록 퍼즐. 매일 새 퍼즐이 열리는 오늘의 도전, 10×10 판에 블록을 놓고 줄을 지워 점수를 올리세요. 한 판 1~3분, 모바일 최적화. Free block puzzle with a daily challenge — play instantly in your browser.">
 <meta name="theme-color" content="#1e1b4b">
 <meta property="og:title" content="블록 퍼즐 — 심심할 때 한 판 | Block Puzzle">
 <meta property="og:description" content="10×10 판에 블록을 놓고 줄을 지우는 무료 퍼즐. 설치 없이 바로 플레이.">
@@ -78,7 +78,7 @@
 <body>
 
 <header>
-  <h1 data-i18n="title">블록 퍼즐 <small data-i18n="subtitle">심심할 때 한 판</small></h1>
+  <h1><span data-i18n="title">블록 퍼즐</span> <small id="subtitle" data-i18n="subtitle">심심할 때 한 판</small></h1>
   <div class="hdr-btns">
     <button class="ibtn" id="btnSound" aria-label="sound">🔊</button>
     <button class="ibtn" id="btnLang" aria-label="language">EN</button>
@@ -103,8 +103,9 @@
 <!-- ---- 게임 오버 ---- -->
 <div class="overlay" id="over">
   <div class="card">
-    <h2 data-i18n="gameOver">게임 오버</h2>
+    <h2 id="overTitle" data-i18n="gameOver">게임 오버</h2>
     <div class="big" id="finalScore">0</div>
+    <div class="new" id="streakLine" style="color:var(--accent)"></div>
     <div class="new" id="newBest"></div>
     <div class="sub" id="finalSub"></div>
     <!-- ADSENSE (3/3) — 게임오버 300×250 자리. 주의: 게임오버 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
@@ -119,7 +120,9 @@
   <div class="card">
     <h2 data-i18n="title2">블록 퍼즐</h2>
     <div class="sub" data-i18n="startSub">10×10 판에 블록을 놓고<br>가로·세로 줄을 지워 점수를 올리세요.<br>한 판 1~3분.</div>
-    <button class="btn primary" id="btnStart" data-i18n="start">시작</button>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnStart" data-i18n="start">자유 플레이</button>
   </div>
 </div>
 
@@ -131,6 +134,8 @@
   <p data-i18n="how1">아래 트레이에 나오는 블록 3개를 10×10 판 위로 끌어다 놓습니다. 블록은 회전할 수 없습니다.</p>
   <p data-i18n="how2">가로 또는 세로 한 줄이 전부 채워지면 그 줄이 사라지고 점수를 얻습니다. 한 번에 여러 줄을 지우면 보너스가 붙습니다.</p>
   <p data-i18n="how3">남은 블록을 놓을 자리가 없으면 게임이 끝납니다. "다시 하기"로 바로 새 판을 시작할 수 있습니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 퍼즐이 열립니다. 전 세계 모든 플레이어가 같은 블록 순서를 받고, 하루 한 번만 도전할 수 있습니다. 결과를 공유해 친구와 점수를 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다.</p>
   <h2 data-i18n="tipsTitle">고득점 팁</h2>
   <details><summary data-i18n="tip1q">큰 블록부터 처리하세요</summary><p data-i18n="tip1a">3×3 정사각형이나 5칸 일자 블록은 자리가 금방 없어집니다. 트레이에 나오면 먼저 놓을 자리를 확보하세요.</p></details>
   <details><summary data-i18n="tip2q">가장자리부터 채우세요</summary><p data-i18n="tip2a">판 가운데를 비워두면 어떤 모양이 와도 놓을 수 있습니다. 구석과 변부터 채우는 습관이 오래 버티는 비결입니다.</p></details>
@@ -158,10 +163,15 @@ const I18N = {
     newBest:'🎉 최고 기록 갱신!', finalSub:(l,t)=>`지운 줄 ${l} · 플레이 ${t}`,
     adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
     copied:'점수가 복사됐어요', shareText:(s)=>`블록 퍼즐에서 ${s}점! 한 판 도전해 보세요 👉 `,
+    start:'자유 플레이', daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
+    dailyHint:'매일 새 퍼즐 · 전 세계 같은 블록 순서 · 하루 한 번', dailyHintDone:'오늘 도전 완료 — 내일 새 퍼즐이 열립니다',
+    dailyOver:(n)=>`오늘의 도전 #${n} 완료`, streak:(n)=>`🔥 ${n}일 연속 도전`, playFree:'자유 플레이 한 판',
+    dailyShare:(n,s,l,k)=>`🧩 한판고 블록퍼즐 · 오늘의 도전 #${n}\n점수 ${s} · 지운 줄 ${l}${k>1?` · 🔥${k}일 연속`:''}\n`,
     howTitle:'게임 방법',
     how1:'아래 트레이에 나오는 블록 3개를 10×10 판 위로 끌어다 놓습니다. 블록은 회전할 수 없습니다.',
     how2:'가로 또는 세로 한 줄이 전부 채워지면 그 줄이 사라지고 점수를 얻습니다. 한 번에 여러 줄을 지우면 보너스가 붙습니다.',
     how3:'남은 블록을 놓을 자리가 없으면 게임이 끝납니다. "다시 하기"로 바로 새 판을 시작할 수 있습니다.',
+    dailyTitle:'오늘의 도전', dailyDesc:'매일 자정에 새 퍼즐이 열립니다. 전 세계 모든 플레이어가 같은 블록 순서를 받고, 하루 한 번만 도전할 수 있습니다. 결과를 공유해 친구와 점수를 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다.',
     tipsTitle:'고득점 팁',
     tip1q:'큰 블록부터 처리하세요', tip1a:'3×3 정사각형이나 5칸 일자 블록은 자리가 금방 없어집니다. 트레이에 나오면 먼저 놓을 자리를 확보하세요.',
     tip2q:'가장자리부터 채우세요', tip2a:'판 가운데를 비워두면 어떤 모양이 와도 놓을 수 있습니다. 구석과 변부터 채우는 습관이 오래 버티는 비결입니다.',
@@ -181,10 +191,15 @@ const I18N = {
     newBest:'🎉 New best score!', finalSub:(l,t)=>`${l} lines · ${t} played`,
     adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
     copied:'Score copied', shareText:(s)=>`I scored ${s} in Block Puzzle! Try a round 👉 `,
+    start:'Free Play', daily:(n)=>`Daily Challenge #${n}`, dailyDone:(n)=>`Daily #${n} · See result`,
+    dailyHint:'New puzzle every day · same blocks for everyone · one try a day', dailyHintDone:'Done for today — a new puzzle opens tomorrow',
+    dailyOver:(n)=>`Daily Challenge #${n} complete`, streak:(n)=>`🔥 ${n}-day streak`, playFree:'Play a free round',
+    dailyShare:(n,s,l,k)=>`🧩 Hanpango Block Puzzle · Daily #${n}\nScore ${s} · ${l} lines${k>1?` · 🔥${k}-day streak`:''}\n`,
     howTitle:'How to Play',
     how1:'Drag the three blocks from the tray onto the 10×10 board. Blocks cannot be rotated.',
     how2:'When a row or column is completely filled, it clears and you score. Clearing several lines at once earns a bonus.',
     how3:'The game ends when none of the remaining blocks fit. Tap "Play Again" to start a fresh round instantly.',
+    dailyTitle:'Daily Challenge', dailyDesc:'A new puzzle opens every midnight. Every player in the world gets the same block order, and you get one try per day. Share your result and compete with friends. Play on consecutive days to build a 🔥 streak.',
     tipsTitle:'Tips for High Scores',
     tip1q:'Deal with big blocks first', tip1a:'3×3 squares and 5-long bars run out of room fast. When one shows up in the tray, make space for it first.',
     tip2q:'Fill the edges first', tip2a:'Keeping the center open means any shape can still fit. Building from corners and edges is how you survive longer.',
@@ -265,8 +280,27 @@ function resize(){
 }
 
 /* ======================= 게임 로직 ======================= */
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   // 2026-08-23 = #1
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let mode = 'free', rng = Math.random;
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('bp.daily')||'null'); }catch(_){ return null; } };
+const dailyDoneToday = () => { const r = dailyRec(); return !!(r && r.date === dayKey()); };
+function bumpStreak(){
+  let st; try{ st = JSON.parse(localStorage.getItem('bp.streak')||'{}'); }catch(_){ st = {}; }
+  const today = dayKey(), y = new Date(); y.setDate(y.getDate()-1); const yest = dayKey(y);
+  const n = st.last === today ? (st.n||1) : st.last === yest ? (st.n||0)+1 : 1;
+  localStorage.setItem('bp.streak', JSON.stringify({ last: today, n })); return n;
+}
+const EMO = { '#f87171':'🟥','#fb923c':'🟧','#facc15':'🟨','#4ade80':'🟩','#38bdf8':'🟦','#a78bfa':'🟪','#f472b6':'🟪' };
+const boardEmoji = () => grid.map(row => row.map(c => c ? (EMO[c]||'🟦') : '⬛').join('')).join('\n');
+
 function pickShape(){
-  const total = WEIGHTS.reduce((a,b)=>a+b,0); let r = Math.random()*total;
+  const total = WEIGHTS.reduce((a,b)=>a+b,0); let r = rng()*total;
   for (let i=0;i<SHAPES.length;i++){ r -= WEIGHTS[i]; if (r<=0) return i; }
   return SHAPES.length-1;
 }
@@ -321,21 +355,49 @@ function updateHud(){
   if (score > best){ best = score; localStorage.setItem('bp.best', best); }
   $('best').textContent = best;
 }
-function newGame(){
+function newGame(m = 'free'){
+  mode = m;
+  rng = m === 'daily' ? mulberry32(hashStr('hanpango-daily-' + dayKey())) : Math.random;
   grid = Array.from({length:N}, () => Array(N).fill(null));
   score = 0; lines = 0; combo = 0; over = false; startTime = Date.now(); drag = null;
-  refillTray(); updateHud(); $('over').classList.remove('show'); draw();
+  refillTray(); updateHud(); $('over').classList.remove('show'); $('start').classList.remove('show');
+  $('subtitle').textContent = m === 'daily' ? T('daily', dailyNo()) : T('subtitle');
+  draw();
 }
 function fmtTime(ms){ const s = Math.round(ms/1000); return s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`; }
+let lastDaily = null;   // 게임오버 카드에 표시 중인 일일 도전 기록
 function endGame(){
   over = true;
   const isNew = score >= best && score > 0 && score > (+localStorage.getItem('bp.bestPrev')||0);
   localStorage.setItem('bp.bestPrev', best);
-  $('finalScore').textContent = score;
-  $('newBest').textContent = isNew ? T('newBest') : '';
-  $('finalSub').textContent = T('finalSub', lines, fmtTime(Date.now()-startTime));
+  if (mode === 'daily'){
+    const rec = { date: dayKey(), no: dailyNo(), score, lines, time: fmtTime(Date.now()-startTime), board: boardEmoji(), streak: bumpStreak() };
+    localStorage.setItem('bp.daily', JSON.stringify(rec)); lastDaily = rec;
+  } else lastDaily = null;
+  renderOver({ score, lines, time: fmtTime(Date.now()-startTime), isNew });
   beep(220, .25, 'sawtooth', .05); vib([60,40,60]);
   setTimeout(() => $('over').classList.add('show'), 350);
+}
+function renderOver(r){
+  const d = lastDaily;
+  $('overTitle').textContent = d ? T('dailyOver', d.no) : T('gameOver');
+  $('finalScore').textContent = r.score;
+  $('newBest').textContent = r.isNew ? T('newBest') : '';
+  $('streakLine').textContent = d ? T('streak', d.streak) : '';
+  $('finalSub').textContent = T('finalSub', r.lines, r.time);
+  $('btnAgain').textContent = d ? T('playFree') : T('again');
+  $('btnShare').textContent = T('share');
+}
+function showDailyResult(){   // 오늘 이미 도전한 경우: 저장된 결과 카드
+  const d = dailyRec(); if (!d) return;
+  lastDaily = d; over = true; mode = 'daily';
+  renderOver({ score: d.score, lines: d.lines, time: d.time, isNew: false });
+  $('start').classList.remove('show'); $('over').classList.add('show');
+}
+function refreshStart(){
+  const n = dailyNo(), done = dailyDoneToday();
+  $('btnDaily').textContent = done ? T('dailyDone', n) : T('daily', n);
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint');
 }
 
 /* ======================= 그리기 ======================= */
@@ -431,14 +493,16 @@ window.addEventListener('pointerup', onUp); window.addEventListener('pointercanc
 document.addEventListener('touchmove', e => { if (drag) e.preventDefault(); }, {passive:false});
 
 /* ======================= UI ======================= */
-$('btnStart').onclick = () => { $('start').classList.remove('show'); newGame(); };
-$('btnAgain').onclick = () => newGame();
-$('btnLang').onclick = () => { lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); if (over) endGame(); };
+$('btnStart').onclick = () => newGame('free');
+$('btnDaily').onclick = () => dailyDoneToday() ? showDailyResult() : newGame('daily');
+$('btnAgain').onclick = () => newGame('free');
+$('btnLang').onclick = () => { lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); refreshStart(); if (mode === 'daily' && !over) $('subtitle').textContent = T('daily', dailyNo()); if (over && lastDaily) renderOver({score:lastDaily.score, lines:lastDaily.lines, time:lastDaily.time, isNew:false}); else if (over) renderOver({score, lines, time: fmtTime(Date.now()-startTime), isNew:false}); };
 $('btnSound').onclick = () => { soundOn = !soundOn; localStorage.setItem('bp.sound', soundOn?'1':'0'); $('btnSound').textContent = soundOn ? '🔊' : '🔇'; if (soundOn) beep(600,.05,'sine',.04); };
 $('btnSound').textContent = soundOn ? '🔊' : '🔇';
 $('btnShare').onclick = async () => {
   const url = location.href.split('#')[0];
-  const text = T('shareText', score) + url;
+  const d = lastDaily;
+  const text = d ? T('dailyShare', d.no, d.score, d.lines, d.streak) + d.board + '\n' + url : T('shareText', score) + url;
   try{
     if (navigator.share) await navigator.share({ title: T('docTitle'), text, url });
     else { await navigator.clipboard.writeText(text); toast(T('copied')); }
@@ -446,7 +510,7 @@ $('btnShare').onclick = async () => {
 };
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1600); }
 
-applyLang();
+applyLang(); refreshStart();
 window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 150));
 resize();
