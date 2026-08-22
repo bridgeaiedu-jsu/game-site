@@ -101,3 +101,9 @@ Sitemap: https://hanpango.com/sitemap.xml
    - [ ] `index.html` 의 `FALLBACK` 배열 (games.json 을 못 읽을 때 쓰는 대비책)
    - [ ] `index.html` 의 `<noscript>` 목록 (자바스크립트가 꺼진 브라우저·크롤러가 보는 화면)
    세 곳 중 하나라도 빠뜨리면 어떤 방문자에게는 옛 정보가 보인다. 반드시 체크리스트로 확인할 것.
+
+6. ★`sw.js` 도 함께 고친다 — 오프라인 캐시 목록과 캐시 버전 두 가지다.
+   - [ ] `PRECACHE` 배열에 새 게임 경로 3줄을 추가한다 — `/<게임id>/`, `/<게임id>/index.html`, `/<게임id>/thumb.webp`
+   - [ ] `CACHE` 문자열의 버전을 올린다 (예: `hanpango-v1` → `hanpango-v2`)
+   버전을 올리지 않으면 이미 방문한 사람의 브라우저가 **옛 캐시를 계속 쓴다** — 새 게임이 안 보인다.
+   버전을 올리면 서비스워커가 활성화될 때 구버전 캐시를 스스로 지운다.

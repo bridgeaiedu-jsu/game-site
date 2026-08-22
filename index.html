@@ -16,6 +16,10 @@
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/svg+xml" href="/icon.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <!-- ============================================================
      ADSENSE (1/3) — 승인 후 아래 한 줄의 주석을 풀고 ca-pub-XXXX 를 본인 ID로 교체
      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
@@ -68,6 +72,9 @@
   .note{color:var(--muted);font-size:.75rem;text-align:center;margin:14px 0 0}
   footer{width:100%;max-width:960px;color:var(--muted);font-size:.72rem;padding:10px 14px calc(20px + var(--safe-b));text-align:center;line-height:2}
   footer a{color:var(--muted)}
+  /* 홈 화면에 추가 안내 — beforeinstallprompt 를 받은 브라우저에서만 노출된다 */
+  .installbar{width:100%;max-width:960px;display:flex;justify-content:center;padding:2px 14px 6px}
+  .installbar[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -101,6 +108,10 @@
   </main>
 </div>
 
+<div class="installbar" id="installBar" hidden>
+  <button class="ibtn" id="btnInstall" type="button" data-i18n="install">📲 홈 화면에 추가</button>
+</div>
+
 <footer>
   © 2026 한판고 hanpango.com ·
   <a href="/about/" data-i18n="navAbout">소개</a> ·
@@ -119,6 +130,7 @@ const I18N = {
     navAbout:'소개', navPrivacy:'개인정보 처리방침',
     soon:'곧 출시', soonDesc:'다음 게임을 준비하고 있습니다.',
     daily:'오늘의 도전',
+    install:'📲 홈 화면에 추가',
     docTitle:'한판고 — 설치 없이 바로 하는 미니게임 | Hanpango Mini Games', langBtn:'EN'
   },
   en: {
@@ -128,6 +140,7 @@ const I18N = {
     navAbout:'About', navPrivacy:'Privacy Policy',
     soon:'Coming soon', soonDesc:'The next game is on the way.',
     daily:'Daily challenge',
+    install:'📲 Add to Home Screen',
     docTitle:'Hanpango — browser mini games, no install | 한판고', langBtn:'한국어'
   }
 };
@@ -184,6 +197,26 @@ document.getElementById('btnLang').onclick = () => { lang = (lang === 'ko') ? 'e
 
 applyLang();
 
+/* ---- 홈 화면에 추가(PWA 설치) ----
+   beforeinstallprompt 를 지원하지 않는 브라우저(iOS Safari 등)에서는 이벤트가 오지 않으므로
+   버튼이 계속 숨겨진 채로 남는다 — 별도 분기 없이 그것이 의도된 동작이다. */
+let deferredPrompt = null;
+const installBar = document.getElementById('installBar');
+const btnInstall = document.getElementById('btnInstall');
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBar.hidden = false;
+});
+btnInstall.onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  installBar.hidden = true;
+};
+window.addEventListener('appinstalled', () => { installBar.hidden = true; });
+
 fetch('/games.json', { cache:'no-cache' })
   .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
   .then(list => { if (Array.isArray(list) && list.length) { games = list; render(); } })
@@ -191,5 +224,10 @@ fetch('/games.json', { cache:'no-cache' })
 })();
 </script>
 
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
 </body>
 </html>
