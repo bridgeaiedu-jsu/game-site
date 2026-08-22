@@ -4,15 +4,176 @@
 <meta charset="utf-8">
 <meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
 <meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>게임 모음 | Mini Games</title>
-<meta name="description" content="설치 없이 브라우저에서 바로 하는 미니 게임 모음. 블록 퍼즐 등 — 한 판 1~3분.">
-<meta http-equiv="refresh" content="0; url=/block-puzzle/">
-<link rel="canonical" href="https://hanpango.com/block-puzzle/">
-<style>body{font-family:system-ui,sans-serif;background:#0f0d2e;color:#f1f0ff;display:grid;place-items:center;min-height:100dvh;margin:0}a{color:#f59e0b;font-size:1.2rem}nav.site-links{margin-top:14px;text-align:center}nav.site-links a{color:#a5a1d8;font-size:.85rem}</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>한판고 — 설치 없이 바로 하는 미니게임 | Hanpango Mini Games</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 미니게임 모음. 블록 퍼즐과 매일 열리는 오늘의 도전 — 한 판 1~3분. Free browser mini games, no install.">
+<meta name="theme-color" content="#1e1b4b">
+<meta property="og:title" content="한판고 — 설치 없이 바로 하는 미니게임">
+<meta property="og:description" content="브라우저에서 바로 하는 무료 미니게임 모음. 블록 퍼즐 · 오늘의 도전.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/">
+<link rel="canonical" href="https://hanpango.com/">
+<!-- ============================================================
+     ADSENSE (1/3) — 승인 후 아래 한 줄의 주석을 풀고 ca-pub-XXXX 를 본인 ID로 교체
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+     ============================================================ -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"한판고","alternateName":"Hanpango","url":"https://hanpango.com/","description":"설치 없이 브라우저에서 바로 하는 무료 미니게임 모음","inLanguage":["ko","en"]}
+</script>
+<style>
+  :root{
+    --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+    --text:#f1f0ff; --muted:#a5a1d8; --accent:#f59e0b; --good:#34d399;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center}
+  .wrap{width:100%;max-width:960px;padding:0 14px}
+  header{width:100%;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:16px 0 6px}
+  h1{font-size:1.25rem;margin:0;letter-spacing:.02em}
+  h1 small{display:block;color:var(--muted);font-weight:400;font-size:.8rem;margin-top:4px;letter-spacing:0}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer}
+  .ibtn:active{transform:scale(.96)}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:8px auto;background:rgba(255,255,255,.02)}
+  .ad-top{height:50px}
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;padding:4px 0 16px}
+  .grid{display:grid;grid-template-columns:1fr;gap:12px;margin:0;padding:0;list-style:none}
+  @media (min-width:520px){ .grid{grid-template-columns:repeat(2,1fr)} }
+  @media (min-width:820px){ .grid{grid-template-columns:repeat(3,1fr)} }
+  .card{display:flex;flex-direction:column;height:100%;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:transform .12s ease,border-color .12s ease}
+  .card:hover{border-color:var(--accent)}
+  .card:active{transform:scale(.985)}
+  .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .badges{position:absolute;left:8px;top:8px;display:flex;gap:6px;flex-wrap:wrap}
+  .badge{background:rgba(15,13,46,.82);border:1px solid var(--line);color:var(--text);font-size:.68rem;border-radius:999px;padding:3px 8px;line-height:1.4}
+  .badge.daily{border-color:var(--accent);color:var(--accent)}
+  .body{padding:11px 13px 13px}
+  .body h2{margin:0 0 4px;font-size:1rem}
+  .body p{margin:0;color:var(--muted);font-size:.8rem;line-height:1.5}
+  .soon{opacity:.45;cursor:default}
+  .soon .thumb{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:2rem}
+  .note{color:var(--muted);font-size:.75rem;text-align:center;margin:14px 0 0}
+  footer{width:100%;max-width:960px;color:var(--muted);font-size:.72rem;padding:10px 14px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+</style>
 </head>
 <body>
-<p><a href="/block-puzzle/">▶ 블록 퍼즐 플레이 / Play Block Puzzle</a></p>
-<nav class="site-links"><a href="/about/">소개 / About</a> · <a href="/privacy/">개인정보처리방침 / Privacy</a></nav>
+
+<div class="wrap">
+  <header>
+    <h1>한판고 · hanpango<small data-i18n="slogan">설치 없이 바로 하는 미니게임</small></h1>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </header>
+
+  <!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+  <div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+  <!-- ADSENSE (3/3) — 이 포털에는 게임오버 화면이 없으므로 (3/3) 슬롯은 두지 않는다.
+       block-puzzle/index.html 의 게임오버 카드에만 존재한다. -->
+
+  <main>
+    <ul class="grid" id="grid"></ul>
+    <noscript>
+      <ul class="grid">
+        <li><a class="card" href="/block-puzzle/"><div class="body"><h2>블록 퍼즐 / Block Puzzle</h2><p>10×10 판에 블록을 놓고 줄을 지우는 퍼즐 · 한 판 1~3분</p></div></a></li>
+      </ul>
+    </noscript>
+    <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
+  </main>
+</div>
+
+<footer>
+  © 2026 한판고 hanpango.com ·
+  <a href="/about/" data-i18n="navAbout">소개</a> ·
+  <a href="/privacy/" data-i18n="navPrivacy">개인정보 처리방침</a>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ======================= i18n (block-puzzle 과 bp.lang 공유) ======================= */
+const I18N = {
+  ko: {
+    slogan:'설치 없이 바로 하는 미니게임',
+    adPlaceholder:'광고 자리 (320×50 / 728×90)',
+    note:'게임은 하나씩 늘려갑니다.',
+    navAbout:'소개', navPrivacy:'개인정보 처리방침',
+    soon:'곧 출시', soonDesc:'다음 게임을 준비하고 있습니다.',
+    daily:'오늘의 도전',
+    docTitle:'한판고 — 설치 없이 바로 하는 미니게임 | Hanpango Mini Games', langBtn:'EN'
+  },
+  en: {
+    slogan:'browser mini games, no install',
+    adPlaceholder:'Ad slot (320×50 / 728×90)',
+    note:'More games are added one at a time.',
+    navAbout:'About', navPrivacy:'Privacy Policy',
+    soon:'Coming soon', soonDesc:'The next game is on the way.',
+    daily:'Daily challenge',
+    docTitle:'Hanpango — browser mini games, no install | 한판고', langBtn:'한국어'
+  }
+};
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k) => I18N[lang][k];
+
+/* fetch 실패(오프라인·file:// 등) 시 쓰는 인라인 폴백 — games.json 과 같은 모양 */
+const FALLBACK = [{
+  id:'block-puzzle', path:'/block-puzzle/',
+  title:{ko:'블록 퍼즐',en:'Block Puzzle'},
+  desc:{ko:'10×10 판에 블록을 놓고 가로·세로 줄을 지우는 퍼즐',en:'Drop blocks on a 10×10 board and clear rows and columns'},
+  thumb:'/block-puzzle/thumb.webp',
+  playtime:{ko:'한 판 1~3분',en:'1–3 min a round'},
+  daily:true, released:'2026-08-22', tags:['puzzle','casual','daily']
+}];
+
+let games = FALLBACK;
+
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function tile(g){
+  const badges = [
+    g.playtime ? `<span class="badge">${esc(g.playtime[lang] || g.playtime.ko)}</span>` : '',
+    g.daily ? `<span class="badge daily">🔥 ${esc(T('daily'))}</span>` : ''
+  ].join('');
+  return `<li><a class="card" href="${esc(g.path)}">
+    <span class="thumb"><img src="${esc(g.thumb)}" alt="${esc(g.title[lang] || g.title.ko)}" width="640" height="640" loading="lazy" decoding="async">
+      <span class="badges">${badges}</span></span>
+    <span class="body"><h2>${esc(g.title[lang] || g.title.ko)}</h2><p>${esc(g.desc[lang] || g.desc.ko)}</p></span>
+  </a></li>`;
+}
+
+function soonTile(){
+  return `<li><div class="card soon"><span class="thumb">🧩</span>
+    <span class="body"><h2 data-soon-title>${esc(T('soon'))}</h2><p data-soon-desc>${esc(T('soonDesc'))}</p></span></div></li>`;
+}
+
+function render(){
+  document.getElementById('grid').innerHTML = games.map(tile).join('') + soonTile();
+}
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  document.getElementById('btnLang').textContent = T('langBtn');
+  localStorage.setItem('bp.lang', lang);
+  render();
+}
+
+document.getElementById('btnLang').onclick = () => { lang = (lang === 'ko') ? 'en' : 'ko'; applyLang(); };
+
+applyLang();
+
+fetch('/games.json', { cache:'no-cache' })
+  .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+  .then(list => { if (Array.isArray(list) && list.length) { games = list; render(); } })
+  .catch(() => { /* 폴백 배열로 이미 렌더돼 있음 — 화면은 그대로 동작한다 */ });
+})();
+</script>
+
 </body>
 </html>

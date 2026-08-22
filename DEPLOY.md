@@ -83,3 +83,11 @@ Sitemap: https://hanpango.com/sitemap.xml
 - 오너가 직접: ①신청(구글 계정·주소) ②**세금 정보 W-8BEN 제출**(미제출 시 30% 원천징수) ③PIN 입력 ④지급 방법 = 은행 송금(전신환): 은행명·SWIFT·계좌번호·영문 예금주 — **외화 수취 가능한 일반 은행 계좌**(카카오/토스뱅크 비권장)
 - 세금(방향만 · 세무사 확인 필요): 해외 광고 수익 = 사업소득 · 사업자등록 후 부가세 영세율 신고 · 다음 해 5월 종합소득세 합산
 - 대안/병행: H5 Games Ads(보상형), 후원 버튼(토스 익명송금 — 승인 불필요), 유료 광고제거(결제 서버 필요)
+
+## 게임 추가 절차 (포털 타일 자동 반영)
+
+1. `<게임id>/index.html` 폴더를 만들어 게임을 넣는다 (정적 1파일 · 외부 의존 0).
+2. 같은 폴더에 `thumb.webp` 를 넣는다 (640×640 정사각 · 150KB 이하).
+3. 루트 `games.json` 배열에 한 줄(객체 1개)을 추가한다 — `id·path·title{ko,en}·desc{ko,en}·thumb·playtime{ko,en}·daily·released·tags`.
+4. `sitemap.xml` 에 `<url><loc>https://hanpango.com/<게임id>/</loc>…</url>` 을 추가한다.
+5. 루트 `index.html` 은 고칠 필요가 없다 — `games.json` 을 읽어 타일을 그린다 (단, JS 없이 보이는 `<noscript>` 목록과 fetch 실패용 폴백 배열은 index.html 안에 있으니 필요하면 함께 갱신한다).
