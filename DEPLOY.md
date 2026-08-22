@@ -90,4 +90,8 @@ Sitemap: https://hanpango.com/sitemap.xml
 2. 같은 폴더에 `thumb.webp` 를 넣는다 (640×640 정사각 · 150KB 이하).
 3. 루트 `games.json` 배열에 한 줄(객체 1개)을 추가한다 — `id·path·title{ko,en}·desc{ko,en}·thumb·playtime{ko,en}·daily·released·tags`.
 4. `sitemap.xml` 에 `<url><loc>https://hanpango.com/<게임id>/</loc>…</url>` 을 추가한다.
-5. 루트 `index.html` 은 고칠 필요가 없다 — `games.json` 을 읽어 타일을 그린다 (단, JS 없이 보이는 `<noscript>` 목록과 fetch 실패용 폴백 배열은 index.html 안에 있으니 필요하면 함께 갱신한다).
+5. ★루트 `index.html` 도 반드시 함께 고친다 — 게임 정보가 **3곳**에 중복되어 있고 셋의 내용이 같아야 한다.
+   - [ ] `games.json` (평소 화면에 쓰이는 원본 데이터)
+   - [ ] `index.html` 의 `FALLBACK` 배열 (games.json 을 못 읽을 때 쓰는 대비책)
+   - [ ] `index.html` 의 `<noscript>` 목록 (자바스크립트가 꺼진 브라우저·크롤러가 보는 화면)
+   세 곳 중 하나라도 빠뜨리면 어떤 방문자에게는 옛 정보가 보인다. 반드시 체크리스트로 확인할 것.
