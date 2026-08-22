@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>블록 퍼즐 — 심심할 때 한 판 | Block Puzzle</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 블록 퍼즐. 10×10 판에 블록을 끌어다 놓고 줄을 지워 점수를 올리세요. 한 판 1~3분, 모바일 최적화. Free block puzzle game — play instantly in your browser.">
+<meta name="theme-color" content="#1e1b4b">
+<meta property="og:title" content="블록 퍼즐 — 심심할 때 한 판 | Block Puzzle">
+<meta property="og:description" content="10×10 판에 블록을 놓고 줄을 지우는 무료 퍼즐. 설치 없이 바로 플레이.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="og.png">
+<link rel="canonical" href="https://YOUR-DOMAIN.vercel.app/block-puzzle/">
+<!-- ============================================================
+     ADSENSE (1/3) — 승인 후 아래 한 줄의 주석을 풀고 ca-pub-XXXX 를 본인 ID로 교체
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+     ============================================================ -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Block Puzzle","alternateName":"블록 퍼즐","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  :root{
+    --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+    --text:#f1f0ff; --muted:#a5a1d8; --accent:#f59e0b; --good:#34d399;
+    --cell:#2b2861; --cell-line:#3d3a80;
+    --c1:#f87171; --c2:#fb923c; --c3:#facc15; --c4:#4ade80; --c5:#38bdf8; --c6:#a78bfa; --c7:#f472b6;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em}
+  h1 small{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:6px}
+  .hdr-btns{display:flex;gap:6px}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:8px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 10px;text-align:center}
+  .score b{display:block;font-size:1.35rem;line-height:1.1}
+  .score span{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:rgba(255,255,255,.02)}
+  .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
+  .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 게임오버 자리 */
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  #board{touch-action:none;border-radius:12px;background:var(--panel);display:block;width:100%;aspect-ratio:1/1}
+  #tray{touch-action:none;width:100%;height:calc(100% * .34);display:block;border-radius:12px;background:var(--panel);aspect-ratio:3/1}
+  .hint{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:rgba(8,6,30,.86);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .card h2{margin:0 0 6px;font-size:1.5rem}
+  .card .big{font-size:2.6rem;font-weight:800;color:var(--accent);line-height:1.1}
+  .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--accent);color:#1a1200}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center}
+  footer a{color:var(--muted)}
+  [data-i18n-hide]{display:none}
+  .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 data-i18n="title">블록 퍼즐 <small data-i18n="subtitle">심심할 때 한 판</small></h1>
+  <div class="hdr-btns">
+    <button class="ibtn" id="btnSound" aria-label="sound">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="score">0</b><span data-i18n="score">점수</span></div>
+  <div class="score"><b id="best">0</b><span data-i18n="best">최고</span></div>
+  <div class="score"><b id="lines">0</b><span data-i18n="lines">지운 줄</span></div>
+</div>
+
+<main>
+  <canvas id="board" aria-label="game board"></canvas>
+  <canvas id="tray" aria-label="pieces"></canvas>
+  <p class="hint" data-i18n="hint">블록을 끌어서 판에 놓으세요. 가로·세로 한 줄이 꽉 차면 사라집니다.</p>
+</main>
+
+<!-- ---- 게임 오버 ---- -->
+<div class="overlay" id="over">
+  <div class="card">
+    <h2 data-i18n="gameOver">게임 오버</h2>
+    <div class="big" id="finalScore">0</div>
+    <div class="new" id="newBest"></div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 게임오버 300×250 자리. 주의: 게임오버 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">점수 공유</button>
+  </div>
+</div>
+
+<!-- ---- 시작 화면 ---- -->
+<div class="overlay show" id="start">
+  <div class="card">
+    <h2 data-i18n="title2">블록 퍼즐</h2>
+    <div class="sub" data-i18n="startSub">10×10 판에 블록을 놓고<br>가로·세로 줄을 지워 점수를 올리세요.<br>한 판 1~3분.</div>
+    <button class="btn primary" id="btnStart" data-i18n="start">시작</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ---- 콘텐츠(검색·광고 정책용 — 게임만 있는 페이지는 AdSense 승인이 잘 안 됨) ---- -->
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">아래 트레이에 나오는 블록 3개를 10×10 판 위로 끌어다 놓습니다. 블록은 회전할 수 없습니다.</p>
+  <p data-i18n="how2">가로 또는 세로 한 줄이 전부 채워지면 그 줄이 사라지고 점수를 얻습니다. 한 번에 여러 줄을 지우면 보너스가 붙습니다.</p>
+  <p data-i18n="how3">남은 블록을 놓을 자리가 없으면 게임이 끝납니다. "다시 하기"로 바로 새 판을 시작할 수 있습니다.</p>
+  <h2 data-i18n="tipsTitle">고득점 팁</h2>
+  <details><summary data-i18n="tip1q">큰 블록부터 처리하세요</summary><p data-i18n="tip1a">3×3 정사각형이나 5칸 일자 블록은 자리가 금방 없어집니다. 트레이에 나오면 먼저 놓을 자리를 확보하세요.</p></details>
+  <details><summary data-i18n="tip2q">가장자리부터 채우세요</summary><p data-i18n="tip2a">판 가운데를 비워두면 어떤 모양이 와도 놓을 수 있습니다. 구석과 변부터 채우는 습관이 오래 버티는 비결입니다.</p></details>
+  <details><summary data-i18n="tip3q">두 줄을 동시에 노리세요</summary><p data-i18n="tip3a">가로 한 줄과 세로 한 줄이 동시에 완성되도록 놓으면 콤보 보너스로 점수가 크게 오릅니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
+  <details><summary data-i18n="faq2q">최고 점수는 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.</p></details>
+  <details><summary data-i18n="faq3q">오프라인에서도 되나요?</summary><p data-i18n="faq3a">한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 Block Puzzle · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ======================= i18n ======================= */
+const I18N = {
+  ko: {
+    title:'블록 퍼즐', subtitle:'심심할 때 한 판', title2:'블록 퍼즐', score:'점수', best:'최고', lines:'지운 줄',
+    hint:'블록을 끌어서 판에 놓으세요. 가로·세로 한 줄이 꽉 차면 사라집니다.',
+    gameOver:'게임 오버', again:'다시 하기', share:'점수 공유', start:'시작',
+    startSub:'10×10 판에 블록을 놓고<br>가로·세로 줄을 지워 점수를 올리세요.<br>한 판 1~3분.',
+    newBest:'🎉 최고 기록 갱신!', finalSub:(l,t)=>`지운 줄 ${l} · 플레이 ${t}`,
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    copied:'점수가 복사됐어요', shareText:(s)=>`블록 퍼즐에서 ${s}점! 한 판 도전해 보세요 👉 `,
+    howTitle:'게임 방법',
+    how1:'아래 트레이에 나오는 블록 3개를 10×10 판 위로 끌어다 놓습니다. 블록은 회전할 수 없습니다.',
+    how2:'가로 또는 세로 한 줄이 전부 채워지면 그 줄이 사라지고 점수를 얻습니다. 한 번에 여러 줄을 지우면 보너스가 붙습니다.',
+    how3:'남은 블록을 놓을 자리가 없으면 게임이 끝납니다. "다시 하기"로 바로 새 판을 시작할 수 있습니다.',
+    tipsTitle:'고득점 팁',
+    tip1q:'큰 블록부터 처리하세요', tip1a:'3×3 정사각형이나 5칸 일자 블록은 자리가 금방 없어집니다. 트레이에 나오면 먼저 놓을 자리를 확보하세요.',
+    tip2q:'가장자리부터 채우세요', tip2a:'판 가운데를 비워두면 어떤 모양이 와도 놓을 수 있습니다. 구석과 변부터 채우는 습관이 오래 버티는 비결입니다.',
+    tip3q:'두 줄을 동시에 노리세요', tip3a:'가로 한 줄과 세로 한 줄이 동시에 완성되도록 놓으면 콤보 보너스로 점수가 크게 오릅니다.',
+    faqTitle:'자주 묻는 질문',
+    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'최고 점수는 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.',
+    faq3q:'오프라인에서도 되나요?', faq3a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
+    footer:'© 2026 Block Puzzle · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    docTitle:'블록 퍼즐 — 심심할 때 한 판 | Block Puzzle', langBtn:'EN'
+  },
+  en: {
+    title:'Block Puzzle', subtitle:'a quick round', title2:'Block Puzzle', score:'Score', best:'Best', lines:'Lines',
+    hint:'Drag blocks onto the board. Fill a full row or column to clear it.',
+    gameOver:'Game Over', again:'Play Again', share:'Share Score', start:'Start',
+    startSub:'Place blocks on a 10×10 board.<br>Clear rows and columns to score.<br>1–3 minutes per round.',
+    newBest:'🎉 New best score!', finalSub:(l,t)=>`${l} lines · ${t} played`,
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    copied:'Score copied', shareText:(s)=>`I scored ${s} in Block Puzzle! Try a round 👉 `,
+    howTitle:'How to Play',
+    how1:'Drag the three blocks from the tray onto the 10×10 board. Blocks cannot be rotated.',
+    how2:'When a row or column is completely filled, it clears and you score. Clearing several lines at once earns a bonus.',
+    how3:'The game ends when none of the remaining blocks fit. Tap "Play Again" to start a fresh round instantly.',
+    tipsTitle:'Tips for High Scores',
+    tip1q:'Deal with big blocks first', tip1a:'3×3 squares and 5-long bars run out of room fast. When one shows up in the tray, make space for it first.',
+    tip2q:'Fill the edges first', tip2a:'Keeping the center open means any shape can still fit. Building from corners and edges is how you survive longer.',
+    tip3q:'Go for double clears', tip3a:'Placing a block that completes a row and a column at the same time gives a combo bonus.',
+    faqTitle:'FAQ',
+    faq1q:'Do I need to install anything?', faq1a:'No. It runs right in your browser. Add it to your home screen to use it like an app.',
+    faq2q:'Where is my best score saved?', faq2a:'Only in this device\'s browser. Nothing is sent to a server.',
+    faq3q:'Does it work offline?', faq3a:'Once loaded, you can keep playing without an internet connection.',
+    footer:'© 2026 Block Puzzle · Privacy: scores are stored only on your device; third-party cookies (e.g. Google) may be used to serve ads.',
+    docTitle:'Block Puzzle — a quick round | 블록 퍼즐', langBtn:'한국어'
+  }
+};
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  document.getElementById('btnLang').textContent = T('langBtn');
+  localStorage.setItem('bp.lang', lang);
+}
+
+/* ======================= 상수·상태 ======================= */
+const N = 10;
+const COLORS = ['#f87171','#fb923c','#facc15','#4ade80','#38bdf8','#a78bfa','#f472b6'];
+// 블록 모양 (회전 없음 — 1010 스타일). 각 항목 = [[r,c],...]
+const SHAPES = [
+  [[0,0]],
+  [[0,0],[0,1]], [[0,0],[1,0]],
+  [[0,0],[0,1],[0,2]], [[0,0],[1,0],[2,0]],
+  [[0,0],[0,1],[0,2],[0,3]], [[0,0],[1,0],[2,0],[3,0]],
+  [[0,0],[0,1],[0,2],[0,3],[0,4]], [[0,0],[1,0],[2,0],[3,0],[4,0]],
+  [[0,0],[0,1],[1,0],[1,1]],
+  [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
+  [[0,0],[1,0],[1,1]], [[0,0],[0,1],[1,1]], [[0,1],[1,0],[1,1]], [[0,0],[0,1],[1,0]],
+  [[0,0],[1,0],[2,0],[2,1],[2,2]], [[0,0],[0,1],[0,2],[1,0],[2,0]],
+  [[0,0],[0,1],[0,2],[1,2],[2,2]], [[0,2],[1,2],[2,0],[2,1],[2,2]],
+  [[0,0],[0,1],[0,2],[1,1]], [[0,1],[1,0],[1,1],[1,2]],
+];
+// 큰 블록 가중치 낮춤 → 체감 난이도 완만(한 판 1~3분 목표)
+const WEIGHTS = SHAPES.map(s => s.length >= 9 ? 0.45 : s.length === 5 ? 0.8 : 1);
+
+let grid, tray, score, best, lines, startTime, over, drag = null, combo = 0;
+best = +localStorage.getItem('bp.best') || 0;
+
+const $ = id => document.getElementById(id);
+const boardC = $('board'), trayC = $('tray');
+const bctx = boardC.getContext('2d'), tctx = trayC.getContext('2d');
+let cell = 30, dpr = 1, boardPx = 300, trayPx = {w:300,h:100};
+
+/* ======================= 사운드(WebAudio · 파일 없음) ======================= */
+let soundOn = localStorage.getItem('bp.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime; o.start(t); g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+
+/* ======================= 레이아웃 ======================= */
+function resize(){
+  dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const rect = boardC.getBoundingClientRect();
+  boardPx = Math.round(rect.width);
+  boardC.width = boardPx * dpr; boardC.height = boardPx * dpr;
+  cell = boardPx / N;
+  const tr = trayC.getBoundingClientRect();
+  trayPx = { w: Math.round(tr.width), h: Math.round(tr.height) };
+  trayC.width = trayPx.w * dpr; trayC.height = trayPx.h * dpr;
+  draw();
+}
+
+/* ======================= 게임 로직 ======================= */
+function pickShape(){
+  const total = WEIGHTS.reduce((a,b)=>a+b,0); let r = Math.random()*total;
+  for (let i=0;i<SHAPES.length;i++){ r -= WEIGHTS[i]; if (r<=0) return i; }
+  return SHAPES.length-1;
+}
+function newPiece(){ const s = pickShape(); return { shape: SHAPES[s], color: COLORS[s % COLORS.length], used:false }; }
+function refillTray(){ tray = [newPiece(), newPiece(), newPiece()]; }
+function canPlace(shape, r, c){
+  for (const [dr,dc] of shape){ const rr=r+dr, cc=c+dc; if (rr<0||cc<0||rr>=N||cc>=N||grid[rr][cc]) return false; }
+  return true;
+}
+function anyFits(){
+  for (const p of tray){ if (p.used) continue;
+    for (let r=0;r<N;r++) for (let c=0;c<N;c++) if (canPlace(p.shape,r,c)) return true; }
+  return false;
+}
+function place(p, r, c){
+  for (const [dr,dc] of p.shape) grid[r+dr][c+dc] = p.color;
+  p.used = true;
+  let gained = p.shape.length;
+  // 줄 지우기
+  const fullR = [], fullC = [];
+  for (let i=0;i<N;i++){
+    if (grid[i].every(Boolean)) fullR.push(i);
+    if (grid.every(row => row[i])) fullC.push(i);
+  }
+  const cleared = fullR.length + fullC.length;
+  if (cleared){
+    for (const i of fullR) grid[i].fill(null);
+    for (const i of fullC) for (let r2=0;r2<N;r2++) grid[r2][i] = null;
+    combo = cleared > 1 ? combo + 1 : 0;
+    gained += 10 * cleared * cleared + combo * 10;   // 다중 줄 제곱 보너스 + 연속 콤보
+    lines += cleared;
+    flash(fullR, fullC);
+    beep(520 + 80*cleared, .09, 'triangle', .06); setTimeout(()=>beep(780 + 80*cleared, .1, 'triangle', .05), 70);
+    vib(cleared > 1 ? [20,30,40] : 20);
+  } else { combo = 0; beep(300, .04); }
+  score += gained;
+  if (tray.every(q => q.used)) refillTray();
+  updateHud();
+  if (!anyFits()) endGame();
+}
+let flashCells = [], flashT = 0;
+function flash(rows, cols){
+  flashCells = [];
+  for (const r of rows) for (let c=0;c<N;c++) flashCells.push([r,c]);
+  for (const c of cols) for (let r=0;r<N;r++) flashCells.push([r,c]);
+  flashT = 1; animate();
+}
+function animate(){ if (flashT<=0){ flashCells=[]; draw(); return; } flashT -= 0.08; draw(); requestAnimationFrame(animate); }
+
+function updateHud(){
+  $('score').textContent = score; $('lines').textContent = lines;
+  if (score > best){ best = score; localStorage.setItem('bp.best', best); }
+  $('best').textContent = best;
+}
+function newGame(){
+  grid = Array.from({length:N}, () => Array(N).fill(null));
+  score = 0; lines = 0; combo = 0; over = false; startTime = Date.now(); drag = null;
+  refillTray(); updateHud(); $('over').classList.remove('show'); draw();
+}
+function fmtTime(ms){ const s = Math.round(ms/1000); return s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`; }
+function endGame(){
+  over = true;
+  const isNew = score >= best && score > 0 && score > (+localStorage.getItem('bp.bestPrev')||0);
+  localStorage.setItem('bp.bestPrev', best);
+  $('finalScore').textContent = score;
+  $('newBest').textContent = isNew ? T('newBest') : '';
+  $('finalSub').textContent = T('finalSub', lines, fmtTime(Date.now()-startTime));
+  beep(220, .25, 'sawtooth', .05); vib([60,40,60]);
+  setTimeout(() => $('over').classList.add('show'), 350);
+}
+
+/* ======================= 그리기 ======================= */
+function rr(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,r) : ctx.rect(x,y,w,h); }
+function drawBlock(ctx, x, y, s, color, alpha=1){
+  ctx.save(); ctx.globalAlpha = alpha;
+  const g = s*0.06;
+  ctx.fillStyle = color; rr(ctx, x+g, y+g, s-2*g, s-2*g, s*0.18); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.22)'; rr(ctx, x+g, y+g, s-2*g, (s-2*g)*0.42, s*0.18); ctx.fill();
+  ctx.restore();
+}
+function draw(){
+  // ---- 보드 ----
+  bctx.setTransform(dpr,0,0,dpr,0,0);
+  bctx.clearRect(0,0,boardPx,boardPx);
+  for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+    const x=c*cell, y=r*cell;
+    bctx.fillStyle = getCSS('--cell'); rr(bctx, x+1, y+1, cell-2, cell-2, cell*0.16); bctx.fill();
+    if (grid && grid[r][c]) drawBlock(bctx, x, y, cell, grid[r][c]);
+  }
+  if (flashCells.length){ bctx.fillStyle = `rgba(255,255,255,${0.75*flashT})`; for (const [r,c] of flashCells){ rr(bctx, c*cell+1, r*cell+1, cell-2, cell-2, cell*0.16); bctx.fill(); } }
+  // 드래그 고스트
+  if (drag && drag.cellR != null){
+    const ok = canPlace(drag.piece.shape, drag.cellR, drag.cellC);
+    for (const [dr,dc] of drag.piece.shape){
+      const r=drag.cellR+dr, c=drag.cellC+dc; if (r<0||c<0||r>=N||c>=N) continue;
+      if (ok) drawBlock(bctx, c*cell, r*cell, cell, drag.piece.color, .45);
+      else { bctx.fillStyle='rgba(248,113,113,.35)'; rr(bctx, c*cell+1, r*cell+1, cell-2, cell-2, cell*0.16); bctx.fill(); }
+    }
+  }
+  // ---- 트레이 ----
+  tctx.setTransform(dpr,0,0,dpr,0,0);
+  tctx.clearRect(0,0,trayPx.w,trayPx.h);
+  if (!tray) return;
+  const slotW = trayPx.w/3, ts = Math.min(slotW/6, trayPx.h/6.2);   // 트레이 블록 셀 크기
+  tray.forEach((p,i) => {
+    if (p.used || (drag && drag.idx===i)) return;
+    const b = bounds(p.shape);
+    const ox = slotW*i + (slotW - (b.w)*ts)/2, oy = (trayPx.h - b.h*ts)/2;
+    for (const [dr,dc] of p.shape) drawBlock(tctx, ox+dc*ts, oy+dr*ts, ts, p.color);
+  });
+  // 드래그 중 블록(손가락 위쪽에 띄움)
+  if (drag){
+    const b = bounds(drag.piece.shape);
+    const fx = drag.x - b.w*cell/2, fy = drag.y - b.h*cell - cell*0.9;   // 손가락보다 위에 그려 가림 방지
+    const rect = boardC.getBoundingClientRect();
+    bctx.save(); bctx.globalAlpha = .92;
+    for (const [dr,dc] of drag.piece.shape) drawBlock(bctx, fx - rect.left + dc*cell, fy - rect.top + dr*cell, cell, drag.piece.color);
+    bctx.restore();
+  }
+}
+function bounds(shape){ let w=0,h=0; for (const [r,c] of shape){ w=Math.max(w,c+1); h=Math.max(h,r+1); } return {w,h}; }
+const cssCache = {}; function getCSS(v){ return cssCache[v] || (cssCache[v] = getComputedStyle(document.documentElement).getPropertyValue(v).trim()); }
+
+/* ======================= 입력(포인터 = 마우스+터치 공통) ======================= */
+function trayHit(x, y){
+  const rect = trayC.getBoundingClientRect(); if (x<rect.left||x>rect.right||y<rect.top||y>rect.bottom) return -1;
+  const i = Math.floor((x-rect.left)/(rect.width/3)); return (tray[i] && !tray[i].used) ? i : -1;
+}
+function onDown(e){
+  if (over || !tray) return;
+  const i = trayHit(e.clientX, e.clientY); if (i<0) return;
+  e.preventDefault();
+  drag = { idx:i, piece:tray[i], x:e.clientX, y:e.clientY, cellR:null, cellC:null, pid:e.pointerId };
+  try{ trayC.setPointerCapture(e.pointerId); }catch(_){}
+  beep(440, .03, 'sine', .03);
+  onMove(e);
+}
+function onMove(e){
+  if (!drag || e.pointerId !== drag.pid) return;
+  e.preventDefault();
+  drag.x = e.clientX; drag.y = e.clientY;
+  const b = bounds(drag.piece.shape), rect = boardC.getBoundingClientRect();
+  // 드래그 블록의 좌상단(손가락 위쪽 오프셋 반영) → 셀 좌표
+  const fx = drag.x - b.w*cell/2 - rect.left, fy = drag.y - b.h*cell - cell*0.9 - rect.top;
+  const c = Math.round(fx/cell), r = Math.round(fy/cell);
+  drag.cellR = (r > -1 && c > -1 && r < N && c < N) ? r : null;
+  drag.cellC = c;
+  draw();
+}
+function onUp(e){
+  if (!drag || e.pointerId !== drag.pid) return;
+  e.preventDefault();
+  const d = drag; drag = null;
+  if (d.cellR != null && canPlace(d.piece.shape, d.cellR, d.cellC)) place(d.piece, d.cellR, d.cellC);
+  else beep(180, .05, 'sine', .03);
+  draw();
+}
+trayC.addEventListener('pointerdown', onDown);
+window.addEventListener('pointermove', onMove, {passive:false});
+window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
+// iOS 사파리 드래그 중 스크롤·새로고침 방지
+document.addEventListener('touchmove', e => { if (drag) e.preventDefault(); }, {passive:false});
+
+/* ======================= UI ======================= */
+$('btnStart').onclick = () => { $('start').classList.remove('show'); newGame(); };
+$('btnAgain').onclick = () => newGame();
+$('btnLang').onclick = () => { lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); if (over) endGame(); };
+$('btnSound').onclick = () => { soundOn = !soundOn; localStorage.setItem('bp.sound', soundOn?'1':'0'); $('btnSound').textContent = soundOn ? '🔊' : '🔇'; if (soundOn) beep(600,.05,'sine',.04); };
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnShare').onclick = async () => {
+  const url = location.href.split('#')[0];
+  const text = T('shareText', score) + url;
+  try{
+    if (navigator.share) await navigator.share({ title: T('docTitle'), text, url });
+    else { await navigator.clipboard.writeText(text); toast(T('copied')); }
+  }catch(_){}
+};
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1600); }
+
+applyLang();
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 150));
+resize();
+$('best').textContent = best;
+})();
+</script>
+</body>
+</html>
