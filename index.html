@@ -72,6 +72,10 @@
   .note{color:var(--muted);font-size:.75rem;text-align:center;margin:14px 0 0}
   footer{width:100%;max-width:960px;color:var(--muted);font-size:.72rem;padding:10px 14px calc(20px + var(--safe-b));text-align:center;line-height:2}
   footer a{color:var(--muted)}
+  /* ---- 후원 QR ---- */
+  .donate-qr{display:block;margin:10px auto;width:240px;height:240px;max-width:70vw;max-height:70vw;background:#fff;border-radius:12px;padding:8px}
+  .donate-sep{margin-top:16px}
+  .donate-link{background:none;border:0;color:var(--muted);font:inherit;font-size:.72rem;cursor:pointer;padding:0;text-decoration:underline}
   /* 홈 화면에 추가 안내 — beforeinstallprompt 를 받은 브라우저에서만 노출된다 */
   .installbar{width:100%;max-width:960px;display:flex;justify-content:center;padding:2px 14px 6px}
   .installbar[hidden]{display:none}
@@ -112,10 +116,22 @@
   <button class="ibtn" id="btnInstall" type="button" data-i18n="install">📲 홈 화면에 추가</button>
 </div>
 
+<!-- ---- 후원(QR) ---- -->
+<div class="overlay" id="donate">
+  <div class="card">
+    <h2 data-i18n="donateTitle">☕ 커피 한 잔</h2>
+    <img class="donate-qr" src="/donate-qr.webp" width="240" height="240"
+         alt="토스 송금 QR 코드 / Toss transfer QR code" decoding="async">
+    <div class="sub" data-i18n="donateHelp">토스·카카오페이·은행 앱 카메라로 스캔하세요 · 금액은 자유입니다.</div>
+    <button class="btn ghost" id="btnDonateClose" data-i18n="close">닫기</button>
+  </div>
+</div>
+
 <footer>
   © 2026 한판고 hanpango.com ·
   <a href="/about/" data-i18n="navAbout">소개</a> ·
   <a href="/privacy/" data-i18n="navPrivacy">개인정보 처리방침</a>
+  <br><button class="donate-link" id="btnDonate" type="button" data-i18n="donate">☕ 후원</button>
 </footer>
 
 <script>
@@ -131,6 +147,8 @@ const I18N = {
     soon:'곧 출시', soonDesc:'다음 게임을 준비하고 있습니다.',
     daily:'오늘의 도전',
     install:'📲 홈 화면에 추가',
+    donate:'☕ 후원', donateTitle:'☕ 커피 한 잔', close:'닫기',
+    donateHelp:'토스·카카오페이·은행 앱 카메라로 스캔하세요 · 금액은 자유입니다.',
     docTitle:'한판고 — 설치 없이 바로 하는 미니게임 | Hanpango Mini Games', langBtn:'EN'
   },
   en: {
@@ -141,6 +159,8 @@ const I18N = {
     soon:'Coming soon', soonDesc:'The next game is on the way.',
     daily:'Daily challenge',
     install:'📲 Add to Home Screen',
+    donate:'☕ Support', donateTitle:'☕ Buy me a coffee', close:'Close',
+    donateHelp:'Scan with Toss, KakaoPay or your bank app · any amount is welcome.',
     docTitle:'Hanpango — browser mini games, no install | 한판고', langBtn:'한국어'
   }
 };
@@ -216,6 +236,14 @@ btnInstall.onclick = async () => {
   installBar.hidden = true;
 };
 window.addEventListener('appinstalled', () => { installBar.hidden = true; });
+
+/* ---- 후원 모달 ---- */
+const dlg = document.getElementById('donate');
+const closeDonate = () => dlg.classList.remove('show');
+document.getElementById('btnDonate').onclick = () => dlg.classList.add('show');
+document.getElementById('btnDonateClose').onclick = closeDonate;
+dlg.addEventListener('click', e => { if (e.target === dlg) closeDonate(); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && dlg.classList.contains('show')) closeDonate(); });
 
 fetch('/games.json', { cache:'no-cache' })
   .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))

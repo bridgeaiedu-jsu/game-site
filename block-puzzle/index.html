@@ -79,6 +79,10 @@
   [data-i18n-hide]{display:none}
   .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
   .toast.show{opacity:1}
+  /* ---- 후원 QR ---- */
+  .donate-qr{display:block;margin:10px auto;width:240px;height:240px;max-width:70vw;max-height:70vw;background:#fff;border-radius:12px;padding:8px}
+  .donate-sep{margin-top:16px}
+  .donate-link{background:none;border:0;color:var(--muted);font:inherit;font-size:.72rem;cursor:pointer;padding:0;text-decoration:underline}
   @media (min-width:720px){ .ad-top{height:90px} }
 </style>
 </head>
@@ -121,6 +125,7 @@
     <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
     <button class="btn ghost" id="btnShare" data-i18n="share">점수 공유</button>
     <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+    <button class="btn ghost donate-sep" id="btnDonate" type="button" data-i18n="donate">☕ 커피 한 잔 후원하기</button>
   </div>
 </div>
 
@@ -132,6 +137,17 @@
     <button class="btn primary" id="btnDaily">오늘의 도전</button>
     <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
     <button class="btn ghost" id="btnStart" data-i18n="start">자유 플레이</button>
+  </div>
+</div>
+
+<!-- ---- 후원(QR) ---- -->
+<div class="overlay" id="donate">
+  <div class="card">
+    <h2 data-i18n="donateTitle">☕ 커피 한 잔</h2>
+    <img class="donate-qr" src="/donate-qr.webp" width="240" height="240"
+         alt="토스 송금 QR 코드 / Toss transfer QR code" decoding="async">
+    <div class="sub" data-i18n="donateHelp">토스·카카오페이·은행 앱 카메라로 스캔하세요 · 금액은 자유입니다.</div>
+    <button class="btn ghost" id="btnDonateClose" data-i18n="close">닫기</button>
   </div>
 </div>
 
@@ -192,6 +208,8 @@ const I18N = {
     faq3q:'오프라인에서도 되나요?', faq3a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
     footer:'© 2026 Block Puzzle · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
     navPrivacy:'개인정보처리방침', navAbout:'소개', home:'🏠 다른 게임',
+    donate:'☕ 커피 한 잔 후원하기', donateTitle:'☕ 커피 한 잔', close:'닫기',
+    donateHelp:'토스·카카오페이·은행 앱 카메라로 스캔하세요 · 금액은 자유입니다.',
     docTitle:'블록 퍼즐 — 심심할 때 한 판 | Block Puzzle', langBtn:'EN'
   },
   en: {
@@ -221,6 +239,8 @@ const I18N = {
     faq3q:'Does it work offline?', faq3a:'Once loaded, you can keep playing without an internet connection.',
     footer:'© 2026 Block Puzzle · Privacy: scores are stored only on your device; third-party cookies (e.g. Google) may be used to serve ads.',
     navPrivacy:'Privacy Policy', navAbout:'About', home:'🏠 More games',
+    donate:'☕ Buy me a coffee', donateTitle:'☕ Buy me a coffee', close:'Close',
+    donateHelp:'Scan with Toss, KakaoPay or your bank app · any amount is welcome.',
     docTitle:'Block Puzzle — a quick round | 블록 퍼즐', langBtn:'한국어'
   }
 };
@@ -521,6 +541,15 @@ $('btnShare').onclick = async () => {
   }catch(_){}
 };
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1600); }
+
+/* ---- 후원 모달 (게임 로직과 무관 — 열기·닫기만) ---- */
+const dlg = $('donate');
+const openDonate = () => dlg.classList.add('show');
+const closeDonate = () => dlg.classList.remove('show');
+$('btnDonate').onclick = openDonate;
+$('btnDonateClose').onclick = closeDonate;
+dlg.addEventListener('click', e => { if (e.target === dlg) closeDonate(); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && dlg.classList.contains('show')) closeDonate(); });
 
 applyLang(); refreshStart();
 window.addEventListener('resize', resize);
