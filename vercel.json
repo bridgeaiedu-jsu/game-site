@@ -1,0 +1,16 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "game-site-one.vercel.app" }],
+      "destination": "https://hanpango.com/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.hanpango.com" }],
+      "destination": "https://hanpango.com/$1",
+      "permanent": true
+    }
+  ]
+}

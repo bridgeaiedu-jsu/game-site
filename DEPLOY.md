@@ -36,20 +36,20 @@ python -m http.server 8765
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://game-site-one.vercel.app/block-puzzle/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://hanpango.com/block-puzzle/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
 </urlset>
 ```
 `robots.txt` (루트):
 ```
 User-agent: *
 Allow: /
-Sitemap: https://game-site-one.vercel.app/sitemap.xml
+Sitemap: https://hanpango.com/sitemap.xml
 ```
 
 ## 3. 네이버 서치어드바이저
 1. https://searchadvisor.naver.com → 네이버 로그인 → **웹마스터 도구 → 사이트 등록**
 2. 소유 확인: **HTML 태그** 방식 → `<meta name="naver-site-verification" content="…">`를 `<head>`에 추가 → 재배포 → 확인
-3. **요청 → 사이트맵 제출**: `https://game-site-one.vercel.app/sitemap.xml`
+3. **요청 → 사이트맵 제출**: `https://hanpango.com/sitemap.xml`
 4. **요청 → 웹 페이지 수집**: 게임 URL 직접 요청
 5. 검증 → **robots.txt** 확인
 
