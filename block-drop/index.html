@@ -37,18 +37,26 @@
        자바스크립트가 이 토큰 값을 읽어 간다(색을 코드에 박지 않기 위해서다).
      ★무지개 7색(--r1 빨 ~ --r7 보)이 색의 원천이고, 블록 7종(--p-*)은 그것을 가리키기만 한다.
        테트로미노마다 색이 고정이라(I=빨 O=주 T=노 S=초 Z=파 J=남 L=보) 색을 구별하기 어려운
-       사람도 모양으로 같은 조각을 알아볼 수 있다. 값은 눈대중이 아니라 대비 실측으로 골랐다
-       — 라이트는 판 바탕 대비 3:1 이상, 다크는 한 단계 밝은 톤으로 같은 기준을 넘긴다. */
+       사람도 모양으로 같은 조각을 알아볼 수 있다.
+     ★채움은 선명한 원색을 쓰고, 흰 바탕에서 블록이 묻히지 않게 하는 일은 **같은 색상의 어두운
+       테두리**(--r1-edge ~ --r7-edge)가 맡는다. 그래서 채움을 어둡게 낮출 필요가 없다.
+       테두리 값은 눈대중이 아니라 실측으로 골랐다 — 판·칸·흰 바탕 어디에 놓여도 3:1 이상이다.
+       다크에서는 반대로 테두리를 밝은 톤으로 바꿔 끼운다(채움은 그대로). */
   :root{
     --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
     --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
     --sig:#ea580c; --sig-ink:#9a3412; --sig-soft:#ffedd5; --on-sig:#111827;
     --good:#15803d;
-    --board:#eef1f5; --cell:#f8fafc; --cell-line:#dfe3ea;
-    --r1:#dc2626; --r2:#9a3412; --r3:#a16207; --r4:#15803d;
-    --r5:#2563eb; --r6:#4338ca; --r7:#9333ea;
+    --board:#f2f4f7; --cell:#fbfcfe; --cell-line:#dfe3ea;
+    --r1:#ef4444; --r2:#f97316; --r3:#facc15; --r4:#22c55e;
+    --r5:#3b82f6; --r6:#5f63f0; --r7:#ae63f8;
+    --r1-edge:#b91c1c; --r2-edge:#c2410c; --r3-edge:#a16207; --r4-edge:#15803d;
+    --r5-edge:#1d4ed8; --r6-edge:#4338ca; --r7-edge:#7e22ce;
     --p-i:var(--r1); --p-o:var(--r2); --p-t:var(--r3); --p-s:var(--r4);
     --p-z:var(--r5); --p-j:var(--r6); --p-l:var(--r7);
+    --p-i-edge:var(--r1-edge); --p-o-edge:var(--r2-edge); --p-t-edge:var(--r3-edge);
+    --p-s-edge:var(--r4-edge); --p-z-edge:var(--r5-edge); --p-j-edge:var(--r6-edge);
+    --p-l-edge:var(--r7-edge);
     --blk-shine:rgba(255,255,255,.28); --blk-shade:rgba(0,0,0,.18);
     --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
     --safe-b:env(safe-area-inset-bottom,0px);
@@ -60,8 +68,8 @@
       --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1200;
       --good:#34d399;
       --board:#1e1b4b; --cell:#2b2861; --cell-line:#3d3a80;
-      --r1:#f87171; --r2:#fb923c; --r3:#facc15; --r4:#4ade80;
-      --r5:#38bdf8; --r6:#818cf8; --r7:#c084fc;
+      --r1-edge:#fecaca; --r2-edge:#fed7aa; --r3-edge:#fef08a; --r4-edge:#bbf7d0;
+      --r5-edge:#bfdbfe; --r6-edge:#c7d2fe; --r7-edge:#e9d5ff;
       --blk-shine:rgba(255,255,255,.22); --blk-shade:rgba(0,0,0,.18);
       --scrim:rgba(8,6,30,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
     }
@@ -410,10 +418,15 @@ function cssVar(name){
     return (gs && typeof gs.getPropertyValue === 'function' ? gs.getPropertyValue(name) : '').trim();
   }catch(_){ return ''; }
 }
-let COLOR = {}, BOARD_BG = '', CELL_BG = '', BLK_SHINE = '', BLK_SHADE = '';
+/* EDGE_OF = 채움 색 → 테두리 색. 그리는 함수는 채움 색만 받으므로, 그 색에 딸린 테두리를
+   여기서 찾아 쓴다(부르는 곳을 하나도 고치지 않으려고 표로 뒀다). */
+let COLOR = {}, EDGE = {}, EDGE_OF = {}, BOARD_BG = '', CELL_BG = '', BLK_SHINE = '', BLK_SHADE = '';
 function readPalette(){
   COLOR = { I:cssVar('--p-i'), J:cssVar('--p-j'), L:cssVar('--p-l'), O:cssVar('--p-o'),
             S:cssVar('--p-s'), T:cssVar('--p-t'), Z:cssVar('--p-z') };
+  EDGE = { I:cssVar('--p-i-edge'), J:cssVar('--p-j-edge'), L:cssVar('--p-l-edge'), O:cssVar('--p-o-edge'),
+           S:cssVar('--p-s-edge'), T:cssVar('--p-t-edge'), Z:cssVar('--p-z-edge') };
+  EDGE_OF = {}; for (const k in COLOR) if (COLOR[k]) EDGE_OF[COLOR[k]] = EDGE[k];
   BOARD_BG = cssVar('--board'); CELL_BG = cssVar('--cell');
   BLK_SHINE = cssVar('--blk-shine'); BLK_SHADE = cssVar('--blk-shade');
 }
@@ -920,6 +933,9 @@ function fit(cv, ctxRef){
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   return { g, w, h };
 }
+/* 한 칸 그리기: 채움 → 위쪽 광택 → 아래쪽 그늘 → 테두리.
+   테두리는 채움과 같은 색상의 어두운 값이라, 흰 바탕에서도 블록의 경계가 또렷하다.
+   굵기는 칸 크기에 비례하되 1.5~2px 안으로 묶는다(작은 화면에서 테두리가 칸을 잡아먹지 않게). */
 function block(g, x, y, s, color){
   g.fillStyle = color;
   g.fillRect(x, y, s, s);
@@ -927,6 +943,12 @@ function block(g, x, y, s, color){
   g.fillRect(x, y, s, Math.max(1, s*0.16));
   g.fillStyle = BLK_SHADE;
   g.fillRect(x, y + s - Math.max(1, s*0.16), s, Math.max(1, s*0.16));
+  const e = EDGE_OF[color];
+  if (e){
+    const lw = Math.max(1.5, Math.min(2, s*0.08));
+    g.strokeStyle = e; g.lineWidth = lw;
+    g.strokeRect(x + lw/2, y + lw/2, s - lw, s - lw);
+  }
 }
 function draw(){
   const { g, w, h } = fit(boardCv);
