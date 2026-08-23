@@ -7,7 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>블록 낙하 — 떨어지는 블록 쌓기 퍼즐 | Block Drop</title>
 <meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 블록 낙하 게임. 떨어지는 7가지 블록을 돌리고 옮겨 가로줄을 지우세요. 매일 새로 열리는 오늘의 도전, 한 판 3~8분, 모바일 최적화. Free falling-block puzzle with a daily challenge — play instantly in your browser.">
-<meta name="theme-color" content="#1e1b4b">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
 <meta property="og:title" content="블록 낙하 — 떨어지는 블록 쌓기 퍼즐 | Block Drop">
 <meta property="og:description" content="떨어지는 블록을 돌려 가로줄을 지우는 무료 퍼즐. 설치 없이 바로 플레이.">
 <meta property="og:type" content="website">
@@ -28,11 +29,36 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"블록 낙하","alternateName":"Block Drop","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
 </script>
 <style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     이 게임의 시그니처는 주황이다(--sig). 글자로 쓸 때는 더 어두운 --sig-ink 를 쓴다.
+     ★블록 7색(--p-i ~ --p-z)·판 바탕은 캔버스가 쓴다. 캔버스는 var() 를 못 읽으므로
+       자바스크립트가 이 토큰 값을 읽어 간다(색을 코드에 박지 않기 위해서다). */
   :root{
-    --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
-    --text:#f1f0ff; --muted:#a5a1d8; --accent:#f59e0b; --good:#34d399;
-    --cell:#2b2861; --cell-line:#3d3a80;
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#ea580c; --sig-ink:#9a3412; --sig-soft:#ffedd5; --on-sig:#111827;
+    --good:#15803d;
+    --board:#eef1f5; --cell:#f8fafc; --cell-line:#dfe3ea;
+    --p-i:#0284c7; --p-j:#2563eb; --p-l:#ea580c; --p-o:#ca8a04;
+    --p-s:#16a34a; --p-t:#7c3aed; --p-z:#dc2626;
+    --blk-shine:rgba(255,255,255,.28); --blk-shade:rgba(0,0,0,.18);
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
     --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1200;
+      --good:#34d399;
+      --board:#1e1b4b; --cell:#2b2861; --cell-line:#3d3a80;
+      --p-i:#38bdf8; --p-j:#60a5fa; --p-l:#fb923c; --p-o:#facc15;
+      --p-s:#4ade80; --p-t:#a78bfa; --p-z:#f87171;
+      --blk-shine:rgba(255,255,255,.22); --blk-shade:rgba(0,0,0,.18);
+      --scrim:rgba(8,6,30,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
@@ -48,7 +74,7 @@
   .score b{display:block;font-size:1.2rem;line-height:1.1}
   .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
   /* ---- 광고 슬롯 ---- */
-  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:rgba(255,255,255,.02)}
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
   .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
   .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 게임오버 자리 */
   .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
@@ -56,7 +82,7 @@
   /* ---- 판 + 좌우 패널 ---- */
   .play{display:flex;align-items:flex-start;justify-content:center;gap:8px;width:100%}
   #board{height:min(54dvh,520px);aspect-ratio:1/2;background:var(--panel);border-radius:12px;touch-action:none;display:block;flex:0 0 auto}
-  #board:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  #board:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
   .side{display:flex;flex-direction:column;gap:6px;flex:0 0 auto;width:clamp(56px,17vw,84px)}
   .mini{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px 4px}
   .mini h2{margin:0 0 3px;font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;text-align:center;font-weight:600}
@@ -69,15 +95,15 @@
   .pad button.wide{font-size:.72rem;font-weight:700;letter-spacing:.04em}
   .hint{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
   /* ---- 오버레이 ---- */
-  .overlay{position:fixed;inset:0;background:rgba(8,6,30,.86);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
   .overlay.show{display:flex}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow)}
   .card h2{margin:0 0 6px;font-size:1.5rem}
-  .card .big{font-size:2.6rem;font-weight:800;color:var(--accent);line-height:1.1}
+  .card .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1}
   .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
   .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
   .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
-  .btn.primary{background:var(--accent);color:#1a1200}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
   .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
   .btn:active{transform:scale(.98)}
   /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
@@ -145,7 +171,7 @@
   <div class="card">
     <h2 id="overTitle" data-i18n="gameOver">게임 오버</h2>
     <div class="big" id="finalScore">0</div>
-    <div class="new" id="streakLine" style="color:var(--accent)"></div>
+    <div class="new" id="streakLine" style="color:var(--sig-ink)"></div>
     <div class="new" id="newBest"></div>
     <div class="sub" id="finalSub"></div>
     <!-- ADSENSE (3/3) — 게임오버 300×250 자리. 주의: 게임오버 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
@@ -368,7 +394,28 @@ const SHAPES = {
   Z: [[1,1,0],[0,1,1],[0,0,0]]
 };
 const TYPES = ['I','J','L','O','S','T','Z'];
-const COLOR = { I:'#38bdf8', J:'#60a5fa', L:'#fb923c', O:'#facc15', S:'#4ade80', T:'#a78bfa', Z:'#f87171' };
+/* 블록 색·판 바탕은 CSS 토큰에서 읽어 온다 — 색 값을 코드에 박지 않는다.
+   캔버스는 var() 를 해석하지 못하므로 계산된 값을 읽어야 한다.
+   ★브라우저가 아닌 환경(검증 하네스)에서는 스타일을 읽을 수 없다 — 그때는 빈 값이 되고,
+     그 환경에서는 어차피 그리지 않으므로 문제가 없다(색을 코드에 박는 대신 택한 길이다). */
+function cssVar(name){
+  try{
+    const gs = getComputedStyle(document.documentElement);
+    return (gs && typeof gs.getPropertyValue === 'function' ? gs.getPropertyValue(name) : '').trim();
+  }catch(_){ return ''; }
+}
+let COLOR = {}, BOARD_BG = '', CELL_BG = '', BLK_SHINE = '', BLK_SHADE = '';
+function readPalette(){
+  COLOR = { I:cssVar('--p-i'), J:cssVar('--p-j'), L:cssVar('--p-l'), O:cssVar('--p-o'),
+            S:cssVar('--p-s'), T:cssVar('--p-t'), Z:cssVar('--p-z') };
+  BOARD_BG = cssVar('--board'); CELL_BG = cssVar('--cell');
+  BLK_SHINE = cssVar('--blk-shine'); BLK_SHADE = cssVar('--blk-shade');
+}
+readPalette();
+/* 시스템 테마가 바뀌면 토큰 값도 바뀐다 — 다시 읽고 한 번 더 그린다. */
+if (typeof matchMedia === 'function'){
+  try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readPalette(); draw(); }); }catch(_){}
+}
 /* 저장·복원용 숫자 코드(0=빈 칸). 색이 아니라 종류를 저장한다. */
 const CODE = { I:1, J:2, L:3, O:4, S:5, T:6, Z:7 };
 const CODE_TYPE = [null,'I','J','L','O','S','T','Z'];
@@ -870,18 +917,18 @@ function fit(cv, ctxRef){
 function block(g, x, y, s, color){
   g.fillStyle = color;
   g.fillRect(x, y, s, s);
-  g.fillStyle = 'rgba(255,255,255,.22)';
+  g.fillStyle = BLK_SHINE;
   g.fillRect(x, y, s, Math.max(1, s*0.16));
-  g.fillStyle = 'rgba(0,0,0,.18)';
+  g.fillStyle = BLK_SHADE;
   g.fillRect(x, y + s - Math.max(1, s*0.16), s, Math.max(1, s*0.16));
 }
 function draw(){
   const { g, w, h } = fit(boardCv);
   bctx = g;
   const s = w / COLS;
-  g.fillStyle = '#1e1b4b'; g.fillRect(0, 0, w, h);
+  g.fillStyle = BOARD_BG; g.fillRect(0, 0, w, h);
   /* 빈 칸 바탕 */
-  g.fillStyle = '#2b2861';
+  g.fillStyle = CELL_BG;
   for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){
     if (!board || !board[r][c]) g.fillRect(c*s + 1, r*s + 1, s-2, s-2);
   }

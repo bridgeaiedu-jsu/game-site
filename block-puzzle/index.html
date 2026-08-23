@@ -7,7 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>블록 퍼즐 — 심심할 때 한 판 | Block Puzzle</title>
 <meta name="description" content="설치 없이 브라우저에서 바로 하는 블록 퍼즐. 매일 새 퍼즐이 열리는 오늘의 도전, 10×10 판에 블록을 놓고 줄을 지워 점수를 올리세요. 한 판 1~3분, 모바일 최적화. Free block puzzle with a daily challenge — play instantly in your browser.">
-<meta name="theme-color" content="#1e1b4b">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
 <meta property="og:title" content="블록 퍼즐 — 심심할 때 한 판 | Block Puzzle">
 <meta property="og:description" content="10×10 판에 블록을 놓고 줄을 지우는 무료 퍼즐. 설치 없이 바로 플레이.">
 <meta property="og:type" content="website">
@@ -28,12 +29,34 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"Block Puzzle","alternateName":"블록 퍼즐","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
 </script>
 <style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     이 게임의 시그니처는 코발트다(--sig). 글자로 쓸 때는 더 어두운 --sig-ink 를 쓴다.
+     ★블록 7색(--c1 ~ --c7)·빈 칸(--cell)은 캔버스가 쓴다 — 자바스크립트가 이 값을 읽어 간다. */
   :root{
-    --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
-    --text:#f1f0ff; --muted:#a5a1d8; --accent:#f59e0b; --good:#34d399;
-    --cell:#2b2861; --cell-line:#3d3a80;
-    --c1:#f87171; --c2:#fb923c; --c3:#facc15; --c4:#4ade80; --c5:#38bdf8; --c6:#a78bfa; --c7:#f472b6;
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --good:#15803d;
+    --cell:#eef1f5; --cell-line:#dfe3ea;
+    --c1:#dc2626; --c2:#ea580c; --c3:#ca8a04; --c4:#16a34a; --c5:#0284c7; --c6:#7c3aed; --c7:#db2777;
+    --blk-shine:rgba(255,255,255,.30); --bad-fill:rgba(220,38,38,.28); --flash-rgb:17,24,39;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --kakao:#FEE500; --kakao-ink:#191919; --qr-bg:#ffffff;
     --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1200;
+      --good:#34d399;
+      --cell:#2b2861; --cell-line:#3d3a80;
+      --c1:#f87171; --c2:#fb923c; --c3:#facc15; --c4:#4ade80; --c5:#38bdf8; --c6:#a78bfa; --c7:#f472b6;
+      --blk-shine:rgba(255,255,255,.22); --bad-fill:rgba(248,113,113,.35); --flash-rgb:255,255,255;
+      --scrim:rgba(8,6,30,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
@@ -49,7 +72,7 @@
   .score b{display:block;font-size:1.35rem;line-height:1.1}
   .score span{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
   /* ---- 광고 슬롯 ---- */
-  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:rgba(255,255,255,.02)}
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
   .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
   .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 게임오버 자리 */
   .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
@@ -58,15 +81,15 @@
   #tray{touch-action:none;width:100%;height:calc(100% * .34);display:block;border-radius:12px;background:var(--panel);aspect-ratio:3/1}
   .hint{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
   /* ---- 오버레이 ---- */
-  .overlay{position:fixed;inset:0;background:rgba(8,6,30,.86);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
   .overlay.show{display:flex}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow)}
   .card h2{margin:0 0 6px;font-size:1.5rem}
-  .card .big{font-size:2.6rem;font-weight:800;color:var(--accent);line-height:1.1}
+  .card .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1}
   .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
   .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
   .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
-  .btn.primary{background:var(--accent);color:#1a1200}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
   .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
   .btn:active{transform:scale(.98)}
   /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
@@ -80,10 +103,10 @@
   .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
   .toast.show{opacity:1}
   /* ---- 후원 QR ---- */
-  .donate-link-btn{background:#FEE500;color:#191919;text-align:center;text-decoration:none;box-sizing:border-box}
+  .donate-link-btn{background:var(--kakao);color:var(--kakao-ink);text-align:center;text-decoration:none;box-sizing:border-box}
   /* PC(정밀 포인터): 카카오페이 송금 링크는 모바일 전용(PC 는 404) — 버튼·힌트 숨김, QR 만 */
   @media (hover:hover) and (pointer:fine){.donate-link-btn,.donate-hint{display:none}}
-  .donate-qr{display:block;margin:10px auto;width:240px;height:240px;max-width:70vw;max-height:70vw;background:#fff;border-radius:12px;padding:8px}
+  .donate-qr{display:block;margin:10px auto;width:240px;height:240px;max-width:70vw;max-height:70vw;background:var(--qr-bg);border-radius:12px;padding:8px}
   .donate-sep{margin-top:16px}
   .donate-link{background:none;border:0;color:var(--muted);font:inherit;font-size:.72rem;cursor:pointer;padding:0;text-decoration:underline}
   @media (min-width:720px){ .ad-top{height:90px} }
@@ -120,7 +143,7 @@
   <div class="card">
     <h2 id="overTitle" data-i18n="gameOver">게임 오버</h2>
     <div class="big" id="finalScore">0</div>
-    <div class="new" id="streakLine" style="color:var(--accent)"></div>
+    <div class="new" id="streakLine" style="color:var(--sig-ink)"></div>
     <div class="new" id="newBest"></div>
     <div class="sub" id="finalSub"></div>
     <!-- ADSENSE (3/3) — 게임오버 300×250 자리. 주의: 게임오버 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
@@ -263,7 +286,8 @@ function applyLang(){
 
 /* ======================= 상수·상태 ======================= */
 const N = 10;
-const COLORS = ['#f87171','#fb923c','#facc15','#4ade80','#38bdf8','#a78bfa','#f472b6'];
+/* 조각 색은 CSS 토큰 이름만 갖고 있고, 실제 값은 그릴 때 읽어 온다(캔버스는 var() 를 못 읽는다). */
+const COLORS = ['--c1','--c2','--c3','--c4','--c5','--c6','--c7'];
 // 블록 모양 (회전 없음 — 1010 스타일). 각 항목 = [[r,c],...]
 const SHAPES = [
   [[0,0]],
@@ -333,15 +357,19 @@ function bumpStreak(){
   const n = st.last === today ? (st.n||1) : st.last === yest ? (st.n||0)+1 : 1;
   localStorage.setItem('bp.streak', JSON.stringify({ last: today, n })); return n;
 }
-const EMO = { '#f87171':'🟥','#fb923c':'🟧','#facc15':'🟨','#4ade80':'🟩','#38bdf8':'🟦','#a78bfa':'🟪','#f472b6':'🟪' };
-const boardEmoji = () => grid.map(row => row.map(c => c ? (EMO[c]||'🟦') : '⬛').join('')).join('\n');
+/* 공유 문구의 색 이모지 — 조각 색과 짝을 맞춘다. 색 값은 테마마다 다르므로
+   표를 코드에 박지 않고 토큰 순서대로 만든다(처음 쓸 때 한 번 만들어 둔다). */
+const EMO_ORDER = ['🟥','🟧','🟨','🟩','🟦','🟪','🟪'];
+let _emo = null;
+const emoMap = () => _emo || (_emo = Object.fromEntries(COLORS.map((t, i) => [getCSS(t), EMO_ORDER[i]])));
+const boardEmoji = () => grid.map(row => row.map(c => c ? (emoMap()[c]||'🟦') : '⬛').join('')).join('\n');
 
 function pickShape(){
   const total = WEIGHTS.reduce((a,b)=>a+b,0); let r = rng()*total;
   for (let i=0;i<SHAPES.length;i++){ r -= WEIGHTS[i]; if (r<=0) return i; }
   return SHAPES.length-1;
 }
-function newPiece(){ const s = pickShape(); return { shape: SHAPES[s], color: COLORS[s % COLORS.length], used:false }; }
+function newPiece(){ const s = pickShape(); return { shape: SHAPES[s], color: getCSS(COLORS[s % COLORS.length]), used:false }; }
 function refillTray(){ tray = [newPiece(), newPiece(), newPiece()]; }
 function canPlace(shape, r, c){
   for (const [dr,dc] of shape){ const rr=r+dr, cc=c+dc; if (rr<0||cc<0||rr>=N||cc>=N||grid[rr][cc]) return false; }
@@ -443,7 +471,7 @@ function drawBlock(ctx, x, y, s, color, alpha=1){
   ctx.save(); ctx.globalAlpha = alpha;
   const g = s*0.06;
   ctx.fillStyle = color; rr(ctx, x+g, y+g, s-2*g, s-2*g, s*0.18); ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,.22)'; rr(ctx, x+g, y+g, s-2*g, (s-2*g)*0.42, s*0.18); ctx.fill();
+  ctx.fillStyle = getCSS('--blk-shine'); rr(ctx, x+g, y+g, s-2*g, (s-2*g)*0.42, s*0.18); ctx.fill();
   ctx.restore();
 }
 function draw(){
@@ -455,14 +483,14 @@ function draw(){
     bctx.fillStyle = getCSS('--cell'); rr(bctx, x+1, y+1, cell-2, cell-2, cell*0.16); bctx.fill();
     if (grid && grid[r][c]) drawBlock(bctx, x, y, cell, grid[r][c]);
   }
-  if (flashCells.length){ bctx.fillStyle = `rgba(255,255,255,${0.75*flashT})`; for (const [r,c] of flashCells){ rr(bctx, c*cell+1, r*cell+1, cell-2, cell-2, cell*0.16); bctx.fill(); } }
+  if (flashCells.length){ bctx.fillStyle = `rgba(${getCSS('--flash-rgb')},${0.75*flashT})`; for (const [r,c] of flashCells){ rr(bctx, c*cell+1, r*cell+1, cell-2, cell-2, cell*0.16); bctx.fill(); } }
   // 드래그 고스트
   if (drag && drag.cellR != null){
     const ok = canPlace(drag.piece.shape, drag.cellR, drag.cellC);
     for (const [dr,dc] of drag.piece.shape){
       const r=drag.cellR+dr, c=drag.cellC+dc; if (r<0||c<0||r>=N||c>=N) continue;
       if (ok) drawBlock(bctx, c*cell, r*cell, cell, drag.piece.color, .45);
-      else { bctx.fillStyle='rgba(248,113,113,.35)'; rr(bctx, c*cell+1, r*cell+1, cell-2, cell-2, cell*0.16); bctx.fill(); }
+      else { bctx.fillStyle=getCSS('--bad-fill'); rr(bctx, c*cell+1, r*cell+1, cell-2, cell-2, cell*0.16); bctx.fill(); }
     }
   }
   // ---- 트레이 ----
