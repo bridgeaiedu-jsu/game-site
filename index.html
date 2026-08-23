@@ -129,6 +129,12 @@
           <span class="body"><h2>블록 낙하 / Block Drop</h2>
             <p>떨어지는 블록을 돌려 가로줄을 지우는 낙하 퍼즐<br>Rotate the falling blocks and clear horizontal lines</p></span>
         </a></li>
+        <li><a class="card" href="/word/">
+          <span class="thumb"><img src="/word/thumb.webp" alt="오늘의 낱말 / Daily Word" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 2~5분 / 2–5 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>오늘의 낱말 / Daily Word</h2>
+            <p>두 글자 낱말을 자음·모음 여섯 칸으로 맞히는 한글 퍼즐<br>Guess a two-syllable Korean word from its letters in six tries</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -214,6 +220,13 @@ const FALLBACK = [{
   thumb:'/block-drop/thumb.webp',
   playtime:{ko:'한 판 3~8분',en:'3–8 min a round'},
   daily:true, released:'2026-08-23', tags:['puzzle','arcade','casual','daily']
+},{
+  id:'word', path:'/word/',
+  title:{ko:'오늘의 낱말',en:'Daily Word'},
+  desc:{ko:'두 글자 낱말을 자음·모음 여섯 칸으로 맞히는 한글 퍼즐',en:'Guess a two-syllable Korean word from its letters in six tries'},
+  thumb:'/word/thumb.webp',
+  playtime:{ko:'한 판 2~5분',en:'2–5 min a round'},
+  daily:true, released:'2026-08-23', tags:['puzzle','word','korean','daily']
 }];
 
 let games = FALLBACK;

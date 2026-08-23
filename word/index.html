@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오늘의 낱말 — 한글 단어 맞추기 | Daily Word</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 한글 단어 맞추기 게임. 두 글자 낱말을 자음·모음 여섯 칸으로 여섯 번 안에 맞혀 보세요. 매일 자정 새 낱말이 열리고 전 세계가 같은 문제를 풉니다. Free Korean word-guess game with a daily puzzle — guess the two-syllable word in six tries.">
+<meta name="theme-color" content="#122018">
+<meta property="og:title" content="오늘의 낱말 — 한글 단어 맞추기 | Daily Word">
+<meta property="og:description" content="두 글자 낱말을 자음·모음 여섯 칸으로 여섯 번 안에 맞히는 무료 한글 퍼즐. 설치 없이 바로 플레이.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/word/">
+<link rel="canonical" href="https://hanpango.com/word/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ============================================================
+     ADSENSE (1/3) — 승인 후 아래 한 줄의 주석을 풀고 ca-pub-XXXX 를 본인 ID로 교체
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+     ============================================================ -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"오늘의 낱말","alternateName":"Daily Word","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  :root{
+    --bg:#0b1410; --panel:#122018; --panel2:#1b2f24; --line:#274534;
+    --text:#eefaf3; --muted:#9dbdaa; --accent:#22c55e; --warn:#eab308;
+    --tile:#1b2f24; --tile-line:#2c4d3a;
+    --hit:#22c55e;        /* 정확 — 자리도 자모도 맞음 */
+    --near:#eab308;       /* 위치 다름 — 자모는 있으나 자리가 다름 */
+    --miss:#3f5147;       /* 없음 */
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em}
+  h1 small{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:6px}
+  .hdr-btns{display:flex;gap:6px}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer}
+  .ibtn:active{transform:scale(.96)}
+  .ibtn[disabled]{opacity:.5;cursor:default}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:rgba(255,255,255,.02)}
+  .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
+  .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 결과 화면 자리 */
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:10px}
+  /* ---- 보드 ---- */
+  #board{display:grid;gap:6px;width:100%;max-width:400px}
+  .brow{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+  .brow.split{position:relative}
+  .cell{aspect-ratio:1/1.15;display:flex;align-items:center;justify-content:center;
+        background:var(--tile);border:2px solid var(--tile-line);border-radius:8px;
+        font-size:clamp(1rem,5.4vw,1.6rem);font-weight:700;line-height:1;user-select:none}
+  .cell.c3{margin-right:8px}                      /* 첫 글자와 둘째 글자 사이를 벌린다 */
+  .cell.filled{border-color:var(--muted)}
+  .cell.empty-jong{color:var(--muted);font-weight:400}
+  .cell.hit{background:var(--hit);border-color:var(--hit);color:#06240f}
+  .cell.near{background:var(--near);border-color:var(--near);color:#2a2100}
+  .cell.miss{background:var(--miss);border-color:var(--miss);color:#cfe0d6}
+  .brow.shake{animation:shake .4s}
+  @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}
+                   30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
+  /* ---- 자모 키보드 ---- */
+  .kb{display:flex;flex-direction:column;gap:6px;width:100%;max-width:460px}
+  .krow{display:flex;gap:4px;justify-content:center}
+  .kb button{flex:1 1 0;min-width:0;background:var(--panel2);border:1px solid var(--line);color:var(--text);
+             border-radius:7px;padding:12px 0;font-size:clamp(.85rem,3.6vw,1.05rem);font-weight:600;
+             cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  .kb button:active{background:var(--line)}
+  .kb button.wide{flex:1.6 1 0;font-size:.78rem;letter-spacing:.02em}
+  .kb button.hit{background:var(--hit);border-color:var(--hit);color:#06240f}
+  .kb button.near{background:var(--near);border-color:var(--near);color:#2a2100}
+  .kb button.miss{background:var(--miss);border-color:var(--miss);color:#8fa79a}
+  .kb button.on{outline:2px solid var(--accent);outline-offset:1px}
+  .hint{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
+  .legend{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;color:var(--muted);font-size:.72rem;margin:0}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:rgba(4,12,8,.86);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5);max-height:92dvh;overflow:auto}
+  .card h2{margin:0 0 6px;font-size:1.5rem}
+  .card .big{font-size:2.2rem;font-weight:800;color:var(--accent);line-height:1.15}
+  .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card .new{color:var(--accent);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .card .lead{text-align:left;color:var(--muted);font-size:.85rem;line-height:1.6}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--accent);color:#03210e}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[disabled]{opacity:.55;cursor:default}
+  /* ---- 통계 ---- */
+  .stat-row{display:flex;gap:6px;margin:6px 0 10px}
+  .stat{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:6px 2px}
+  .stat b{display:block;font-size:1.25rem;line-height:1.15}
+  .stat span{font-size:.6rem;color:var(--muted);letter-spacing:.04em}
+  .dist{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+  .dist div{display:flex;align-items:center;gap:6px;font-size:.76rem;color:var(--muted)}
+  .dist i{font-style:normal;width:1em;text-align:right}
+  .dist u{text-decoration:none;background:var(--miss);border-radius:4px;padding:1px 6px;color:var(--text);min-width:1.6em;text-align:right}
+  .dist u.cur{background:var(--accent);color:#03210e;font-weight:700}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  section.content table{width:100%;border-collapse:collapse;margin:6px 0;font-size:.82rem}
+  section.content th,section.content td{border:1px solid var(--line);padding:5px 8px;text-align:left}
+  section.content th{color:var(--text);background:var(--panel)}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  /* 화면낭독기 전용 — 눈에는 안 보이지만 낭독기는 읽는다(display:none 이면 안 읽힌다) */
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">오늘의 낱말</span> <small id="subtitle" data-i18n="subtitle">두 글자 낱말 맞추기</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 다른 게임</a>
+    <button class="ibtn" id="btnHelp" aria-label="how to play">?</button>
+    <button class="ibtn" id="btnStats" aria-label="statistics">📊</button>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<main>
+  <div id="board" role="grid" aria-label="board"></div>
+  <p class="legend">
+    <span><i style="background:var(--hit)"></i><span data-i18n="legHit">정확</span></span>
+    <span><i style="background:var(--near)"></i><span data-i18n="legNear">위치 다름</span></span>
+    <span><i style="background:var(--miss)"></i><span data-i18n="legMiss">없음</span></span>
+    <span data-i18n="legDot">· = 받침 없음</span>
+  </p>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <div class="kb" id="kb"></div>
+  <p class="hint" data-i18n="hint">두벌식 자판 그대로 입력 · Enter 제출 · Backspace 지우기</p>
+</main>
+
+<!-- ---- 결과 ---- -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card">
+    <h2 id="overTitle" data-i18n="lose">아쉽네요</h2>
+    <div class="big" id="answerLine"></div>
+    <div class="new" id="streakLine"></div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnShare" data-i18n="share">결과 공유</button>
+    <button class="btn ghost" id="btnAgain" data-i18n="playFree">자유 모드 한 판</button>
+    <button class="btn ghost" id="btnStats2" data-i18n="statsBtn">통계 보기</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- ---- 통계 ---- -->
+<div class="overlay" id="stats" role="dialog" aria-modal="true" aria-labelledby="statsTitle">
+  <div class="card">
+    <h2 id="statsTitle" data-i18n="statsTitle">통계</h2>
+    <div class="stat-row">
+      <div class="stat"><b id="stPlayed">0</b><span data-i18n="stPlayed">플레이</span></div>
+      <div class="stat"><b id="stWin">0%</b><span data-i18n="stWin">승률</span></div>
+      <div class="stat"><b id="stStreak">0</b><span data-i18n="stStreak">연속</span></div>
+      <div class="stat"><b id="stMax">0</b><span data-i18n="stMax">최고 연속</span></div>
+    </div>
+    <div class="sub" data-i18n="distTitle">시도 분포</div>
+    <div class="dist" id="dist"></div>
+    <button class="btn primary" id="btnStatsClose" data-i18n="close">닫기</button>
+  </div>
+</div>
+
+<!-- ---- 도움말 ---- -->
+<!-- ★도움말은 시작 창보다 위에 떠야 한다 — 첫 방문에 둘 다 열리는데 마크업 순서상 시작 창이
+     나중에 그려져 도움말을 덮어 버린다(z-index 로 순서를 못박는다). -->
+<div class="overlay" id="help" role="dialog" aria-modal="true" aria-labelledby="helpTitle" style="z-index:11">
+  <div class="card">
+    <h2 id="helpTitle" data-i18n="helpTitle">게임 방법</h2>
+    <div class="lead">
+      <p data-i18n="helpP1">두 글자 낱말을 여섯 번 안에 맞히는 놀이입니다. 낱말은 자음과 모음으로 풀어 여섯 칸에 놓입니다. 한 글자당 첫소리·가운뎃소리·받침 세 칸이고, 받침이 없으면 가운데 점(·)으로 표시됩니다.</p>
+      <p data-i18n="helpP2">칸 색이 힌트입니다. 초록은 그 자리에 그 자모가 정확히 있다는 뜻이고, 노랑은 낱말에 있기는 하지만 자리가 다르다는 뜻이며, 회색은 낱말에 없다는 뜻입니다. 받침 없음(·)도 자리가 맞으면 초록이 됩니다.</p>
+      <p data-i18n="helpP3">입력은 평소 쓰는 두벌식 자판 그대로입니다. 컴퓨터에서는 한/영 상태와 상관없이 그냥 치면 되고, 휴대전화에서는 화면 자판을 누르세요. 쌍자음은 ⇧를 누른 뒤 칩니다. Enter로 제출하고 Backspace로 지웁니다.</p>
+      <p data-i18n="helpP4">오늘의 낱말은 매일 자정에 새로 열리고 전 세계가 같은 낱말을 풉니다. 하루 한 번만 도전할 수 있고, 창을 닫아도 하던 판이 그대로 이어집니다.</p>
+    </div>
+    <button class="btn primary" id="btnHelpClose" data-i18n="close">닫기</button>
+  </div>
+</div>
+
+<!-- ---- 시작 화면 ---- -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card">
+    <h2 id="startTitle" data-i18n="title2">오늘의 낱말</h2>
+    <div class="sub" data-i18n="startSub">두 글자 낱말을 자음·모음 여섯 칸으로<br>여섯 번 안에 맞혀 보세요.<br>한 판 2~5분.</div>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnFree" data-i18n="freeMode">자유 모드</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ---- 콘텐츠(검색·광고 정책용) ---- -->
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">오늘의 낱말은 두 글자로 된 우리말 낱말 하나를 여섯 번 안에 알아맞히는 놀이입니다. 낱말은 글자 그대로가 아니라 자음과 모음으로 풀어서 여섯 칸에 놓입니다. 한 글자는 첫소리(초성)·가운뎃소리(중성)·받침(종성) 세 칸을 차지하고, 받침이 없는 글자는 그 자리를 가운데 점(·)으로 표시합니다. 예를 들어 '바다'는 ㅂ·ㅏ·(없음)·ㄷ·ㅏ·(없음) 여섯 칸이 됩니다.</p>
+  <p data-i18n="how2">한 번 제출할 때마다 여섯 칸의 색이 바뀝니다. 초록은 그 자리에 그 자모가 정확히 놓였다는 뜻이고, 노랑은 그 자모가 낱말 어딘가에 있지만 자리는 다르다는 뜻이며, 회색은 그 자모가 낱말에 아예 없다는 뜻입니다. 같은 자모가 여러 번 나올 때는 정답에 들어 있는 개수만큼만 색이 칠해집니다. 받침 없음(·)도 하나의 표시로 다뤄서 자리가 맞으면 초록이 되지만, 다른 자리에 있다는 노랑 힌트로는 쓰이지 않습니다.</p>
+  <p data-i18n="how3">입력은 평소 쓰는 두벌식 자판을 그대로 씁니다. 컴퓨터에서는 한/영 상태와 상관없이 자판을 누르면 글자가 만들어지고, 겹받침이나 이중모음도 평소처럼 두 번 눌러 만듭니다. 예를 들어 ㅗ 다음에 ㅏ를 누르면 ㅘ가 되고, ㅂ 다음에 ㅅ을 누르면 받침 ㅄ이 됩니다. 휴대전화에서는 화면 아래 자판을 누르고, 쌍자음은 ⇧를 먼저 누른 뒤 칩니다.</p>
+  <p data-i18n="how4">제출한 낱말이 낱말 목록에 없으면 판이 흔들리며 알려 주고 시도 횟수는 줄지 않습니다. 목록은 국립국어원이 공개한 어휘 자료에서 뽑은 두 글자 낱말 약 1만 2천 개이고, 정답으로 나오는 낱말은 그중에서도 일상에서 자주 쓰는 두 글자 명사 약 2천 개입니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 낱말이 열립니다. 전 세계 모든 사람이 같은 날에 같은 낱말을 풀고, 하루 한 번만 도전할 수 있습니다. 중간에 창을 닫아도 하던 판이 그대로 이어지며 처음부터 다시 시작되지는 않습니다. 결과는 정답을 드러내지 않는 색 이모지로 공유할 수 있어 친구와 같은 문제를 두고 견줘 볼 수 있습니다. 연속으로 성공하면 🔥 연속 기록이 쌓입니다. 낱말을 더 풀고 싶으면 자유 모드에서 횟수 제한 없이 즐기세요.</p>
+  <h2 data-i18n="tipsTitle">잘 맞히는 요령</h2>
+  <details><summary data-i18n="tip1q">첫 낱말은 모음이 흔한 것으로 시작하세요</summary><p data-i18n="tip1a">ㅏ·ㅓ·ㅗ·ㅜ·ㅣ 같은 기본 모음은 많은 낱말에 들어 있습니다. 첫 시도에서 흔한 모음 두 개와 흔한 자음 서너 개를 한꺼번에 시험하면 남은 다섯 번이 훨씬 편해집니다.</p></details>
+  <details><summary data-i18n="tip2q">받침 칸을 먼저 좁히세요</summary><p data-i18n="tip2a">받침 자리는 '없음(·)'일 때도 많습니다. 받침이 없는 낱말을 한 번 넣어 보면 두 받침 칸이 한꺼번에 초록이나 회색으로 갈려서 남은 경우의 수가 크게 줄어듭니다.</p></details>
+  <details><summary data-i18n="tip3q">노란 자모의 자리를 옮겨 가며 확인하세요</summary><p data-i18n="tip3a">노랑은 '있지만 자리가 다르다'는 뜻입니다. 같은 자모를 다음 시도에서 다른 칸에 넣어 보면 한 번에 자리를 확정할 수 있습니다. 첫소리 자리에 있던 자음이 사실은 받침일 때도 많습니다.</p></details>
+  <details><summary data-i18n="tip4q">키보드 색을 보고 남은 자모를 세어 보세요</summary><p data-i18n="tip4a">자판의 자모도 시도할 때마다 색이 쌓입니다. 회색으로 꺼진 자모를 빼고 남은 것만 놓고 생각하면 다섯 번째·여섯 번째 시도에서 헛수고를 줄일 수 있습니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
+  <details><summary data-i18n="faq2q">기록은 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.</p></details>
+  <details><summary data-i18n="faq3q">낱말은 어디서 가져왔나요?</summary><p data-i18n="faq3a">국립국어원이 공공누리 제1유형으로 공개한 '한국어 학습용 어휘 목록'과 '현대 국어 사용 빈도 조사' 자료에서 두 글자 낱말만 뽑아 썼습니다. 두 자료에 함께 실린 낱말만 정답 후보로 삼았습니다.</p></details>
+  <details><summary data-i18n="faq4q">오프라인에서도 되나요?</summary><p data-i18n="faq4a">한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 오늘의 낱말 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <div style="margin-top:4px" data-i18n="dataCredit">단어 자료: 국립국어원(공공누리 제1유형)</div>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ======================= i18n ======================= */
+const I18N = {
+  ko: {
+    title:'오늘의 낱말', subtitle:'두 글자 낱말 맞추기', title2:'오늘의 낱말',
+    hint:'두벌식 자판 그대로 입력 · Enter 제출 · Backspace 지우기',
+    legHit:'정확', legNear:'위치 다름', legMiss:'없음', legDot:'· = 받침 없음',
+    startSub:'두 글자 낱말을 자음·모음 여섯 칸으로<br>여섯 번 안에 맞혀 보세요.<br>한 판 2~5분.',
+    daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
+    dailyHint:'매일 새 낱말 · 전 세계 같은 문제 · 하루 한 번', dailyHintDone:'오늘 도전 완료 — 내일 새 낱말이 열립니다',
+    freeMode:'자유 모드', playFree:'자유 모드 한 판', share:'결과 공유', statsBtn:'통계 보기', close:'닫기',
+    win:'맞혔어요!', lose:'아쉽네요',
+    answerWas:(w)=>`정답은 ${w}`,
+    triesLine:(n)=>`${n}번 만에 맞혔습니다`, triesFail:'여섯 번 모두 쓰셨습니다',
+    streak:(n)=>`🔥 ${n}일 연속 성공`,
+    notInList:'목록에 없는 낱말이에요', tooShort:'두 글자를 다 채워 주세요',
+    preparing:'낱말을 준비하는 중…',
+    staleTitle:'오늘의 도전이 다른 곳에서 시작됐어요',
+    staleSub:(n)=>`이 판은 지난 도전 #${n} 이라 여기서 만료됐습니다. 기록은 남지 않고 연속 기록도 그대로입니다. 오늘의 도전은 새로 연 탭에서 이어 하세요.`,
+    forkTitle:'같은 판이 다른 탭에서 진행 중이에요',
+    forkSub:(n)=>`오늘의 도전 #${n} 을 다른 탭에서 이미 이어 가고 있습니다. 같은 판을 두 곳에서 따로 진행하면 한쪽 기록이 통째로 사라지므로, 이 탭의 판은 여기서 만료됐습니다. 진행 중인 탭에서 이어 하세요.`,
+    statsTitle:'통계', stPlayed:'플레이', stWin:'승률', stStreak:'연속', stMax:'최고 연속', distTitle:'시도 분포',
+    copied:'결과가 복사됐어요',
+    dailyShare:(n,t)=>`🟩 한판고 오늘의 낱말 #${n} ${t}/6\n`,
+    freeShare:(t)=>`🟩 한판고 오늘의 낱말 (자유 모드) ${t}/6\n`,
+    helpTitle:'게임 방법',
+    helpP1:'두 글자 낱말을 여섯 번 안에 맞히는 놀이입니다. 낱말은 자음과 모음으로 풀어 여섯 칸에 놓입니다. 한 글자당 첫소리·가운뎃소리·받침 세 칸이고, 받침이 없으면 가운데 점(·)으로 표시됩니다.',
+    helpP2:'칸 색이 힌트입니다. 초록은 그 자리에 그 자모가 정확히 있다는 뜻이고, 노랑은 낱말에 있기는 하지만 자리가 다르다는 뜻이며, 회색은 낱말에 없다는 뜻입니다. 받침 없음(·)도 자리가 맞으면 초록이 됩니다.',
+    helpP3:'입력은 평소 쓰는 두벌식 자판 그대로입니다. 컴퓨터에서는 한/영 상태와 상관없이 그냥 치면 되고, 휴대전화에서는 화면 자판을 누르세요. 쌍자음은 ⇧를 누른 뒤 칩니다. Enter로 제출하고 Backspace로 지웁니다.',
+    helpP4:'오늘의 낱말은 매일 자정에 새로 열리고 전 세계가 같은 낱말을 풉니다. 하루 한 번만 도전할 수 있고, 창을 닫아도 하던 판이 그대로 이어집니다.',
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    howTitle:'게임 방법', dailyTitle:'오늘의 도전', tipsTitle:'잘 맞히는 요령', faqTitle:'자주 묻는 질문',
+    how1:"오늘의 낱말은 두 글자로 된 우리말 낱말 하나를 여섯 번 안에 알아맞히는 놀이입니다. 낱말은 글자 그대로가 아니라 자음과 모음으로 풀어서 여섯 칸에 놓입니다. 한 글자는 첫소리(초성)·가운뎃소리(중성)·받침(종성) 세 칸을 차지하고, 받침이 없는 글자는 그 자리를 가운데 점(·)으로 표시합니다. 예를 들어 '바다'는 ㅂ·ㅏ·(없음)·ㄷ·ㅏ·(없음) 여섯 칸이 됩니다.",
+    how2:"한 번 제출할 때마다 여섯 칸의 색이 바뀝니다. 초록은 그 자리에 그 자모가 정확히 놓였다는 뜻이고, 노랑은 그 자모가 낱말 어딘가에 있지만 자리는 다르다는 뜻이며, 회색은 그 자모가 낱말에 아예 없다는 뜻입니다. 같은 자모가 여러 번 나올 때는 정답에 들어 있는 개수만큼만 색이 칠해집니다. 받침 없음(·)도 하나의 표시로 다뤄서 자리가 맞으면 초록이 되지만, 다른 자리에 있다는 노랑 힌트로는 쓰이지 않습니다.",
+    how3:"입력은 평소 쓰는 두벌식 자판을 그대로 씁니다. 컴퓨터에서는 한/영 상태와 상관없이 자판을 누르면 글자가 만들어지고, 겹받침이나 이중모음도 평소처럼 두 번 눌러 만듭니다. 예를 들어 ㅗ 다음에 ㅏ를 누르면 ㅘ가 되고, ㅂ 다음에 ㅅ을 누르면 받침 ㅄ이 됩니다. 휴대전화에서는 화면 아래 자판을 누르고, 쌍자음은 ⇧를 먼저 누른 뒤 칩니다.",
+    how4:"제출한 낱말이 낱말 목록에 없으면 판이 흔들리며 알려 주고 시도 횟수는 줄지 않습니다. 목록은 국립국어원이 공개한 어휘 자료에서 뽑은 두 글자 낱말 약 1만 2천 개이고, 정답으로 나오는 낱말은 그중에서도 일상에서 자주 쓰는 두 글자 명사 약 2천 개입니다.",
+    dailyDesc:"매일 자정에 새 낱말이 열립니다. 전 세계 모든 사람이 같은 날에 같은 낱말을 풀고, 하루 한 번만 도전할 수 있습니다. 중간에 창을 닫아도 하던 판이 그대로 이어지며 처음부터 다시 시작되지는 않습니다. 결과는 정답을 드러내지 않는 색 이모지로 공유할 수 있어 친구와 같은 문제를 두고 견줘 볼 수 있습니다. 연속으로 성공하면 🔥 연속 기록이 쌓입니다. 낱말을 더 풀고 싶으면 자유 모드에서 횟수 제한 없이 즐기세요.",
+    tip1q:'첫 낱말은 모음이 흔한 것으로 시작하세요',
+    tip1a:'ㅏ·ㅓ·ㅗ·ㅜ·ㅣ 같은 기본 모음은 많은 낱말에 들어 있습니다. 첫 시도에서 흔한 모음 두 개와 흔한 자음 서너 개를 한꺼번에 시험하면 남은 다섯 번이 훨씬 편해집니다.',
+    tip2q:'받침 칸을 먼저 좁히세요',
+    tip2a:"받침 자리는 '없음(·)'일 때도 많습니다. 받침이 없는 낱말을 한 번 넣어 보면 두 받침 칸이 한꺼번에 초록이나 회색으로 갈려서 남은 경우의 수가 크게 줄어듭니다.",
+    tip3q:'노란 자모의 자리를 옮겨 가며 확인하세요',
+    tip3a:"노랑은 '있지만 자리가 다르다'는 뜻입니다. 같은 자모를 다음 시도에서 다른 칸에 넣어 보면 한 번에 자리를 확정할 수 있습니다. 첫소리 자리에 있던 자음이 사실은 받침일 때도 많습니다.",
+    tip4q:'키보드 색을 보고 남은 자모를 세어 보세요',
+    tip4a:'자판의 자모도 시도할 때마다 색이 쌓입니다. 회색으로 꺼진 자모를 빼고 남은 것만 놓고 생각하면 다섯 번째·여섯 번째 시도에서 헛수고를 줄일 수 있습니다.',
+    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'기록은 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.',
+    faq3q:'낱말은 어디서 가져왔나요?', faq3a:"국립국어원이 공공누리 제1유형으로 공개한 '한국어 학습용 어휘 목록'과 '현대 국어 사용 빈도 조사' 자료에서 두 글자 낱말만 뽑아 썼습니다. 두 자료에 함께 실린 낱말만 정답 후보로 삼았습니다.",
+    faq4q:'오프라인에서도 되나요?', faq4a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
+    footer:'© 2026 오늘의 낱말 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    dataCredit:'단어 자료: 국립국어원(공공누리 제1유형)',
+    navPrivacy:'개인정보처리방침', navAbout:'소개', home:'🏠 다른 게임',
+    docTitle:'오늘의 낱말 — 한글 단어 맞추기 | Daily Word', langBtn:'EN',
+    ariaBoard:'낱말 판, 6줄 6칸', ariaKb:'자모 자판',
+    ariaSoundOn:'소리 끄기 (지금 켜짐)', ariaSoundOff:'소리 켜기 (지금 꺼짐)',
+    ariaLang:'언어 바꾸기 — English 로', ariaHome:'다른 게임 목록으로',
+    ariaHelp:'게임 방법 열기', ariaStats:'통계 열기',
+    ariaEnter:'제출', ariaBack:'한 글자 지우기', ariaShift:'쌍자음 전환',
+    cellName:(r,c)=>`${r}행 ${c}칸`,
+    slotCho:'첫소리', slotJung:'가운뎃소리', slotJong:'받침',
+    stateHit:'정확', stateNear:'위치 다름', stateMiss:'없음', stateEmpty:'빈칸',
+    jongNone:'받침 없음',
+    srRow:(n,s)=>`${n}번째 시도: ${s}`,
+    srWin:(n)=>`정답입니다. ${n}번 만에 맞혔습니다.`,
+    srLose:(w)=>`실패했습니다. 정답은 ${w} 입니다.`,
+    srTyped:(w)=>`입력: ${w}`
+  },
+  en: {
+    title:'Daily Word', subtitle:'guess the two-syllable word', title2:'Daily Word',
+    hint:'Type with the standard Korean keyboard · Enter to submit · Backspace to erase',
+    legHit:'exact', legNear:'wrong spot', legMiss:'not in word', legDot:'· = no final consonant',
+    startSub:'Guess a two-syllable Korean word<br>in six tries, letter by letter.<br>2–5 minutes a round.',
+    daily:(n)=>`Daily Challenge #${n}`, dailyDone:(n)=>`Daily #${n} · See result`,
+    dailyHint:'New word every day · same word for everyone · one try a day', dailyHintDone:'Done for today — a new word opens tomorrow',
+    freeMode:'Free Play', playFree:'Play a free round', share:'Share Result', statsBtn:'Statistics', close:'Close',
+    win:'You got it!', lose:'Out of tries',
+    answerWas:(w)=>`The word was ${w}`,
+    triesLine:(n)=>`Solved in ${n} ${n>1?'tries':'try'}`, triesFail:'All six tries used',
+    streak:(n)=>`🔥 ${n}-day streak`,
+    notInList:'Not in the word list', tooShort:'Fill in both syllables',
+    preparing:'Getting today’s word ready…',
+    staleTitle:'Today’s challenge was started elsewhere',
+    staleSub:(n)=>`This run is the previous challenge #${n}, so it has expired here. Nothing is recorded and your streak is unchanged. Continue today’s challenge in the tab you just opened.`,
+    forkTitle:'This board is already running in another tab',
+    forkSub:(n)=>`Daily Challenge #${n} is already being played in another tab. Playing the same board in two places would wipe out one side’s progress, so this tab’s run has expired here. Carry on in the other tab.`,
+    statsTitle:'Statistics', stPlayed:'played', stWin:'win %', stStreak:'streak', stMax:'best streak', distTitle:'Guess distribution',
+    copied:'Result copied',
+    dailyShare:(n,t)=>`🟩 Hanpango Daily Word #${n} ${t}/6\n`,
+    freeShare:(t)=>`🟩 Hanpango Daily Word (free play) ${t}/6\n`,
+    helpTitle:'How to Play',
+    helpP1:'Guess a two-syllable Korean word in six tries. The word is broken into letters across six tiles — each syllable takes three tiles: first consonant, vowel, and final consonant. A syllable with no final consonant shows a middle dot (·).',
+    helpP2:'Tile colours are the hints. Green means that letter is exactly right in that spot, yellow means the letter is in the word but somewhere else, and grey means it is not in the word at all. "No final consonant" (·) also turns green when it is in the right spot.',
+    helpP3:'Type with the standard two-set Korean keyboard. On a computer it works whether or not your input method is set to Korean. On a phone, use the on-screen keyboard and press ⇧ for double consonants. Enter submits, Backspace erases.',
+    helpP4:'A new word opens every midnight and everyone in the world gets the same one. You get one try per day, and closing the tab does not lose your run.',
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    howTitle:'How to Play', dailyTitle:'Daily Challenge', tipsTitle:'Tips', faqTitle:'FAQ',
+    how1:'Daily Word asks you to find one two-syllable Korean word in six tries. The word is not shown as syllables but broken into individual letters across six tiles. Each syllable takes three tiles — the first consonant, the vowel, and the final consonant — and a syllable without a final consonant shows a middle dot (·). For example 바다 becomes ㅂ · ㅏ · (none) · ㄷ · ㅏ · (none).',
+    how2:'Every submission colours the six tiles. Green means the letter is exactly right in that spot, yellow means the letter is in the word but in a different spot, and grey means the letter is not in the word. When the same letter appears more than once, only as many tiles are coloured as the answer actually contains. "No final consonant" (·) counts as its own symbol: it turns green in the right spot, but never produces a yellow hint.',
+    how3:'Input uses the standard two-set Korean keyboard. On a computer the keys work regardless of your input method, and compound vowels and double final consonants are typed the usual way — ㅗ then ㅏ gives ㅘ, and ㅂ then ㅅ gives the final ㅄ. On a phone, tap the on-screen keyboard and press ⇧ first for double consonants.',
+    how4:'If the word you submit is not in the word list, the row shakes and the try is not counted. The list holds about 12,000 two-syllable words drawn from public vocabulary data published by the National Institute of Korean Language, and the answers come from about 2,000 everyday two-syllable nouns within it.',
+    dailyDesc:'A new word opens every midnight. Everyone in the world solves the same word on the same day, and you get one try per day. Closing the tab does not restart your run — it resumes where you left off. Share your result as coloured squares that never reveal the word, so friends can compare on the same puzzle. Solve on consecutive days to build a 🔥 streak. If you want more, Free Play has no daily limit.',
+    tip1q:'Open with common vowels',
+    tip1a:'Vowels like ㅏ, ㅓ, ㅗ, ㅜ and ㅣ appear in a great many words. Testing two common vowels and three or four common consonants in your first guess makes the remaining five tries far easier.',
+    tip2q:'Pin down the final-consonant tiles first',
+    tip2a:'Final-consonant slots are often empty. Guessing a word with no final consonants splits both of those tiles into green or grey at once, which cuts the remaining possibilities sharply.',
+    tip3q:'Move your yellow letters around',
+    tip3a:'Yellow means the letter is in the word but in the wrong spot. Placing the same letter in a different tile next time usually settles its position in one go — a consonant you tried as a first sound is often a final consonant instead.',
+    tip4q:'Read the keyboard colours',
+    tip4a:'The keyboard letters build up colour as you play. Ruling out the grey letters and thinking only about what is left saves wasted guesses on the fifth and sixth tries.',
+    faq1q:'Do I need to install anything?', faq1a:'No. It runs straight in your browser. Add it to your home screen to use it like an app.',
+    faq2q:'Where are my results stored?', faq2a:'Only in the browser on the device you are using. Nothing is sent to a server.',
+    faq3q:'Where do the words come from?', faq3a:'From two public datasets published by the National Institute of Korean Language under KOGL Type 1 — the Korean Learner Vocabulary List and the Modern Korean Usage Frequency Survey. Only two-syllable entries listed in both were used as answers.',
+    faq4q:'Does it work offline?', faq4a:'Yes, once the page has been loaded once.',
+    footer:'© 2026 Daily Word · Privacy: results are stored on your device only; third-party cookies such as Google’s may be used to serve ads.',
+    dataCredit:'Word data: National Institute of Korean Language (KOGL Type 1)',
+    navPrivacy:'Privacy Policy', navAbout:'About', home:'🏠 More games',
+    docTitle:'Daily Word — Korean word guessing game | 오늘의 낱말', langBtn:'한국어',
+    ariaBoard:'word board, 6 rows of 6 tiles', ariaKb:'letter keyboard',
+    ariaSoundOn:'Turn sound off (currently on)', ariaSoundOff:'Turn sound on (currently off)',
+    ariaLang:'Change language — to Korean', ariaHome:'Back to the game list',
+    ariaHelp:'Open how to play', ariaStats:'Open statistics',
+    ariaEnter:'Submit', ariaBack:'Delete one letter', ariaShift:'Double consonant shift',
+    cellName:(r,c)=>`row ${r}, tile ${c}`,
+    slotCho:'first consonant', slotJung:'vowel', slotJong:'final consonant',
+    stateHit:'exact', stateNear:'wrong spot', stateMiss:'not in word', stateEmpty:'empty',
+    jongNone:'no final consonant',
+    srRow:(n,s)=>`Try ${n}: ${s}`,
+    srWin:(n)=>`Correct. Solved in ${n} ${n>1?'tries':'try'}.`,
+    srLose:(w)=>`Out of tries. The word was ${w}.`,
+    srTyped:(w)=>`typed: ${w}`
+  }
+};
+/* 언어 키는 사이트 공통(bp.lang) — 포털·다른 게임과 공유한다. */
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+
+/* ======================= 한글 자모 ======================= */
+/* 유니코드 한글 음절은 (초성×21 + 중성)×28 + 종성 으로 만들어진다.
+   그래서 음절 하나를 초성·중성·종성 세 칸으로 정확히 되돌릴 수 있다. */
+const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const JUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+const JONG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const BASE = 0xAC00, LAST = 0xD7A3;
+const EMPTY = '·';                       /* 받침 없음을 나타내는 표시 — 한 칸을 차지한다 */
+
+const isSyllable = ch => { const c = ch.charCodeAt(0); return c >= BASE && c <= LAST; };
+/* 음절 하나 → [초성, 중성, 종성] (종성 없으면 '') */
+function splitSyllable(ch){
+  const c = ch.charCodeAt(0) - BASE;
+  return [CHO[Math.floor(c / 588)], JUNG[Math.floor((c % 588) / 28)], JONG[c % 28]];
+}
+/* [초성, 중성, 종성] → 음절 하나. 되돌릴 수 없는 조합이면 null */
+function joinSyllable(cho, jung, jong){
+  const i = CHO.indexOf(cho), j = JUNG.indexOf(jung), k = JONG.indexOf(jong || '');
+  if (i < 0 || j < 0 || k < 0) return null;
+  return String.fromCharCode(BASE + (i * 21 + j) * 28 + k);
+}
+/* 두 글자 낱말 → 여섯 칸. 받침이 없는 칸은 EMPTY 로 채운다(빈칸도 한 칸이다). */
+function toSlots(word){
+  const out = [];
+  for (const ch of word){
+    const [a, b, c] = splitSyllable(ch);
+    out.push(a, b, c || EMPTY);
+  }
+  return out;
+}
+const fromSlots = s => (joinSyllable(s[0], s[1], s[2] === EMPTY ? '' : s[2]) || '') +
+                       (joinSyllable(s[3], s[4], s[5] === EMPTY ? '' : s[5]) || '');
+
+/* ======================= 두벌식 조합기 ======================= */
+/* 자판에서 자모가 하나씩 들어오면 음절로 합친다. 겹받침·이중모음은 두 번 눌러 만든다. */
+const PAIR_JUNG = { 'ㅗㅏ':'ㅘ','ㅗㅐ':'ㅙ','ㅗㅣ':'ㅚ','ㅜㅓ':'ㅝ','ㅜㅔ':'ㅞ','ㅜㅣ':'ㅟ','ㅡㅣ':'ㅢ' };
+const PAIR_JONG = { 'ㄱㅅ':'ㄳ','ㄴㅈ':'ㄵ','ㄴㅎ':'ㄶ','ㄹㄱ':'ㄺ','ㄹㅁ':'ㄻ','ㄹㅂ':'ㄼ','ㄹㅅ':'ㄽ',
+                    'ㄹㅌ':'ㄾ','ㄹㅍ':'ㄿ','ㄹㅎ':'ㅀ','ㅂㅅ':'ㅄ' };
+/* 겹받침·이중모음을 다시 둘로 나누는 표(지우기·받침 넘김에 쓴다) */
+const SPLIT_JUNG = {}, SPLIT_JONG = {};
+for (const k in PAIR_JUNG) SPLIT_JUNG[PAIR_JUNG[k]] = [k[0], k[1]];
+for (const k in PAIR_JONG) SPLIT_JONG[PAIR_JONG[k]] = [k[0], k[1]];
+const isVowel = j => JUNG.indexOf(j) >= 0;
+const canBeJong = j => JONG.indexOf(j) > 0;
+const canBeCho = j => CHO.indexOf(j) >= 0;
+
+/* 조합 상태: 확정된 음절들(done) + 지금 만들고 있는 것(cho/jung/jong) */
+let comp = { done: [], cho:'', jung:'', jong:'' };
+/* 화면에 보일 '지금까지 친 글자' — 음절이 아직 덜 만들어졌으면 자모만 보여 준다 */
+function typedText(){
+  let s = comp.done.join('');
+  if (comp.cho && comp.jung){
+    const one = joinSyllable(comp.cho, comp.jung, comp.jong);
+    s += one !== null ? one : (comp.cho + comp.jung + comp.jong);
+  } else if (comp.cho){ s += comp.cho; }
+  return s;
+}
+const compCount = () => comp.done.length + ((comp.cho || comp.jung) ? 1 : 0);
+
+function commitCur(){
+  if (!comp.cho || !comp.jung) return false;
+  const one = joinSyllable(comp.cho, comp.jung, comp.jong);
+  if (one === null) return false;
+  comp.done.push(one);
+  comp.cho = comp.jung = comp.jong = '';
+  return true;
+}
+/* 자모 한 개를 넣는다. 두 글자를 이미 다 만들었으면 더 받지 않는다. */
+function feed(j){
+  if (comp.done.length >= 2 && !(comp.cho || comp.jung)) return false;
+  if (isVowel(j)){
+    if (comp.jong){
+      /* 받침이 있는데 모음이 왔다 — 받침의 마지막 자모가 다음 글자의 첫소리로 넘어간다.
+         ★이때 글자가 하나 늘어난다: 확정된 글자가 이미 있으면 두 글자를 넘겨 버리므로 막는다. */
+      if (comp.done.length >= 1) return false;
+      let moved = comp.jong, keep = '';
+      if (SPLIT_JONG[comp.jong]){ keep = SPLIT_JONG[comp.jong][0]; moved = SPLIT_JONG[comp.jong][1]; }
+      if (!canBeCho(moved)) return false;
+      const prev = joinSyllable(comp.cho, comp.jung, keep);
+      if (prev === null) return false;
+      comp.done.push(prev);
+      comp.cho = moved; comp.jung = j; comp.jong = '';
+      return true;
+    }
+    if (comp.jung){
+      const pair = PAIR_JUNG[comp.jung + j];
+      if (pair){ comp.jung = pair; return true; }
+      return false;                       /* 이어 붙일 수 없는 모음 — 무시한다 */
+    }
+    if (!comp.cho) return false;           /* 첫소리 없이 모음만 오는 입력은 받지 않는다 */
+    comp.jung = j;
+    return true;
+  }
+  /* 자음 */
+  if (!comp.cho && !comp.jung){ if (!canBeCho(j)) return false; comp.cho = j; return true; }
+  if (comp.cho && !comp.jung){ comp.cho = j; return true; }   /* 첫소리만 있는데 자음이 또 오면 바꿔 준다 */
+  if (!comp.jong){
+    if (canBeJong(j)){ comp.jong = j; return true; }
+    if (comp.done.length >= 1) return false;
+    if (!commitCur()) return false;
+    comp.cho = j; return true;
+  }
+  const pair = PAIR_JONG[comp.jong + j];
+  if (pair){ comp.jong = pair; return true; }
+  if (comp.done.length >= 1) return false;               /* 두 글자를 넘길 수 없다 */
+  if (!commitCur()) return false;
+  comp.cho = j; return true;
+}
+function backspace(){
+  if (comp.jong){
+    comp.jong = SPLIT_JONG[comp.jong] ? SPLIT_JONG[comp.jong][0] : '';
+    return true;
+  }
+  if (comp.jung){
+    comp.jung = SPLIT_JUNG[comp.jung] ? SPLIT_JUNG[comp.jung][0] : '';
+    return true;
+  }
+  if (comp.cho){ comp.cho = ''; return true; }
+  if (comp.done.length){
+    const last = comp.done.pop();
+    const [a, b, c] = splitSyllable(last);
+    comp.cho = a; comp.jung = b; comp.jong = c;
+    return backspace();
+  }
+  return false;
+}
+const clearComp = () => { comp = { done: [], cho:'', jung:'', jong:'' }; };
+
+/* ======================= 채점 ======================= */
+/* 자리마다 정확(hit)·위치 다름(near)·없음(miss) 을 매긴다.
+   ★같은 자모가 여러 번 나오면 정답에 든 개수만큼만 색이 칠해진다 — 정확을 먼저 배정하고
+     남은 것만 위치 다름으로 준다(그러지 않으면 없는 자모가 노랑으로 뜬다).
+   ★받침 없음(EMPTY)은 자리 맞음(초록)에만 쓰고 노랑 후보로는 쓰지 않는다 —
+     '빈칸이 다른 자리에 있다'는 힌트는 뜻이 없기 때문이다. */
+function score(guessSlots, answerSlots){
+  const n = answerSlots.length;
+  const out = new Array(n).fill('miss');
+  const pool = {};
+  for (let i = 0; i < n; i++){
+    if (guessSlots[i] === answerSlots[i]){ out[i] = 'hit'; continue; }
+    const a = answerSlots[i];
+    if (a !== EMPTY) pool[a] = (pool[a] || 0) + 1;
+  }
+  for (let i = 0; i < n; i++){
+    if (out[i] === 'hit') continue;
+    const g = guessSlots[i];
+    if (g === EMPTY) continue;
+    if (pool[g] > 0){ pool[g]--; out[i] = 'near'; }
+  }
+  return out;
+}
+
+/* ======================= 단어 자료 ======================= */
+/* ★런타임에 외부에서 받아오지 않는다 — 빌드 때 이 파일 안에 박아 넣는다.
+   출처: 국립국어원 '한국어 학습용 어휘 목록'(2003) · '현대 국어 사용 빈도 조사'(2002),
+   둘 다 공공누리 제1유형(출처 표시). 두 글자만 이어 붙인 문자열이라 구분자가 없다. */
+const ANSWERS_RAW = '세기관심오전뿌리내부나중죽음도움최초엄마결정아내내용선거예정경향최근주요대회생산그룹분석정도과학경영환경사고아이동생목표출신인간까닭문화전쟁공부배경병원결과노인무역의식동안냄새여자바다기본생각변화업무은행건강관점기분피해우주부담음악이번사정시험선수시기성장기회대중주장가정동네인생사건당시한편관리투자신문시민커피가지부분물론분야그중인류작업인기소식회의겨울여름저녁자료회장국가여성얘기세상바람감독물질주민시선논리고통남녀공장농민평가의견자식건물성격공간판단각각상품관계식사만약시인가슴자기기업능력한계반대가게어깨재료시설이때개인갈등종류입시혼자오염달러오빠가장자리새벽하늘집단발표마을전국규모그때특징머리이해사회언니지금방법언어지원공업위원허리생활선생차례통신사장시대부부언론기계계획표정수준부정나이시장아래모습반면주위교통작가웃음실천지구잠시상대노동전통속도장관원래설명시절세월예술민족서양기구자신모양음식행위일반경험아빠기억표현사실의원역할임금활동이후문학과거처리요즘걱정작용순간감각운동기술주변후보다리기초놀이현상요구회사범죄물건지식연극수출옛날경쟁정치무대의미경찰존재모임그날마음아기비용어른형태얼마누나외국질서제품종교전체도시지방현재수입농업약간직장게임주제이날기준준비정신교사형식보호소금발전아들한번버스고개다음자세현실전화환자소설서로특성거리약속원인중심자체일부교장말씀영화남자방송방안목적크기정말정부조직관련남편업체뉴스올해구조대책특별산업과정가치질문가격전문작년처음오후소녀학교각종기능소년오늘공연구월사이노력이웃동시조건손님장군연구행동인물오월법칙피부신경이름작품국내눈물며칠기록하루조금사람이전광고단계선배유월감정상황방향학년수업남성중앙나무대표학생근처행사주인담배교수조사시간부모편지영향고기인사초기기간재산단체결국사업기관신체태도모두필요차이효과국회책임사용직원방식직접소리추억깊이바닥온도토대위협잘못곳곳현금수도종합소속제사해결청소영상택시식당무릎프로제자절반카드교실설치근본상표진행무게치료심정외부입술회복농사대문규칙제목식구만일장점달걀과일안전군사서클후반식량석유바위협력간부싸움소문실제고장기름공개종이공식소비소주한때소유증가인상여론별도추진담당물기형님주택관광문자예금통제기온독립인연위험제작책상자격방학절차계단이성동료지도대기증권색깔하천설탕발생후배권위창문비극공기차별기쁨논쟁의복참여인격정당물속부위감사자녀가스직업우유연출위반시작유교주부필자긴장지위풍경물체고모제한숫자부장향기고생연합아까대개지시실시배우부문장사그늘강제지지주식화학매일껍질견해중세그릇최선해외창밖직후소재사례정식장면통증출산신청휴가촬영심리계절논문범위사전정상예전한복압력눈앞당장한숨내년침묵단위관객과제생일큰일차량이용기사비밀형제목숨용어꼬리토론지대과목도구길이분노보도버릇고전자동관념태아글자마늘공사장래실수품질예상동물교류내일고급한자심장실내행복줄기부인출연수요계층안방온몸백성바지전기집중의도전개한참진실입구지붕중간김치너머이틀후기보통신고지적코너왼쪽도로불안과장감동코드불빛도입본질적극축제바늘여유소득개선복도호흡평화술집접촉총장부엌취미의학농촌훈련최대선장수술희곡교회사설육체공격단지미술우려시골축구치마대형순서상처가을세금양쪽침대물가통합접근이익학자화제극장걸음구분대응습관증상형성판결파도남쪽무용좌우요금비난위주공급낚시임신흐름둥지체험박사예절법원비판부근계산위기충격표면대답목사모델핵심상식바깥결론검사실체체조형편민간처지이마마련세대시위이념주먹회원무기구경신발방문스승양식이외성적시각잡지식물기후영역불만의문조상진짜불법의무라면팔월장소날씨이불구석점심눈길반응가수시계명령비교일상잠깐명예근거철학봉투계곡아픔군대선택참새동기매체가방거실거울어둠보험재미신부계약구속실정금지어제솜씨마루반장본래고추새끼이월친척증거다방부족학기선물재정평생학습수상평균경고군인진리마당매력높이초점흔적음료산소영양운명법률의사품목업종만남북쪽열차공포단어일종고객균형식품부대성공야구자원빨래근무성명평소비중외교동쪽권리용기신용개방영혼안경회견입학경계미래수석소스의자희망주말만화여건전환연락흰색전망시점재판호텔햇살양파고민구역한쪽즉시판매남부규정용돈근육요리일행정리안정치즈화면발달신분연습투표신인연령양국인체임시활용동포갈색보전트럭절대일정귀신소원인공완성도중리듬화장도둑명의학원간판화가가짜등록배추이내입맛교훈빗물다수본부주방충돌고교센터가구총리입대공중수건가사발견친정서민먹이민속전반전날국어면적글씨연필풍습동의보리잔치욕심인근총각비율상점요청대사헬기박수난리실장유물추석안쪽야단계좌오해불꽃추위선진자극항구제의강물정기농부향수연간확보문서일생봉사금년여럿흥미통화목욕거액일치제안사흘기호혜택관습소형광장교직요새벌금식빵단점거품유행간섭영업모래체력체중학번참조땅속간장열정졸업기운이자재즈포장한문혈액명칭몸짓출발전달흉내양념공원감기한눈대량형부초청행운기타홍수우정성인명절종일비행밥상실태승객보장순수모자방해더위죄인기기항의눈썹서부통계현관상담확인당근대비경력양심구두교양증세제약화분취향처벌악몽햇볕광경대륙금액전부새해갈증작성사위꼬마동전물결수명해안흑인전공확정파일시즌칭찬야채원장쾌감상인불행본성풍속애초진출단편대가국왕승진안팎허가일체설문실력먼지가루주문변동리그무리빛깔식탁시중상관보상창고전철맥주신세생선살림농담비닐천장제비열매본인주의신랑가뭄해군통장진급반찬범인해당완전과자장르시도건조예의우승몸통인형방지국산교환울음직전수학가입좌석여권토끼사원무덤돼지호수착각단독각국카페교체매장일자녹색사방제공각자유적출근손질확장날짜동화결심정비지갑정문외모창조미스서류공공예방시집신념염려피시기념찬물감옥질병노선수염수면재생해소소용타입상당애정출입나물기법앞뒤초반간격근로화살장식회색분리도덕손자웬일근원담임결승문장등장연설초원예비악기실패연관개미국물의심약점액수학급학술다행손해전용이중뚜껑발레예외동행불편신호악수열기지출수영월급표준진단조각기둥축소화재코스해석부품소개가상긴급슬픔수표부서생물속담자랑안개반성보고운전북부장남두뇌저축조정일쑤정면막내버터햇빛기원채소참가소수서쪽통로소음컬러대출설날탄생언덕간접얼음스님일기손톱보존임무덕분관찰물음실현철도탁자추가무늬원고유리반발장난용도장비검토말기예감차림발길지점구별승부자율피로육군냉동연결열쇠곡식수박별명사촌성질의욕부자중반극복절망감자거짓최종분량그해골목무료법적신규양복애인공군소매심사남매매너특수홍보적용실습뜻밖연속번호연말점수중부이달개별창작인원태풍부탁마디향상허용정성첫날길가크림사과목록기획고함접시믿음자판짜증재능비명녹음멸치특급밤새최저연휴표시보관피자마찰음반온돌달빛분필앞문사냥변신중순예습강당활기두께손뼉대낮패션반말진통하순자매해물벨트팝송귓속손길양말생신세트샤워피곤용서카레단풍실례따님큰절축하빌딩녹차교재내외사립깡패권투음력형수모범학비밥맛중단팬티이혼산책농장방울식초국사습기예보기적흑백주름경비섭씨유형각오일손소풍요일잠옷호실케첩퇴근문밖귀국적응취직렌즈삼촌숙소퇴원윗몸소포발목레저금고팩스발끝지각변경강변추천발톱방면난방만점여우손녀씨앗인삼엽서촛불일등초대차남입원세제교외학위떡국초보오락초순콜라흥분재수국기조카메뉴할인젊음포크신사선원말투로봇외과반지고궁암시후회기혼해설버튼만두기도정장조개호남중년닷새된장출구질적지폐보수사탕새우도망최소순위등산사망마중창가출판이민단골운반벤치번개왼발와인내적여군레몬출국눈병씨름꿈속몸살묘사성별옆방조깅창구식욕코끝기침큰딸밤색세수왼손딸기복사장모스키감상성경휴일치아메일볼일수컷냄비베개위로차선소질외침찻잔번지최악주사전설발음우표책방터널필름내달코피학점주소밤중낭비병실육상단추회화앞쪽잔디모레동창지급손실약수제시장미사무교대국적답장배치김밥부피세로받침라켓감소한식비만정오횟수학과면접전세엔진냉방생기배구비서회전싼값상금포도비상회관몸속치약평일위성정답학력양력가능저울술잔타락이모교문속옷송이음주그전여관발등엉망재주점원큰길위쪽최신계란백색미만사자허락냇물입국서점참석낱말진찰변명채널결석환율수집휴지독감관람구입입력기성신설경치우편손발자취안과가죽필통꽃잎시댁유명암컷두부이별지진양옆야외내과저번뒤편취재시외연인야간일식수년전구찌개오리상추식기파티치과보안주거근교약국몸매체온녹화왕비쇼핑여가영웅절약천둥천국나비지능칠판눈가강조취소문법뒤쪽미혼만족국립왕자홍차클럽손등단순볶음조명시디해답사표유머앞길주차옆집본사초밥피망농구공통월세복습공책수저술병양보만세낙엽고속미니공짜사슴출장미인면담운행서명자정늑대열흘편견가요문구차창중식단맛박스라인신비영남재학국수달력노트메모보름하품정지모기석사연애입사시합연장피디중독꾸중대입강북산길건너수고실감최상환갑버섯약품점검바퀴소망효도통과통역반죽도장가로구청장갑여왕폐지뒷문잠바전시커튼쓴맛도착한잔취업백인안부미움한낮밤낮서랍냉면나흘도심교복봉지교내튀김귀가비누과외코치간호부채송편원서유산서적외출환영키스골프예선장마제출두통이빨항공땅콩간식명함침실옥상숙녀희생욕실부친이슬편의미팅성함밥솥볼링성당친절볼펜대접위층앞날그간저자시야부상예약외제인쇄천재모집주스영하기여확신위법명단충고상류인재진심최후의류담요전후진료실망불평앨범배꼽다툼전선가위뒷산답변강사탁구고집오븐채점직선졸음장례중요갈비부재칫솔골치별일참외장가찬성포함걷기짐작판사겨자즉석금연번역산속세탁손목합격추측시일의논조기교포근래미역필수가난장인';
+const GUESSES_RAW = '가가가감가게가격가계가곡가공가관가교가구가극가끔가난가내가능가다가닥가담가동가두가득가락가래가량가령가례가로가루가름가마가만가망가면가명가무가문가뭄가발가방가부가사가산가상가설가세가속가수가스가슴가시가신가옥가외가요가운가위가을가입가장가재가전가정가제가죽가지가짜가차가책가축가출가치가칭가택가투가풍가해가호가혹가히각각각개각계각고각광각국각급각기각도각론각료각막각목각본각부각색각서각성각시각양각오각의각인각자각종각지각질각처각축각층각하각형간격간극간뇌간만간물간밤간부간사간선간섭간식간암간여간염간이간장간접간질간척간첩간청간택간파간판간편간행간호간혹갈기갈꽃갈다갈대갈등갈래갈망갈모갈밭갈보갈비갈색갈애갈이갈증갈채갈치갈퀴갈피갉다감각감격감군감귤감금감기감꽃감다감독감동감량감면감명감방감별감사감상감색감성감소감시감식감안감염감옥감원감자감정감지감찰감청감초감촉감축감치감탄감투감형감회감흥감히갑골갑문갑부갑오갑옷갑자갑절갑종갑판갓길갓모강가강공강국강군강권강단강당강둑강력강론강물강박강변강북강사강설강성강세강습강심강안강압강약강연강요강우강자강적강전강점강정강제강조강좌강팀강판강풍강행갖다갖은같다같이갚다개가개각개간개개개관개교개국개그개념개다개떡개똥개띠개량개막개명개미개발개밥개방개별개봉개비개사개선개설개소개수개시개심개아개안개업개요개울개원개월개인개입개작개장개전개절개점개정개조개중개진개찰개척개체개최개축개탄개통개판개펄개편개폐개표개학개항개헌개화개활개회객관객기객석객실객원객장객차객체갯가갯골갯벌갱목갱신갱찰걀걀거개거구거금거기거대거덜거동거들거듭거래거름거리거목거물거미거봐거부거북거사거세거소거수거시거실거액거여거울거의거장거저거절거점거주거죽거지거진거짓거참거처거취거푸거품걱정건강건계건과건국건군건너건달건립건물건반건배건성건수건의건재건전건조건준건지건치걷기걷다걸개걸다걸상걸음걸인걸작걸프검객검거검경검다검댕검무검문검사검색검역검열검정검증검지검진검찰검토검표겁탈겉감겉면겉봉겉옷겉쪽겉흙게서게임게재게터겨냥겨레겨를겨우겨울겨자격감격구격돌격동격랑격려격리격무격문격변격식격언격의격전격정격조격차격투겪다견공견문견본견적견제견지견진견학견해결격결과결국결근결단결딴결렬결례결론결말결백결별결사결산결석결선결성결속결손결승결실결심결여결의결장결재결전결점결정결제결집결코결탁결판결핍결함결합결핵겸병겸상겸손겸양겸업겸임겸직겸허겹겹겹다경감경결경계경고경과경관경구경내경단경대경력경련경례경로경륜경리경매경멸경물경미경배경변경보경비경상경색경선경시경악경연경영경위경유경의경작경장경쟁경적경전경지경진경질경찰경청경추경치경칩경탄경품경합경향경험경협경호경화경황곁길계간계고계곡계급계기계단계란계략계류계모계몽계발계보계산계상계속계승계시계약계엄계열계원계율계장계절계정계제계좌계집계층계통계파계피계회계획곗돈고가고갈고개고객고거고것고견고고고공고과고관고교고국고궁고금고급고기고난고뇌고다고독고등고딕고딩고락고래고량고런고령고루고름고립고막고만고명고모고무고물고민고발고백고법고별고분고비고삐고사고산고생고서고소고속고수고승고시고심고아고안고압고액고얀고역고열고온고요고용고위고유고율고을고음고읍고의고이고인고임고입고작고장고적고전고정고조고졸고증고지고질고집고착고찰고참고철고체고초고추고충고층고통고하고함고해고행고형고환고희곡류곡물곡선곡성곡식곡예곡우곡절곡조곡창곤경곤궁곤란곤로곤봉곤색곤욕곤장곤충곤혹곤히곧다곧잘곧장골격골다골대골목골문골반골방골병골수골인골자골재골절골조골짝골초골치골탕골통골품골프곪다곯다곰곰곰탕곱다곱셈곱자곱절곳간곳곳공간공갈공감공강공개공격공경공고공공공과공관공구공군공급공기공납공단공대공략공로공룡공립공모공무공문공방공백공범공법공병공보공복공부공분공비공사공산공상공생공선공세공소공수공습공시공식공신공안공약공양공언공업공여공역공연공영공예공용공원공유공익공인공작공장공저공적공전공정공제공존공중공지공직공짜공채공책공천공초공출공터공통공판공평공포공표공학공허공헌공황공회공히곶감과거과격과녁과다과당과대과도과로과목과민과밀과반과부과세과속과수과시과식과실과언과업과연과열과오과외과욕과음과일과잉과자과장과점과정과제과즙과표과학과히관가관개관객관건관계관광관군관권관극관급관내관념관노관능관등관람관련관례관록관료관리관망관모관목관문관변관복관부관북관비관사관산관서관성관세관속관습관심관아관엽관영관왕관용관원관장관저관절관점관제관조관중관직관찰관철관청관측관통관할관행괄호광경광고광기광대광란광목광문광물광복광부광석광선광속광업광역광원광의광장광적광채광태광택광파광학괜히괭이괴다괴리괴물괴변괴성괴수괴음괴짜괴한굉음교가교감교과교관교구교권교내교단교대교도교란교량교련교류교리교만교목교무교문교민교범교복교부교분교사교선교섭교성교수교습교시교실교양교역교외교우교원교위교의교인교장교재교정교제교조교주교지교직교차교체교탁교태교통교편교포교화교환교황교회교훈구간구강구걸구경구국구금구급구기구내구단구도구독구동구두구랍구럭구령구류구릉구매구면구명구민구박구별구보구분구비구사구상구색구석구속구술구슬구습구식구실구심구십구애구약구역구원구월구이구인구입구장구전구절구제구조구직구질구천구청구체구축구타구태구토구팽구현구형구호구황구획국가국경국고국교국군국권국기국난국내국도국력국록국론국립국면국모국문국물국밥국번국보국사국산국상국선국세국소국수국시국악국어국역국영국왕국외국운국위국유국읍국익국자국장국적국정국채국책국토국호국화국회군가군경군국군권군기군내군단군대군데군도군락군말군무군민군밤군번군벌군복군부군불군비군사군살군소군수군신군역군용군인군자군장군정군졸군주군중군집군청군축군침군함군현군혼군화굳다굳이굴곡굴다굴뚝굴레굴비굴속굴욕굴절굴지굴착굵다굶다굽다굽이굿판궁궐궁금궁기궁내궁녀궁리궁서궁성궁을궁전궁중궁지궁초궁핍궁합궁형궂다권고권능권두권력권리권부권사권세권역권위권유권익권장권좌권총권태권투권한궐기궐내궤도궤변궤양궤적궤짝귀가귀감귀결귀경귀국귀대귀띔귀로귀면귀물귀밑귀빈귀선귀성귀순귀신귀얄귀양귀의귀인귀재귀족귀청귀추귀하귀향귀화귀환귀히귓가귓결귓등귓병귓불귓속귓전규격규명규모규범규소규수규약규율규정규제규칙규탄균근균등균분균열균형그간그거그것그곳그까그깟그날그냥그네그녀그년그놈그늘그닥그달그담그대그딴그때그래그램그랬그런그럼그루그룹그릇그리그린그릴그립그만그면그물그믐그분그새그야그이그자그저그전그제그중그지그쪽그쯤그치그케그해극구극기극단극도극동극락극렬극미극복극본극비극성극약극우극작극장극적극점극치극한극형극화극히근간근거근교근까근년근대근데근동근디근래근력근로근면근무근방근본근성근세근속근신근심근원근육근자근저근절근접근처근해근황글감글귀글로글방글쇠글쎄글씨글자긁다금값금고금관금권금기금남금녀금년금니금당금동금리금물금방금배금비금빛금사금색금서금세금속금수금슬금시금액금연금욕금융금장금전금제금지금테금품금후급등급료급류급성급소급속급수급습급여급우급유급제급조급증급지급진급히긋다긍정긍지기가기각기간기갈기강기개기거기겁기계기고기골기관기교기구기권기근기금기기기껏기내기념기눔기능기다기단기도기독기동기둥기때기량기럼기력기로기록기론기류기름기린기마기만기말기무기물기미기밀기반기방기법기별기복기본기부기분기쁨기사기상기색기생기성기세기소기술기슭기습기승기실기압기어기억기업기여기역기염기예기온기와기왕기용기우기운기원기율기인기일기재기저기적기절기점기제기조기존기종기준기증기지기질기척기체기초기층기치기침기타기틀기판기품기피기학기한기합기해기행기형기호기혼기화기회기획기후긴급긴긴긴장긴축긴히긷다길가길기길다길더길룡길목길상길섶길손길옆길이길일길조길지김발김밥김장김치깁다깁스깃발깃털깊다깊이까다까닭까딱까짓깍깍깍지깎다깔깔깔다깜박깜밥깜빡깜짝깡통깡패깨끗깨다깨알깻잎꺼풀꺾다꺾쇠껄껄껍질껑충꼬다꼬리꼬마꼬막꼬박꼬치꼭꼭꼭지꼴깍꼴찌꼼짝꼽다꼽추꽁꽁꽁지꽁초꽁치꽂다꽃길꽃대꽃등꽃밭꽃병꽃비꽃삽꽃잎꽃집꽃판꽉꽉꽥꽥꾀다꾀병꾸다꾸밈꾸벅꾸중꾹꾸꾹꾹꿀꺽꿀맛꿀물꿀밤꿀벌꿇다꿈결꿈길꿈속꿈쩍꿰다뀌다끄다끄덕끄떡끈기끊다끌끌끌다끌탕끓다끗발끙끙끝내끝장끼니끼다끼익끽연낌새나귀나날나다나락나래나루나룻나름나리나말나무나물나발나병나비나선나시나신나왕나위나이나절나중나체나태나팔나흘낙관낙농낙방낙상낙서낙선낙성낙승낙엽낙원낙인낙점낙조낙지낙찰낙타낙태낙폭낙하낙향낙화낙후낚다낚시난간난관난국난동난로난류난리난립난무난민난방난산난색난생난세난소난자난장난적난점난제난초난행낟알날것날다날로날름날씨날염날인날짜날치낡다남국남근남녀남녘남다남단남동남매남문남발남방남부남색남서남성남아남안남용남자남조남짓남쪽남침남탕남파남편남풍남하남향납기납득납부납북납빛납월납자납치납품낫다낭가낭독낭만낭불낭비낭설낭송낭자낭종낭패낮다낮술낮잠낯빛낯짝낱낱낱말낱알낳다내각내과내구내기내내내년내다내달내당내란내력내륙내리내림내막내면내벽내복내부내분내사내색내성내세내수내숭내신내실내심내압내역내열내외내용내우내음내의내일내자내장내적내전내정내조내주내지내처내칙내한냄비냄새냅다냅킨냇가냇둑냇물냉각냉기냉대냉동냉면냉방냉소냉수냉이냉장냉전냉증냉큼냠냠너머너무너비너트너희넉살널다널리널방넓다넓이넘다넙죽넝쿨넣다네놈네댓네모네온네트넷째녀석년기년대년도년사년산년생년제년판년형노고노기노끈노년노동노랑노력노름노릇노망노면노모노무노방노복노비노상노선노숙노역노을노인노임노장노점노정노제노조노천노출노크노트노파노형노화노후녹각녹다녹말녹색녹용녹음녹읍녹지녹차녹초녹화논거논단논란논리논문논물논밭논법논설논술논외논의논일논자논쟁논점논조논증논지논평놀다놀람놀림놀음놀이농가농경농공농과농구농군농노농담농대농도농림농민농법농부농사농성농아농악농약농업농장농정농주농지농촌농축농토농호높다높새높이놓다뇌다뇌리뇌물뇌사뇌성뇌수뇌염뇌파누가누각누계누관누구누나누님누다누드누락누렁누명누문누비누설누수누에누이누적누증누진누출눈가눈곱눈금눈길눈깔눈독눈매눈물눈발눈밭눈병눈비눈살눈썹눈알눈앞눈짓눈총눈치눈코눈테눋다눕다뉘다뉴스느그늑대늑장늘다늘상늙다능력능률능사능선능직능청능히늦다늦봄늦잠니스니트니퍼다과다관다량다른다리다마다만다발다방다변다섯다소다수다시다양다운다음다자다중다짐다채다큐다탁다툼다행닥터닦다닦달단가단것단견단결단계단골단과단기단독단돈단둘단련단령단맛단면단명단물단박단발단산단상단서단선단속단수단순단식단안단어단역단연단오단위단일단자단잠단장단적단전단절단점단정단죄단지단짝단청단체단초단추단축단층단칸단칼단파단팥단편단풍단합단화닫다달걀달님달다달달달랑달래달러달력달리달밤달변달빛달음달인달포닭띠닭장닭죽닮다닳다담다담당담력담론담배담벽담보담뿍담색담소담수담요담임담장담천담판담합담화답례답방답배답변답사답안답장닷새당구당국당권당귀당근당내당뇨당당당대당도당락당략당료당면당명당무당번당부당분당비당사당상당선당세당수당숙당시당신당연당의당일당자당장당정당제당좌당직당질당첨당초당최당파당해당헌당황닿다대가대각대감대강대개대거대결대계대공대국대군대궁대권대궐대금대기대꾸대남대납대낮대내대뇌대님대다대담대답대대대도대동대두대뜸대란대략대량대령대로대롱대류대륙대리대립대면대목대문대미대밭대변대별대본대북대분대비대빵대사대상대서대선대설대세대소대수대숲대승대야대양대어대업대여대역대열대오대외대용대응대의대인대일대입대작대장대저대접대제대조대졸대종대좌대주대중대증대질대쪽대차대책대첩대체대추대출대충대치대칭대패대포대폭대표대피대필대하대합대항대행대형대회댄스댄싱댓돌댕기더디더러더럭더미더블더욱더위덕담덕목덕분덕성덕업덕택덕트덕행덜다덜덜덜미덜컥덜컹덤불덤핑덥다덥석덧니덧문덧셈덧칠덩굴덩이덩치덮개덮깃덮다덮밥데꼬데다데모데뷔도가도감도경도교도구도금도급도끼도난도내도넛도농도달도당도덕도독도둑도랑도래도련도령도로도루도리도립도막도망도매도면도명도미도민도발도배도벽도사도상도색도서도수도스도시도식도심도야도약도움도인도입도장도적도정도조도주도중도착도처도청도출도취도태도통도트도포도표도피도합도형독감독경독기독단독대독려독립독맥독무독방독백독법독본독사독살독상독선독성독소독식독신독자독재독점독종독주독직독창독촉독침돈대돈오돈줄돋다돌기돌날돌다돌돌돌발돌밭돌솥돌연돌이돌입돌출돌파돌풍돕다동감동갑동거동결동계동공동국동굴동기동네동단동동동란동량동력동료동리동맥동맹동무동문동물동반동방동법동북동상동생동성동세동시동안동어동업동요동위동의동인동일동장동적동전동점동접동정동조동족동종동지동쪽동참동창동체동침동태동판동편동포동행동향동헌동화돛배돼지되게되놈되다되레되새된장된통됫병두각두껍두께두뇌두다두레두루두름두말두메두목두부두세두셋두어두엄두엇두절두통두품둑길둔갑둔기둔덕둔화둘둘둘레둘이둘째둥둥둥실둥지둥치뒤꼍뒤끝뒤뜰뒤란뒤쪽뒤채뒤척뒤편뒷간뒷날뒷담뒷말뒷맛뒷면뒷목뒷문뒷발뒷방뒷산뒷심뒷장뒷전뒷줄뒷짐뒷집드럼드릴드림득세득수득실득점득표듣다들것들길들깨들녘들다들독들들들소들일들쥐들통들판듬뿍듯이등가등골등교등급등기등꽃등단등대등등등락등록등반등벽등본등분등뼈등산등속등수등식등신등심등쌀등잔등장등정등지등짝디너디비디젤딛다딩동따귀따님따다따로따름따비따위딱딱딱지딱히딴은딴전딴청딴판딸각딸기딸깍딸꾹딸년딸애땀내땀띠땀시땃쥐땅값땅굴땅볼땅속땅콩땋다때깔때다때로때문땔감땜시땜질땜통땟국땡볕땡비떡국떡니떡밥떡비떡잎떨다떨렁떨이떼다떼돈뗏목또각또는또래또한똑딱똑똑똘똘똥값똥금똥물똥배똥보똥통뙈기뚜껑뚝뚝뚝방뚝심뚫다뚱보뛰기뛰다뜀틀뜨다뜨락뜨물뜨아뜬눈뜯다뜻밖띄다띠다띠얏라듐라면라인라켓래커랜드랜턴랠리랭킹러닝레게레몬레벨레슨레일레저레지레트렌즈렌트로봇로비로션로커로켓로프롤러롤링루머루블루주루키루트루프루핑륙색리그리더리드리듬리본리스리터린스마감마개마구마귀마냥마늘마님마다마담마당마대마디마땅마력마련마루마름마마마법마부마비마세마수마술마실마을마음마일마장마저마전마주마중마진마차마찰마취마치마침마켓마흔막강막내막다막대막말막사막상막일막차막판막후만감만국만근만기만날만남만년만능만두만료만류만면만무만물만반만방만병만사만삭만상만성만세만신만약만연만용만원만인만일만전만점만조만족만찬만취만치만큼만행만화만회많다많이맏딸맏이맏형말귀말기말끔말끝말년말다말단말뚝말뜻말띠말목말문말미말벗말살말세말소말속말수말썽말씀말씨말엽말이말짱말초말투맑다맘껏맘씨망각망간망개망국망념망동망령망루망명망발망상망새망신망언망자망정망종망초망치망태망향맞다맞선맞수맞절맞춤맡다매각매개매너매년매다매달매도매듭매력매립매매매물매미매번매부매사매상매석매설매수매스매실매연매우매월매일매입매장매점매주매직매질매체매출매치매트매판매표매형매혹매화맥락맥박맥상맥시맥주맨땅맨몸맨발맨살맨손맨틀맨홀맴맴맵다맵시맷돌맹독맹목맹물맹세맹수맹아맹위맹인맹점맹추맹탕맺다머리머슴머신머지먹다먹물먹이먹통먼저먼지멀다멀리멀미멀칭멀티멈칫멍게멍멍멍석멍에멍히멎다메가메기메뉴메다메달메모메밀메밥메스메일메주메탄메탈멘트멜론멤버멥쌀멧새며칠멱살면담면도면리면면면모면목면박면봉면세면수면역면장면재면적면접면제면조면직면책면천면포면허면화면회멸망멸시멸종멸치명곡명단명당명도명랑명령명리명맥명목명문명물명복명부명분명사명산명상명색명성명세명소명시명실명암명약명언명예명의명작명장명절명제명조명중명찰명창명치명칭명태명패명함명화몇만몇몇몇백몇십몇천모계모공모교모금모기모냥모녀모닝모다모던모델모뎀모독모두모듈모든모듬모래모략모레모로모루모방모범모빌모색모성모션모습모시모신모양모욕모월모유모음모의모일모임모자모작모종모주모집모찌모체모친모태모터모텔모포모피모험모형목각목공목기목돈목련목례목록목마목면목발목본목사목석목선목성목수목숨목심목욕목재목적목전목젖목제목조목차목청목축목침목탁목탑목판목표목화몰골몰다몰두몰락몰래몰매몰수몰입몰표몸값몸매몸뻬몸살몸소몸속몸종몸집몸짓몸채몸체몸통몹시몹쓸못가못내못다몽땅몽상몽정묘기묘목묘미묘사묘소묘수묘안묘역묘유묘제묘지묘책무게무구무극무급무기무난무능무늬무단무당무대무덤무도무드무려무력무렵무례무료무릇무릎무리무마무명무방무병무보무비무사무상무선무속무쇠무순무술무스무슨무시무신무심무아무안무애무어무언무엇무역무예무욕무용무위무인무장무적무좀무죄무지무직무진무책무척무취무타무통무패무한무형무효무희묵계묵념묵다묵상묵언묵인묶다묶음문간문갑문건문고문구문권문단문답문득문란문맥문맹문명문묘문무문물문민문밖문벌문법문병문상문서문신문안문양문예문의문인문자문장문전문중문집문짝문책문체문턱문틀문틈문패문학문항문헌문호문화묻다물가물감물개물건물결물고물기물길물꼬물다물량물론물류물리물맛물망물물물밑물불물빛물살물상물새물색물성물속물신물씬물엿물음물의물자물적물정물증물질물집물체물총물코물통물풀물품물형물화묽다뭇국뭉치뭐뭐뮤직미각미간미감미개미결미관미구미궁미끼미남미녀미니미달미담미대미덕미라미래미량미련미만미명미모미물미분미비미사미색미세미션미수미숙미술미스미시미식미신미싱미아미안미역미열미완미용미움미인미적미처미터미트미팅미학미행미혼미화미흡믹서믹스민가민간민권민담민란민방민법민본민사민생민선민속민심민어민요민원민의민전민족민트민폐민화믿다믿음밀교밀꾼밀다밀대밀도밀랍밀리밀림밀매밀물밀봉밀사밀수밀실밀어밀집밀짚밀착밀크밀폐밀회밉다밑간밑단밑동밑면밑줄밑천밑판바깥바늘바다바닥바둑바람바랑바로바삐바싹바위바지바질바짝바퀴바통바투박꽃박다박동박력박박박빙박사박살박새박수박스박자박제박쥐박차박해반감반값반격반경반공반군반기반납반년반달반대반도반동반등반라반란반려반론반말반면반목반문반미반박반반반발반배반복반비반사반상반색반석반성반수반숙반신반야반열반영반응반일반입반장반전반절반점반제반주반죽반증반지반집반짝반쪽반찬반출반칙반팔반항반핵반향반환받다받침발간발견발광발군발굴발급발길발끝발단발달발동발등발딱발레발령발로발매발명발목발밑발병발부발뺌발사발상발생발설발송발신발악발암발언발열발육발음발인발작발장발전발족발주발짓발짝발찌발출발췌발치발칵발탁발톱발판발포발표발행발현발효발휘밝다밟다밤길밤낮밤새밤색밤샘밤알밤일밤잠밤중밤참밤콩밥값밥맛밥물밥상밥솥밥알밥줄밥집밥통밥풀밧줄방계방과방귀방금방긋방뇨방도방랑방량방류방면방문방미방방방범방법방벽방북방비방석방세방손방송방수방식방심방아방안방어방언방영방울방위방일방장방점방정방조방종방주방죽방중방지방직방차방책방천방출방치방침방패방편방풍방학방한방해방향방화방황밭다밭둑밭일배경배관배구배급배기배꼽배꽃배낭배다배당배란배래배럴배려배면배반배배배변배분배상배색배설배수배신배양배역배열배영배우배임배전배정배제배지배짱배차배척배추배출배치배탈배턴배통배편배포배합배후백과백군백기백두백라백로백마백만백미백발백방백번백색백서백선백성백수백십백오백의백인백일백자백조백중백지백차백치백태백한백합백호밴드밸브뱀띠뱃길뱃놈뱃삯뱃살뱃속뱃전뱅크뱅킹뱉다버거버너버럭버력버릇버선버섯버스버전버터버튼벅벅벅수번개번뇌번뜩번민번복번성번식번역번영번지번째번쩍번호벋다벌금벌다벌떡벌렁벌목벌벌벌식벌써벌이벌집벌채벌칙벌컥벌크벌판범띠범람범벅범법범부범선범속범위범인범죄범주범퍼범행법가법계법과법관법규법단법당법대법도법령법률법리법망법명법사법상법석법안법열법원법인법적법전법정법제법조법치법칙법통법학벗다벙커벚꽃베개베다베옷베일벡터벤치벨트벼락벼랑벼루벼룩벼슬벽돌벽두벽력벽면벽보벽안벽장벽지벽체벽촌벽화변경변기변덕변돈변동변란변론변명변모변방변비변사변성변소변수변신변심변용변이변인변절변제변조변질변천변칙변혁변호변화변환별감별개별거별것별관별당별도별똥별로별맛별명별미별반별별별빛별수별식별읍별일별장별채별칭별표볏단볏짚병고병과병균병기병동병력병리병마병명병목병무병변병사병상병세병실병역병원병인병자병장병적병정병존병중병폐병풍병합병행병환병후보강보건보고보골보관보궁보궐보급보기보다보답보도보라보루보류보름보리보모보물보배보병보복보살보상보색보석보수보습보시보안보약보온보완보위보유보이보인보장보전보정보존보좌보증보직보초보충보컬보탬보통보트보편보폭보학보행보험보혁보혈보호복개복고복구복권복귀복날복도복리복무복부복사복색복서복수복습복식복싱복안복어복용복원복잡복장복적복제복종복중복지복직복창복통복판복학복합볶다볶음본가본격본고본관본교본국본궁본기본능본당본드본디본때본뜻본래본령본론본류본말본명본문본봉본부본분본사본산본색본서본선본성본시본안본업본연본위본의본인본적본전본점본지본질본처본청본체본토볼기볼록볼륨볼링볼모볼일볼트볼펜볼품봄날봄밤봄볕봄비봄철봇물봇짐봉건봉급봉기봉당봉변봉사봉쇄봉양봉인봉제봉지봉직봉창봉투봉합봉환봉황뵈다뵙다부가부각부검부계부고부곡부과부군부권부귀부근부금부기부녀부담부당부대부덕부도부두부디부락부럼부력부록부류부리부면부모부문부부부분부사부상부서부설부세부속부수부식부실부심부아부양부업부엌부역부왕부위부윤부음부이부인부임부자부작부장부재부정부제부조부족부종부중부지부진부쩍부착부채부추부축부칙부친부침부탁부팅부패부표부품부피부하부호부화부황부흥북국북단북동북문북방북벌북부북북북산북상북서북안북어북조북진북쪽북풍북향분가분간분과분교분규분급분기분네분노분뇨분단분담분량분류분리분립분만분말분명분묘분무분발분배분별분봉분부분비분산분석분쇄분식분신분실분야분양분업분열분유분임분자분장분재분쟁분지분진분출분침분통분파분포분필분할분합분해분홍분화붇다불가불경불과불구불귀불기불길불꽃불끈불내불능불다불도불똥불량불로불리불만불면불명불모불문불발불법불변불볕불보불복불빛불상불성불순불시불신불심불쑥불씨불안불알불어불언불온불우불운불응불의불임불전불질불참불티불판불편불평불행불허불혹불화불황불후붉다붓꽃붓끝붓다붕괴붕대붕어붙다브리블랙블록비결비계비관비교비구비극비난비녀비누비늘비닐비다비단비대비례비록비롯비료비룡비리비만비명비문비밀비방비법비보비비비상비서비석비속비수비시비애비약비엽비용비운비위비유비율비자비장비정비준비중비지비질비쩍비축비치비커비탄비탈비트비파비판비평비품비하비핵비행비형비호비화빅뱅빈곤빈도빈민빈방빈부빈소빈속빈손빈집빈축빈칸빈틈빈혈빌다빌딩빌라빌미빗금빗길빗다빗물빗살빗속빗장빗질빙글빙긋빙벽빙빙빙산빙수빙신빙점빙판빙하빚다빛깔빛살빤쓰빤히빨강빨다빨대빨랑빨래빨리빵게빵꾸빵빵빵집빵틀빻다빼다뺄셈뺏다뻐꾹뻔히뻗다뻘뻘뻥끗뻥뻥뼈대뼛속뽀록뽀뽀뽑다뽕짝뾰족뿌리뿔테뿜다삐끼삐다삐라삐삐삐쩍사가사각사감사건사격사고사공사과사관사교사극사금사나사내사냥사다사단사대사도사돈사또사람사레사려사력사령사례사료사리사립사막사망사면사무사문사뭇사발사방사백사범사법사변사별사병사보사복사본사산사색사서사석사설사수사슬사슴사신사실사십사안사암사양사업사역사연사열사옥사외사용사원사위사유사육사의사이사인사임사자사장사재사저사적사전사절사정사제사조사족사죄사주사중사지사직사질사찰사채사철사촌사치사칙사탄사탕사태사퇴사투사표사학사항사형사활사회사후사흘삭감삭다삭발삭제삯전산간산골산관산기산길산도산록산림산맥산모산문산물산보산봉산사산삼산새산성산세산소산속산수산술산실산아산악산야산업산장산재산적산정산조산중산지산채산책산천산촌산출산판산행산형산화산후살갗살결살기살길살날살다살대살롱살림살맛살살살상살색살육살의살점살짝살포살풋살해삶다삼각삼강삼경삼관삼교삼군삼권삼다삼동삼등삼디삼루삼류삼만삼매삼면삼백삼베삼복삼사삼선삼세삼수삼시삼십삼일삼자삼중삼천삼체삼촌삼투삼팔삽입삽주삽화상가상감상거상고상관상극상근상금상급상기상납상념상노상놈상단상담상당상대상두상량상례상류상륙상말상병상보상복상봉상부상사상설상소상속상술상습상승상시상식상실상어상여상영상오상용상원상위상인상임상장상전상점상정상제상종상징상책상처상체상추상충상층상쾌상투상패상표상품상한상향상형상환상황상회샅바새것새끼새날새다새댁새로새말새벽새봄새삼새순새시새싹새알새우새잎새장새집새참새치새해색감색깔색동색등색상색색색소색시색조색채색출색칠샌님샐샐샘물샘플샛길샛문생가생각생강생계생기생년생도생떼생략생리생모생물생사생산생살생색생선생성생수생시생식생신생애생약생업생육생일생전생존생쥐생체생침생태생판생활생후샤먼샤워샬레샴푸샷잔섀도서곡서기서남서너서넛서녘서다서두서랍서력서로서론서류서른서리서막서면서명서민서방서부서북서브서사서설서술서슬서식서신서약서양서역서열서예서옥서자서장서재서적서점서정서쪽서찰서체서치서캐서클서킷서편서푼서풍서핑서화석간석고석굴석궁석권석기석등석류석면석방석불석사석상석쇠석수석양석영석유석재석조석차석축석탄석탑석판석화석회섞다선거선결선고선관선교선금선내선녀선달선대선도선돌선동선두선뜻선량선례선로선망선문선물선박선반선발선방선배선별선불선사선상선생선수선승선실선심선악선약선언선용선원선유선율선의선인선임선장선재선적선점선정선제선진선집선창선처선체선출선취선친선탄선택선탠선통선팅선포선풍선학선행선험선혈선형선호선후섣달설계설교설날설다설득설령설립설마설명설문설법설비설빔설사설산설설설움설정설치설탕설핏설혹설화섬광섬돌섬유섭렵섭리섭생섭씨섭외섭취섰다성가성격성경성공성과성곽성금성깔성냥성년성능성당성립성명성묘성무성물성벽성별성분성비성사성숙성실성씨성악성안성애성어성업성역성욕성운성원성읍성의성인성장성적성전성지성직성질성징성찰성채성취성큼성터성패성품성함성행성향성현성형성화성황세간세공세관세균세금세기세끼세뇌세다세대세도세때세력세련세례세로세말세면세모세목세무세배세법세부세분세상세속세수세습세시세안세액세월세율세인세일세자세전세정세제세척세침세칭세탁세태세트세팅세파세포세필섹스센서센스센터센트센티셋방셋이셋째셔츠셔터셰일소각소감소개소견소경소관소국소굴소극소금소급소기소녀소년소다소대소도소독소동소두소득소띠소라소란소량소령소름소리소림소망소매소멸소명소모소문소반소방소변소복소비소산소색소생소설소속소송소수소스소승소식소신소실소액소양소엽소외소요소용소원소위소유소음소인소임소자소작소장소재소절소정소제소조소주소지소질소집소쩍소총소추소출소치소탕소통소트소포소폭소품소풍소한소행소형소홀소환소회속내속다속담속도속뜻속력속말속물속박속병속보속살속설속성속세속셈속속속언속옷속인속죄속출속칭속편속현속회속흙속히솎다손길손끝손녀손님손도손등손때손맛손목손발손뼉손상손색손수손실손안손익손자손질손짓손톱손해솔개솔기솔밭솔솔솔숲솔잎솜씨솜옷솜털솟다송곳송금송별송송송이송장송진송판송편송환쇄신쇠다쇠똥쇠약쇠줄쇠톱쇠퇴쇤네쇳대쇼크쇼트쇼핑숄더수가수감수갑수강수거수건수결수계수고수공수관수교수구수군수권수금수급수긍수기수난수녀수년수놈수뇌수능수다수당수도수동수락수량수렁수레수력수렴수렵수령수로수록수뢰수료수륙수리수림수립수만수매수면수명수모수목수묵수문수박수반수발수배수백수범수법수복수분수비수사수산수삼수상수색수석수성수세수소수속수송수수수순수술수습수시수식수실수심수십수압수액수어수억수업수여수역수염수영수온수완수요수용수위수유수은수의수익수일수임수입수작수장수재수저수적수절수정수조수족수종수주수준수중수직수질수집수차수채수천수첩수초수축수출수취수치수칙수컷수탈수탉수태수통수평수포수폭수표수풀수프수학수해수행수험수화수확수효수훈숙고숙과숙녀숙맥숙면숙명숙박숙부숙성숙소숙식숙어숙원숙의숙정숙주숙직숙청순간순검순결순경순교순대순례순리순방순배순백순번순사순산순서순수순시순위순응순익순장순정순종순찰순항순화순환숟갈술값술꾼술독술병술상술수술술술잔술집술책술청술판술회숨결숨골숨다숨통숫감숫자숫제숭고숭늉숭배숭숭숭앙숭어숭유숯불숲가숲길숲새쉬다쉬쉬쉬이쉰넷쉼터쉼표쉽다슈터슈팅슈퍼스냅스님스릴스무스물스승스컬스콜스쿨스키스킨스텐스템스텝스톱스틱스팀스폿스푼슬다슬립슬슬슬쩍슬픔슬피슬하습격습관습기습도습득습성습속습지승가승감승객승격승계승과승교승급승낙승려승률승무승병승복승부승선승소승인승자승점승진승차승천승통승패승화시가시각시간시계시골시공시구시국시극시급시기시녀시늉시다시단시달시대시댁시도시동시디시럽시렁시력시련시론시루시류시름시립시문시민시발시방시범시보시비시사시상시샘시선시설시세시속시술시시시신시야시엠시영시외시울시위시음시의시인시일시작시장시적시전시절시점시정시조시종시중시즌시지시집시차시찰시책시초시추시침시트시판시한시합시해시행시험시혜시호시황시효식견식구식기식다식단식당식도식량식모식물식민식반식별식빵식사식생식성식수식욕식용식음식읍식이식인식장식재식전식중식초식칼식탁식판식품식혜식후신간신검신경신고신곡신관신궁신규신극신금신기신년신념신다신당신도신동신랑신령신록신뢰신맛신망신명신문신물신발신변신병신부신분신비신사신상신생신선신설신세신속신식신앙신약신어신역신예신용신원신위신음신의신인신임신입신자신작신적신전신조신종신중신진신참신청신체신축신풍신하신학신협신형신호신혼신흥싣다실각실감실권실기실내실눈실력실례실로실록실리실망실명실무실물실밥실비실사실상실선실세실소실속실수실습실시실실실업실연실온실외실용실은실의실익실장실재실적실전실점실정실제실존실종실증실지실직실질실채실책실천실체실추실컷실크실탄실태실파실패실학실행실향실현실형실황실효싫다싫증심각심경심고심근심금심급심기심다심도심려심리심문심미심벌심보심복심사심산심상심성심술심야심연심음심의심장심적심정심줄심증심지심층심통심폐심혈심혼심화심히십구십만십분십사십삼십상십수십오십육십이십자십장십팔싱글싱긋싱싱싶다싸다싸리싸움싹둑싹수싹싹싼값쌀값쌀겨쌀밥쌀알쌀집쌀풀쌍무쌍발쌍방쌍벽쌍수쌍쌍쌍태쌓다쌩긋쌩쌩썩다썰다썰매썰물쏘다쏙쏙쏟다쐐기쐬다쐬주쑤다쑥갓쑥떡쑥새쑥쑥쓰기쓰다쓱쓱쓴맛쓸개쓸다쓸모씌다씨름씨앗씨족씨팔씹다씻다씽씽아가아교아군아귀아그아기아까아낙아내아냐아뇨아니아동아듀아들아따아래아량아름아마아무아범아부아비아빠아사아서아성아쉬아아아양아역아연아예아우아욱아유아으아이아종아직아집아차아치아퀴아크아트아픔아하아호아홉악기악단악담악당악동악령악마악명악몽악법악보악사악상악선악성악수악습악어악역악연악용악의악장악재악종악질악취악행악화안가안감안개안건안경안과안구안녕안다안달안도안락안면안목안무안방안배안보안부안색안식안심안위안일안장안전안정안중안짝안쪽안창안채안타안팎앉다않다알다알뜰알몸알선알약알음앓다암권암기암놈암말암반암벽암살암색암석암소암송암수암시암자암컷암탉암투암튼암호암흑압권압력압류압박압수압승압제압축앗다앙금앙등앙숙앙심앙이앙탈앞길앞날앞뒤앞뜰앞면앞몸앞문앞발앞산앞서앞일앞장앞줄앞집앞쪽애견애고애교애국애로애무애벌애욕애용애원애인애저애정애족애증애착애첩애초애칭애환액면액상액셀액션액수액자액체앤드앨범앰프앵글앵두앵커야간야경야구야권야근야단야당야도야미야밤야산야생야성야식야심야영야옹야외야욕야유야인야자야전야채야학야합야호약간약과약관약국약도약력약물약방약사약선약세약속약손약수약식약자약재약점약정약주약지약진약초약탈약탕약품약학약혼약화약효얇다얌체양가양감양곡양국양궁양극양근양기양날양녀양념양단양당양대양도양띠양력양론양말양면양민양반양발양방양보양복양봉양분양상양성양손양수양식양심양옆양옥양육양은양이양인양자양잠양장양적양조양지양질양쪽양측양키양태양파양팔양편양푼양해양화얕다얘기어감어구어귀어깨어느어대어둠어디어따어때어땠어떤어라어로어류어른어름어림어머어명어문어미어민어법어부어서어선어순어슷어안어어어언어업어여어용어원어유어음어이어인어장어전어제어조어족어째어쨌어쩜어찌어촌어치어투어폐어항어허어협어황어획어휘억겁억견억대억새억수억압억양억장억제억지억측언급언니언덕언동언뜻언로언론언문언변언사언설언성언어언쟁언제언행얹다얻다얼결얼다얼라얼래얼레얼룩얼른얼마얼씬얼음얼추얼핏얽다엄니엄두엄마엄살엄선엄정엄중엄청엄포엄히업계업다업무업보업소업자업적업종업주업체없다없이엉망엉엉엎다에고에구에그에라에로에어에잇에칭에프엔고엔엘엔지엔진엔카엔화엘디엘피엠시여가여각여간여객여건여고여공여과여관여군여권여그여급여기여깄여념여느여단여당여덟여독여든여러여럿여력여론여류여름여망여물여백여보여부여분여비여사여상여생여섯여성여시여신여아여야여염여왕여우여운여울여유여자여장여적여정여지여차여체여초여타여탕여태여파여하여한역공역내역대역도역량역류역법역서역설역성역순역술역습역시역역역인역임역장역적역전역점역정역제역조역풍역학역할엮다엮음연간연결연계연관연구연극연금연꽃연내연놈연도연동연두연락연령연례연료연루연륜연립연말연맹연모연못연민연발연방연보연봉연사연산연상연서연설연성연속연쇄연습연승연신연애연어연역연예연원연유연인연일연작연장연적연줄연중연지연직연차연착연체연초연출연탄연통연패연표연필연하연한연합연해연행연호연회연휴열강열거열광열기열네열녀열다열대열댓열두열람열량열망열매열무열반열변열병열불열사열섬열성열세열쇠열심열연열외열의열전열정열차열창열풍열한열화열흘엷다염가염기염두염려염료염류염분염불염산염색염소염원염전염좌염주염증염초염치엽서엽승엽전엽차엽총엿새영감영계영고영공영관영남영내영농영령영리영목영문영법영사영상영생영서영세영약영양영업영역영영영예영욕영웅영입영장영적영접영정영차영초영토영하영향영혼영화옅다옆면옆방옆집옆쪽예감예견예결예고예금예년예능예단예대예매예명예물예방예배예법예보예복예불예비예사예상예선예속예순예술예습예시예식예약예언예예예외예우예의예입예전예절예정예찬예측예화옛것옛글옛날옛말옛일옛적옛집옛터오계오곡오관오금오기오냐오늘오니오다오답오덕오데오도오독오라오락오래오랜오류오륜오른오리오메오명오목오물오미오발오백오복오븐오빠오색오십오악오어오열오염오욕오월오일오입오장오전오점오존오죽오줌오지오직오차오찬오천오촌오판오팔오프오한오해오행오후옥고옥리옥문옥사옥상옥색옥외옥좌옥중옥편온갖온건온기온대온도온돌온몸온상온수온실온천온통올림올봄올케올해옮다옳다옳소옳아옳지옴큼옵션옷감옷값옷깃옷본옷섶옷장옹벽옹성옹호와락와인와중와해완공완구완두완력완료완벽완비완성완수완자완장완전완충완치완화왈칵왕관왕국왕궁왕권왕년왕도왕래왕릉왕립왕복왕비왕실왕왕왕위왕자왕조왕족왕좌왕창왕토왕호왕후왜곡왜구왜군왜놈왜상왜색왜인왜적왜정왠지외가외간외거외계외과외곽외관외교외국외길외다외도외등외딴외래외려외로외면외모외박외벽외부외산외상외설외세외수외숙외식외신외압외양외연외위외유외의외인외자외적외제외줄외지외척외출외측외침외투외피외항외형외화왼발왼손왼쪽왼팔왼편요강요거요건요것요구요금요기요년요놈요람요량요런요령요리요번요법요부요새요설요소요술요식요약요양요역요원요육요인요일요전요절요점요정요즘요지요직요청요체요추요통요트요행욕구욕망욕설욕실욕심욕조욕질욕탕용건용공용구용궁용기용꿈용단용도용돈용띠용량용맹용모용무용변용병용사용상용서용암용액용어용역용왕용의용접용지용품우기우단우대우동우뚝우량우레우려우리우림우물우미우민우박우발우방우상우선우수우승우아우애우엉우연우열우우우울우월우위우유우의우익우장우점우정우주우중우쩍우찌우체우측우파우편우표우호우화우환우회운감운구운동운두운명운모운문운반운사운세운송운수운신운영운용운운운율운전운치운하운항운행울다울림울보울분울상울새울안울음울컥울화움막움찔움큼움푹웃다웃비웃옷웃음웃통웅변워낙워드워매워치워커워터원가원격원경원고원군원권원근원금원기원내원년원님원단원대원도원두원뜻원래원력원로원료원룸원류원리원만원망원목원문원반원본원부원상원색원생원서원성원소원수원시원심원안원액원양원어원예원외원유원융원음원인원자원작원장원전원점원정원제원조원죄원천원체원칙원탁원폭원한원화원활원흉월간월경월급월동월드월례월말월별월병월봉월북월색월세월요월장월척웜홀웨딩웬걸웬일위계위권위기위독위락위력위로위문위반위법위병위사위산위상위생위선위성위세위신위안위암위엄위업위여위염위용위원위의위인위임위작위장위전위조위주위쪽위축위층위탁위통위패위폐위헌위험위협윗니윗돌윗면윗목윗몸윗물윗옷윗집윙백유가유감유격유골유관유괴유교유권유급유기유년유당유도유독유동유두유랑유래유량유력유례유로유료유리유린유망유머유명유모유목유무유물유민유발유배유보유부유분유사유산유상유생유서유세유수유순유스유식유신유실유아유언유역유예유용유월유익유일유입유자유적유전유제유조유족유죄유지유착유추유출유충유치유쾌유통유파유포유품유해유행유혈유형유혹유황유효유훈유흥유희육갑육교육군육덕육로육류육만육백육부육상육성육수육순육식육신육십육아육안육지육질육참육체육촌육추육축윤곽윤기윤달윤락윤리윤허윤화윤회율동율령율법융모융자융합으뜸으레으악으앙으으으음으응으흠은거은공은닉은덕은막은발은빛은사은상은어은유은인은자은전은총은퇴은폐은하은행은혜을축읊다음기음대음력음료음률음매음모음반음복음색음소음수음식음악음양음역음유음절음조음주음지음파음표음해음향읍내읍사읍성읏다응급응달응답응당응대응분응석응시응용응원응집응징의거의견의결의경의고의과의관의기의논의당의대의도의례의뢰의료의류의리의무의문의미의발의병의보의복의분의사의석의수의술의식의심의약의외의욕의원의의의인의자의장의전의제의존의중의치의표의학의향의혹의회이거이것이견이경이골이곳이과이국이궁이권이급이기이끼이날이내이년이념이놈이농이닝이다이단이달이담이두이득이등이따이때이랑이래이랬이런이레이력이론이루이류이름이마이만이면이모이목이문이미이민이발이방이번이변이별이병이봐이분이불이빨이삭이산이삼이색이설이성이세이순이슈이슬이승이식이심이십이양이어이엉이에이온이완이왕이외이용이웃이월이윤이율이의이익이임이입이자이장이적이전이점이족이주이중이직이진이질이쪽이쯤이차이첩이치이케이키이탈이태이틀이해이행이혼이화이후익다익명익사익살익히인가인간인감인격인공인과인권인근인기인내인대인두인력인류인마인맥인멸인명인문인물인민인방인복인부인분인사인산인삼인상인생인선인세인쇄인습인승인식인신인심인연인용인원인육인자인재인적인접인주인준인지인질인책인척인체인출인치인턴인파인품인형인화일가일각일간일갈일감일개일거일격일견일경일곱일과일관일괄일광일국일급일기일껏일꾼일념일다일단일당일대일등일래일력일련일렬일례일로일류일리일말일면일명일몰일무일반일방일별일병일보일부일상일색일생일선일설일손일수일순일시일식일신일실일심일쑤일약일어일요일원일이일일일자일전일절일정일제일조일족일종일주일직일진일찍일차일천일체일촌일출일치일침일탈일터일파일품일행일환일흔읽다잃다임금임기임내임대임면임명임무임박임부임사임산임상임시임신임야임업임용임원임의임자임정임종임지임학임해입가입각입건입구입국입금입김입다입단입담입당입대입덧입동입력입론입맛입매입무입문입법입사입상입성입속입수입술입시입식입양입영입원입자입주입증입지입질입찰입체입초입춘입학입항입회잇다잇몸있다잉어잉여잉크잊다잎새자가자각자갈자객자격자결자구자국자궁자규자극자금자급자긍자기자꾸자네자녀자다자대자동자두자라자락자랑자료자루자리자립자막자만자매자멸자모자못자문자박자백자본자비자사자산자색자생자서자석자선자성자세자소자손자수자습자식자신자아자애자양자원자율자음자의자작자재자전자정자제자조자족자주자진자질자책자청자체자취자치자칫자칭자크자타자태자택자퇴자판자필자해자현자형작가작고작곡작금작년작다작동작료작명작목작문작물작부작사작성작심작업작용작인작자작전작정작중작태작품작황잔금잔꾀잔당잔등잔디잔뜩잔량잔류잔뼈잔상잔액잔업잔영잔일잔재잔존잔치잔해잘다잘못잠깐잠바잠복잠수잠시잠식잠옷잠입잠재잠적잠정잠행잡거잡곡잡귀잡념잡다잡담잡목잡무잡음잡일잡지잡직잡채잡초잡탕잡티잡풀잡피잡화잣다잣대장가장갑장강장관장교장구장국장군장기장꾼장끼장난장날장남장내장녀장년장님장단장담장대장독장땡장래장려장례장로장롱장르장마장막장맛장면장명장모장물장미장발장벽장변장병장부장비장사장생장석장세장소장손장승장시장식장신장악장애장외장원장인장작장장장전장점장정장죽장지장차장책장치장터장토장판장편장풍장학장해장형장화잦다재가재간재갈재개재건재경재계재고재난재능재다재단재담재독재래재량재력재롱재료재목재물재미재발재배재벌재부재산재삼재상재생재선재세재수재심재앙재야재연재외재원재일재임재정재주재중재즈재지재직재질재차재촉재치재킷재판재편재학재해재혼재화재활재회잿물잿빛쟁기쟁론쟁반쟁의쟁점쟁취저가저간저거저것저격저그저금저급저기저녁저놈저래저런저력저렴저리저반저번저변저분저서저속저술저승저온저울저의저이저자저작저장저조저주저지저질저쪽저쯤저축저편저포저하저항저해저희적격적국적군적극적금적기적다적당적대적도적막적멸적발적법적부적산적삼적색적용적응적의적이적자적장적재적정적지적진적채적체적폐적합적화전가전각전갈전개전격전경전골전공전과전관전교전구전국전군전권전근전기전날전년전념전뇌전단전달전담전답전당전대전도전등전라전락전란전래전략전량전력전례전류전말전망전매전면전모전무전문전반전방전번전보전복전부전분전비전사전산전삼전생전서전선전설전세전속전송전수전술전승전시전신전실전압전액전야전언전업전역전연전열전염전용전우전원전위전유전율전인전임전입전작전장전쟁전적전전전정전제전조전직전진전집전차전철전체전초전축전출전치전침전통전투전파전편전표전하전학전해전혀전형전호전화전환전황전후절간절감절개절경절규절기절다절단절대절로절리절망절반절벽절상절식절실절약절정절제절차절충절터절편절하젊다젊음점거점검점괘점령점막점선점수점술점심점원점유점잔점점점차점퍼점포점프점호접견접경접근접다접대접목접속접수접시접안접영접전접종접촉접합젓갈젓다정가정각정감정견정경정계정곡정관정구정궁정권정규정글정기정년정녕정담정답정당정도정돈정략정력정렬정령정례정론정리정립정말정면정묘정무정문정물정밀정박정벌정법정변정복정부정비정사정상정색정서정설정성정세정수정숙정승정시정식정신정실정역정열정예정오정월정유정의정작정장정재정쟁정적정전정절정점정정정지정직정차정착정찰정책정처정체정초정취정치정토정통정파정평정포정학정형정혜정황젖다젖빛젖소제값제거제격제고제곱제공제과제관제국제기제길제단제당제대제도제동제때제련제로제멋제명제목제문제물제반제발제방제법제보제복제비제사제상제석제설제소제수제시제식제안제압제약제어제왕제외제육제의제자제작제장제재제적제전제정제제제조제지제직제집제철제청제출제패제품제한제헌제후제휴제힘젠장젤리조각조간조개조건조교조금조기조깅조끼조달조력조례조롱조류조리조림조립조망조명조문조미조별조복조사조산조상조서조석조성조세조소조수조신조심조야조약조어조언조업조연조예조원조율조응조이조인조작조장조정조종조직조짐조찬조처조청조치조카조폐조합조항조형조화조회족단족벌족보족속족쇄족장족적족정족족족히존경존립존망존속존엄존영존재존중존칭존폐졸고졸다졸부졸속졸업졸음졸작졸졸졸지좀체좁다좁쌀종가종강종결종교종국종군종기종내종년종놈종란종래종료종루종류종말종목종반종별종보종성종속종식종신종양종언종이종일종자종적종전종점종조종족종종종지종질종파종합좆나좇다좋다좋아좌경좌담좌상좌석좌선좌식좌우좌익좌절좌중좌초좌측좌파좌판좌편좌표좌향죄과죄다죄명죄목죄수죄악죄인죄질죄형주가주간주객주거주걱주검주곡주관주교주권주기주년주눅주다주도주동주둔주량주력주례주로주류주름주막주말주먹주목주무주문주미주민주발주방주범주변주봉주부주빈주사주산주상주석주선주소주술주스주시주식주심주어주연주옥주요주위주의주인주임주입주작주장주재주저주적주점주접주정주제주종주주주지주차주책주체주초주총주최주축주춤주택주판주평주향주현죽다죽순죽음죽죽죽창준거준공준법준비준설준장준칙줄곧줄기줄다줄자줄줄줄창줍다줏대중간중개중견중계중고중급중기중년중단중대중도중독중등중략중량중력중령중론중류중립중매중명중문중반중병중복중부중사중산중상중생중선중세중순중시중식중심중압중앙중어중역중엽중요중용중위중인중장중재중절중점중증중지중진중차중책중천중추중층중태중턱중파중편중풍중학중핵중형중흥중히쥐다쥐띠쥐약즈네즈음즈이즉각즉석즉시즉위즉흥증가증감증강증거증권증기증대증명증발증상증서증설증세증손증시증식증안증액증언증여증오증원증인증자증정증진증축증폭증표증후지가지각지갑지검지게지경지고지구지국지극지금지급지기지네지능지다지대지도지랄지레지력지령지로지론지뢰지류지름지리지망지맥지면지명지목지문지반지방지배지법지병지봉지부지분지불지붕지사지상지서지세지속지시지식지신지압지양지옥지원지위지장지적지점지정지조지존지주지중지지지진지질지짐지척지천지청지체지출지층지침지칭지판지퍼지평지폐지표지프지혈지회지휘직각직감직격직경직계직관직권직급직능직렬직령직립직면직무직물직분직선직성직속직업직역직영직원직위직인직장직전직접직제직조직종직진직책직판직할직함직행직후진가진골진공진급진단진담진땀진료진리진미진보진사진산진상진서진술진신진실진심진압진여진열진용진원진위진의진입진작진전진정진즉진지진짜진찰진창진척진출진취진통진품진학진행진홍진화진흙진흥질감질겁질곡질끈질다질량질문질병질산질색질서질소질시질식질의질적질정질주질질질책질환짐꾼짐승짐작짐짓짐칸집값집게집결집계집권집기집념집다집단집도집무집사집세집적집중집집집착집채집터집필집하집합집행집회짓다징계징발징벌징병징수징역징용징조징집징표징후짖다짙다짚다짚단짚신짜다짜샤짜임짜증짝꿍짝수짝짝짠밥짤끔짧다짬밥짬뽕짭짭짹짹쨍쨍쩍쩍쩔쩔쩝쩝쪼금쪼까쪼깨쪼끔쪼다쪽문쪽박쪽빛쪽지쫄쫄쫑긋쫓다쬐끔쬐다쭉쭉쯧쯧찌개찌다찌찌찍다찔끔찔레찜질찜통찢다찧다차관차기차남차내차다차단차도차등차량차려차렷차례차림차마차명차별차분차비차선차수차액차양차용차원차율차이차익차임차입차장차전차제차조차종차지차질차차차창차체차출차츰차트차표차후착각착공착란착륙착상착수착실착오착용착잡착지착취찬물찬반찬밥찬사찬성찬양찬장찬조찬탄찬합찰기찰나찰떡찰싹찰칵찰흙참가참고참관참깨참다참뜻참말참모참배참변참봉참사참상참새참석참선참여참외참작참전참조참주참취참치참판참패참호참화참회찹쌀찻값찻길찻물찻상찻잔찻집창가창간창건창고창구창끝창단창달창당창대창립창문창밖창살창설창업창의창자창작창장창조창출창턱창틀창피찾다채권채근채끝채널채다채도채무채비채색채소채식채용채점채집채찍채취채탄채택채플책값책략책망책무책방책보책상책임책자책장책정챔프처가처남처리처마처방처벌처분처사처서처신처우처음처자처장처제처지처첩처치처형척결척도척수척척척추천고천공천구천국천군천당천대천도천둥천막천만천명천문천민천벌천사천상천생천성천세천손천시천신천억천연천장천재천제천직천체천평천하천혜천황철강철거철골철교철군철권철근철금철기철길철도철렁철로철릭철망철벽철봉철분철사철새철선철썩철야철자철재철저철제철쭉철창철책철철철탑철퇴철판철폐철학철회첨단첨벙첨병첨지첨탑첩경첩보첫날첫눈첫돌첫발첫선첫술첫애첫째첫해청각청결청동청력청렴청룡청병청부청사청산청색청소청솔청수청약청장청정청중청천청취청탁청혼청홍체감체격체결체계체구체급체납체내체념체력체류체면체모체벌체불체액체열체온체외체인체임체전체제체조체중체증체질체취체크체통체포체한체험체형첼로초가초고초과초기초년초대초등초로초록초목초미초반초밥초병초보초본초봄초빙초산초상초서초석초선초성초소초속초순초시초안초야초연초엽초원초월초인초임초입초자초장초전초점초조초지초청초침초토초판촉각촉감촉구촉매촉새촉진촌극촌놈촌락촌수촌장촌주촌지촌티촛대촛불총각총격총경총계총괄총구총기총독총량총력총리총명총무총부총상총서총선총성총수총알총액총장총재총점총질총체총총총칼총탄총통총합총화총회촬영최강최근최다최대최루최면최상최선최소최신최악최장최저최적최종최초최하최후추가추격추경추계추곡추골추구추궁추나추녀추다추동추락추렴추론추리추모추방추분추산추상추석추세추수추심추억추월추위추이추인추장추적추정추종추진추징추천추첨추출추측추태추파추호추후축가축구축대축도축문축방축복축사축산축성축소축재축적축전축제축조축척축출축포축하춘계춘방춘분춘축춘풍춘화출가출간출구출국출근출납출당출동출두출력출마출발출범출산출생출석출세출시출신출어출연출원출입출자출장출전출제출처출타출토출판출품출하출항출현출혈춤꾼춥다충격충고충돌충동충만충성충신충심충원충족충효췌장취객취급취기취득취락취로취미취사취소취약취업취임취재취조취중취지취직취침취학취항취향측간측근측면측정층계층위층층치골치과치근치기치다치료치마치부치사치수치아치안치약치열치욕치유치장치적치중치즈치질치클치키치킨치통치하칙칙친가친교친목친분친선친여친위친일친자친절친정친족친지친척친친친형친화친히칠갑칠기칠십칠천칠판칠팔칠흑침공침낭침대침략침모침묵침범침상침수침식침실침염침입침잠침체침탈침투침하침해칩거칫솔칭송칭제칭찬칭칭칭호카다카드카레카키카페카펫카피칸나칼깃칼날칼럼칼륨칼슘칼질칼집칼춤캐넌캐다캐럴캐빈캠프커닝커버커브커서커터커트커튼커팅커플커피컥컥컬러컬트컹컹케어케첩케키켜다켤레코끝코너코드코딩코믹코밑코뼈코스코앞코일코치코팅코펠코피콕콕콘도콜걸콜라콤비콧김콧날콧대콧등콧물콧속콩과콩밭콩알콩콩콩팥콸콸쾅쾅쾌감쾌락쾌자쾌재쾌히쿠션쿠키쿠킹쿡쿡쿵쿵쿼터쿼티퀀셋퀘리퀴어퀴즈크기크림큰굿큰길큰놈큰대큰댁큰돈큰딸큰맘큰물큰방큰불큰비큰손큰애큰일큰절큰집큰형클럽클릭키스키위키커킥킥킨트킬로타각타개타건타격타결타국타다타닥타당타도타락타령타면타박타사타성타운타원타월타율타의타인타일타입타자타점타조타종타지타처타파타향타협탁구탁상탁아탁월탁자탁주탁탁탄광탄력탄로탄생탄소탄식탄압탄전탄좌탄핵탈것탈골탈구탈당탈락탈루탈법탈북탈선탈세탈영탈점탈주탈출탈춤탈퇴탈피탐구탐문탐방탐사탐색탐욕탐정탐지탐험탑승탕감탕반탕아탕약탕탕태고태교태극태깔태도태동태만태몽태반태생태세태아태엽태자태중태초태토태평태풍택시택지탯줄탱크터널터부터빈터울터전터치턱뼈턱짓털끝털다털썩털이텀벙텃논텃밭텃새텃세텅텅테마텐트템포토굴토기토끼토너토대토로토론토목토벌토산토속토씨토양토요토의토종토주토질토착토크토큰토털토플토픽톡톡톱날톱니톱몸톱밥톱질통계통고통곡통과통관통굽통금통깨통념통독통로통방통보통산통상통석통선통설통속통신통역통원통장통전통제통증통지통째통찰통치통통통풍통학통합통행통화퇴거퇴고퇴근퇴락퇴보퇴비퇴색퇴원퇴임퇴장퇴조퇴직퇴진퇴치퇴폐퇴학투고투구투기투명투병투사투서투수투신투약투어투여투영투옥투입투자투쟁투정투지투척투표투호툭툭퉁소퉁퉁튀김튀다튜브튤립트다트랙트랩트럭트루트릭트림트집특강특권특급특기특단특례특별특보특사특산특색특선특성특수특약특용특위특유특융특이특정특종특질특집특징특차특채특출특품특허특혜특화특활특효특히튼튼틀다틈새티끌티슈팀원팀장파격파견파고파괴파국파급파기파다파도파두파란파랑파력파마파면파멸파문파벌파병파산파선파손파쇼파악파업파워파이파일파장파쟁파전파종파탄파트파티파편파행팍스팍팍판결판국판권판단판도판례판로판매판사판서판시판자판정판지판촉판화팔각팔경팔다팔도팔뚝팔레팔매팔목팔방팔백팔뼈팔십팔월팔자팔짱팔찌팔천팝송팝콘팡팡팥물팥밥팥알팥죽패권패기패널패다패두패드패류패망패물패배패션패소패스패인패자패전팩스팬츠팬티팻말팽이팽창퍼뜩퍼즐퍼터퍼팅퍽퍽펀드펀치펄쩍펄펄펄프펌프펑크펑펑페놀페달페어펜슬펜싱펜치펭귄펴다편견편도편력편리편목편법편성편수편승편식편액편의편익편입편저편제편중편지편집편차편찬편파편향편히평가평결평균평길평년평단평등평론평면평문평상평생평소평시평안평야평영평온평일평자평절평점평지평직평판평행평형평화폐광폐교폐기폐단폐렴폐물폐백폐병폐비폐색폐선폐쇄폐수폐암폐업폐유폐지폐품폐하폐해폐허포격포경포고포괄포교포구포기포대포도포란포럼포로포말포맷포문포병포부포상포석포수포식포옹포위포육포의포일포장포졸포주포즈포커포크포탄포태포폭포함포화포환폭격폭도폭동폭등폭락폭로폭발폭삭폭설폭소폭언폭염폭우폭음폭죽폭탄폭파폭포폭폭폭풍표결표고표기표류표리표면표명표밭표백표본표상표시표어표의표적표절표정표제표준표지표징표창표출표토표피표현푯말푸념푸다푸대푸새푸아푹푹푼돈푼수풀기풀꽃풀다풀밭풀숲풀썩풀이풀잎풀장풀쩍풀칠풀풀품격품관품귀품다품목품삯품성품속품위품종품질품행풋코풋콩풍경풍광풍구풍금풍년풍덩풍력풍류풍모풍미풍사풍선풍속풍수풍습풍악풍요풍운풍월풍자풍작풍장풍조풍차풍토풍향풍화프랑프로프리프림플롯피겨피고피곤피난피다피디피땀피력피로피륙피리피망피멍피복피부피살피서피습피시피식피신피안피의피임피자피지피질피차피켓피클피하피해핀볼핀잔필경필기필독필두필력필름필링필명필사필수필승필시필연필요필자필진필체필치필터필통필히핍박핏기핏대핏물핏발핏빛핏줄핑매핑크핑핑하강하객하계하관하교하급하긴하녀하늘하달하대하도하드하등하락하루하류하마하모하부하사하상하수하숙하순하양하역하오하원하위하의하이하인하자하중하직하천하청하체하층하키하품하프하필하하하향하호학계학과학교학군학급학기학내학년학대학덕학도학동학력학명학무학문학번학벌학병학부학비학사학생학설학술학습학식학업학예학우학원학위학의학자학장학점학제학질학창학칙학파학풍학회한가한갓한결한계한곳한기한길한껏한낮한낱한눈한데한도한두한둘한때한류한몫한문한발한밤한방한배한번한복한서한술한숨한시한식한약한옥한우한울한자한잔한잠한정한지한집한쪽한참한창한철한촌한층한턱한파한판한편한풀할당할매할멈할미할부할인핥다함께함대함락함량함빡함성함수함양함의함정함지함축함포합격합계합금합당합동합류합리합법합병합산합석합선합성합세합수합숙합승합의합일합작합장합참합판합헌항간항거항고항공항구항라항로항만항목항변항복항상항성항소항수항시항심항암항의항일항쟁항전항진항차항체항해해결해고해골해군해금해내해녀해님해답해당해독해동해로해머해면해명해물해발해방해법해변해병해부해산해상해석해설해소해수해악해안해역해외해운해임해장해저해적해전해제해직해체해초해충해탈해트해학해후핵귀핵산핵심핸드핸들햇볕햇빛햇살행각행간행군행궁행동행락행랑행렬행로행방행보행복행사행상행색행성행세행실행여행운행원행위행인행장행적행정행진행차행태행패향교향기향내향도향락향료향리향방향배향상향수향약향연향유향응향촌향취향토향후허가허공허구허기허다허들허락허리허무허물허브허사허상허세허실허용허울허위허점허탈허탕허파허풍허허헉헉헌금헌법헌병헌신헌장헌책헌혈헐값헐다험구험담헛간헛것헛돈헛일헝겊헤드헤딩헤어헤엄헤이헤헤헬기헬륨헬멧헷것혀끝혁대혁명혁신혁파현관현금현무현문현물현상현생현세현실현안현업현역현재현존현직현찰현판현행현황혈관혈기혈색혈세혈안혈압혈액혈연혈육혈전혈족혈청혈통혈투혐오혐의협곡협공협궤협동협력협상협소협약협업협연협의협정협조협회형광형국형님형량형문형벌형법형부형상형성형수형식형장형제형질형체형태형편형평혜안혜택호가호각호감호강호구호국호기호남호당호두호떡호령호모호미호밀호봉호사호상호선호소호송호수호스호신호실호역호외호우호위호응호의호재호적호전호족호출호칭호텔호통호평호프호혜호호호화호환호황호흡혹성혹시혹여혹은혹자혹평혹한혼기혼돈혼동혼란혼령혼례혼미혼백혼사혼선혼성혼수혼식혼신혼용혼융혼인혼자혼잡혼전혼탁혼합홀딱홀랑홀로홀수홀연홈런홈통홍류홍보홍수홍역홍예홍익홍조홍차홍합홑청화가화강화구화근화기화끈화단화답화두화력화로화면화목화물화백화법화보화북화분화살화상화석화소화술화식화실화약화염화원화음화자화장화재화쟁화제화채화초화친화투화평화폐화포화폭화풍화학화합화해화형화환화훼확답확대확률확립확보확산확신확실확인확장확정확증확충환각환갑환경환기환대환매환멸환부환상환생환성환송환시환심환영환원환율환자환장환전환청환호환희환히활개활기활동활력활로활발활성활약활엽활용활자활짝활활활황황금황기황달황련황색황성황야황제황천황토황폐횃불회갑회견회계회관회교회귀회기회담회동회랑회로회룡회보회복회비회사회상회색회선회식회신회심회오회원회유회의회장회전회진회통회포회한회합회화획득획일횟수횟집횡단횡대횡령횡포횡행효과효녀효능효도효력효소효시효용효율효행효험후각후계후광후기후끈후대후두후딱후문후반후발후방후배후보후생후세후속후손후송후식후실후예후원후유후일후임후자후장후진후창후천후추후퇴후편후프후학후회후후훈계훈기훈련훈령훈시훈장훈제훈증훌떡훌렁훌쩍훌훌훑다훗날훤히훨씬훨훨훼방훼손휘다휘슬휘장휘하휘휘휠씬휴가휴대휴면휴무휴양휴업휴일휴전휴지휴학휴한흉고흉내흉년흉대흉몽흉상흉악흉작흉추흉터흐름흐흐흑백흑색흑선흑연흑인흑자흔적흔히흘긋흘깃흘낏흙벽흠모흠뻑흠씬흠절흠집흠칫흠흠흡사흡수흡연흡인흡입흥망흥미흥분흥정흥취흥행흥흥흩다희곡희귀희극희다희대희롱희망희비희색희생희열흰빛흰색흰쌀흰옷흰자흰죽흰쥐히다히든히죽히트히히힉꾹힌트힐끔힐끗힘껏힘줄';
+const ANSWERS = [];
+for (let i = 0; i + 1 < ANSWERS_RAW.length; i += 2) ANSWERS.push(ANSWERS_RAW.substr(i, 2));
+const GUESSES = new Set();
+for (let i = 0; i + 1 < GUESSES_RAW.length; i += 2) GUESSES.add(GUESSES_RAW.substr(i, 2));
+const inList = w => GUESSES.has(w);
+
+/* ======================= 일일 도전(날짜·번호) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23); // 2026-08-23 = #1 (다른 게임과 같은 기준일)
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+/* ★정답 순서는 빌드 때 이미 한 번 섞어 파일에 박아 뒀다(빈도 높은 낱말이 앞쪽 층에 오도록).
+   그래서 여기서는 도전 번호로 차례차례 집기만 한다 — 목록을 한 바퀴 도는 동안 같은 낱말이
+   두 번 나오지 않는다(모듈로 해시로 고르면 며칠 만에 같은 낱말이 다시 나올 수 있다). */
+const answerFor = no => ANSWERS[((no - 1) % ANSWERS.length + ANSWERS.length) % ANSWERS.length];
+const dailySeedKey = (d=new Date()) => 'hanpango-daily-word-' + dayKey(d);
+
+/* ======================= 저장(4키) ======================= */
+/* wd.daily · wd.stats · wd.streak · wd.sound + 사이트 공통 bp.lang */
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('wd.daily')||'null'); }catch(_){ return null; } };
+function dailyState(){
+  const r = dailyRec();
+  if (!r || r.date !== dayKey()) return { date:null, no:null, run:null, result:null };
+  return { date:r.date, no:r.no, run:r.run||null, result:r.result||null };
+}
+/* ── 탭 간 임계구역 ─────────────────────────────────────────────────────────
+   wd.daily 한 칸을 여러 탭이 나눠 쓴다. 읽고→검사하고→쓰는 사이에 다른 탭이 끼어들면
+   검사 결과가 낡은 것이 되므로 읽기·검사·쓰기·결과·연속기록을 하나의 배타 잠금 안에서 한다.
+   (블록 낙하 R4~R6 에서 확정된 규약을 그대로 따른다) */
+const DAILY_LOCK = 'wd.daily';
+const hasWebLocks = (() => { try{ return !!(navigator.locks && typeof navigator.locks.request === 'function'); }catch(_){ return false; } })();
+let dailyChain = Promise.resolve();
+let lockDepth = 0;
+function withDailyLock(fn){
+  if (lockDepth > 0){ fn(); return; }                /* 재진입 — 같은 이름 잠금 중첩은 자기 교착 */
+  if (!hasWebLocks){ lockDepth++; try { fn(); } finally { lockDepth--; } return; }
+  const run = () => navigator.locks.request(DAILY_LOCK, { mode:'exclusive' }, () => {
+    lockDepth++; try { fn(); } finally { lockDepth--; }
+  });
+  dailyChain = dailyChain.then(run, run).catch(() => {});
+  return dailyChain;
+}
+/* 이 탭이 이어가는 판의 신원과 '내가 마지막으로 본 리비전'.
+   같은 판을 두 탭이 각자 이어받아 따로 진행하면 나중에 쓴 쪽이 앞선 진행을 덮어쓴다 —
+   잠금은 쓰는 순서만 세울 뿐 하나의 진행선으로 모아 주지 않기 때문이다(블록 낙하 R6 교훈).
+   그래서 저장은 비교-교환(CAS): 저장소의 리비전이 내가 본 값 그대로일 때만 rev+1 로 쓴다. */
+let runId = null, runRev = 0, rejectWhy = null;
+const newRunId = () => 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+let chalDate = null, chalNo = null;
+let staleExpired = false, staleWhy = 'date';
+let preparing = false;
+
+function casOk(prev){
+  const cur = prev.run;
+  if (!cur) return runRev === 0 && !prev.result;
+  if (runId && cur.runId && cur.runId !== runId) return false;
+  return (cur.rev | 0) === runRev;
+}
+function saveDaily(patch){
+  rejectWhy = null;
+  const r = dailyRec();
+  if (r && r.date && chalDate && r.date > chalDate){ rejectWhy = 'date'; return false; }
+  const prev = (r && chalDate && r.date === chalDate)
+    ? { run: r.run || null, result: r.result || null }
+    : { run: null, result: null };
+  if (!casOk(prev)){ rejectWhy = 'fork'; return false; }
+  const nextRun = ('run' in patch) ? patch.run : prev.run;
+  if (nextRun){
+    nextRun.runId = runId || nextRun.runId || newRunId();
+    nextRun.parentRev = runRev;
+    nextRun.rev = runRev + 1;
+  }
+  const rec = { date: chalDate || dayKey(), no: (chalNo != null) ? chalNo : dailyNo(),
+                run: nextRun,
+                result: ('result' in patch) ? patch.result : prev.result };
+  localStorage.setItem('wd.daily', JSON.stringify(rec));
+  if (nextRun){ runId = nextRun.runId; runRev = nextRun.rev; }
+  return true;
+}
+const staleDaily = () => { const r = dailyRec(); return !!(r && r.date && chalDate && r.date > chalDate); };
+const dailyDoneToday = () => !!dailyState().result;
+
+/* 연속 기록 — '끝낸 시각' 이 아니라 도전 시작일 기준이다. 계산(peek)과 쓰기(commit)를 나눠
+   결과가 실제로 커밋된 뒤에만 올린다(먼저 올리면 저장이 거부됐을 때 기록만 남는다). */
+function prevDayKey(key){
+  const [y,m,d] = key.split('-').map(Number);
+  const dt = new Date(y, m-1, d); dt.setDate(dt.getDate()-1);
+  return dayKey(dt);
+}
+const readStreak = () => { try{ return JSON.parse(localStorage.getItem('wd.streak')||'{}'); }catch(_){ return {}; } };
+function peekStreak(dayStr, won){
+  const day = dayStr || dayKey(), st = readStreak();
+  if (!won) return 0;                       /* 실패하면 연속이 끊긴다 */
+  const yest = prevDayKey(day);
+  return st.last === day ? (st.n||1) : st.last === yest ? (st.n||0)+1 : 1;
+}
+function commitStreak(dayStr, n){
+  const day = dayStr || dayKey(), st = readStreak();
+  const max = Math.max(st.max || 0, n);
+  localStorage.setItem('wd.streak', JSON.stringify({ last: day, n, max }));
+  return n;
+}
+/* 통계 — 플레이 수·성공 수·시도별 분포 */
+const readStats = () => { try{ const s = JSON.parse(localStorage.getItem('wd.stats')||'{}');
+  return { played: s.played|0, wins: s.wins|0, dist: Array.isArray(s.dist) && s.dist.length === 6 ? s.dist.map(v=>v|0) : [0,0,0,0,0,0] }; }
+  catch(_){ return { played:0, wins:0, dist:[0,0,0,0,0,0] }; } };
+function commitStats(won, tries){
+  const s = readStats();
+  s.played++;
+  if (won){ s.wins++; s.dist[Math.min(5, Math.max(0, tries - 1))]++; }
+  localStorage.setItem('wd.stats', JSON.stringify(s));
+  return s;
+}
+
+/* ======================= 사운드(WebAudio · 파일 없음) ======================= */
+let soundOn = localStorage.getItem('wd.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime + delay; o.start(t);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sKey  = () => beep(520, .03, 'sine', .022);
+const sGood = () => beep(660, .10, 'triangle', .05);
+const sBad  = () => { beep(200, .16, 'sawtooth', .045); vib(60); };
+const sWin  = () => { beep(660,.10,'triangle',.05); beep(880,.10,'triangle',.05,.10);
+                      beep(1174,.18,'triangle',.05,.20); vib([30,30,60]); };
+
+/* ======================= 상태 ======================= */
+const MAX_TRIES = 6, SLOTS = 6;
+let mode = 'free';                 /* 'daily' | 'free' */
+let answer = '', answerSlots = [];
+let guesses = [];                  /* 제출된 낱말 문자열 배열 */
+let rows = [];                     /* 각 시도의 채점 결과 */
+let over = false, won = false, running = false;
+let shift = false, lastFocus = null, lastResult = null;
+
+/* ======================= 화면낭독기 ======================= */
+function announce(msg){
+  const el = $('srSummary'); if (!el) return;
+  el.textContent = msg;
+}
+const stateName = s => s === 'hit' ? T('stateHit') : s === 'near' ? T('stateNear') : T('stateMiss');
+const slotName = i => (i % 3 === 0) ? T('slotCho') : (i % 3 === 1) ? T('slotJung') : T('slotJong');
+function rowSummary(slots, marks){
+  /* 빈칸은 '받침 받침 없음' 처럼 겹쳐 읽히지 않게 한 마디로 읽어 준다 */
+  return slots.map((s, i) => `${s === EMPTY ? T('jongNone') : slotName(i) + ' ' + s}, ${stateName(marks[i])}`).join(', ');
+}
+
+/* ======================= 보드 그리기 ======================= */
+function buildBoard(){
+  const b = $('board');
+  b.innerHTML = '';
+  b.setAttribute('aria-label', T('ariaBoard'));
+  for (let r = 0; r < MAX_TRIES; r++){
+    const row = document.createElement('div');
+    row.className = 'brow';
+    row.setAttribute('role', 'row');
+    row.id = 'row' + r;
+    for (let c = 0; c < SLOTS; c++){
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (c === 2 ? ' c3' : '');
+      cell.setAttribute('role', 'gridcell');
+      cell.id = `c${r}_${c}`;
+      row.appendChild(cell);
+    }
+    b.appendChild(row);
+  }
+}
+function paintCell(r, c, text, mark){
+  const el = $(`c${r}_${c}`);
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'cell' + (c === 2 ? ' c3' : '')
+    + (text ? ' filled' : '')
+    + (text === EMPTY ? ' empty-jong' : '')
+    + (mark ? ' ' + mark : '');
+  const nm = T('cellName', r + 1, c + 1) + ', '
+    + (text === EMPTY ? T('jongNone') : slotName(c) + ', ' + (text || T('stateEmpty')))
+    + (mark ? ', ' + stateName(mark) : '');
+  el.setAttribute('aria-label', nm);
+}
+function drawBoard(){
+  for (let r = 0; r < MAX_TRIES; r++){
+    if (r < guesses.length){
+      const slots = toSlots(guesses[r]);
+      for (let c = 0; c < SLOTS; c++) paintCell(r, c, slots[c], rows[r][c]);
+    } else if (r === guesses.length && !over){
+      const t = typedText();
+      const slots = [];
+      for (const ch of t){
+        if (isSyllable(ch)){ const [a,b,c2] = splitSyllable(ch); slots.push(a, b, c2 || EMPTY); }
+        else slots.push(ch);
+      }
+      for (let c = 0; c < SLOTS; c++) paintCell(r, c, slots[c] || '', null);
+    } else {
+      for (let c = 0; c < SLOTS; c++) paintCell(r, c, '', null);
+    }
+  }
+}
+
+/* ======================= 자모 키보드 ======================= */
+const KB_ROWS = [
+  ['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'],
+  ['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'],
+  ['SHIFT','ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ','BACK'],
+  ['ENTER']
+];
+const SHIFTED = { 'ㅂ':'ㅃ','ㅈ':'ㅉ','ㄷ':'ㄸ','ㄱ':'ㄲ','ㅅ':'ㅆ','ㅐ':'ㅒ','ㅔ':'ㅖ' };
+const keyState = {};              /* 자모 → 'hit' | 'near' | 'miss' (누적) */
+function buildKeyboard(){
+  const kb = $('kb');
+  kb.innerHTML = '';
+  kb.setAttribute('aria-label', T('ariaKb'));
+  for (const row of KB_ROWS){
+    const div = document.createElement('div');
+    div.className = 'krow';
+    for (const k of row){
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.k = k;
+      if (k === 'ENTER'){ b.className = 'wide'; b.textContent = 'Enter'; }
+      else if (k === 'BACK'){ b.className = 'wide'; b.textContent = '⌫'; }
+      else if (k === 'SHIFT'){ b.className = 'wide'; b.textContent = '⇧'; b.id = 'kShift'; }
+      else { b.textContent = k; b.id = 'k_' + k; }
+      div.appendChild(b);
+    }
+    kb.appendChild(div);
+  }
+  applyKbLabels();
+  paintKeys();
+}
+function applyKbLabels(){
+  for (const b of $('kb').querySelectorAll('button')){
+    const k = b.dataset.k;
+    if (k === 'ENTER') b.setAttribute('aria-label', T('ariaEnter'));
+    else if (k === 'BACK') b.setAttribute('aria-label', T('ariaBack'));
+    else if (k === 'SHIFT') b.setAttribute('aria-label', T('ariaShift'));
+    else b.setAttribute('aria-label', shift && SHIFTED[k] ? SHIFTED[k] : k);
+  }
+}
+function paintKeys(){
+  for (const b of $('kb').querySelectorAll('button')){
+    const k = b.dataset.k;
+    if (k === 'ENTER' || k === 'BACK') continue;
+    if (k === 'SHIFT'){ b.classList.toggle('on', shift); continue; }
+    const face = shift && SHIFTED[k] ? SHIFTED[k] : k;
+    b.textContent = face;
+    b.classList.remove('hit','near','miss');
+    const st = keyState[face];
+    if (st) b.classList.add(st);
+  }
+}
+/* 키 색은 정확 > 위치 다름 > 없음 순으로만 올라간다(내려가지 않는다) */
+const RANK = { miss:1, near:2, hit:3 };
+function bumpKey(jamo, st){
+  if (jamo === EMPTY) return;
+  if (!keyState[jamo] || RANK[st] > RANK[keyState[jamo]]) keyState[jamo] = st;
+}
+
+/* ======================= 오버레이(초점·inert) ======================= */
+function isRestorable(el){
+  if (!el || el === document.body || !el.isConnected) return false;
+  if (typeof el.focus !== 'function') return false;
+  if (el.closest && el.closest('.overlay:not(.show)')) return false;
+  if (el.hasAttribute && el.hasAttribute('inert')) return false;
+  if (el.closest && el.closest('[inert]')) return false;
+  const r = el.getBoundingClientRect();
+  if (!r.width && !r.height) return false;
+  if (getComputedStyle(el).visibility === 'hidden') return false;
+  return true;
+}
+const fallbackFocus = () => $('kb').querySelector('button');
+function focusSafely(el){
+  const target = isRestorable(el) ? el : fallbackFocus();
+  if (!isRestorable(target)) return null;
+  try{ target.focus(); }catch(_){ return null; }
+  return target;
+}
+const INERT_SUPPORTED = ('inert' in HTMLElement.prototype);
+const FOCUSABLE_SEL = 'a[href],button,input,select,textarea,[tabindex]';
+const outsideBoxes = () =>
+  [...document.body.children].filter(el => !el.classList.contains('overlay') && el.id !== 'toast');
+function setBranchTabbable(root, on){
+  const els = [root, ...root.querySelectorAll(FOCUSABLE_SEL)].filter(e => e.matches && e.matches(FOCUSABLE_SEL));
+  for (const e of els){
+    if (!on){
+      if (!e.hasAttribute('data-ti-saved'))
+        e.setAttribute('data-ti-saved', e.getAttribute('tabindex') === null ? '' : e.getAttribute('tabindex'));
+      e.setAttribute('tabindex', '-1');
+    } else if (e.hasAttribute('data-ti-saved')){
+      const v = e.getAttribute('data-ti-saved');
+      if (v === '') e.removeAttribute('tabindex'); else e.setAttribute('tabindex', v);
+      e.removeAttribute('data-ti-saved');
+    }
+  }
+}
+function setOutsideInert(on){
+  for (const el of outsideBoxes()){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+    if (!INERT_SUPPORTED) setBranchTabbable(el, !on);
+  }
+}
+const OVERLAYS = ['over','stats','help','start'];
+const anyOverlayOpen = () => OVERLAYS.some(id => { const e = $(id); return e && e.classList.contains('show'); });
+function showOverlay(id, firstBtnId){
+  const el = $(id); if (!el) return;
+  if (!anyOverlayOpen()) lastFocus = isRestorable(document.activeElement) ? document.activeElement : null;
+  setOutsideInert(true);
+  el.classList.add('show');
+  const b = $(firstBtnId);
+  if (b) setTimeout(() => { try{ b.focus(); }catch(_){} }, 0);
+}
+function hideOverlay(id){
+  const el = $(id);
+  if (el) el.classList.remove('show');
+  if (!anyOverlayOpen()){
+    setOutsideInert(false);            /* ★초점을 옮기기 전에 먼저 푼다 */
+    focusSafely(lastFocus);
+    lastFocus = null;
+  }
+}
+function hideOverlays(){
+  let closed = false;
+  for (const id of OVERLAYS){
+    const el = $(id);
+    if (el && el.classList.contains('show')){ el.classList.remove('show'); closed = true; }
+  }
+  setOutsideInert(false);
+  if (closed) focusSafely(lastFocus);
+  lastFocus = null;
+}
+
+/* ======================= 게임 흐름 ======================= */
+function resetCommon(){
+  guesses = []; rows = [];
+  for (const k in keyState) delete keyState[k];
+  clearComp();
+  over = false; won = false; running = true;
+  staleExpired = false;
+}
+function newFree(){
+  mode = 'free';
+  chalDate = null; chalNo = null; runId = null; runRev = 0;
+  resetCommon();
+  answer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+  answerSlots = toSlots(answer);
+  lastResult = null;
+  $('subtitle').textContent = T('freeMode');
+  hideOverlays();
+  buildBoard(); drawBoard(); paintKeys();
+  focusSafely(fallbackFocus());
+}
+/* ★준비 중에는 시작 창의 버튼 자체를 잠근다 — 잠금 대기 동안 다른 경로가 열리면
+   뒤늦게 풀린 콜백이 화면을 갈아엎는 입력 경합이 생긴다(블록 낙하 R6 교훈). */
+function setPreparing(v){
+  preparing = !!v;
+  $('btnDaily').disabled = preparing;
+  $('btnFree').disabled = preparing;
+}
+function newDaily(){
+  mode = 'daily';
+  chalDate = dayKey(); chalNo = dailyNo();
+  runId = newRunId(); runRev = 0;
+  resetCommon();
+  answer = answerFor(chalNo);
+  answerSlots = toSlots(answer);
+  lastResult = null;
+  $('subtitle').textContent = T('daily', chalNo);
+  buildBoard(); drawBoard(); paintKeys();
+  /* ★새 판은 최초 저장이 커밋된 뒤에만 연다 — 커밋 전에 열면 그 대기 창에서 다른 탭도
+     빈 기록을 보고 또 하나의 판을 시작해 두 판이 서로를 덮는다. */
+  setPreparing(true); running = false;
+  $('dailyHint').textContent = T('preparing');
+  withDailyLock(() => {
+    setPreparing(false);
+    if (saveDailyRunLocked()){
+      running = true;
+      refreshStart();
+      hideOverlays();
+      focusSafely(fallbackFocus());
+    } else {
+      refreshStart();
+      expireStale(rejectWhy);
+    }
+  });
+}
+/* '오늘의 도전' 진입점 — 자격 판정과 최초 저장을 ★같은 잠금 안에서 한다. */
+function startDaily(){
+  setPreparing(true);
+  $('dailyHint').textContent = T('preparing');
+  withDailyLock(() => {
+    setPreparing(false);
+    const st = dailyState();
+    if (st.result){ refreshStart(); return showDailyResult(); }
+    if (st.run){ refreshStart(); return resumeDaily(); }
+    newDaily();
+  });
+}
+function resumeDaily(){
+  const run = dailyState().run;
+  if (!run) return newDaily();
+  mode = 'daily';
+  resetCommon();
+  chalDate = run.date || dayKey();
+  chalNo = (run.no != null) ? run.no : dailyNo();
+  runId = run.runId || null;
+  runRev = run.rev | 0;
+  answer = answerFor(chalNo);
+  answerSlots = toSlots(answer);
+  guesses = Array.isArray(run.guesses) ? run.guesses.slice(0, MAX_TRIES) : [];
+  rows = guesses.map(g => score(toSlots(g), answerSlots));
+  for (let r = 0; r < rows.length; r++){
+    const slots = toSlots(guesses[r]);
+    for (let c = 0; c < SLOTS; c++) bumpKey(slots[c], rows[r][c]);
+  }
+  won = guesses.length > 0 && guesses[guesses.length - 1] === answer;
+  over = won || guesses.length >= MAX_TRIES;
+  running = !over;
+  lastResult = null;
+  $('subtitle').textContent = T('daily', chalNo);
+  buildBoard(); drawBoard(); paintKeys();
+  hideOverlays();
+  focusSafely(fallbackFocus());
+  announce(T('srTyped', guesses.join(' ')));
+}
+function dailyRunSnapshot(){
+  return { guesses: guesses.slice(), date: chalDate, no: chalNo,
+           runId, baseRev: runRev };
+}
+function saveDailyRunLocked(snap){
+  if (mode !== 'daily' || over) return true;
+  return saveDaily({ run: snap || dailyRunSnapshot() });
+}
+function saveDailyRun(){
+  if (mode !== 'daily' || over) return;
+  const snap = dailyRunSnapshot();
+  withDailyLock(() => {
+    if (!saveDailyRunLocked(snap)) expireStale(rejectWhy);
+  });
+}
+
+/* ======================= 제출 ======================= */
+function shakeRow(){
+  const row = $('row' + Math.min(guesses.length, MAX_TRIES - 1));
+  if (!row) return;
+  row.classList.remove('shake');
+  void row.offsetWidth;
+  row.classList.add('shake');
+  setTimeout(() => row.classList.remove('shake'), 420);
+}
+function submit(){
+  if (!running || over) return;
+  const w = typedText();
+  if (compCount() < 2 || w.length !== 2 || !isSyllable(w[0]) || !isSyllable(w[1])){
+    toast(T('tooShort')); shakeRow(); sBad(); return;
+  }
+  if (!inList(w)){ toast(T('notInList')); shakeRow(); sBad(); return; }
+  const slots = toSlots(w);
+  const marks = score(slots, answerSlots);
+  guesses.push(w);
+  rows.push(marks);
+  for (let c = 0; c < SLOTS; c++) bumpKey(slots[c], marks[c]);
+  clearComp();
+  drawBoard(); paintKeys();
+  announce(T('srRow', guesses.length, rowSummary(slots, marks)));
+
+  won = (w === answer);
+  const outOfTries = guesses.length >= MAX_TRIES;
+  if (won || outOfTries){
+    over = true; running = false;
+    if (won) sWin(); else sBad();
+    finish();
+  } else {
+    sGood();
+    saveDailyRun();
+  }
+}
+/* 결과 확정 — 일일 모드는 저장이 커밋된 뒤에만 화면을 연다(연속 기록·통계도 그 뒤). */
+function finish(){
+  const tries = guesses.length;
+  if (mode !== 'daily'){
+    /* ★통계는 '오늘의 도전' 만 센다 — 자유 모드는 횟수 제한이 없어 승률이 뜻을 잃는다 */
+    lastResult = { win: won, tries, no: null, streak: 0, answer };
+    showResult();
+    return;
+  }
+  const day = chalDate || dayKey();
+  const rec = { date: day, no: (chalNo != null) ? chalNo : dailyNo(),
+                win: won, tries, marks: rows.map(m => m.map(x => x[0]).join('')),   /* h·n·m 한 글자씩 */
+                streak: peekStreak(day, won) };
+  withDailyLock(() => {
+    if (staleDaily()){ expireStale('date'); return; }
+    if (!saveDaily({ result: rec, run: null })){ expireStale(rejectWhy); return; }
+    if (won) commitStreak(day, rec.streak);
+    else { const st = readStreak(); localStorage.setItem('wd.streak', JSON.stringify({ last: day, n: 0, max: st.max || 0 })); }
+    commitStats(won, tries);
+    lastResult = { win: won, tries, no: rec.no, streak: rec.streak, answer };
+    showResult();
+  });
+}
+function showResult(){
+  const r = lastResult; if (!r) return;
+  $('overTitle').textContent = r.win ? T('win') : T('lose');
+  $('answerLine').textContent = T('answerWas', r.answer);
+  $('streakLine').textContent = (r.win && r.streak > 0) ? T('streak', r.streak) : '';
+  $('finalSub').textContent = r.win ? T('triesLine', r.tries) : T('triesFail');
+  announce(r.win ? T('srWin', r.tries) : T('srLose', r.answer));
+  showOverlay('over', 'btnShare');
+  $('start').classList.remove('show');
+  refreshStart();
+}
+function showDailyResult(){
+  const d = dailyState().result; if (!d) return;
+  mode = 'daily'; over = true; running = false;
+  chalDate = d.date; chalNo = d.no;
+  answer = answerFor(d.no);
+  answerSlots = toSlots(answer);
+  guesses = [];
+  /* 저장된 한 글자 부호(h·n·m)를 채점 결과로 되돌린다 — 공유 이모지도 이 값에서 만든다 */
+  const MK = { h:'hit', n:'near', m:'miss' };
+  rows = (Array.isArray(d.marks) ? d.marks : [])
+    .map(row => String(row).split('').map(ch => MK[ch] || 'miss'));
+  lastResult = { win: !!d.win, tries: d.tries|0, no: d.no, streak: d.streak|0, answer };
+  $('subtitle').textContent = T('daily', d.no);
+  buildBoard();
+  /* 저장된 채점 결과만 되살린다 — 낱말 자체는 다시 그리지 않는다(정답 노출 최소화) */
+  for (let r = 0; r < rows.length && r < MAX_TRIES; r++)
+    for (let c = 0; c < SLOTS; c++) paintCell(r, c, '', rows[r][c]);
+  showResult();
+}
+/* 만료 — 'date' 는 더 최신 날짜의 도전이 시작된 것, 'fork' 는 같은 판을 다른 탭이 먼저 진행한 것 */
+function renderStale(){
+  const fork = staleWhy === 'fork';
+  $('overTitle').textContent = T(fork ? 'forkTitle' : 'staleTitle');
+  $('answerLine').textContent = '';
+  $('streakLine').textContent = '';
+  $('finalSub').textContent = T(fork ? 'forkSub' : 'staleSub', chalNo != null ? chalNo : dailyNo());
+}
+function expireStale(why){
+  if (staleExpired) return;
+  staleWhy = (why === 'fork') ? 'fork' : 'date';
+  staleExpired = true;
+  over = true; running = false;
+  lastResult = null;
+  renderStale();
+  announce(T(staleWhy === 'fork' ? 'forkSub' : 'staleSub', chalNo != null ? chalNo : dailyNo()));
+  showOverlay('over', 'btnAgain');
+  $('start').classList.remove('show');
+}
+function refreshStart(){
+  const n = dailyNo(), done = dailyDoneToday();
+  $('btnDaily').textContent = done ? T('dailyDone', n) : T('daily', n);
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint');
+}
+
+/* ======================= 통계 화면 ======================= */
+function showStats(){
+  const s = readStats(), st = readStreak();
+  $('stPlayed').textContent = s.played;
+  $('stWin').textContent = s.played ? Math.round(s.wins * 100 / s.played) + '%' : '0%';
+  $('stStreak').textContent = st.n || 0;
+  $('stMax').textContent = st.max || 0;
+  const max = Math.max(1, ...s.dist);
+  const cur = (lastResult && lastResult.win) ? lastResult.tries : 0;
+  $('dist').innerHTML = s.dist.map((v, i) =>
+    `<div><i>${i+1}</i><u class="${cur === i+1 ? 'cur' : ''}" style="width:${Math.round(8 + v * 82 / max)}%">${v}</u></div>`).join('');
+  showOverlay('stats', 'btnStatsClose');
+}
+
+/* ======================= 공유 ======================= */
+/* ★정답을 드러내지 않는다 — 색 이모지만 내보낸다 */
+const EMO = { hit:'🟩', near:'🟨', miss:'⬜' };
+function shareText(){
+  const r = lastResult;
+  const head = (r && r.no) ? T('dailyShare', r.no, r.win ? r.tries : 'X') : T('freeShare', r && r.win ? r.tries : 'X');
+  const grid = rows.map(m => m.map(x => EMO[x]).join('')).join('\n');
+  return head + grid + '\n' + location.href.split('#')[0];
+}
+async function doShare(){
+  const text = shareText();
+  try{
+    if (navigator.share) await navigator.share({ title: T('docTitle'), text });
+    else { await navigator.clipboard.writeText(text); toast(T('copied')); }
+  }catch(_){}
+}
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1600); }
+
+/* ======================= 입력 ======================= */
+function typeJamo(j){
+  if (!running || over) return;
+  if (feed(j)){ sKey(); drawBoard(); }
+}
+function doBack(){
+  if (!running || over) return;
+  if (backspace()){ sKey(); drawBoard(); }
+}
+/* 물리 자판 — ★code 기반이라 한/영 상태(IME)와 무관하게 같은 자리를 읽는다 */
+const CODE_MAP = {
+  KeyQ:'ㅂ', KeyW:'ㅈ', KeyE:'ㄷ', KeyR:'ㄱ', KeyT:'ㅅ', KeyY:'ㅛ', KeyU:'ㅕ', KeyI:'ㅑ', KeyO:'ㅐ', KeyP:'ㅔ',
+  KeyA:'ㅁ', KeyS:'ㄴ', KeyD:'ㅇ', KeyF:'ㄹ', KeyG:'ㅎ', KeyH:'ㅗ', KeyJ:'ㅓ', KeyK:'ㅏ', KeyL:'ㅣ',
+  KeyZ:'ㅋ', KeyX:'ㅌ', KeyC:'ㅊ', KeyV:'ㅍ', KeyB:'ㅠ', KeyN:'ㅜ', KeyM:'ㅡ'
+};
+window.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (anyOverlayOpen()){
+    if (e.key === 'Escape'){
+      if ($('help').classList.contains('show')){ e.preventDefault(); hideOverlay('help'); }
+      else if ($('stats').classList.contains('show')){ e.preventDefault(); hideOverlay('stats'); }
+    }
+    return;
+  }
+  if (e.key === 'Enter'){ e.preventDefault(); submit(); return; }
+  if (e.key === 'Backspace'){ e.preventDefault(); doBack(); return; }
+  const base = CODE_MAP[e.code];
+  if (!base) return;
+  e.preventDefault();
+  typeJamo(e.shiftKey && SHIFTED[base] ? SHIFTED[base] : base);
+});
+
+/* ======================= UI 배선 ======================= */
+buildBoard();
+buildKeyboard();
+$('kb').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const k = b.dataset.k;
+  if (k === 'ENTER'){ submit(); return; }
+  if (k === 'BACK'){ doBack(); return; }
+  if (k === 'SHIFT'){ shift = !shift; applyKbLabels(); paintKeys(); return; }
+  typeJamo(shift && SHIFTED[k] ? SHIFTED[k] : k);
+  if (shift){ shift = false; applyKbLabels(); paintKeys(); }
+});
+/* ★준비 중이면 버튼이 이미 잠겨 있지만 핸들러에서도 한 번 더 막는다(이중 방어) */
+$('btnDaily').onclick = () => { if (preparing) return; startDaily(); };
+$('btnFree').onclick  = () => { if (preparing) return; newFree(); };
+$('btnAgain').onclick = () => { hideOverlay('over'); newFree(); };
+$('btnShare').onclick = doShare;
+$('btnStats').onclick = () => showStats();
+$('btnStats2').onclick = () => showStats();
+$('btnStatsClose').onclick = () => hideOverlay('stats');
+$('btnHelp').onclick = () => showOverlay('help', 'btnHelpClose');
+$('btnHelpClose').onclick = () => {
+  hideOverlay('help');
+  /* 첫 방문 자동 표시는 한 번만 — 통계 칸을 만들어 두는 것으로 '와 본 적 있음'을 표시한다
+     (저장 키를 늘리지 않기 위해 별도 플래그 키를 두지 않는다) */
+  try{ if (!localStorage.getItem('wd.stats')) localStorage.setItem('wd.stats', JSON.stringify(readStats())); }catch(_){}
+};
+$('btnSound').onclick = () => {
+  soundOn = !soundOn; localStorage.setItem('wd.sound', soundOn ? '1' : '0');
+  $('btnSound').textContent = soundOn ? '🔊' : '🔇';
+  applyA11yLabels();
+  if (soundOn) beep(600, .05, 'sine', .04);
+};
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnLang').onclick = () => {
+  lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); refreshStart();
+  if (mode === 'daily' && chalNo != null) $('subtitle').textContent = T('daily', chalNo);
+  else $('subtitle').textContent = mode === 'free' ? T('freeMode') : T('subtitle');
+  if (over && staleExpired) renderStale();
+  else if (over && lastResult) showResultText();
+  drawBoard(); applyKbLabels(); paintKeys();
+};
+function showResultText(){
+  const r = lastResult; if (!r) return;
+  $('overTitle').textContent = r.win ? T('win') : T('lose');
+  $('answerLine').textContent = T('answerWas', r.answer);
+  $('streakLine').textContent = (r.win && r.streak > 0) ? T('streak', r.streak) : '';
+  $('finalSub').textContent = r.win ? T('triesLine', r.tries) : T('triesFail');
+}
+function applyA11yLabels(){
+  const b = $('btnSound');
+  if (b){ b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+          b.setAttribute('aria-pressed', soundOn ? 'true' : 'false'); }
+  const l = $('btnLang'); if (l) l.setAttribute('aria-label', T('ariaLang'));
+  const h = $('btnHelp'); if (h) h.setAttribute('aria-label', T('ariaHelp'));
+  const s = $('btnStats'); if (s) s.setAttribute('aria-label', T('ariaStats'));
+  for (const a of document.querySelectorAll('a[href="/"]')) a.setAttribute('aria-label', T('ariaHome'));
+  const bd = $('board'); if (bd) bd.setAttribute('aria-label', T('ariaBoard'));
+}
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  applyA11yLabels();
+  applyKbLabels();
+  localStorage.setItem('bp.lang', lang);
+}
+
+/* ======================= 기동 ======================= */
+applyLang();
+refreshStart();
+drawBoard();
+if ($('start').classList.contains('show')) showOverlay('start', 'btnDaily');
+/* 첫 방문이면 도움말을 한 번 자동으로 보여 준다(다시 열 때는 ? 버튼) */
+try{
+  if (!localStorage.getItem('wd.stats') && !localStorage.getItem('wd.daily')){
+    showOverlay('help', 'btnHelpClose');
+  }
+}catch(_){}
+
+/* ======================= 검증 훅 ======================= */
+/* 게임 로직에 영향을 주지 않는 읽기·주입 창구다(다른 게임의 __bd 와 같은 취지). */
+window.__wd = {
+  jamo: () => ({ CHO: CHO.slice(), JUNG: JUNG.slice(), JONG: JONG.slice(), EMPTY }),
+  split: (ch) => splitSyllable(ch),
+  join: (a,b,c) => joinSyllable(a,b,c),
+  slots: (w) => toSlots(w),
+  fromSlots: (s) => fromSlots(s),
+  score: (g,a) => score(toSlots(g), toSlots(a)),
+  feed: (j) => feed(j),
+  typed: () => typedText(),
+  back: () => backspace(),
+  clear: () => { clearComp(); drawBoard(); return true; },
+  type: (s) => { for (const j of s) feed(j); drawBoard(); return typedText(); },
+  submit: () => { submit(); return { guesses: guesses.slice(), rows: rows.map(r=>r.slice()), over, won }; },
+  listSizes: () => ({ answers: ANSWERS.length, guesses: GUESSES.size }),
+  inList: (w) => inList(w),
+  answerFor: (n) => answerFor(n),
+  seedKey: (d) => dailySeedKey(d ? new Date(d) : new Date()),
+  dailyNo: (d) => dailyNo(d ? new Date(d) : new Date()),
+  state: () => ({ mode, over, won, running, preparing, tries: guesses.length,
+                  guesses: guesses.slice(), rows: rows.map(r=>r.slice()),
+                  chalDate, chalNo, answer, keyState: {...keyState} }),
+  daily: () => dailyState(),
+  runInfo: () => ({ runId, rev: runRev, rejectWhy }),
+  expiry: () => ({ expired: staleExpired, why: staleWhy }),
+  btnState: () => ({ daily: !!$('btnDaily').disabled, free: !!$('btnFree').disabled }),
+  lockState: () => ({ webLocks: hasWebLocks, name: DAILY_LOCK, depth: lockDepth, preparing }),
+  share: () => shareText(),
+  stats: () => readStats(),
+  streak: () => readStreak(),
+  startDaily: () => { startDaily(); return true; },
+  newFree: () => { newFree(); return true; },
+  resume: () => { resumeDaily(); return true; }
+};
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

@@ -72,5 +72,30 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "word",
+    "path": "/word/",
+    "title": {
+      "ko": "오늘의 낱말",
+      "en": "Daily Word"
+    },
+    "desc": {
+      "ko": "두 글자 낱말을 자음·모음 여섯 칸으로 맞히는 한글 퍼즐",
+      "en": "Guess a two-syllable Korean word from its letters in six tries"
+    },
+    "thumb": "/word/thumb.webp",
+    "playtime": {
+      "ko": "한 판 2~5분",
+      "en": "2–5 min a round"
+    },
+    "daily": true,
+    "released": "2026-08-23",
+    "tags": [
+      "puzzle",
+      "word",
+      "korean",
+      "daily"
+    ]
   }
 ]
