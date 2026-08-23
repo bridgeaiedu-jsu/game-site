@@ -7,7 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>한판고 — 설치 없이 바로 하는 미니게임 | Hanpango Mini Games</title>
 <meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 미니게임 모음. 블록 퍼즐·2048·블록 낙하, 매일 열리는 오늘의 도전 — 한 판 1~8분. Free browser mini games — block puzzle, 2048 and block drop, no install.">
-<meta name="theme-color" content="#1e1b4b">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
 <meta property="og:title" content="한판고 — 설치 없이 바로 하는 미니게임">
 <meta property="og:description" content="브라우저에서 바로 하는 무료 미니게임 모음. 블록 퍼즐 · 2048 · 블록 낙하 · 오늘의 도전. 한 판 1~8분.">
 <meta property="og:type" content="website">
@@ -28,10 +29,35 @@
 {"@context":"https://schema.org","@type":"WebSite","name":"한판고","alternateName":"Hanpango","url":"https://hanpango.com/","description":"설치 없이 브라우저에서 바로 하는 무료 미니게임 모음","inLanguage":["ko","en"]}
 </script>
 <style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     이름 뜻: --sig 게임 시그니처(칠·띠·테두리) · --sig-ink 그 색의 글자용 어두운 변형
+              --sig-soft 연한 배경 · --on-sig 시그니처로 칠한 면 위의 글자색
+     대비는 눈대중이 아니라 계산해서 골랐다(증거: round/evidence/theme-light-2026-08-23/). */
   :root{
-    --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
-    --text:#f1f0ff; --muted:#a5a1d8; --accent:#f59e0b; --good:#34d399;
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --sig-block:#2563eb; --sig-drop:#ea580c; --sig-2048:#d97706; --sig-word:#16a34a;
+    --ink-block:#1d4ed8; --ink-drop:#9a3412; --ink-2048:#92400e; --ink-word:#166534;
+    --good:#16a34a;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18);
+    --badge-bg:rgba(255,255,255,.92); --ad-bg:rgba(17,24,39,.03);
+    --kakao:#FEE500; --kakao-ink:#191919; --qr-bg:#ffffff;
     --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1200;
+      --sig-block:#38bdf8; --sig-drop:#fb923c; --sig-2048:#fbbf24; --sig-word:#4ade80;
+      --ink-block:#7dd3fc; --ink-drop:#fdba74; --ink-2048:#fcd34d; --ink-word:#86efac;
+      --good:#34d399;
+      --scrim:rgba(8,6,30,.86); --shadow:rgba(0,0,0,.5);
+      --badge-bg:rgba(15,13,46,.82); --ad-bg:rgba(255,255,255,.02);
+    }
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
@@ -43,7 +69,7 @@
   .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer}
   .ibtn:active{transform:scale(.96)}
   /* ---- 광고 슬롯 ---- */
-  .ad-slot{width:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:8px auto;background:rgba(255,255,255,.02)}
+  .ad-slot{width:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:8px auto;background:var(--ad-bg)}
   .ad-top{height:50px}
   .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
   main{width:100%;padding:4px 0 16px}
@@ -51,40 +77,49 @@
   @media (min-width:520px){ .grid{grid-template-columns:repeat(2,1fr)} }
   @media (min-width:820px){ .grid{grid-template-columns:repeat(3,1fr)} }
   .card{display:flex;flex-direction:column;height:100%;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:transform .12s ease,border-color .12s ease}
-  .card:hover{border-color:var(--accent)}
+  .card:hover{border-color:var(--sig)}
   .card:active{transform:scale(.985)}
+  /* 타일 맨 위 6px 띠 = 그 게임의 시그니처 색. 마크업을 건드리지 않으려고
+     링크 주소(href)로 게임을 골라 색 토큰만 바꿔 끼운다. */
+  .card::before{content:"";display:block;height:6px;background:var(--sig);flex:none}
+  .card[href="/block-puzzle/"]{--sig:var(--sig-block);--sig-ink:var(--ink-block)}
+  .card[href="/block-drop/"]{--sig:var(--sig-drop);--sig-ink:var(--ink-drop)}
+  .card[href="/2048/"]{--sig:var(--sig-2048);--sig-ink:var(--ink-2048)}
+  .card[href="/word/"]{--sig:var(--sig-word);--sig-ink:var(--ink-word)}
+  .card.soon::before{background:var(--line)}
   .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
   .thumb img{width:100%;height:100%;object-fit:cover;display:block}
   .badges{position:absolute;left:8px;top:8px;display:flex;gap:6px;flex-wrap:wrap}
-  .badge{background:rgba(15,13,46,.82);border:1px solid var(--line);color:var(--text);font-size:.68rem;border-radius:999px;padding:3px 8px;line-height:1.4}
-  .badge.daily{border-color:var(--accent);color:var(--accent)}
+  .badge{background:var(--badge-bg);border:1px solid var(--line);color:var(--text);font-size:.68rem;border-radius:999px;padding:3px 8px;line-height:1.4}
+  .badge.daily{border-color:var(--sig);color:var(--sig-ink)}
   .body{padding:11px 13px 13px}
   .body h2{margin:0 0 4px;font-size:1rem}
   .body p{margin:0;color:var(--muted);font-size:.8rem;line-height:1.5}
   /* 비활성(곧 출시) 카드 — opacity 로 흐리게 하지 않는다(텍스트 대비가 4.5:1 아래로 떨어짐).
      배경·점선 테두리·아이콘으로 비활성을 표현하고, 글자색은 대비를 만족하는 값으로 직접 지정한다.
-     대비 실측(배경 --panel #1e1b4b): 제목 #a5a1d8 = 6.62:1 · 설명 #9c98cf = 5.94:1 (둘 다 ≥4.5:1) */
+     대비 실측 — 라이트(배경 --panel #f6f7f9): 제목 --muted-2 #4b5563 = 7.050:1 · 설명 --muted #6b7280 = 4.510:1
+     다크(배경 --panel #1e1b4b): 제목 --muted-2 #c9c6ec = 9.723:1 · 설명 --muted #a5a1d8 = 6.615:1 (전부 4.5:1 이상) */
   .soon{cursor:default;background:var(--panel);border-style:dashed}
   .soon:hover{border-color:var(--line)}
   .soon .thumb{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:2rem;background:transparent;opacity:.6}
-  .soon .body h2{color:#a5a1d8}
-  .soon .body p{color:#9c98cf}
+  .soon .body h2{color:var(--muted-2)}
+  .soon .body p{color:var(--muted)}
   .note{color:var(--muted);font-size:.75rem;text-align:center;margin:14px 0 0}
   footer{width:100%;max-width:960px;color:var(--muted);font-size:.72rem;padding:10px 14px calc(20px + var(--safe-b));text-align:center;line-height:2}
   footer a{color:var(--muted)}
   /* ---- 후원 QR ---- */
   /* ---- 후원 모달 오버레이 (block-puzzle 규약 포팅 · 타일 .card 와 분리) ---- */
-  .overlay{position:fixed;inset:0;background:rgba(8,6,30,.86);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
   .overlay.show{display:flex}
-  .overlay .card{display:block;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px;width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:visible;transition:none;transform:none}
+  .overlay .card{display:block;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px;width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);overflow:visible;transition:none;transform:none}
   .overlay .card h2{margin:0 0 6px;font-size:1.5rem}
   .overlay .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
   .overlay .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px;font:inherit;font-weight:700}
   .overlay .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
-  .donate-link-btn{background:#FEE500;color:#191919;text-align:center;text-decoration:none;box-sizing:border-box}
+  .donate-link-btn{background:var(--kakao);color:var(--kakao-ink);text-align:center;text-decoration:none;box-sizing:border-box}
   /* PC(정밀 포인터): 카카오페이 송금 링크는 모바일 전용(PC 는 404) — 버튼·힌트 숨김, QR 만 */
   @media (hover:hover) and (pointer:fine){.donate-link-btn,.donate-hint{display:none}}
-  .donate-qr{display:block;margin:10px auto;width:240px;height:240px;max-width:70vw;max-height:70vw;background:#fff;border-radius:12px;padding:8px}
+  .donate-qr{display:block;margin:10px auto;width:240px;height:240px;max-width:70vw;max-height:70vw;background:var(--qr-bg);border-radius:12px;padding:8px}
   .donate-sep{margin-top:16px}
   .donate-link{background:none;border:0;color:var(--muted);font:inherit;font-size:.72rem;cursor:pointer;padding:0;text-decoration:underline}
   /* 홈 화면에 추가 안내 — beforeinstallprompt 를 받은 브라우저에서만 노출된다 */

@@ -7,7 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>오늘의 낱말 — 한글 단어 맞추기 | Daily Word</title>
 <meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 한글 단어 맞추기 게임. 두 글자 낱말을 자음·모음 여섯 칸으로 여섯 번 안에 맞혀 보세요. 매일 자정 새 낱말이 열리고 전 세계가 같은 문제를 풉니다. Free Korean word-guess game with a daily puzzle — guess the two-syllable word in six tries.">
-<meta name="theme-color" content="#122018">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#122018" media="(prefers-color-scheme: dark)">
 <meta property="og:title" content="오늘의 낱말 — 한글 단어 맞추기 | Daily Word">
 <meta property="og:description" content="두 글자 낱말을 자음·모음 여섯 칸으로 여섯 번 안에 맞히는 무료 한글 퍼즐. 설치 없이 바로 플레이.">
 <meta property="og:type" content="website">
@@ -28,14 +29,37 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"오늘의 낱말","alternateName":"Daily Word","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
 </script>
 <style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     이 게임의 시그니처는 초록이다(--sig). 글자로 쓸 때는 더 어두운 --sig-ink 를 쓴다.
+     칸 색은 흰 바탕에 맞춰 다시 골랐고, 글자색과의 대비를 전부 계산해 4.5:1 이상을 확인했다. */
   :root{
-    --bg:#0b1410; --panel:#122018; --panel2:#1b2f24; --line:#274534;
-    --text:#eefaf3; --muted:#9dbdaa; --accent:#22c55e; --warn:#eab308;
-    --tile:#1b2f24; --tile-line:#2c4d3a;
-    --hit:#22c55e;        /* 정확 — 자리도 자모도 맞음 */
-    --near:#eab308;       /* 위치 다름 — 자모는 있으나 자리가 다름 */
-    --miss:#3f5147;       /* 없음 */
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#16a34a; --sig-ink:#166534; --sig-soft:#dcfce7; --on-sig:#111827;
+    --warn:#b45309;
+    --tile:#ffffff; --tile-line:#8b929e;
+    --hit:#15803d;        /* 정확 — 자리도 자모도 맞음 */
+    --near:#b45309;       /* 위치 다름 — 자모는 있으나 자리가 다름 */
+    --miss:#d1d5db;       /* 없음 */
+    --hit-ink:#ffffff; --near-ink:#ffffff; --miss-ink:#374151;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
     --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0b1410; --panel:#122018; --panel2:#1b2f24; --line:#274534;
+      --text:#eefaf3; --muted:#9dbdaa; --muted-2:#c3ddcd;
+      --sig:#22c55e; --sig-ink:#4ade80; --sig-soft:#1b2f24; --on-sig:#03210e;
+      --warn:#eab308;
+      --tile:#1b2f24; --tile-line:#2c4d3a;
+      --hit:#22c55e;
+      --near:#eab308;
+      --miss:#3f5147;
+      --hit-ink:#06240f; --near-ink:#2a2100; --miss-ink:#cfe0d6;
+      --scrim:rgba(4,12,8,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
@@ -48,7 +72,7 @@
   .ibtn:active{transform:scale(.96)}
   .ibtn[disabled]{opacity:.5;cursor:default}
   /* ---- 광고 슬롯 ---- */
-  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:rgba(255,255,255,.02)}
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
   .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
   .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 결과 화면 자리 */
   .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
@@ -63,9 +87,9 @@
   .cell.c3{margin-right:8px}                      /* 첫 글자와 둘째 글자 사이를 벌린다 */
   .cell.filled{border-color:var(--muted)}
   .cell.empty-jong{color:var(--muted);font-weight:400}
-  .cell.hit{background:var(--hit);border-color:var(--hit);color:#06240f}
-  .cell.near{background:var(--near);border-color:var(--near);color:#2a2100}
-  .cell.miss{background:var(--miss);border-color:var(--miss);color:#cfe0d6}
+  .cell.hit{background:var(--hit);border-color:var(--hit);color:var(--hit-ink)}
+  .cell.near{background:var(--near);border-color:var(--near);color:var(--near-ink)}
+  .cell.miss{background:var(--miss);border-color:var(--miss);color:var(--miss-ink)}
   .brow.shake{animation:shake .4s}
   @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}
                    30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
@@ -77,24 +101,24 @@
              cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
   .kb button:active{background:var(--line)}
   .kb button.wide{flex:1.6 1 0;font-size:.78rem;letter-spacing:.02em}
-  .kb button.hit{background:var(--hit);border-color:var(--hit);color:#06240f}
-  .kb button.near{background:var(--near);border-color:var(--near);color:#2a2100}
-  .kb button.miss{background:var(--miss);border-color:var(--miss);color:#cfe0d6}  /* 대비 6.166:1 — 낱말 칸(.cell.miss)과 같은 글자색(4.5:1 하한 충족) */
-  .kb button.on{outline:2px solid var(--accent);outline-offset:1px}
+  .kb button.hit{background:var(--hit);border-color:var(--hit);color:var(--hit-ink)}
+  .kb button.near{background:var(--near);border-color:var(--near);color:var(--near-ink)}
+  .kb button.miss{background:var(--miss);border-color:var(--miss);color:var(--miss-ink)}  /* 대비 실측 — 라이트 #374151 on #d1d5db = 6.995:1 · 다크 #cfe0d6 on #3f5147 = 6.166:1 (낱말 칸과 같은 글자색·4.5:1 하한 충족) */
+  .kb button.on{outline:2px solid var(--sig);outline-offset:1px}
   .hint{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
   .legend{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;color:var(--muted);font-size:.72rem;margin:0}
   .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:-1px}
   /* ---- 오버레이 ---- */
-  .overlay{position:fixed;inset:0;background:rgba(4,12,8,.86);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
   .overlay.show{display:flex}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5);max-height:92dvh;overflow:auto}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:92dvh;overflow:auto}
   .card h2{margin:0 0 6px;font-size:1.5rem}
-  .card .big{font-size:2.2rem;font-weight:800;color:var(--accent);line-height:1.15}
+  .card .big{font-size:2.2rem;font-weight:800;color:var(--sig-ink);line-height:1.15}
   .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
-  .card .new{color:var(--accent);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .card .new{color:var(--sig-ink);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
   .card .lead{text-align:left;color:var(--muted);font-size:.85rem;line-height:1.6}
   .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
-  .btn.primary{background:var(--accent);color:#03210e}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
   .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
   .btn:active{transform:scale(.98)}
   .btn[disabled]{opacity:.55;cursor:default}
@@ -106,8 +130,8 @@
   .dist{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
   .dist div{display:flex;align-items:center;gap:6px;font-size:.76rem;color:var(--muted)}
   .dist i{font-style:normal;width:1em;text-align:right}
-  .dist u{text-decoration:none;background:var(--miss);border-radius:4px;padding:1px 6px;color:var(--text);min-width:1.6em;text-align:right}
-  .dist u.cur{background:var(--accent);color:#03210e;font-weight:700}
+  .dist u{text-decoration:none;background:var(--miss);border-radius:4px;padding:1px 6px;color:var(--miss-ink);min-width:1.6em;text-align:right}
+  .dist u.cur{background:var(--sig);color:var(--on-sig);font-weight:700}
   /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
   section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
   section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
