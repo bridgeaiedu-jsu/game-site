@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
 <meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>2048 — 숫자 합치기 퍼즐 | 2048 Number Puzzle</title>
 <meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 2048. 같은 숫자를 밀어 합치고 2048 타일을 만드세요. 매일 새로 열리는 오늘의 도전, 한 판 2~5분, 모바일 최적화. Free 2048 number puzzle with a daily challenge — play instantly in your browser.">
 <meta name="theme-color" content="#1e1b4b">
@@ -86,6 +86,8 @@
   .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
   .toast.show{opacity:1}
   @media (min-width:720px){ .ad-top{height:90px} }
+  /* 화면낭독기 전용 — 눈에는 안 보이지만 낭독기는 읽는다(display:none 이면 안 읽힌다) */
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
 </style>
 </head>
 <body>
@@ -94,7 +96,7 @@
   <h1><span data-i18n="title">2048</span> <small id="subtitle" data-i18n="subtitle">숫자 합치기 퍼즐</small></h1>
   <div class="hdr-btns">
     <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 다른 게임</a>
-    <button class="ibtn" id="btnSound" aria-label="sound">🔊</button>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
     <button class="ibtn" id="btnLang" aria-label="language">EN</button>
   </div>
 </header>
@@ -109,12 +111,13 @@
 </div>
 
 <main>
-  <div id="board" aria-label="game board"></div>
+  <div id="board" role="grid" aria-label="game board"></div>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
   <p class="hint" data-i18n="hint">화살표 키 또는 손가락으로 밀어서 같은 숫자를 합치세요.</p>
 </main>
 
 <!-- ---- 게임 오버 ---- -->
-<div class="overlay" id="over">
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
   <div class="card">
     <h2 id="overTitle" data-i18n="gameOver">게임 오버</h2>
     <div class="big" id="finalScore">0</div>
@@ -130,9 +133,9 @@
 </div>
 
 <!-- ---- 2048 달성 ---- -->
-<div class="overlay" id="win">
+<div class="overlay" id="win" role="dialog" aria-modal="true" aria-labelledby="winTitle">
   <div class="card">
-    <h2 data-i18n="winTitle">2048 달성! 🎉</h2>
+    <h2 id="winTitle" data-i18n="winTitle">2048 달성! 🎉</h2>
     <div class="big" id="winScore">0</div>
     <div class="sub" data-i18n="winSub">계속 밀어서 더 큰 숫자를 노려 보세요.</div>
     <button class="btn primary" id="btnKeep" data-i18n="keepGoing">계속하기</button>
@@ -141,9 +144,9 @@
 </div>
 
 <!-- ---- 시작 화면 ---- -->
-<div class="overlay show" id="start">
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
   <div class="card">
-    <h2 data-i18n="title2">2048</h2>
+    <h2 id="startTitle" data-i18n="title2">2048</h2>
     <div class="sub" data-i18n="startSub">같은 숫자를 밀어서 합치세요.<br>2048 타일을 만들면 성공.<br>한 판 2~5분.</div>
     <button class="btn primary" id="btnDaily">오늘의 도전</button>
     <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
@@ -209,7 +212,15 @@ const I18N = {
     faq3q:'오프라인에서도 되나요?', faq3a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
     footer:'© 2026 2048 · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
     navPrivacy:'개인정보처리방침', navAbout:'소개', home:'🏠 다른 게임',
-    docTitle:'2048 — 숫자 합치기 퍼즐 | 2048 Number Puzzle', langBtn:'EN'
+    docTitle:'2048 — 숫자 합치기 퍼즐 | 2048 Number Puzzle', langBtn:'EN',
+    /* 화면낭독기용 — 눈에 보이는 문구가 아니라 '읽어 주는' 문구다 */
+    ariaBoard:'2048 게임판, 4행 4열',
+    ariaCell:(r,c,v)=>v ? `${r}행 ${c}열, ${v}` : `${r}행 ${c}열, 빈 칸`,
+    ariaSoundOn:'소리 끄기 (지금 켜짐)', ariaSoundOff:'소리 켜기 (지금 꺼짐)',
+    ariaLang:'언어 바꾸기 — English 로', ariaHome:'다른 게임 목록으로',
+    srMove:(s,m,r,c,v)=>`점수 ${s}, 최고 타일 ${m}. 새 타일 ${v}이(가) ${r}행 ${c}열에 나왔습니다.`,
+    srNoMove:'그 방향으로는 판이 바뀌지 않습니다.',
+    srResumed:(s)=>`오늘의 도전을 이어서 시작합니다. 현재 점수 ${s}.`
   },
   en: {
     title:'2048', subtitle:'merge the numbers', title2:'2048', score:'Score', best:'Best', maxTile:'Top tile',
@@ -239,7 +250,14 @@ const I18N = {
     faq3q:'Does it work offline?', faq3a:'Once loaded, you can keep playing without an internet connection.',
     footer:'© 2026 2048 · Privacy: scores are stored only on your device; third-party cookies (e.g. Google) may be used to serve ads.',
     navPrivacy:'Privacy Policy', navAbout:'About', home:'🏠 More games',
-    docTitle:'2048 — merge the numbers | 2048 숫자 퍼즐', langBtn:'한국어'
+    docTitle:'2048 — merge the numbers | 2048 숫자 퍼즐', langBtn:'한국어',
+    ariaBoard:'2048 board, 4 rows by 4 columns',
+    ariaCell:(r,c,v)=>v ? `row ${r}, column ${c}, ${v}` : `row ${r}, column ${c}, empty`,
+    ariaSoundOn:'Turn sound off (currently on)', ariaSoundOff:'Turn sound on (currently off)',
+    ariaLang:'Change language — switch to Korean', ariaHome:'Go to the other games',
+    srMove:(s,m,r,c,v)=>`Score ${s}, top tile ${m}. A new ${v} appeared at row ${r}, column ${c}.`,
+    srNoMove:'That direction does not change the board.',
+    srResumed:(s)=>`Resuming today’s challenge. Current score ${s}.`
   }
 };
 /* 언어 키는 사이트 공통(bp.lang) — 포털·블록퍼즐과 공유한다. */
@@ -252,7 +270,21 @@ function applyLang(){
     const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
   });
   document.getElementById('btnLang').textContent = T('langBtn');
+  applyA11yLabels();
   localStorage.setItem('bp.lang', lang);
+}
+/* 접근성 이름을 현재 언어로 맞춘다(D6) — 소리 버튼은 켜짐/꺼짐 상태까지 이름과 aria-pressed 에 담는다(D7).
+   화면에 보이는 글자를 바꾸는 게 아니라 화면낭독기가 읽어 주는 이름을 바꾸는 것이다. */
+function applyA11yLabels(){
+  const b = document.getElementById('btnSound');
+  if (b){ b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+          b.setAttribute('aria-pressed', soundOn ? 'true' : 'false'); }
+  const l = document.getElementById('btnLang');
+  if (l) l.setAttribute('aria-label', T('ariaLang'));
+  const bd = document.getElementById('board');
+  if (bd) bd.setAttribute('aria-label', T('ariaBoard'));
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+  relabelCells();
 }
 
 /* ======================= 상수·상태 ======================= */
@@ -269,6 +301,9 @@ const EMO = { 0:'⬛', 2:'⬜', 4:'🟦', 8:'🟩', 16:'🟨', 32:'🟧', 64:'�
 const emoOf = v => EMO[v] || '⭐';
 
 let grid, tiles, tileSeq, score, best, startTime, over, won, keepGoing, mode, rng;
+/* initialBest = 이 판을 시작한 순간의 최고점(신기록 엄격 판정용) · rngDraws = 일일 난수를 몇 번 뽑았는지
+   moveCount = 둔 수 · animTimer = 슬라이드 마무리 타이머 · lastFocus = 오버레이 열기 전 초점 위치 */
+let initialBest = 0, rngDraws = 0, moveCount = 0, animTimer = null, lastFocus = null;
 best = +localStorage.getItem('g2048.best') || 0;
 
 /* ======================= 사운드(WebAudio · 파일 없음) ======================= */
@@ -294,7 +329,36 @@ function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCo
 function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const dailySeedKey = (d=new Date()) => 'hanpango-daily-2048-' + dayKey(d);
 const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('g2048.daily')||'null'); }catch(_){ return null; } };
-const dailyDoneToday = () => { const r = dailyRec(); return !!(r && r.date === dayKey()); };
+/* g2048.daily 한 칸에 '오늘 진행 중인 판(run)' 과 '오늘 끝낸 결과(result)' 를 함께 담는다.
+   저장 키 개수는 기존 그대로 4개다(best·daily·streak·sound). 날짜가 바뀌면 없는 것으로 취급해
+   자동으로 새 판이 열린다(issue4). */
+function dailyState(){
+  const r = dailyRec();
+  if (!r || r.date !== dayKey()) return { date:null, no:null, run:null, result:null };
+  if (r.run !== undefined || r.result !== undefined)
+    return { date:r.date, no:r.no, run:r.run||null, result:r.result||null };
+  /* 구 형식(결과만 최상위에 저장하던 기록) 호환 — 결과가 있는 것으로 읽는다 */
+  return { date:r.date, no:r.no, run:null,
+           result:{ score:r.score, max:r.max, time:r.time, board:r.board, streak:r.streak } };
+}
+/* 한 번의 setItem = 한 번의 원자적 쓰기. 중간에 끊겨도 반쪽 기록이 남지 않는다. */
+function saveDaily(patch){
+  const cur = dailyState();
+  const rec = { date: dayKey(), no: dailyNo(),
+                run:    ('run'    in patch) ? patch.run    : cur.run,
+                result: ('result' in patch) ? patch.result : cur.result };
+  localStorage.setItem('g2048.daily', JSON.stringify(rec));
+}
+/* 한 수 둘 때마다 진행 상태를 통째로 저장한다 — 새로고침·탭 닫기에도 이어서 하게 된다. */
+function saveDailyRun(){
+  if (mode !== 'daily' || over) return;
+  saveDaily({ run: { board: grid.map(row => row.map(t => t ? t.v : 0)),
+                     score, draws: rngDraws, moves: moveCount,
+                     elapsed: Date.now() - startTime,
+                     won, keepGoing, initialBest } });
+}
+const dailyDoneToday = () => !!dailyState().result;
+const dailyRunToday  = () => !!dailyState().run;
 function bumpStreak(){
   let st; try{ st = JSON.parse(localStorage.getItem('g2048.streak')||'{}'); }catch(_){ st = {}; }
   const today = dayKey(), y = new Date(); y.setDate(y.getDate()-1); const yest = dayKey(y);
@@ -340,6 +404,9 @@ function farthest(r, c, dr, dc){
 }
 function move(dir){
   if (over || !grid) return false;
+  /* 앞 수의 슬라이드가 아직 돌고 있으면 화면 상태를 지금 즉시 확정하고 시작한다.
+     논리(스폰·판정)는 이미 앞 수에서 끝나 있으므로 여기서 잃는 것은 없다(issue1). */
+  flushAnim();
   const [dr,dc] = VEC[dir];
   const { rs, cs } = traversal(dir);
   let moved = false, gained = 0, mergedTop = 0;
@@ -364,28 +431,46 @@ function move(dir){
       moved = true;
     }
   }
-  if (!moved) return false;
+  if (!moved){ announce(T('srNoMove')); return false; }
   score += gained;
   if (gained){
     /* 합칠 때 피치 상승 — 합쳐진 값이 클수록 높은 음 */
     beep(220 * Math.pow(2, Math.log2(mergedTop)/6), .07, 'triangle', .05);
     vib(15);
   } else beep(180, .03, 'sine', .03);
-  render();
-  setTimeout(afterMove, 120);   /* CSS transform 120ms 와 동일 */
-  return true;
-}
-function afterMove(){
-  tiles = tiles.filter(t => !t.removing);
-  for (const t of tiles) t.justMerged = false;
-  spawn();
-  render();
+  render();                       /* 슬라이드 애니메이션 시작(이동 전 자리 → 이동 후 자리) */
+  /* ★여기부터가 논리 확정이다. 새 타일·승리·게임오버를 지금 바로 끝내므로,
+     120ms 안에 다음 입력이 들어와도 항상 '이동 → 새 타일 1개 → 다음 이동' 순서가 지켜진다.
+     화면에 새 타일이 나타나는 시점만 슬라이드 뒤로 미룬다(issue1 수정). */
+  const nt = spawn();
+  if (nt) nt.pending = true;
+  moveCount++;
   updateHud();
+  relabelCells();
   if (!won && maxTile() >= 2048){
     won = true;
-    if (!keepGoing){ $('winScore').textContent = score; $('win').classList.add('show'); beep(880,.18,'triangle',.06); }
+    if (!keepGoing){ $('winScore').textContent = score; showOverlay('win','btnKeep'); beep(880,.18,'triangle',.06); }
   }
-  if (!canMove()) endGame();
+  if (!canMove()) endGame(); else saveDailyRun();
+  if (nt) announce(T('srMove', score, maxTile(), nt.r+1, nt.c+1, nt.v));
+  animTimer = setTimeout(finishAnim, 120);   /* CSS transform 120ms 와 동일 — 화면만 따라온다 */
+  return true;
+}
+/* 슬라이드가 끝나면 사라진 타일을 치우고 새 타일을 보여 준다. 논리는 이미 move() 에서 끝났다. */
+function finishAnim(){
+  animTimer = null;
+  settleTiles();
+  render();
+}
+/* 다음 수를 받기 전에 애니메이션 잔여 상태를 즉시 확정한다 — 입력이 빨라도 판이 어긋나지 않는다. */
+function flushAnim(){
+  if (animTimer){ clearTimeout(animTimer); animTimer = null; }
+  settleTiles();
+}
+function settleTiles(){
+  if (!tiles) return;
+  tiles = tiles.filter(t => !t.removing);
+  for (const t of tiles){ t.justMerged = false; t.pending = false; }
 }
 function canMove(){
   if (emptyCells().length) return true;
@@ -397,21 +482,54 @@ function canMove(){
   return false;
 }
 
+/* ======================= 오버레이·낭독기 ======================= */
+/* 오버레이를 열 때 첫 행동 버튼으로 초점을 옮기고, 닫을 때 원래 있던 곳으로 되돌린다(D4·D5).
+   키보드·화면낭독기 사용자가 '갑자기 뜬 창'을 놓치지 않게 하는 최소 장치다. */
+function showOverlay(id, firstBtnId){
+  const el = $(id); if (!el) return;
+  if (!el.classList.contains('show')) lastFocus = document.activeElement;
+  el.classList.add('show');
+  const b = $(firstBtnId);
+  if (b) setTimeout(() => { try{ b.focus(); }catch(_){} }, 0);
+}
+function hideOverlays(){
+  let closed = false;
+  for (const id of ['over','win','start']){
+    const el = $(id);
+    if (el && el.classList.contains('show')){ el.classList.remove('show'); closed = true; }
+  }
+  if (closed && lastFocus && lastFocus.focus){ try{ lastFocus.focus(); }catch(_){} }
+  lastFocus = null;
+}
+/* 화면낭독기에 한 줄 요약을 알린다(눈에는 보이지 않는 영역). */
+function announce(msg){ const el = $('srSummary'); if (el) el.textContent = msg; }
+
 /* ======================= 그리기 ======================= */
 const PAD = 3.2;                                  /* 칸 사이 여백(%) */
 const CELL = (100 - PAD*(N+1)) / N;               /* 칸 한 변(%) */
 const posPct = i => PAD + i * (CELL + PAD);
 function render(){
   if (!boardEl.querySelector('.bg-cell')){
-    for (let r=0;r<N;r++) for (let c=0;c<N;c++){
-      const d = document.createElement('div');
-      d.className = 'bg-cell';
-      d.style.cssText = `left:${posPct(c)}%;top:${posPct(r)}%;width:${CELL}%;height:${CELL}%`;
-      boardEl.appendChild(d);
+    /* 배경 칸 16개를 4개의 role=row 안에 4개씩 담는다 — 화면낭독기가 4×4 표로 읽게 하기 위함(D2).
+       칸은 절대 위치라 행 래퍼가 화면 배치에는 영향을 주지 않는다. */
+    for (let r=0;r<N;r++){
+      const row = document.createElement('div');
+      row.setAttribute('role','row');
+      for (let c=0;c<N;c++){
+        const d = document.createElement('div');
+        d.className = 'bg-cell';
+        d.setAttribute('role','gridcell');
+        d.dataset.r = r; d.dataset.c = c;
+        d.style.cssText = `left:${posPct(c)}%;top:${posPct(r)}%;width:${CELL}%;height:${CELL}%`;
+        row.appendChild(d);
+      }
+      boardEl.appendChild(row);
     }
   }
   const seen = new Set();
   for (const t of tiles){
+    /* pending = 논리로는 이미 판에 있지만 슬라이드가 끝난 뒤 보여 줄 새 타일 */
+    if (t.pending) continue;
     seen.add(t.id);
     let el = boardEl.querySelector(`[data-id="${t.id}"]`);
     if (!el){
@@ -434,6 +552,16 @@ function render(){
     if (t.justMerged){ el.classList.add('merge'); setTimeout(()=>el.classList.remove('merge'),130); }
   }
   for (const el of [...boardEl.querySelectorAll('.tile')]) if (!seen.has(+el.dataset.id)) el.remove();
+  relabelCells();
+}
+/* 칸마다 '몇 행 몇 열, 값' 을 붙인다 — 눈으로 보는 색·숫자를 화면낭독기에 그대로 옮긴다(D2). */
+function relabelCells(){
+  if (!grid) return;
+  for (const el of boardEl.querySelectorAll('.bg-cell')){
+    const r = +el.dataset.r, c = +el.dataset.c;
+    const t = grid[r] && grid[r][c];
+    el.setAttribute('aria-label', T('ariaCell', r+1, c+1, t ? t.v : 0));
+  }
 }
 function updateHud(){
   $('score').textContent = score;
@@ -443,33 +571,71 @@ function updateHud(){
 }
 
 /* ======================= 게임 흐름 ======================= */
+/* 일일 모드 난수 — 몇 번 뽑았는지 세어 둔다. 이 횟수만 있으면 중단한 판을 정확히 복원할 수 있다. */
+function makeDailyRng(fromDraws = 0){
+  const f = mulberry32(hashStr(dailySeedKey()));
+  for (let i=0;i<fromDraws;i++) f();
+  rngDraws = fromDraws;
+  return () => { rngDraws++; return f(); };
+}
 function newGame(m = 'free'){
   mode = m;
-  rng = m === 'daily' ? mulberry32(hashStr(dailySeedKey())) : Math.random;
+  flushAnim();
+  rngDraws = 0;
+  rng = m === 'daily' ? makeDailyRng(0) : Math.random;
   grid = Array.from({length:N}, () => Array(N).fill(null));
   tiles = []; tileSeq = 0; score = 0; over = false; won = false; keepGoing = false;
+  initialBest = best;        /* 이 판을 시작한 순간의 최고점을 박아 둔다 — 신기록은 이 값을 넘겨야 한다(issue2) */
+  moveCount = 0;
   startTime = Date.now(); spawnLog.length = 0;
   boardEl.innerHTML = '';
   spawn(); spawn();
   render(); updateHud();
-  $('over').classList.remove('show'); $('start').classList.remove('show'); $('win').classList.remove('show');
+  hideOverlays();
   $('subtitle').textContent = m === 'daily' ? T('daily', dailyNo()) : T('subtitle');
+  /* 일일은 시작하자마자 저장한다 — 새로고침해도 '다시 시작' 이 아니라 '이어하기' 가 된다(issue4) */
+  if (m === 'daily') saveDailyRun();
+}
+/* 오늘 하던 판을 그대로 이어서 연다. 난수는 소비한 횟수만큼 앞으로 감아 같은 순서를 잇는다. */
+function resumeDaily(){
+  const run = dailyState().run;
+  if (!run) return newGame('daily');
+  mode = 'daily';
+  flushAnim();
+  rng = makeDailyRng(run.draws || 0);
+  grid = Array.from({length:N}, () => Array(N).fill(null));
+  tiles = []; tileSeq = 0; spawnLog.length = 0;
+  for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+    const v = run.board[r][c];
+    if (v){ const t = { id: ++tileSeq, r, c, v, isNew:false, merged:false }; grid[r][c]=t; tiles.push(t); }
+  }
+  score = run.score || 0; moveCount = run.moves || 0;
+  over = false; won = !!run.won; keepGoing = !!run.keepGoing;
+  initialBest = (run.initialBest !== undefined) ? run.initialBest : best;
+  startTime = Date.now() - (run.elapsed || 0);
+  boardEl.innerHTML = '';
+  render(); updateHud(); hideOverlays();
+  $('subtitle').textContent = T('daily', dailyNo());
+  announce(T('srResumed', score));
 }
 function fmtTime(ms){ const s = Math.round(ms/1000); return s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`; }
 const boardEmoji = () => grid.map(row => row.map(t => emoOf(t ? t.v : 0)).join('')).join('\n');
 let lastDaily = null;
 function endGame(){
   over = true;
-  const prevBest = +localStorage.getItem('g2048.best') || 0;
-  const isNew = score > 0 && score >= prevBest;
+  /* ★엄격 초과로 판정한다. 판이 도는 동안 updateHud 가 최고점을 계속 올려 두므로,
+     '지금 저장된 최고점' 과 비교하면 제 점수를 제 자신과 비교하는 셈이 되어 동점도 신기록이 된다.
+     그래서 이 판을 시작한 순간의 값(initialBest)과 비교한다(issue2). */
+  const isNew = score > 0 && score > initialBest;
   if (mode === 'daily'){
     const rec = { date: dayKey(), no: dailyNo(), score, max: maxTile(),
                   time: fmtTime(Date.now()-startTime), board: boardEmoji(), streak: bumpStreak() };
-    localStorage.setItem('g2048.daily', JSON.stringify(rec)); lastDaily = rec;
+    saveDaily({ result: rec, run: null });   /* 끝났으니 진행 중 판은 지우고 결과만 남긴다 */
+    lastDaily = rec;
   } else lastDaily = null;
   renderOver({ score, max: maxTile(), time: fmtTime(Date.now()-startTime), isNew });
   beep(220, .25, 'sawtooth', .05); vib([60,40,60]);
-  setTimeout(() => $('over').classList.add('show'), 350);
+  setTimeout(() => showOverlay('over','btnAgain'), 350);
 }
 function renderOver(r){
   const d = lastDaily;
@@ -482,10 +648,11 @@ function renderOver(r){
   $('btnShare').textContent = T('share');
 }
 function showDailyResult(){
-  const d = dailyRec(); if (!d) return;
+  const d = dailyState().result; if (!d) return;
   lastDaily = d; over = true; mode = 'daily';
   renderOver({ score: d.score, max: d.max, time: d.time, isNew: false });
-  $('start').classList.remove('show'); $('over').classList.add('show');
+  $('start').classList.remove('show');
+  showOverlay('over','btnAgain');
 }
 function refreshStart(){
   const n = dailyNo(), done = dailyDoneToday();
@@ -520,16 +687,23 @@ document.addEventListener('touchmove', e => { if (sw) e.preventDefault(); }, { p
 
 /* ======================= UI ======================= */
 $('btnStart').onclick = () => newGame('free');
-$('btnDaily').onclick = () => dailyDoneToday() ? showDailyResult() : newGame('daily');
+$('btnDaily').onclick = () => {
+  const st = dailyState();
+  if (st.result) return showDailyResult();   /* 오늘은 이미 끝냈다 — 결과만 다시 보여 준다 */
+  if (st.run)    return resumeDaily();       /* 하던 판이 있으면 이어서 — 다시 시작은 안 된다(issue4) */
+  newGame('daily');
+};
 $('btnAgain').onclick = () => newGame('free');
-$('btnKeep').onclick = () => { keepGoing = true; $('win').classList.remove('show'); };
+$('btnKeep').onclick = () => { keepGoing = true; hideOverlays(); saveDailyRun(); };
 $('btnLang').onclick = () => {
   lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); refreshStart();
   if (mode === 'daily' && !over) $('subtitle').textContent = T('daily', dailyNo());
   if (over && lastDaily) renderOver({ score:lastDaily.score, max:lastDaily.max, time:lastDaily.time, isNew:false });
   else if (over) renderOver({ score, max:maxTile(), time: fmtTime(Date.now()-startTime), isNew:false });
 };
-$('btnSound').onclick = () => { soundOn = !soundOn; localStorage.setItem('g2048.sound', soundOn?'1':'0'); $('btnSound').textContent = soundOn ? '🔊' : '🔇'; if (soundOn) beep(600,.05,'sine',.04); };
+$('btnSound').onclick = () => { soundOn = !soundOn; localStorage.setItem('g2048.sound', soundOn?'1':'0');
+  $('btnSound').textContent = soundOn ? '🔊' : '🔇'; applyA11yLabels();   /* 이름·눌림 상태를 즉시 갱신(D7) */
+  if (soundOn) beep(600,.05,'sine',.04); };
 $('btnSound').textContent = soundOn ? '🔊' : '🔇';
 async function doShare(){
   const url = location.href.split('#')[0];
