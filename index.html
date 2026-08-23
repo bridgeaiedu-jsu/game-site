@@ -74,6 +74,8 @@
   footer a{color:var(--muted)}
   /* ---- 후원 QR ---- */
   .donate-link-btn{background:#FEE500;color:#191919;text-align:center;text-decoration:none;box-sizing:border-box}
+  /* PC(정밀 포인터): 카카오페이 송금 링크는 모바일 전용(PC 는 404) — 버튼·힌트 숨김, QR 만 */
+  @media (hover:hover) and (pointer:fine){.donate-link-btn,.donate-hint{display:none}}
   .donate-qr{display:block;margin:10px auto;width:240px;height:240px;max-width:70vw;max-height:70vw;background:#fff;border-radius:12px;padding:8px}
   .donate-sep{margin-top:16px}
   .donate-link{background:none;border:0;color:var(--muted);font:inherit;font-size:.72rem;cursor:pointer;padding:0;text-decoration:underline}
@@ -125,7 +127,7 @@
          alt="카카오페이 송금코드 / KakaoPay transfer code" decoding="async">
     <div class="sub" data-i18n="donateHelp">카카오톡 또는 카카오페이 앱 카메라로 스캔하세요 · 금액은 자유입니다.</div>
     <a class="btn donate-link-btn" id="btnDonateLink" href="https://qr.kakaopay.com/FPhniPQcA" target="_blank" rel="noopener noreferrer" data-i18n="donateLink">💛 카카오페이로 후원하기</a>
-    <div class="sub" data-i18n="donateHint">휴대폰에서는 위 버튼, PC 에서는 QR 을 스캔하세요.</div>
+    <div class="sub donate-hint" data-i18n="donateHint">휴대폰에서는 위 버튼, PC 에서는 QR 을 스캔하세요.</div>
     <button class="btn ghost" id="btnDonateClose" data-i18n="close">닫기</button>
   </div>
 </div>
@@ -151,7 +153,7 @@ const I18N = {
     daily:'오늘의 도전',
     install:'📲 홈 화면에 추가',
     donate:'☕ 후원', donateTitle:'☕ 커피 한 잔', close:'닫기',
-    donateHelp:'카카오톡 또는 카카오페이 앱 카메라로 스캔하세요 · 금액은 자유입니다.', donateLink:'💛 카카오페이로 후원하기', donateHint:'휴대폰에서는 위 버튼, PC 에서는 QR 을 스캔하세요.',
+    donateHelp:'카카오톡 또는 카카오페이 앱 카메라로 스캔하세요 · 금액은 자유입니다.', donateLink:'💛 카카오페이로 후원하기', donateHint:'위 버튼을 누르면 카카오페이가 열립니다.',
     docTitle:'한판고 — 설치 없이 바로 하는 미니게임 | Hanpango Mini Games', langBtn:'EN'
   },
   en: {
@@ -163,7 +165,7 @@ const I18N = {
     daily:'Daily challenge',
     install:'📲 Add to Home Screen',
     donate:'☕ Support', donateTitle:'☕ Buy me a coffee', close:'Close',
-    donateHelp:'Scan with the KakaoTalk or KakaoPay app · any amount is welcome.', donateLink:'💛 Donate via KakaoPay', donateHint:'On a phone tap the button above; on a PC scan the QR.',
+    donateHelp:'Scan with the KakaoTalk or KakaoPay app · any amount is welcome.', donateLink:'💛 Donate via KakaoPay', donateHint:'Tap the button above to open KakaoPay.',
     docTitle:'Hanpango — browser mini games, no install | 한판고', langBtn:'한국어'
   }
 };
