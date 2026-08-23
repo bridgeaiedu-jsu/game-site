@@ -47,5 +47,30 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "block-drop",
+    "path": "/block-drop/",
+    "title": {
+      "ko": "블록 낙하",
+      "en": "Block Drop"
+    },
+    "desc": {
+      "ko": "떨어지는 블록을 돌려 가로줄을 지우는 낙하 퍼즐",
+      "en": "Rotate the falling blocks and clear horizontal lines"
+    },
+    "thumb": "/block-drop/thumb.webp",
+    "playtime": {
+      "ko": "한 판 3~8분",
+      "en": "3–8 min a round"
+    },
+    "daily": true,
+    "released": "2026-08-23",
+    "tags": [
+      "puzzle",
+      "arcade",
+      "casual",
+      "daily"
+    ]
   }
 ]

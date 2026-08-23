@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>블록 낙하 — 떨어지는 블록 쌓기 퍼즐 | Block Drop</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 블록 낙하 게임. 떨어지는 7가지 블록을 돌리고 옮겨 가로줄을 지우세요. 매일 새로 열리는 오늘의 도전, 한 판 3~8분, 모바일 최적화. Free falling-block puzzle with a daily challenge — play instantly in your browser.">
+<meta name="theme-color" content="#1e1b4b">
+<meta property="og:title" content="블록 낙하 — 떨어지는 블록 쌓기 퍼즐 | Block Drop">
+<meta property="og:description" content="떨어지는 블록을 돌려 가로줄을 지우는 무료 퍼즐. 설치 없이 바로 플레이.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/block-drop/">
+<link rel="canonical" href="https://hanpango.com/block-drop/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ============================================================
+     ADSENSE (1/3) — 승인 후 아래 한 줄의 주석을 풀고 ca-pub-XXXX 를 본인 ID로 교체
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+     ============================================================ -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"블록 낙하","alternateName":"Block Drop","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  :root{
+    --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+    --text:#f1f0ff; --muted:#a5a1d8; --accent:#f59e0b; --good:#34d399;
+    --cell:#2b2861; --cell-line:#3d3a80;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em}
+  h1 small{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:6px}
+  .hdr-btns{display:flex;gap:6px}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:6px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .score b{display:block;font-size:1.2rem;line-height:1.1}
+  .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:rgba(255,255,255,.02)}
+  .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
+  .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 게임오버 자리 */
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  /* ---- 판 + 좌우 패널 ---- */
+  .play{display:flex;align-items:flex-start;justify-content:center;gap:8px;width:100%}
+  #board{height:min(54dvh,520px);aspect-ratio:1/2;background:var(--panel);border-radius:12px;touch-action:none;display:block;flex:0 0 auto}
+  #board:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .side{display:flex;flex-direction:column;gap:6px;flex:0 0 auto;width:clamp(56px,17vw,84px)}
+  .mini{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px 4px}
+  .mini h2{margin:0 0 3px;font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;text-align:center;font-weight:600}
+  .mini canvas{display:block;width:100%;height:auto}
+  /* ---- 화면 조작 버튼(모바일) ---- */
+  .pad{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;width:100%;max-width:420px}
+  .pad button{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;
+              padding:12px 0;font-size:1.05rem;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+  .pad button:active{background:var(--line)}
+  .pad button.wide{font-size:.72rem;font-weight:700;letter-spacing:.04em}
+  .hint{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:rgba(8,6,30,.86);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .card h2{margin:0 0 6px;font-size:1.5rem}
+  .card .big{font-size:2.6rem;font-weight:800;color:var(--accent);line-height:1.1}
+  .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--accent);color:#1a1200}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  section.content table{width:100%;border-collapse:collapse;margin:6px 0;font-size:.82rem}
+  section.content th,section.content td{border:1px solid var(--line);padding:5px 8px;text-align:left}
+  section.content th{color:var(--text);background:var(--panel)}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  /* 화면낭독기 전용 — 눈에는 안 보이지만 낭독기는 읽는다(display:none 이면 안 읽힌다) */
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">블록 낙하</span> <small id="subtitle" data-i18n="subtitle">떨어지는 블록 쌓기</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 다른 게임</a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="score">0</b><span data-i18n="score">점수</span></div>
+  <div class="score"><b id="best">0</b><span data-i18n="best">최고</span></div>
+  <div class="score"><b id="lines">0</b><span data-i18n="linesLbl">줄</span></div>
+  <div class="score"><b id="level">1</b><span data-i18n="levelLbl">레벨</span></div>
+</div>
+
+<main>
+  <div class="play">
+    <div class="side">
+      <div class="mini"><h2 data-i18n="holdLbl">홀드</h2><canvas id="holdCv" width="80" height="60"></canvas></div>
+    </div>
+    <canvas id="board" width="260" height="520" role="img" tabindex="0" aria-label="game board"></canvas>
+    <div class="side">
+      <div class="mini"><h2 data-i18n="nextLbl">다음</h2><canvas id="nextCv" width="80" height="170"></canvas></div>
+    </div>
+  </div>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <div class="pad" id="pad">
+    <button type="button" id="padLeft"  data-act="left"  aria-label="move left">◀</button>
+    <button type="button" id="padRight" data-act="right" aria-label="move right">▶</button>
+    <button type="button" id="padRot"   data-act="rot"   aria-label="rotate">↻</button>
+    <button type="button" id="padSoft"  data-act="soft"  aria-label="soft drop">▼</button>
+    <button type="button" id="padHard"  data-act="hard"  aria-label="hard drop">⤓</button>
+    <button type="button" id="padHold"  data-act="hold"  class="wide" aria-label="hold">HOLD</button>
+  </div>
+  <p class="hint" data-i18n="hint">← → 이동 · ↑ 회전 · ↓ 소프트 드롭 · Space 하드 드롭 · C 홀드 · P 일시정지</p>
+</main>
+
+<!-- ---- 게임 오버 ---- -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card">
+    <h2 id="overTitle" data-i18n="gameOver">게임 오버</h2>
+    <div class="big" id="finalScore">0</div>
+    <div class="new" id="streakLine" style="color:var(--accent)"></div>
+    <div class="new" id="newBest"></div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 게임오버 300×250 자리. 주의: 게임오버 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">점수 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- ---- 일시정지 ---- -->
+<div class="overlay" id="pause" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+  <div class="card">
+    <h2 id="pauseTitle" data-i18n="paused">일시정지</h2>
+    <div class="sub" data-i18n="pausedSub">화면을 벗어나면 자동으로 멈춥니다. 이어서 하세요.</div>
+    <button class="btn primary" id="btnResume" data-i18n="resume">계속하기</button>
+  </div>
+</div>
+
+<!-- ---- 시작 화면 ---- -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card">
+    <h2 id="startTitle" data-i18n="title2">블록 낙하</h2>
+    <div class="sub" data-i18n="startSub">떨어지는 블록을 돌려 빈틈 없이 채우세요.<br>가로 한 줄이 다 차면 지워집니다.<br>한 판 3~8분.</div>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnStart" data-i18n="start">자유 플레이</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ---- 콘텐츠(검색·광고 정책용 — 게임만 있는 페이지는 AdSense 승인이 잘 안 됨) ---- -->
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">10칸 × 20칸 판 위로 7가지 모양의 블록이 하나씩 떨어집니다. 왼쪽·오른쪽으로 옮기고 회전시켜 빈틈이 생기지 않게 쌓으세요. 가로 한 줄이 열 칸 모두 채워지면 그 줄이 지워지고 위의 블록이 내려옵니다.</p>
+  <p data-i18n="how2">한 번에 여러 줄을 지울수록 점수가 크게 오릅니다. 한 줄은 100점, 두 줄은 300점, 세 줄은 500점, 네 줄(테트리스)은 800점이며 여기에 현재 레벨을 곱합니다. 하드 드롭으로 떨어뜨린 칸 수만큼 칸당 2점이 추가됩니다.</p>
+  <p data-i18n="how3">줄을 10줄 지울 때마다 레벨이 1 오르고 블록이 더 빨리 떨어집니다. 바닥이나 다른 블록 위에 닿아도 0.5초 동안은 아직 굳지 않아 마지막 순간에 밀어 넣거나 돌려 넣을 수 있습니다. 다만 이 유예는 한 조각당 15번까지만 늘어납니다. 새 블록이 나올 자리가 이미 막혀 있으면 게임이 끝납니다.</p>
+  <p data-i18n="how4">홀드(C 키 또는 HOLD 버튼)는 지금 떨어지는 블록을 한 칸에 넣어 두고 다음 블록을 대신 받는 기능입니다. 한 조각당 한 번만 쓸 수 있고, 블록이 굳으면 다시 쓸 수 있게 됩니다. 판 아래쪽의 옅은 윤곽선은 지금 블록이 떨어질 자리를 미리 보여 주는 안내선입니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 완전히 같은 블록 순서를 받고, 하루 한 번만 도전할 수 있습니다. 중간에 창을 닫아도 하던 판이 그대로 이어지며 다시 시작은 되지 않습니다. 결과를 이모지로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다.</p>
+  <h2 data-i18n="tipsTitle">고득점 팁</h2>
+  <details><summary data-i18n="tip1q">한 줄씩 지우지 말고 네 줄을 모으세요</summary><p data-i18n="tip1a">한 줄 네 번은 400점이지만 네 줄을 한 번에 지우면 800점입니다. 오른쪽 끝 한 칸을 비워 두고 나머지를 평평하게 쌓다가 긴 막대 블록으로 한 번에 터뜨리세요.</p></details>
+  <details><summary data-i18n="tip2q">판을 평평하게 유지하세요</summary><p data-i18n="tip2a">울퉁불퉁한 판은 다음 블록이 무엇이 나와도 빈틈이 생깁니다. 높이 차이를 두 칸 이내로 유지하면 어떤 모양이 와도 받아낼 수 있습니다.</p></details>
+  <details><summary data-i18n="tip3q">홀드를 보험으로 쓰세요</summary><p data-i18n="tip3a">긴 막대 블록을 홀드에 넣어 두면 네 줄을 지울 순간에 바로 꺼내 쓸 수 있습니다. 반대로 당장 놓을 곳이 마땅치 않은 블록을 잠시 맡겨 두는 데도 좋습니다.</p></details>
+  <details><summary data-i18n="tip4q">레벨이 오르면 미리 정해 두고 움직이세요</summary><p data-i18n="tip4a">블록이 빨라지면 생각할 시간이 없습니다. 다음 블록 세 개를 미리 보고 어디에 놓을지 정한 다음, 내려오는 동안에는 결정 없이 손만 움직이세요.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
+  <details><summary data-i18n="faq2q">최고 점수는 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.</p></details>
+  <details><summary data-i18n="faq3q">오프라인에서도 되나요?</summary><p data-i18n="faq3a">한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 블록 낙하 · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ======================= i18n ======================= */
+const I18N = {
+  ko: {
+    title:'블록 낙하', subtitle:'떨어지는 블록 쌓기', title2:'블록 낙하',
+    score:'점수', best:'최고', linesLbl:'줄', levelLbl:'레벨',
+    holdLbl:'홀드', nextLbl:'다음',
+    hint:'← → 이동 · ↑ 회전 · ↓ 소프트 드롭 · Space 하드 드롭 · C 홀드 · P 일시정지',
+    hintTouch:'화면 버튼 또는 스와이프 — 좌우 이동 · 아래 소프트 드롭 · 위 회전',
+    gameOver:'게임 오버', again:'다시 하기', share:'점수 공유',
+    paused:'일시정지', pausedSub:'화면을 벗어나면 자동으로 멈춥니다. 이어서 하세요.', resume:'계속하기',
+    startSub:'떨어지는 블록을 돌려 빈틈 없이 채우세요.<br>가로 한 줄이 다 차면 지워집니다.<br>한 판 3~8분.',
+    newBest:'🎉 최고 기록 갱신!',
+    finalSub:(l,v,t)=>`${l}줄 · 레벨 ${v} · 플레이 ${t}`,
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    copied:'결과가 복사됐어요',
+    shareText:(s,l)=>`블록 낙하에서 ${s}점 · ${l}줄! 한 판 도전해 보세요 👉 `,
+    start:'자유 플레이', daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
+    dailyHint:'매일 새 판 · 전 세계 같은 블록 순서 · 하루 한 번', dailyHintDone:'오늘 도전 완료 — 내일 새 판이 열립니다',
+    dailyOver:(n)=>`오늘의 도전 #${n} 완료`, streak:(n)=>`🔥 ${n}일 연속 도전`, playFree:'자유 플레이 한 판',
+    dailyShare:(n,s,l,v,t,k)=>`🧱 한판고 블록 낙하 · 오늘의 도전 #${n}\n${s}점 · ${l}줄 · 레벨 ${v} · ${t}${k>1?` · 🔥${k}일 연속`:''}\n`,
+    clearsLine:(a,b,c,d)=>`1️⃣×${a} 2️⃣×${b} 3️⃣×${c} 4️⃣×${d}`,
+    howTitle:'게임 방법',
+    how1:'10칸 × 20칸 판 위로 7가지 모양의 블록이 하나씩 떨어집니다. 왼쪽·오른쪽으로 옮기고 회전시켜 빈틈이 생기지 않게 쌓으세요. 가로 한 줄이 열 칸 모두 채워지면 그 줄이 지워지고 위의 블록이 내려옵니다.',
+    how2:'한 번에 여러 줄을 지울수록 점수가 크게 오릅니다. 한 줄은 100점, 두 줄은 300점, 세 줄은 500점, 네 줄(테트리스)은 800점이며 여기에 현재 레벨을 곱합니다. 하드 드롭으로 떨어뜨린 칸 수만큼 칸당 2점이 추가됩니다.',
+    how3:'줄을 10줄 지울 때마다 레벨이 1 오르고 블록이 더 빨리 떨어집니다. 바닥이나 다른 블록 위에 닿아도 0.5초 동안은 아직 굳지 않아 마지막 순간에 밀어 넣거나 돌려 넣을 수 있습니다. 다만 이 유예는 한 조각당 15번까지만 늘어납니다. 새 블록이 나올 자리가 이미 막혀 있으면 게임이 끝납니다.',
+    how4:'홀드(C 키 또는 HOLD 버튼)는 지금 떨어지는 블록을 한 칸에 넣어 두고 다음 블록을 대신 받는 기능입니다. 한 조각당 한 번만 쓸 수 있고, 블록이 굳으면 다시 쓸 수 있게 됩니다. 판 아래쪽의 옅은 윤곽선은 지금 블록이 떨어질 자리를 미리 보여 주는 안내선입니다.',
+    dailyTitle:'오늘의 도전',
+    dailyDesc:'매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 완전히 같은 블록 순서를 받고, 하루 한 번만 도전할 수 있습니다. 중간에 창을 닫아도 하던 판이 그대로 이어지며 다시 시작은 되지 않습니다. 결과를 이모지로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다.',
+    tipsTitle:'고득점 팁',
+    tip1q:'한 줄씩 지우지 말고 네 줄을 모으세요', tip1a:'한 줄 네 번은 400점이지만 네 줄을 한 번에 지우면 800점입니다. 오른쪽 끝 한 칸을 비워 두고 나머지를 평평하게 쌓다가 긴 막대 블록으로 한 번에 터뜨리세요.',
+    tip2q:'판을 평평하게 유지하세요', tip2a:'울퉁불퉁한 판은 다음 블록이 무엇이 나와도 빈틈이 생깁니다. 높이 차이를 두 칸 이내로 유지하면 어떤 모양이 와도 받아낼 수 있습니다.',
+    tip3q:'홀드를 보험으로 쓰세요', tip3a:'긴 막대 블록을 홀드에 넣어 두면 네 줄을 지울 순간에 바로 꺼내 쓸 수 있습니다. 반대로 당장 놓을 곳이 마땅치 않은 블록을 잠시 맡겨 두는 데도 좋습니다.',
+    tip4q:'레벨이 오르면 미리 정해 두고 움직이세요', tip4a:'블록이 빨라지면 생각할 시간이 없습니다. 다음 블록 세 개를 미리 보고 어디에 놓을지 정한 다음, 내려오는 동안에는 결정 없이 손만 움직이세요.',
+    faqTitle:'자주 묻는 질문',
+    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'최고 점수는 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.',
+    faq3q:'오프라인에서도 되나요?', faq3a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
+    footer:'© 2026 블록 낙하 · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개', home:'🏠 다른 게임',
+    docTitle:'블록 낙하 — 떨어지는 블록 쌓기 퍼즐 | Block Drop', langBtn:'EN',
+    /* 화면낭독기용 — 눈에 보이는 문구가 아니라 '읽어 주는' 문구다 */
+    ariaBoard:'블록 낙하 게임판, 가로 10칸 세로 20칸',
+    ariaSoundOn:'소리 끄기 (지금 켜짐)', ariaSoundOff:'소리 켜기 (지금 꺼짐)',
+    ariaLang:'언어 바꾸기 — English 로', ariaHome:'다른 게임 목록으로',
+    padLeft:'왼쪽으로 옮기기', padRight:'오른쪽으로 옮기기', padRot:'돌리기',
+    padSoft:'천천히 내리기', padHard:'바로 떨어뜨리기', padHold:'홀드에 넣기',
+    pieceName:{ I:'막대', J:'ㄴ자', L:'ㄱ자', O:'네모', S:'S자', T:'T자', Z:'Z자' },
+    srSummary:(nx,hd,l,v)=>`다음 ${nx}, 홀드 ${hd}, ${l}줄, 레벨 ${v}`,
+    srNone:'없음',
+    srClear:(n)=>n===4 ? '네 줄을 한 번에 지웠습니다' : `${n}줄을 지웠습니다`,
+    srLevelUp:(v)=>`레벨 ${v}`,
+    srResumed:(s)=>`오늘의 도전을 이어서 시작합니다. 현재 점수 ${s}.`,
+    srPaused:'일시정지했습니다.', srResumedPlay:'다시 시작합니다.'
+  },
+  en: {
+    title:'Block Drop', subtitle:'stack the falling blocks', title2:'Block Drop',
+    score:'Score', best:'Best', linesLbl:'Lines', levelLbl:'Level',
+    holdLbl:'Hold', nextLbl:'Next',
+    hint:'← → move · ↑ rotate · ↓ soft drop · Space hard drop · C hold · P pause',
+    hintTouch:'Use the buttons or swipe — sideways to move, down to soft drop, up to rotate',
+    gameOver:'Game Over', again:'Play Again', share:'Share Score',
+    paused:'Paused', pausedSub:'The game pauses itself when you leave the tab. Pick up where you left off.', resume:'Resume',
+    startSub:'Rotate the falling blocks and fill every gap.<br>A full horizontal row clears.<br>3–8 minutes per round.',
+    newBest:'🎉 New best score!',
+    finalSub:(l,v,t)=>`${l} lines · level ${v} · ${t} played`,
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    copied:'Result copied',
+    shareText:(s,l)=>`I scored ${s} with ${l} lines in Block Drop! Try a round 👉 `,
+    start:'Free Play', daily:(n)=>`Daily Challenge #${n}`, dailyDone:(n)=>`Daily #${n} · See result`,
+    dailyHint:'New board every day · same block order for everyone · one try a day', dailyHintDone:'Done for today — a new board opens tomorrow',
+    dailyOver:(n)=>`Daily Challenge #${n} complete`, streak:(n)=>`🔥 ${n}-day streak`, playFree:'Play a free round',
+    dailyShare:(n,s,l,v,t,k)=>`🧱 Hanpango Block Drop · Daily #${n}\n${s} pts · ${l} lines · level ${v} · ${t}${k>1?` · 🔥${k}-day streak`:''}\n`,
+    clearsLine:(a,b,c,d)=>`1️⃣×${a} 2️⃣×${b} 3️⃣×${c} 4️⃣×${d}`,
+    howTitle:'How to Play',
+    how1:'Blocks in seven shapes fall one at a time onto a board 10 cells wide and 20 cells tall. Move them left and right and rotate them so no gaps are left behind. When a horizontal row is filled across all ten cells it disappears and everything above drops down.',
+    how2:'Clearing several rows at once is worth far more. One row scores 100, two score 300, three score 500 and four (a tetris) score 800, all multiplied by your current level. A hard drop adds 2 points for every cell the block falls.',
+    how3:'Every 10 cleared lines raises your level by one and the blocks fall faster. When a block lands on the floor or the stack it does not harden for another half second, so you can still slide or spin it into place at the last moment. That grace period can be extended at most 15 times per block. If a new block has no room to appear, the game is over.',
+    how4:'Hold (the C key or the HOLD button) parks the falling block in a slot and gives you the next one instead. You get one hold per block, and it becomes available again once a block hardens. The faint outline near the bottom of the board is a guide showing where the current block will land.',
+    dailyTitle:'Daily Challenge',
+    dailyDesc:'A new board opens every midnight. Every player in the world gets exactly the same block order, and you get one try per day. Closing the tab does not lose your run — it resumes where you stopped and cannot be restarted. Share your emoji result and compete with friends. Play on consecutive days to build a 🔥 streak.',
+    tipsTitle:'Tips for High Scores',
+    tip1q:'Save up for four rows instead of clearing one at a time', tip1a:'Four single rows are 400 points, but clearing four at once is 800. Keep one column at the edge empty, build the rest flat, then drop a long bar into the well.',
+    tip2q:'Keep the stack flat', tip2a:'A jagged stack leaves a hole whatever piece comes next. Keep the height difference within two cells and you can take any shape that arrives.',
+    tip3q:'Use hold as insurance', tip3a:'Parking a long bar in hold means it is ready the moment a four-row clear lines up. It also works the other way — stash an awkward piece until the stack suits it.',
+    tip4q:'Decide before the block arrives, not while it falls', tip4a:'There is no thinking time at high levels. Look at the next three pieces, decide where each one goes, then just move your hands while they come down.',
+    faqTitle:'FAQ',
+    faq1q:'Do I need to install anything?', faq1a:'No. It runs right in your browser. Add it to your home screen to use it like an app.',
+    faq2q:'Where is my best score saved?', faq2a:'Only in this device\'s browser. Nothing is sent to a server.',
+    faq3q:'Does it work offline?', faq3a:'Once loaded, you can keep playing without an internet connection.',
+    footer:'© 2026 Block Drop · Privacy: scores are stored only on your device; third-party cookies (e.g. Google) may be used to serve ads.',
+    navPrivacy:'Privacy Policy', navAbout:'About', home:'🏠 More games',
+    docTitle:'Block Drop — stack the falling blocks | 블록 낙하', langBtn:'한국어',
+    ariaBoard:'Block Drop board, 10 columns by 20 rows',
+    ariaSoundOn:'Turn sound off (currently on)', ariaSoundOff:'Turn sound on (currently off)',
+    ariaLang:'Change language — switch to Korean', ariaHome:'Go to the other games',
+    padLeft:'Move left', padRight:'Move right', padRot:'Rotate',
+    padSoft:'Soft drop', padHard:'Hard drop', padHold:'Hold piece',
+    pieceName:{ I:'I bar', J:'J block', L:'L block', O:'square', S:'S block', T:'T block', Z:'Z block' },
+    srSummary:(nx,hd,l,v)=>`Next ${nx}, hold ${hd}, ${l} lines, level ${v}`,
+    srNone:'empty',
+    srClear:(n)=>n===4 ? 'Tetris — four lines cleared' : `${n} line${n>1?'s':''} cleared`,
+    srLevelUp:(v)=>`Level ${v}`,
+    srResumed:(s)=>`Resuming today’s challenge. Current score ${s}.`,
+    srPaused:'Paused.', srResumedPlay:'Resumed.'
+  }
+};
+/* 언어 키는 사이트 공통(bp.lang) — 포털·블록퍼즐·2048 과 공유한다. */
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  applyA11yLabels();
+  updateSummary();
+  localStorage.setItem('bp.lang', lang);
+}
+/* 접근성 이름을 현재 언어로 맞춘다 — 소리 버튼은 켜짐/꺼짐 상태까지 이름과 aria-pressed 에 담는다.
+   화면에 보이는 글자를 바꾸는 게 아니라 화면낭독기가 읽어 주는 이름을 바꾸는 것이다. */
+function applyA11yLabels(){
+  const b = $('btnSound');
+  if (b){ b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+          b.setAttribute('aria-pressed', soundOn ? 'true' : 'false'); }
+  const l = $('btnLang');
+  if (l) l.setAttribute('aria-label', T('ariaLang'));
+  const bd = $('board');
+  if (bd) bd.setAttribute('aria-label', T('ariaBoard'));
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+  for (const [id,k] of [['padLeft','padLeft'],['padRight','padRight'],['padRot','padRot'],
+                        ['padSoft','padSoft'],['padHard','padHard'],['padHold','padHold']]){
+    const e = $(id); if (e) e.setAttribute('aria-label', T(k));
+  }
+}
+
+/* ======================= 조각 정의 ======================= */
+const COLS = 10, ROWS = 20;
+/* SRS 기준 스폰 모양. I 는 4×4 상자, O 는 2×2 상자, 나머지는 3×3 상자 안에서 회전한다. */
+const SHAPES = {
+  I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+  J: [[1,0,0],[1,1,1],[0,0,0]],
+  L: [[0,0,1],[1,1,1],[0,0,0]],
+  O: [[1,1],[1,1]],
+  S: [[0,1,1],[1,1,0],[0,0,0]],
+  T: [[0,1,0],[1,1,1],[0,0,0]],
+  Z: [[1,1,0],[0,1,1],[0,0,0]]
+};
+const TYPES = ['I','J','L','O','S','T','Z'];
+const COLOR = { I:'#38bdf8', J:'#60a5fa', L:'#fb923c', O:'#facc15', S:'#4ade80', T:'#a78bfa', Z:'#f87171' };
+/* 저장·복원용 숫자 코드(0=빈 칸). 색이 아니라 종류를 저장한다. */
+const CODE = { I:1, J:2, L:3, O:4, S:5, T:6, Z:7 };
+const CODE_TYPE = [null,'I','J','L','O','S','T','Z'];
+const SPAWN_COL = { I:3, J:3, L:3, O:4, S:3, T:3, Z:3 };
+
+function rotCW(m){
+  const n = m.length, out = Array.from({length:n}, () => Array(n).fill(0));
+  for (let r=0;r<n;r++) for (let c=0;c<n;c++) out[r][c] = m[n-1-c][r];
+  return out;
+}
+/* 회전 상태 0(스폰)·1(시계)·2(180°)·3(반시계) 네 벌을 미리 만들어 둔다. */
+const ROT = {};
+for (const t of TYPES){
+  ROT[t] = [SHAPES[t]];
+  for (let i=1;i<4;i++) ROT[t].push(rotCW(ROT[t][i-1]));
+}
+/* 각 회전 상태의 채워진 칸 좌표(상자 안 상대 좌표) */
+const CELLS = {};
+for (const t of TYPES){
+  CELLS[t] = ROT[t].map(m => {
+    const out = [];
+    for (let r=0;r<m.length;r++) for (let c=0;c<m.length;c++) if (m[r][c]) out.push([r,c]);
+    return out;
+  });
+}
+
+/* ======================= SRS 기본 킥 ======================= */
+/* 표기는 SRS 원표 그대로 (x=오른쪽 +, y=위쪽 +) 이고, 판 좌표는 아래가 + 이므로
+   실제 적용은 col += x, row -= y 다. 전이 A>B 와 역전이 B>A 는 부호가 정확히 반대다
+   (원표의 성질 — 검증기에서 이 불변식을 직접 확인한다). */
+const KICKS_JLSTZ = {
+  '0>1':[[0,0],[-1,0],[-1, 1],[0,-2],[-1,-2]],
+  '1>0':[[0,0],[ 1,0],[ 1,-1],[0, 2],[ 1, 2]],
+  '1>2':[[0,0],[ 1,0],[ 1,-1],[0, 2],[ 1, 2]],
+  '2>1':[[0,0],[-1,0],[-1, 1],[0,-2],[-1,-2]],
+  '2>3':[[0,0],[ 1,0],[ 1, 1],[0,-2],[ 1,-2]],
+  '3>2':[[0,0],[-1,0],[-1,-1],[0, 2],[-1, 2]],
+  '3>0':[[0,0],[-1,0],[-1,-1],[0, 2],[-1, 2]],
+  '0>3':[[0,0],[ 1,0],[ 1, 1],[0,-2],[ 1,-2]]
+};
+const KICKS_I = {
+  '0>1':[[0,0],[-2,0],[ 1,0],[-2,-1],[ 1, 2]],
+  '1>0':[[0,0],[ 2,0],[-1,0],[ 2, 1],[-1,-2]],
+  '1>2':[[0,0],[-1,0],[ 2,0],[-1, 2],[ 2,-1]],
+  '2>1':[[0,0],[ 1,0],[-2,0],[ 1,-2],[-2, 1]],
+  '2>3':[[0,0],[ 2,0],[-1,0],[ 2, 1],[-1,-2]],
+  '3>2':[[0,0],[-2,0],[ 1,0],[-2,-1],[ 1, 2]],
+  '3>0':[[0,0],[ 1,0],[-2,0],[ 1,-2],[-2, 1]],
+  '0>3':[[0,0],[-1,0],[ 2,0],[-1, 2],[ 2,-1]]
+};
+const kicksFor = (type, from, to) => (type === 'I' ? KICKS_I : KICKS_JLSTZ)[from + '>' + to];
+
+/* ======================= 사운드(WebAudio · 파일 없음) ======================= */
+let soundOn = localStorage.getItem('bd.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime + delay; o.start(t);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+/* 성공기준 ⑦ 의 여섯 가지 — 이동·회전·락·줄 지움·테트리스·게임오버 */
+const sMove   = () => beep(180, .03, 'sine', .028);
+const sRot    = () => beep(300, .04, 'square', .030);
+const sLock   = () => { beep(120, .05, 'square', .040); vib(10); };
+const sClear  = () => { beep(520, .10, 'triangle', .050); vib(20); };
+const sTetris = () => { beep(660, .09, 'triangle', .055); beep(880, .10, 'triangle', .055, .09);
+                        beep(1174, .16, 'triangle', .055, .19); vib([30,30,60]); };
+const sOver   = () => { beep(220, .25, 'sawtooth', .050); vib([60,40,60]); };
+
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   // 2026-08-23 = #1 (블록퍼즐·2048 과 동일 기준일)
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const dailySeedKey = (d=new Date()) => 'hanpango-daily-block-drop-' + dayKey(d);
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('bd.daily')||'null'); }catch(_){ return null; } };
+/* bd.daily 한 칸에 '오늘 진행 중인 판(run)' 과 '오늘 끝낸 결과(result)' 를 함께 담는다.
+   저장 키 개수는 4개 그대로다(best·daily·streak·sound). 날짜가 바뀌면 없는 것으로 취급해
+   자동으로 새 판이 열린다. */
+function dailyState(){
+  const r = dailyRec();
+  if (!r || r.date !== dayKey()) return { date:null, no:null, run:null, result:null };
+  return { date:r.date, no:r.no, run:r.run||null, result:r.result||null };
+}
+/* 한 번의 setItem = 한 번의 원자적 쓰기. 중간에 끊겨도 반쪽 기록이 남지 않는다. */
+function saveDaily(patch){
+  const cur = dailyState();
+  const rec = { date: dayKey(), no: dailyNo(),
+                run:    ('run'    in patch) ? patch.run    : cur.run,
+                result: ('result' in patch) ? patch.result : cur.result };
+  localStorage.setItem('bd.daily', JSON.stringify(rec));
+}
+const dailyDoneToday = () => !!dailyState().result;
+function bumpStreak(){
+  let st; try{ st = JSON.parse(localStorage.getItem('bd.streak')||'{}'); }catch(_){ st = {}; }
+  const today = dayKey(), y = new Date(); y.setDate(y.getDate()-1); const yest = dayKey(y);
+  const n = st.last === today ? (st.n||1) : st.last === yest ? (st.n||0)+1 : 1;
+  localStorage.setItem('bd.streak', JSON.stringify({ last: today, n })); return n;
+}
+
+/* ======================= 7-bag 조각 생성기 ======================= */
+/* 일곱 종류를 한 묶음(bag)으로 섞어 다 쓴 뒤 다음 묶음을 섞는다 — 같은 조각이 길게 끊기지 않는다.
+   자유 모드는 Math.random, 일일 모드는 seed 고정 mulberry32 를 쓴다. 둘 다 같은 함수를 탄다. */
+function makeBagger(rnd){
+  let bag = [];
+  return () => {
+    if (!bag.length){
+      bag = TYPES.slice();
+      for (let i = bag.length - 1; i > 0; i--){           /* Fisher-Yates */
+        const j = Math.floor(rnd() * (i + 1));
+        const t = bag[i]; bag[i] = bag[j]; bag[j] = t;
+      }
+    }
+    return bag.shift();
+  };
+}
+/* seed 로부터 조각 열을 몇 개든 결정론적으로 다시 만든다 — 복원·검증에 쓴다. */
+function bagSequence(seedKey, n){
+  const nextOf = makeBagger(mulberry32(hashStr(seedKey)));
+  return Array.from({length:n}, nextOf);
+}
+
+/* ======================= 상태 ======================= */
+const boardCv = $('board'), nextCv = $('nextCv'), holdCv = $('holdCv');
+let bctx = null, nctx = null, hctx = null;
+let board = null;              /* [ROWS][COLS] · 0 = 빈 칸, 1~7 = 조각 코드 */
+let cur = null;                /* { type, rot, r, c } — r,c 는 회전 상자의 좌상단 판 좌표 */
+let nextQ = [], hold = null, holdUsed = false, nextPiece = null;
+let score = 0, lines = 0, level = 1, best = 0, initialBest = 0;
+let over = false, paused = false, running = false, mode = 'free';
+let pieceIndex = 0;            /* 조각 열에서 지금까지 꺼낸 개수 — 일일 복원의 핵심 */
+let clears = [0,0,0,0];        /* 1·2·3·4줄 지움 횟수 */
+let startTime = 0, pausedAt = 0;
+let gravAcc = 0, lockAcc = 0, lockResets = 0, lowestRow = -1;
+let lastFocus = null, lastDaily = null;
+best = +localStorage.getItem('bd.best') || 0;
+
+const LOCK_MS = 500;           /* 락 딜레이 */
+const LOCK_RESET_MAX = 15;     /* 이동·회전으로 늘릴 수 있는 최대 횟수 */
+const TICK = 1000/60;          /* 고정 틱 — 프레임 시간과 무관하게 논리는 항상 이 간격으로 돈다 */
+const SCORE_TABLE = [0, 100, 300, 500, 800];
+const HARD_DROP_PER_CELL = 2;
+
+/* 낙하 간격(ms) — 가이드라인 공식. 레벨 20 에서 속도를 고정한다(그 위는 사람이 볼 수 없다). */
+function dropInterval(lv = level){
+  const L = Math.min(Math.max(lv, 1), 20);
+  return Math.max(TICK, Math.pow(0.8 - (L-1)*0.007, L-1) * 1000);
+}
+
+/* ======================= 판 조작 ======================= */
+const newBoard = () => Array.from({length:ROWS}, () => Array(COLS).fill(0));
+function cellsOf(p){ return CELLS[p.type][p.rot].map(([r,c]) => [p.r + r, p.c + c]); }
+function collides(p){
+  for (const [r,c] of cellsOf(p)){
+    if (c < 0 || c >= COLS || r >= ROWS) return true;
+    if (r >= 0 && board[r][c]) return true;       /* r<0 = 판 위쪽 여백 — 벽이 아니다 */
+  }
+  return false;
+}
+const grounded = () => !!cur && collides({ ...cur, r: cur.r + 1 });
+
+function tryMove(dc, dr){
+  if (!cur) return false;
+  const p = { ...cur, r: cur.r + dr, c: cur.c + dc };
+  if (collides(p)) return false;
+  cur = p;
+  afterShift();
+  return true;
+}
+function tryRotate(dir){                             /* dir: +1 시계, -1 반시계 */
+  if (!cur) return false;
+  const from = cur.rot, to = (cur.rot + (dir > 0 ? 1 : 3)) % 4;
+  for (const [x, y] of kicksFor(cur.type, from, to)){
+    const p = { ...cur, rot: to, c: cur.c + x, r: cur.r - y };   /* 원표 y 는 위쪽 + */
+    if (!collides(p)){ cur = p; afterShift(); return true; }
+  }
+  return false;
+}
+/* 조각이 성공적으로 움직인 뒤 락 딜레이를 어떻게 다룰지 한 곳에서 정한다.
+   더 아래로 내려갔으면 유예를 새로 받고(리셋 횟수도 초기화), 같은 높이에서 버티는 중이면
+   최대 15번까지만 유예를 연장한다 — 무한정 버티기를 막는 표준 규칙이다. */
+function afterShift(){
+  if (cur.r > lowestRow){ lowestRow = cur.r; lockResets = 0; lockAcc = 0; }
+  else if (grounded() && lockResets < LOCK_RESET_MAX){ lockResets++; lockAcc = 0; }
+}
+function ghostRow(){
+  if (!cur) return 0;
+  let r = cur.r;
+  while (!collides({ ...cur, r: r + 1 })) r++;
+  return r;
+}
+
+/* ======================= 조각 공급 ======================= */
+let nextType = null;                                  /* makeBagger 가 만든 함수 */
+function refillQueue(){ while (nextQ.length < 3) nextQ.push(nextType()); }
+function takeNext(){
+  refillQueue();
+  const t = nextQ.shift();
+  pieceIndex++;
+  refillQueue();
+  return t;
+}
+function spawn(type){
+  cur = { type, rot:0, r:0, c:SPAWN_COL[type] };
+  gravAcc = 0; lockAcc = 0; lockResets = 0; lowestRow = cur.r;
+  holdUsed = false;
+  if (collides(cur)){ cur = null; endGame(); return false; }   /* 성공기준 ①: 게임오버 = 스폰 충돌 */
+  updateSummary();
+  return true;
+}
+const spawnNext = () => spawn(takeNext());
+
+/* ======================= 락·줄 지움 ======================= */
+function lockPiece(){
+  if (!cur) return;
+  for (const [r,c] of cellsOf(cur)) if (r >= 0) board[r][c] = CODE[cur.type];
+  sLock();
+  cur = null;
+  const cleared = clearLines();
+  if (cleared){
+    clears[cleared-1]++;
+    score += SCORE_TABLE[cleared] * level;
+    lines += cleared;
+    const nl = Math.floor(lines / 10) + 1;
+    if (cleared === 4) sTetris(); else sClear();
+    let msg = T('srClear', cleared);
+    if (nl > level){ level = nl; msg += ' · ' + T('srLevelUp', level); }
+    announce(msg);
+  }
+  updateHud();
+  saveDailyRun();                 /* ★락마다 원자 저장 — 새로고침·탭 닫기에도 판이 남는다 */
+  spawnNext();
+}
+function clearLines(){
+  let n = 0;
+  for (let r = ROWS - 1; r >= 0; r--){
+    if (board[r].every(v => v)){
+      board.splice(r, 1);
+      board.unshift(Array(COLS).fill(0));
+      n++; r++;                    /* 같은 인덱스를 다시 본다 — 위 줄이 내려왔다 */
+    }
+  }
+  return n;
+}
+
+/* ======================= 동작(입력이 부르는 것) ======================= */
+/* 모든 동작은 부르는 즉시 논리를 확정한다. 화면은 다음 프레임에 따라올 뿐이다. */
+function actMove(dc){ if (playable() && tryMove(dc, 0)){ sMove(); return true; } return false; }
+function actRotate(dir){ if (playable() && tryRotate(dir)){ sRot(); return true; } return false; }
+function actSoft(){
+  if (!playable()) return false;
+  if (tryMove(0, 1)){ gravAcc = 0; return true; }
+  lockAcc = LOCK_MS;               /* 바닥에 닿은 상태에서 아래키 = 즉시 굳힐 준비 */
+  return false;
+}
+function actHard(){
+  if (!playable()) return false;
+  const from = cur.r, to = ghostRow();
+  const dist = to - from;
+  cur = { ...cur, r: to };
+  if (dist > 0) score += dist * HARD_DROP_PER_CELL;
+  lockPiece();                     /* 하드 드롭은 락 딜레이 없이 즉시 굳는다 */
+  updateHud();
+  return true;
+}
+function actHold(){
+  if (!playable() || holdUsed) return false;
+  const prev = hold;
+  hold = cur.type;
+  holdUsed = true;
+  if (prev){
+    cur = { type:prev, rot:0, r:0, c:SPAWN_COL[prev] };
+    gravAcc = 0; lockAcc = 0; lockResets = 0; lowestRow = cur.r;
+    if (collides(cur)){ cur = null; endGame(); return true; }
+  } else {
+    if (!spawn(takeNext())) return true;
+    holdUsed = true;               /* spawn 이 되돌린 값을 다시 눌러 둔다 — 한 조각당 한 번 */
+  }
+  sRot();
+  drawSide(); updateSummary();
+  return true;
+}
+const playable = () => running && !over && !paused && !!cur;
+
+/* ======================= 눌린 키·버튼 반복 ======================= */
+/* 키보드와 화면 버튼이 같은 장치를 쓴다. DAS = 첫 반복까지, ARR = 그 뒤 반복 간격. */
+const REPEAT = { left:{das:150, arr:40}, right:{das:150, arr:40}, soft:{das:40, arr:40} };
+const held = new Map();
+function pressAct(act){
+  if (held.has(act)) return;
+  doAct(act);
+  if (REPEAT[act]) held.set(act, { acc:0, started:false });
+}
+function releaseAct(act){ held.delete(act); }
+function releaseAll(){ held.clear(); }
+function doAct(act){
+  switch(act){
+    case 'left':  return actMove(-1);
+    case 'right': return actMove(1);
+    case 'rot':   return actRotate(1);
+    case 'rotccw':return actRotate(-1);
+    case 'soft':  return actSoft();
+    case 'hard':  return actHard();
+    case 'hold':  return actHold();
+  }
+}
+function tickRepeats(ms){
+  for (const [act, st] of held){
+    const cfg = REPEAT[act]; if (!cfg) continue;
+    st.acc += ms;
+    const need = st.started ? cfg.arr : cfg.das;
+    while (st.acc >= need){ st.acc -= need; st.started = true; doAct(act); }
+  }
+}
+
+/* ======================= 루프(고정 틱 누적기) ======================= */
+let rafId = 0, lastT = 0, acc = 0;
+function loop(now){
+  rafId = requestAnimationFrame(loop);
+  if (!running || paused || over){ lastT = now; acc = 0; draw(); return; }
+  if (!lastT) lastT = now;
+  let dt = now - lastT;
+  lastT = now;
+  /* 탭이 잠깐 멈췄다 돌아왔을 때 밀린 시간을 한꺼번에 쏟지 않는다(성능 급락·순간 게임오버 방지).
+     탭 숨김은 아래 visibilitychange 에서 아예 일시정지시키므로 여기는 2차 방어선이다. */
+  if (dt > 100) dt = 100;
+  acc += dt;
+  let steps = 0;
+  while (acc >= TICK && steps < 8){ acc -= TICK; step(TICK); steps++; }
+  if (steps >= 8) acc = 0;
+  draw();
+}
+function step(ms){
+  tickRepeats(ms);
+  if (!cur) return;
+  gravAcc += ms;
+  const gi = dropInterval();
+  let guard = 0;
+  while (gravAcc >= gi && cur && guard++ < ROWS){
+    gravAcc -= gi;
+    if (!tryMove(0, 1)) break;     /* 바닥 — 아래 락 딜레이가 처리한다 */
+  }
+  if (!cur) return;
+  if (grounded()){
+    lockAcc += ms;
+    if (lockAcc >= LOCK_MS) lockPiece();
+  } else {
+    lockAcc = 0;
+  }
+}
+
+/* ======================= 그리기 ======================= */
+function fit(cv, ctxRef){
+  const r = cv.getBoundingClientRect();
+  const w = Math.max(1, Math.round(r.width)), h = Math.max(1, Math.round(r.height));
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const bw = Math.round(w * dpr), bh = Math.round(h * dpr);
+  if (cv.width !== bw || cv.height !== bh){ cv.width = bw; cv.height = bh; }
+  const g = cv.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { g, w, h };
+}
+function block(g, x, y, s, color){
+  g.fillStyle = color;
+  g.fillRect(x, y, s, s);
+  g.fillStyle = 'rgba(255,255,255,.22)';
+  g.fillRect(x, y, s, Math.max(1, s*0.16));
+  g.fillStyle = 'rgba(0,0,0,.18)';
+  g.fillRect(x, y + s - Math.max(1, s*0.16), s, Math.max(1, s*0.16));
+}
+function draw(){
+  const { g, w, h } = fit(boardCv);
+  bctx = g;
+  const s = w / COLS;
+  g.fillStyle = '#1e1b4b'; g.fillRect(0, 0, w, h);
+  /* 빈 칸 바탕 */
+  g.fillStyle = '#2b2861';
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){
+    if (!board || !board[r][c]) g.fillRect(c*s + 1, r*s + 1, s-2, s-2);
+  }
+  if (!board) return;
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){
+    const v = board[r][c];
+    if (v) block(g, c*s + 1, r*s + 1, s-2, COLOR[CODE_TYPE[v]]);
+  }
+  if (cur){
+    /* 고스트 — 지금 놓으면 어디에 닿는지 미리 보여 주는 안내선 */
+    const gr = ghostRow();
+    g.save();
+    g.globalAlpha = 0.26;
+    for (const [r,c] of cellsOf({ ...cur, r: gr })) if (r >= 0){
+      g.fillStyle = COLOR[cur.type];
+      g.fillRect(c*s + 1, r*s + 1, s-2, s-2);
+    }
+    g.restore();
+    g.strokeStyle = COLOR[cur.type]; g.lineWidth = Math.max(1, s*0.08);
+    for (const [r,c] of cellsOf({ ...cur, r: gr })) if (r >= 0)
+      g.strokeRect(c*s + 1.5, r*s + 1.5, s-3, s-3);
+    for (const [r,c] of cellsOf(cur)) if (r >= 0) block(g, c*s + 1, r*s + 1, s-2, COLOR[cur.type]);
+  }
+}
+function drawPiece(g, type, cx, cy, s){
+  const m = ROT[type][0], n = m.length;
+  const pts = [];
+  for (let r=0;r<n;r++) for (let c=0;c<n;c++) if (m[r][c]) pts.push([r,c]);
+  const rs = pts.map(p=>p[0]), cs = pts.map(p=>p[1]);
+  const r0 = Math.min(...rs), r1 = Math.max(...rs), c0 = Math.min(...cs), c1 = Math.max(...cs);
+  const ox = cx - (c1 - c0 + 1) * s / 2, oy = cy - (r1 - r0 + 1) * s / 2;
+  for (const [r,c] of pts) block(g, ox + (c-c0)*s, oy + (r-r0)*s, s - 1, COLOR[type]);
+}
+function drawSide(){
+  const n = fit(nextCv); nctx = n.g;
+  n.g.clearRect(0, 0, n.w, n.h);
+  const s = Math.max(5, n.w / 6);
+  for (let i=0;i<3;i++){
+    const t = nextQ[i]; if (!t) continue;
+    drawPiece(n.g, t, n.w/2, n.h*(i + 0.5)/3, i === 0 ? s : s*0.82);
+  }
+  const hd = fit(holdCv); hctx = hd.g;
+  hd.g.clearRect(0, 0, hd.w, hd.h);
+  if (hold){
+    hd.g.globalAlpha = holdUsed ? 0.38 : 1;      /* 이미 쓴 홀드는 흐리게 — 못 쓴다는 표시 */
+    drawPiece(hd.g, hold, hd.w/2, hd.h/2, Math.max(5, hd.w/6));
+    hd.g.globalAlpha = 1;
+  }
+}
+
+/* ======================= HUD·낭독기 ======================= */
+function updateHud(){
+  $('score').textContent = score;
+  $('lines').textContent = lines;
+  $('level').textContent = level;
+  if (score > best){ best = score; localStorage.setItem('bd.best', best); }
+  $('best').textContent = best;
+  drawSide();
+  updateSummary();
+}
+/* 판을 눈으로 볼 수 없는 사람에게 '지금 무엇이 오고 무엇을 들고 있는지'를 알려 준다.
+   칸을 하나하나 읽어 주면 초당 수십 번 떠들게 되므로, 요약 한 줄만 갱신한다. */
+function updateSummary(){
+  const names = I18N[lang].pieceName;
+  const nx = nextQ[0] ? names[nextQ[0]] : T('srNone');
+  const hd = hold ? names[hold] : T('srNone');
+  const el = $('srSummary');
+  if (el) el.dataset.summary = T('srSummary', nx, hd, lines, level);
+  if (el && !el.dataset.busy) el.textContent = el.dataset.summary;
+}
+/* 줄 지움·레벨업처럼 '방금 일어난 일'은 요약보다 먼저 읽어 준다. */
+function announce(msg){
+  const el = $('srSummary'); if (!el) return;
+  el.dataset.busy = '1';
+  el.textContent = msg;
+  setTimeout(() => { el.dataset.busy = ''; el.textContent = el.dataset.summary || ''; }, 1200);
+}
+
+/* ======================= 오버레이(초점·inert) ======================= */
+/* 오버레이를 열 때 첫 행동 버튼으로 초점을 옮기고, 닫을 때 원래 있던 곳으로 되돌린다.
+   키보드·화면낭독기 사용자가 '갑자기 뜬 창'을 놓치지 않게 하는 최소 장치다(2048 R3 교훈). */
+function isRestorable(el){
+  if (!el || el === document.body || !el.isConnected) return false;
+  if (typeof el.focus !== 'function') return false;
+  if (el.closest && el.closest('.overlay:not(.show)')) return false;
+  if (el.hasAttribute && el.hasAttribute('inert')) return false;
+  if (el.closest && el.closest('[inert]')) return false;
+  const r = el.getBoundingClientRect();
+  if (!r.width && !r.height) return false;
+  if (getComputedStyle(el).visibility === 'hidden') return false;
+  return true;
+}
+const fallbackFocus = () => $('board');
+function focusSafely(el){
+  const target = isRestorable(el) ? el : fallbackFocus();
+  if (!isRestorable(target)) return null;
+  try{ target.focus(); }catch(_){ return null; }
+  return target;
+}
+const INERT_SUPPORTED = ('inert' in HTMLElement.prototype);
+const FOCUSABLE_SEL = 'a[href],button,input,select,textarea,[tabindex]';
+const outsideBoxes = () =>
+  [...document.body.children].filter(el => !el.classList.contains('overlay') && el.id !== 'toast');
+function setBranchTabbable(root, on){
+  const els = [root, ...root.querySelectorAll(FOCUSABLE_SEL)].filter(e => e.matches && e.matches(FOCUSABLE_SEL));
+  for (const e of els){
+    if (!on){
+      if (!e.hasAttribute('data-ti-saved'))
+        e.setAttribute('data-ti-saved', e.getAttribute('tabindex') === null ? '' : e.getAttribute('tabindex'));
+      e.setAttribute('tabindex', '-1');
+    } else if (e.hasAttribute('data-ti-saved')){
+      const v = e.getAttribute('data-ti-saved');
+      if (v === '') e.removeAttribute('tabindex'); else e.setAttribute('tabindex', v);
+      e.removeAttribute('data-ti-saved');
+    }
+  }
+}
+function setOutsideInert(on){
+  for (const el of outsideBoxes()){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+    if (!INERT_SUPPORTED) setBranchTabbable(el, !on);
+  }
+}
+const OVERLAYS = ['over','pause','start'];
+const anyOverlayOpen = () => OVERLAYS.some(id => { const e = $(id); return e && e.classList.contains('show'); });
+function showOverlay(id, firstBtnId){
+  const el = $(id); if (!el) return;
+  /* 창이 아직 하나도 안 열려 있을 때의 초점만 '돌아갈 자리' 로 기억한다.
+     창에서 창으로 넘어갈 때 덮어쓰면 앞 창의 버튼(곧 숨겨질 것)이 목적지가 되어 버린다. */
+  if (!anyOverlayOpen()) lastFocus = isRestorable(document.activeElement) ? document.activeElement : null;
+  setOutsideInert(true);
+  el.classList.add('show');
+  releaseAll();
+  const b = $(firstBtnId);
+  if (b) setTimeout(() => { try{ b.focus(); }catch(_){} }, 0);
+}
+function hideOverlays(){
+  let closed = false;
+  for (const id of OVERLAYS){
+    const el = $(id);
+    if (el && el.classList.contains('show')){ el.classList.remove('show'); closed = true; }
+  }
+  setOutsideInert(false);   /* ★초점을 옮기기 전에 먼저 풀어야 한다 — 막힌 곳으로는 초점이 가지 않는다 */
+  if (closed) focusSafely(lastFocus);
+  lastFocus = null;
+}
+
+/* ======================= 일시정지 ======================= */
+function setPaused(on){
+  if (!running || over) return;
+  if (on === paused) return;
+  paused = on;
+  releaseAll();
+  if (on){
+    pausedAt = Date.now();
+    showOverlay('pause','btnResume');
+    announce(T('srPaused'));
+  } else {
+    if (pausedAt){ startTime += Date.now() - pausedAt; pausedAt = 0; }
+    lastT = 0; acc = 0; gravAcc = 0;        /* ★복귀 시 시간 점프 0 — 누적기를 새로 시작한다 */
+    hideOverlays();
+    announce(T('srResumedPlay'));
+  }
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) setPaused(true); });
+window.addEventListener('blur', () => { if (running && !over) setPaused(true); });
+
+/* ======================= 게임 흐름 ======================= */
+function resetCommon(){
+  board = newBoard();
+  cur = null; nextQ = []; hold = null; holdUsed = false;
+  score = 0; lines = 0; level = 1; clears = [0,0,0,0];
+  pieceIndex = 0; over = false; paused = false; running = true;
+  gravAcc = 0; lockAcc = 0; lockResets = 0; lowestRow = -1;
+  lastT = 0; acc = 0; pausedAt = 0;
+  initialBest = best;      /* 이 판을 시작한 순간의 최고점을 박아 둔다 — 신기록은 이 값을 넘겨야 한다 */
+  releaseAll();
+}
+function newGame(m = 'free'){
+  mode = m;
+  resetCommon();
+  nextType = makeBagger(m === 'daily' ? mulberry32(hashStr(dailySeedKey())) : Math.random);
+  refillQueue();
+  startTime = Date.now();
+  lastDaily = null;
+  hideOverlays();
+  spawnNext();
+  updateHud();
+  $('subtitle').textContent = m === 'daily' ? T('daily', dailyNo()) : T('subtitle');
+  if (m === 'daily') saveDailyRun();   /* 시작하자마자 저장 — 새로고침해도 '이어하기' 가 된다 */
+  focusSafely($('board'));
+}
+/* 오늘 하던 판을 그대로 이어서 연다. 조각 열은 seed 로 다시 만들어 꺼낸 개수만큼 건너뛴다 —
+   같은 순서가 이어지므로 중단·복원이 유리하지도 불리하지도 않다. */
+function resumeDaily(){
+  const run = dailyState().run;
+  if (!run) return newGame('daily');
+  mode = 'daily';
+  resetCommon();
+  nextType = makeBagger(mulberry32(hashStr(dailySeedKey())));
+  for (let i = 0; i < (run.pieceIndex || 0); i++) nextType();
+  refillQueue();
+  board = run.board.map(row => row.slice());
+  score = run.score || 0; lines = run.lines || 0; level = run.level || 1;
+  clears = Array.isArray(run.clears) && run.clears.length === 4 ? run.clears.slice() : [0,0,0,0];
+  hold = run.hold || null;
+  pieceIndex = run.pieceIndex || 0;
+  initialBest = (run.initialBest !== undefined) ? run.initialBest : best;
+  startTime = Date.now() - (run.elapsed || 0);
+  lastDaily = null;
+  hideOverlays();
+  spawnNext();
+  updateHud();
+  $('subtitle').textContent = T('daily', dailyNo());
+  announce(T('srResumed', score));
+  focusSafely($('board'));
+}
+/* 락이 끝날 때마다 진행 상태를 통째로 저장한다(성공기준 ④). */
+function saveDailyRun(){
+  if (mode !== 'daily' || over) return;
+  saveDaily({ run: { board: board.map(row => row.slice()),
+                     pieceIndex, score, lines, level, hold, clears: clears.slice(),
+                     elapsed: Date.now() - startTime, initialBest } });
+}
+function fmtTime(ms){ const s = Math.round(ms/1000); return s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`; }
+function endGame(){
+  if (over) return;
+  over = true; running = false;
+  releaseAll();
+  /* ★엄격 초과로 판정한다. 판이 도는 동안 updateHud 가 최고점을 계속 올려 두므로,
+     '지금 저장된 최고점' 과 비교하면 제 점수를 제 자신과 비교하는 셈이 되어 동점도 신기록이 된다.
+     그래서 이 판을 시작한 순간의 값(initialBest)과 비교한다(2048 R2 교훈). */
+  const isNew = score > 0 && score > initialBest;
+  const elapsed = Date.now() - startTime;
+  if (mode === 'daily'){
+    const rec = { date: dayKey(), no: dailyNo(), score, lines, level,
+                  time: fmtTime(elapsed), clears: clears.slice(), streak: bumpStreak() };
+    saveDaily({ result: rec, run: null });   /* 끝났으니 진행 중 판은 지우고 결과만 남긴다 */
+    lastDaily = rec;
+  } else lastDaily = null;
+  renderOver({ score, lines, level, time: fmtTime(elapsed), clears: clears.slice(), isNew });
+  sOver();
+  setTimeout(() => showOverlay('over','btnAgain'), 350);
+}
+function renderOver(r){
+  const d = lastDaily;
+  $('overTitle').textContent = d ? T('dailyOver', d.no) : T('gameOver');
+  $('finalScore').textContent = r.score;
+  $('newBest').textContent = r.isNew ? T('newBest') : '';
+  $('streakLine').textContent = d ? T('streak', d.streak) : '';
+  $('finalSub').textContent = T('finalSub', r.lines, r.level, r.time);
+  $('btnAgain').textContent = d ? T('playFree') : T('again');
+  $('btnShare').textContent = T('share');
+}
+function showDailyResult(){
+  const d = dailyState().result; if (!d) return;
+  lastDaily = d; over = true; running = false; mode = 'daily';
+  renderOver({ score:d.score, lines:d.lines, level:d.level, time:d.time, clears:d.clears||[0,0,0,0], isNew:false });
+  /* ★순서가 중요하다. 시작 창을 먼저 숨기면 그 안의 버튼이 '돌아갈 자리' 로 잡혀 버린다.
+     결과 창을 먼저 열어 창→창 전환으로 처리한 뒤 시작 창을 숨긴다(2048 R2 교훈). */
+  showOverlay('over','btnAgain');
+  $('start').classList.remove('show');
+}
+function refreshStart(){
+  const n = dailyNo(), done = dailyDoneToday();
+  $('btnDaily').textContent = done ? T('dailyDone', n) : T('daily', n);
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint');
+}
+
+/* ======================= 입력 — 키보드 ======================= */
+const KEYDOWN_ACT = {
+  ArrowLeft:'left', ArrowRight:'right', ArrowDown:'soft',
+  ArrowUp:'rot', x:'rot', X:'rot', z:'rotccw', Z:'rotccw',
+  ' ':'hard', c:'hold', C:'hold'
+};
+window.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === 'p' || e.key === 'P'){
+    if (running && !over){ e.preventDefault(); setPaused(!paused); }
+    return;
+  }
+  if (e.key === 'Escape'){ if (running && !over && !paused){ e.preventDefault(); setPaused(true); } return; }
+  const act = KEYDOWN_ACT[e.key];
+  if (!act) return;
+  if (anyOverlayOpen()) return;              /* 창이 열려 있으면 게임 조작은 받지 않는다 */
+  if (!playable()) return;
+  e.preventDefault();
+  if (e.repeat) return;                      /* 반복은 우리 DAS/ARR 이 만든다 — OS 반복은 무시 */
+  pressAct(act);
+}, { passive:false });
+window.addEventListener('keyup', e => {
+  const act = KEYDOWN_ACT[e.key];
+  if (act) releaseAct(act);
+});
+window.addEventListener('blur', releaseAll);
+
+/* ======================= 입력 — 화면 버튼 ======================= */
+for (const btn of $('pad').querySelectorAll('button')){
+  const act = btn.dataset.act;
+  btn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    try{ btn.setPointerCapture(e.pointerId); }catch(_){}
+    pressAct(act);
+  });
+  const up = () => releaseAct(act);
+  btn.addEventListener('pointerup', up);
+  btn.addEventListener('pointercancel', up);
+  btn.addEventListener('pointerleave', up);
+  btn.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+/* ======================= 입력 — 스와이프 ======================= */
+/* 24px 을 한 칸으로 친다. 옆으로 24px 그을 때마다 한 칸 이동, 아래로 24px 마다 한 칸 소프트 드롭,
+   칸을 하나도 소비하지 않은 채 위로 24px 이상 그으면 회전이다.
+   #board 는 touch-action:none 이라 이 제스처가 페이지 스크롤과 겹치지 않는다. */
+const SWIPE = 24;
+let sw = null;
+boardCv.addEventListener('pointerdown', e => {
+  if (!playable()) return;
+  sw = { x:e.clientX, y:e.clientY, id:e.pointerId, steps:0 };
+  try{ boardCv.setPointerCapture(e.pointerId); }catch(_){}
+});
+boardCv.addEventListener('pointermove', e => {
+  if (!sw || e.pointerId !== sw.id || !playable()) return;
+  const dx = e.clientX - sw.x, dy = e.clientY - sw.y;
+  if (Math.abs(dx) >= SWIPE && Math.abs(dx) >= Math.abs(dy)){
+    const n = Math.trunc(dx / SWIPE);
+    for (let i=0;i<Math.abs(n);i++) doAct(n > 0 ? 'right' : 'left');
+    sw.x += n * SWIPE; sw.steps += Math.abs(n);
+  } else if (dy >= SWIPE && Math.abs(dy) > Math.abs(dx)){
+    const n = Math.trunc(dy / SWIPE);
+    for (let i=0;i<n;i++) doAct('soft');
+    sw.y += n * SWIPE; sw.steps += n;
+  }
+});
+function swipeEnd(e){
+  if (!sw || e.pointerId !== sw.id) return;
+  const dy = e.clientY - sw.y, dx = e.clientX - sw.x, steps = sw.steps;
+  sw = null;
+  if (steps) return;                                   /* 이미 이동·드롭으로 소비했다 */
+  if (dy <= -SWIPE && Math.abs(dy) > Math.abs(dx)) doAct('rot');
+}
+boardCv.addEventListener('pointerup', swipeEnd);
+boardCv.addEventListener('pointercancel', () => { sw = null; });
+/* 판 위에서 손가락을 움직이는 동안 페이지가 따라 스크롤되지 않게 막는다. */
+document.addEventListener('touchmove', e => { if (sw) e.preventDefault(); }, { passive:false });
+
+/* ======================= UI ======================= */
+$('btnStart').onclick = () => newGame('free');
+$('btnDaily').onclick = () => {
+  const st = dailyState();
+  if (st.result) return showDailyResult();   /* 오늘은 이미 끝냈다 — 결과만 다시 보여 준다 */
+  if (st.run)    return resumeDaily();       /* 하던 판이 있으면 이어서 — 다시 시작은 안 된다 */
+  newGame('daily');
+};
+$('btnAgain').onclick = () => newGame('free');
+$('btnResume').onclick = () => setPaused(false);
+$('btnLang').onclick = () => {
+  lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); refreshStart();
+  if (mode === 'daily' && running && !over) $('subtitle').textContent = T('daily', dailyNo());
+  else if (!running || mode !== 'daily') $('subtitle').textContent = T('subtitle');
+  if (over && lastDaily) renderOver({ score:lastDaily.score, lines:lastDaily.lines, level:lastDaily.level,
+                                      time:lastDaily.time, clears:lastDaily.clears||[0,0,0,0], isNew:false });
+  else if (over) renderOver({ score, lines, level, time:fmtTime(Date.now()-startTime), clears:clears.slice(), isNew:false });
+};
+$('btnSound').onclick = () => {
+  soundOn = !soundOn; localStorage.setItem('bd.sound', soundOn ? '1' : '0');
+  $('btnSound').textContent = soundOn ? '🔊' : '🔇';
+  applyA11yLabels();
+  if (soundOn) beep(600, .05, 'sine', .04);
+};
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+async function doShare(){
+  const url = location.href.split('#')[0];
+  const d = lastDaily;
+  const cl = d ? (d.clears || [0,0,0,0]) : clears;
+  const text = d
+    ? T('dailyShare', d.no, d.score, d.lines, d.level, d.time, d.streak) + T('clearsLine', cl[0],cl[1],cl[2],cl[3]) + '\n' + url
+    : T('shareText', score, lines) + url;
+  try{
+    if (navigator.share) await navigator.share({ title: T('docTitle'), text, url });
+    else { await navigator.clipboard.writeText(text); toast(T('copied')); }
+  }catch(_){}
+}
+$('btnShare').onclick = doShare;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1600); }
+
+/* ======================= 기동 ======================= */
+board = newBoard();
+applyLang(); refreshStart();
+$('best').textContent = best;
+drawSide();
+/* 시작 창은 처음부터 열린 채로 그려진다. 그래서 showOverlay 를 거치지 않으면 초점이 body 에 남는다.
+   같은 경로를 한 번 태워 첫 행동 버튼(오늘의 도전)으로 초점을 옮기고 창 밖을 막는다(2048 R3 교훈). */
+if ($('start').classList.contains('show')) showOverlay('start', 'btnDaily');
+window.addEventListener('resize', () => { draw(); drawSide(); });
+window.addEventListener('orientationchange', () => setTimeout(() => { draw(); drawSide(); }, 150));
+rafId = requestAnimationFrame(loop);
+
+/* ======================= 검증 훅 ======================= */
+/* 게임 로직에 영향을 주지 않는 읽기·주입 창구다. 점수는 기기에만 저장되고 순위표가 없으므로
+   외부에 영향이 없다(2048 의 window.__g2048 과 같은 취지). */
+window.__bd = {
+  const: () => ({ COLS, ROWS, LOCK_MS, LOCK_RESET_MAX, TICK, SCORE_TABLE:SCORE_TABLE.slice(),
+                  HARD_DROP_PER_CELL, TYPES:TYPES.slice(), SPAWN_COL:{...SPAWN_COL} }),
+  kicks: () => ({ jlstz: KICKS_JLSTZ, i: KICKS_I }),
+  cells: (type, rot) => CELLS[type][rot].map(p => p.slice()),
+  seedKey: (d) => dailySeedKey(d ? new Date(d) : new Date()),
+  seedDraws: (key, n) => { const f = mulberry32(hashStr(key)); return Array.from({length:n}, () => +f().toFixed(9)); },
+  bagSeq: (key, n) => bagSequence(key, n),
+  dropInterval: (lv) => dropInterval(lv),
+  state: () => ({ mode, score, lines, level, over, paused, running, pieceIndex,
+                  hold, holdUsed, clears: clears.slice(), next: nextQ.slice(),
+                  cur: cur ? { ...cur } : null,
+                  board: board ? board.map(r => r.slice()) : null,
+                  lockAcc, lockResets, grounded: grounded() }),
+  daily: () => dailyState(),
+  newGame: (m) => { newGame(m); return true; },
+  resume: () => { resumeDaily(); return true; },
+  act: (a) => doAct(a),
+  rotate: (dir) => tryRotate(dir),
+  ghostRow: () => ghostRow(),
+  /* 판을 특정 배치로 세팅한다 — 줄 지움·점수·게임오버 경로 검증용 */
+  setBoard: (rows) => { board = rows.map(r => r.slice()); draw(); return true; },
+  /* 조각을 특정 위치·회전으로 놓는다 — 회전 킥 검증용 */
+  place: (type, rot, r, c) => {
+    cur = { type, rot, r, c };
+    gravAcc = 0; lockAcc = 0; lockResets = 0; lowestRow = r;
+    return !collides(cur);
+  },
+  setLevel: (v) => { level = v; updateHud(); return level; },
+  /* 실시간을 기다리지 않고 고정 틱만큼 논리를 진행시킨다 — 락 딜레이·중력 검증용 */
+  tickMs: (ms) => { let n = Math.round(ms / TICK); while (n-- > 0) step(TICK); return true; },
+  lock: () => { lockPiece(); return true; }
+};
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

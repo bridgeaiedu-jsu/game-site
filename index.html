@@ -6,10 +6,10 @@
 <meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>한판고 — 설치 없이 바로 하는 미니게임 | Hanpango Mini Games</title>
-<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 미니게임 모음. 블록 퍼즐과 2048, 매일 열리는 오늘의 도전 — 한 판 1~5분. Free browser mini games — block puzzle and 2048, no install.">
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 미니게임 모음. 블록 퍼즐·2048·블록 낙하, 매일 열리는 오늘의 도전 — 한 판 1~8분. Free browser mini games — block puzzle, 2048 and block drop, no install.">
 <meta name="theme-color" content="#1e1b4b">
 <meta property="og:title" content="한판고 — 설치 없이 바로 하는 미니게임">
-<meta property="og:description" content="브라우저에서 바로 하는 무료 미니게임 모음. 블록 퍼즐 · 2048 · 오늘의 도전. 한 판 1~5분.">
+<meta property="og:description" content="브라우저에서 바로 하는 무료 미니게임 모음. 블록 퍼즐 · 2048 · 블록 낙하 · 오늘의 도전. 한 판 1~8분.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://hanpango.com/">
 <link rel="canonical" href="https://hanpango.com/">
@@ -123,6 +123,12 @@
           <span class="body"><h2>2048 / 2048</h2>
             <p>같은 숫자를 밀어서 합쳐 2048 타일을 만드는 숫자 퍼즐<br>Slide and merge equal numbers to reach the 2048 tile</p></span>
         </a></li>
+        <li><a class="card" href="/block-drop/">
+          <span class="thumb"><img src="/block-drop/thumb.webp" alt="블록 낙하 / Block Drop" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 3~8분 / 3–8 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>블록 낙하 / Block Drop</h2>
+            <p>떨어지는 블록을 돌려 가로줄을 지우는 낙하 퍼즐<br>Rotate the falling blocks and clear horizontal lines</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -201,6 +207,13 @@ const FALLBACK = [{
   thumb:'/2048/thumb.webp',
   playtime:{ko:'한 판 2~5분',en:'2–5 min a round'},
   daily:true, released:'2026-08-23', tags:['puzzle','numbers','casual','daily']
+},{
+  id:'block-drop', path:'/block-drop/',
+  title:{ko:'블록 낙하',en:'Block Drop'},
+  desc:{ko:'떨어지는 블록을 돌려 가로줄을 지우는 낙하 퍼즐',en:'Rotate the falling blocks and clear horizontal lines'},
+  thumb:'/block-drop/thumb.webp',
+  playtime:{ko:'한 판 3~8분',en:'3–8 min a round'},
+  daily:true, released:'2026-08-23', tags:['puzzle','arcade','casual','daily']
 }];
 
 let games = FALLBACK;
