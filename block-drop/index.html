@@ -228,6 +228,8 @@ const I18N = {
     preparing:'판을 준비하는 중…',
     staleTitle:'오늘의 도전이 다른 곳에서 시작됐어요',
     staleSub:(n)=>`이 판은 지난 도전 #${n} 이라 여기서 만료됐습니다. 점수는 기록되지 않고 연속 도전 기록도 그대로입니다. 오늘의 도전은 새로 연 탭에서 이어 하세요.`,
+    forkTitle:'같은 판이 다른 탭에서 진행 중이에요',
+    forkSub:(n)=>`오늘의 도전 #${n} 을 다른 탭에서 이미 이어 가고 있습니다. 같은 판을 두 곳에서 따로 진행하면 한쪽 진행이 통째로 사라지므로, 이 탭의 판은 여기서 만료됐습니다. 점수는 기록되지 않고 연속 도전 기록도 그대로입니다. 진행 중인 탭에서 이어 하세요.`,
     dailyShare:(n,s,l,v,t,k)=>`🧱 한판고 블록 낙하 · 오늘의 도전 #${n}\n${s}점 · ${l}줄 · 레벨 ${v} · ${t}${k>1?` · 🔥${k}일 연속`:''}\n`,
     clearsLine:(a,b,c,d)=>`1️⃣×${a} 2️⃣×${b} 3️⃣×${c} 4️⃣×${d}`,
     howTitle:'게임 방법',
@@ -283,6 +285,8 @@ const I18N = {
     preparing:'Getting your board ready…',
     staleTitle:'Today’s challenge was started elsewhere',
     staleSub:(n)=>`This run is the previous challenge #${n}, so it has expired here. Its score is not recorded and your streak is unchanged. Continue today’s challenge in the tab you just opened.`,
+    forkTitle:'This board is already running in another tab',
+    forkSub:(n)=>`Daily Challenge #${n} is already being played in another tab. Playing the same board in two places would wipe out one side’s progress, so this tab’s run has expired here. Its score is not recorded and your streak is unchanged. Carry on in the other tab.`,
     dailyShare:(n,s,l,v,t,k)=>`🧱 Hanpango Block Drop · Daily #${n}\n${s} pts · ${l} lines · level ${v} · ${t}${k>1?` · 🔥${k}-day streak`:''}\n`,
     clearsLine:(a,b,c,d)=>`1️⃣×${a} 2️⃣×${b} 3️⃣×${c} 4️⃣×${d}`,
     howTitle:'How to Play',
@@ -509,19 +513,43 @@ function staleDaily(){
 }
 /* 한 번의 setItem = 한 번의 원자적 쓰기. 중간에 끊겨도 반쪽 기록이 남지 않는다.
    날짜·번호는 호출 시점이 아니라 ★도전 시작 시 못박은 식별자를 쓴다. */
+/* ★지금 저장해도 되는가 — 같은 날짜의 판이 '내가 보고 있던 그 판, 그 리비전' 그대로인가.
+   · 저장된 판이 없다: 아직 한 번도 커밋하지 않은 새 판만 쓸 수 있다
+     (오늘 결과가 이미 있으면 그 날은 끝난 것이므로 새로 쓰지 않는다).
+   · 저장된 판이 있다: 판 고유번호가 같고, 리비전이 내가 본 값 그대로여야 한다.
+     리비전이 앞서 있다 = 그 사이 다른 탭이 같은 판을 진행시켰다 = 내 쓰기는 그 진행을 덮는다.
+   ★옛 형식 기록에는 리비전이 없다 — 0 으로 보므로 먼저 쓴 탭이 1 로 올리고 나머지는 거부된다. */
+function casOk(prev){
+  const cur = prev.run;
+  if (!cur) return runRev === 0 && !prev.result;
+  if (runId && cur.runId && cur.runId !== runId) return false;   /* 아예 다른 판이다 */
+  return (cur.rev | 0) === runRev;
+}
 function saveDaily(patch){
+  rejectWhy = null;
   /* ★기록을 한 번만 읽어 '중단 신호(더 최신 날짜)' 와 '이어 붙일 이전 값' 을 함께 파생한다.
      두 번 읽으면 그 사이에 다른 탭 쓰기가 끼어들 수 있고, 두 번째 읽기는 날짜 불일치를
      '빈 이전 값' 으로만 접어 중단 신호를 잃는다(codex R3 지적). */
   const r = dailyRec();
-  if (r && r.date && chalDate && r.date > chalDate) return false;   /* 더 최신 기록 — 덮어쓰지 않는다 */
+  if (r && r.date && chalDate && r.date > chalDate){ rejectWhy = 'date'; return false; }   /* 더 최신 기록 — 덮어쓰지 않는다 */
   const prev = (r && chalDate && r.date === chalDate)
     ? { run: r.run || null, result: r.result || null }
     : { run: null, result: null };
+  /* ★비교-교환 — 기준이 어긋나면 아무것도 쓰지 않는다(저장된 기록은 그대로 남는다) */
+  if (!casOk(prev)){ rejectWhy = 'fork'; return false; }
+  const nextRun = ('run' in patch) ? patch.run : prev.run;
+  /* ★쓰는 순간 리비전을 한 칸 올려 박는다 — 다른 탭은 이 값으로 자기 기준이 낡았음을 안다.
+     parentRev 는 '무엇 위에 쌓았는가' 를 남기는 계보다(검증·디버깅용). */
+  if (nextRun){
+    nextRun.runId = runId || nextRun.runId || newRunId();
+    nextRun.parentRev = runRev;
+    nextRun.rev = runRev + 1;
+  }
   const rec = { date: chalDate || dayKey(), no: (chalNo != null) ? chalNo : dailyNo(),
-                run:    ('run'    in patch) ? patch.run    : prev.run,
+                run:    nextRun,
                 result: ('result' in patch) ? patch.result : prev.result };
   localStorage.setItem('bd.daily', JSON.stringify(rec));
+  if (nextRun){ runId = nextRun.runId; runRev = nextRun.rev; }   /* 내 기준을 방금 쓴 값으로 올린다 */
   return true;
 }
 const dailyDoneToday = () => !!dailyState().result;
@@ -582,9 +610,23 @@ let score = 0, lines = 0, level = 1, best = 0, initialBest = 0;
 let chalDate = null, chalNo = null, chalSeedKey = null;
 /* 이 판이 '지난 도전' 이 되어 만료됐는가(다른 탭이 더 최신 날짜 도전을 시작한 경우) */
 let staleExpired = false;
+/* 만료된 이유 — 'date' 는 더 최신 날짜의 도전이 시작된 것, 'fork' 는 같은 판을 다른 탭이
+   먼저 진행시킨 것이다. 사용자가 무엇을 해야 할지 알려면 안내 문구가 달라야 한다. */
+let staleWhy = 'date';
 /* 새 일일 판을 만들어 두고 아직 최초 저장이 커밋되지 않은 상태(보통 수십 ms).
    이 동안에는 판을 열지 않는다 — 열어 두면 그 사이 다른 탭도 빈 상태를 보고 또 하나를 만든다. */
 let preparing = false;
+/* ★같은 날짜의 ★같은 판을 두 탭이 각각 이어받아 따로 진행하면, 둘 다 잠금을 지키면서도
+   나중에 쓴 쪽이 앞선 진행을 통째로 덮는다(codex R5 지적: 분기 뒤 last-writer-wins).
+   잠금은 '쓰는 순서' 만 세워 줄 뿐 '하나의 진행선' 으로 모아 주지는 못하기 때문이다.
+   그래서 판에 고유번호(runId)와 ★한 칸씩만 오르는 리비전(rev)을 달고, 저장할 때
+   '내가 마지막으로 본 리비전' 과 저장소의 리비전이 같을 때만 rev+1 로 쓴다(비교-교환·CAS).
+   달라졌다면 그 사이 다른 탭이 이 판을 진행시킨 것이므로 내 쓰기를 거부하고 이 탭을 만료한다.
+   ★새 저장 키는 늘리지 않는다 — 두 값 모두 bd.daily 안의 run 객체에 들어간다. */
+let runId = null;        /* 이 탭이 이어가고 있는 판의 고유번호 */
+let runRev = 0;          /* 그 판에서 ★내가 마지막으로 본(=커밋한) 리비전. 0 = 아직 커밋 전 */
+let rejectWhy = null;    /* 마지막 저장 거부 사유 — 'date'(더 최신 날짜) · 'fork'(다른 탭이 진행) */
+const newRunId = () => 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 /* ★진행 중 판의 부제는 언제 그리든 ★시작할 때 못박은 번호를 쓴다 — 자정을 넘겨도 번호가 바뀌지
    않는다(codex R2 issue2). dailyNo() 는 옛 형식 기록에 번호가 없을 때만 쓰는 폴백이다. */
 const chalTitle = () => T('daily', chalNo != null ? chalNo : dailyNo());
@@ -1018,12 +1060,22 @@ function resetCommon(){
   initialBest = best;      /* 이 판을 시작한 순간의 최고점을 박아 둔다 — 신기록은 이 값을 넘겨야 한다 */
   releaseAll();
 }
+/* ★준비 중에는 시작 창의 버튼 자체를 잠근다.
+   보드 입력만 막으면 '자유 플레이' 를 눌러 게임을 띄운 뒤, 뒤늦게 풀린 일일 잠금 콜백이
+   화면을 일일 판으로 다시 갈아엎는다(codex R5 지적: 입력과 비동기 콜백의 상태 경합).
+   ★이중 방어 — ①버튼 disabled ②두 핸들러도 preparing 이면 즉시 반환한다. */
+function setPreparing(v){
+  preparing = !!v;
+  $('btnDaily').disabled = preparing;
+  $('btnStart').disabled = preparing;
+}
 function newGame(m = 'free'){
   mode = m;
   resetCommon();
   /* ★도전 식별자를 여기서 한 번만 못박는다. 이후 저장·복원·결과는 전부 이 값을 쓴다. */
-  if (m === 'daily'){ chalDate = dayKey(); chalNo = dailyNo(); chalSeedKey = dailySeedKey(); }
-  else { chalDate = null; chalNo = null; chalSeedKey = null; }
+  if (m === 'daily'){ chalDate = dayKey(); chalNo = dailyNo(); chalSeedKey = dailySeedKey();
+                      runId = newRunId(); runRev = 0; }   /* ★새 판 = 새 신원 · 아직 커밋 전 */
+  else { chalDate = null; chalNo = null; chalSeedKey = null; runId = null; runRev = 0; }
   nextType = makeBagger(m === 'daily' ? mulberry32(hashStr(chalSeedKey)) : Math.random);
   refillQueue();
   startTime = Date.now();
@@ -1037,10 +1089,10 @@ function newGame(m = 'free'){
        커밋 전에 열어 두면 그 대기 창 동안 다른 탭도 빈 기록을 보고 또 하나의 판을 시작해,
        두 판이 서로를 덮는다(codex R4 지적: 하루 한 판 계약 위반).
        그 짧은 동안(보통 수십 ms)은 시작 창을 '준비 중' 으로 두고 판을 멈춰 입력을 막는다. */
-    preparing = true; running = false;
+    setPreparing(true); running = false;
     $('dailyHint').textContent = T('preparing');
     withDailyLock(() => {
-      preparing = false;
+      setPreparing(false);
       if (saveDailyRunLocked()){
         running = true;
         refreshStart();                 /* '준비 중' 문구를 원래대로 돌려 둔다 */
@@ -1048,7 +1100,7 @@ function newGame(m = 'free'){
         focusSafely($('board'));
       } else {
         refreshStart();
-        expireStale();                  /* 더 최신 도전이 이미 있다 — 이 판은 만료다 */
+        expireStale(rejectWhy);         /* 더 최신 도전이 있거나 같은 판이 다른 탭에 있다 */
       }
     });
     return;
@@ -1060,10 +1112,10 @@ function newGame(m = 'free'){
 function startDaily(){
   /* ★잠금을 기다리는 동안 사용자에게 '준비 중' 을 보여 주고 판은 열지 않는다.
      (다른 탭이 잠금을 쥐고 있으면 그만큼 기다린다 — 보통 수십 ms) */
-  preparing = true;
+  setPreparing(true);
   $('dailyHint').textContent = T('preparing');
   withDailyLock(() => {
-    preparing = false;
+    setPreparing(false);
     const st = dailyState();            /* ★잠금 안에서 최신 상태를 다시 읽는다 */
     if (st.result){ refreshStart(); return showDailyResult(); }   /* 오늘은 이미 끝냈다 */
     if (st.run){ refreshStart(); return resumeDaily(); }          /* 하던 판이 있다 — 이어서 */
@@ -1082,6 +1134,10 @@ function resumeDaily(){
   chalSeedKey = run.seedKey || dailySeedKey();
   chalDate = run.date || dayKey();
   chalNo = (run.no != null) ? run.no : dailyNo();
+  /* ★이 판의 신원을 그대로 승계한다 — 이 값이 앞으로 내 저장의 비교 기준이 된다.
+     두 탭이 같은 판을 이어받으면 둘 다 같은 기준에서 출발하고, 먼저 쓴 쪽만 통과한다. */
+  runId = run.runId || null;
+  runRev = run.rev | 0;
   nextType = makeBagger(mulberry32(hashStr(chalSeedKey)));
   for (let i = 0; i < (run.pieceIndex || 0); i++) nextType();
   refillQueue();
@@ -1125,6 +1181,11 @@ function dailyRunSnapshot(){
            pieceIndex, score, lines, level, hold, clears: clears.slice(),
            elapsed: Date.now() - startTime, initialBest,
            date: chalDate, no: chalNo, seedKey: chalSeedKey,
+           /* ★이 스냅샷이 '어느 판의 어느 리비전 위에서' 떠졌는지 함께 박아 둔다.
+              (실제 비교-교환은 저장 직전의 runRev 로 한다 — 그 사이에 한 번 더 저장한 것이
+               있다면 그것은 남이 아니라 나 자신이고, 한 탭 안에서 저장은 부른 순서대로
+               줄을 서므로 뒤 스냅샷이 언제나 더 새롭다. 걸러야 하는 것은 남의 쓰기다.) */
+           runId, baseRev: runRev,
            cur: cur ? { type:cur.type, rot:cur.rot, r:cur.r, c:cur.c, holdUsed } : null };
 }
 function saveDailyRunLocked(snap){
@@ -1136,7 +1197,7 @@ function saveDailyRun(){
   if (mode !== 'daily' || over) return;
   const snap = dailyRunSnapshot();               /* ★호출 시점 상태를 박아 둔다 */
   withDailyLock(() => {
-    if (!saveDailyRunLocked(snap)) expireStale();   /* ★거부 = 오늘 도전이 다른 곳에서 시작됐다 */
+    if (!saveDailyRunLocked(snap)) expireStale(rejectWhy);   /* ★거부 = 이 판이 다른 곳에서 이어지고 있다 */
   });
 }
 function fmtTime(ms){ const s = Math.round(ms/1000); return s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`; }
@@ -1162,8 +1223,10 @@ function endGame(){
                   streak: peekStreak(day) };
     withDailyLock(() => {
       /* 이 안에서는 다른 탭이 끼어들 수 없다 — 검사·저장·스트릭·화면이 한 덩어리다 */
-      if (staleDaily()){ expireStale(); return; }
-      if (!saveDaily({ result: rec, run: null })){ expireStale(); return; }
+      if (staleDaily()){ expireStale('date'); return; }
+      /* ★결과·스트릭도 같은 비교-교환을 통과해야 한다 — 분기해 나온 탭의 마지막 쓰기가
+         앞선 탭의 진행·결과를 임의로 이기지 못하게 한다(codex R5 지적). */
+      if (!saveDaily({ result: rec, run: null })){ expireStale(rejectWhy); return; }
       commitStreak(day, rec.streak);   /* ★커밋 성공 뒤에만 스트릭을 올린다 */
       lastDaily = rec;                 /* ★완료 화면도 커밋 뒤에 확정한다 */
       finishOver({ score, lines, level, time: rec.time, clears: rec.clears, isNew });
@@ -1192,22 +1255,24 @@ function renderOver(r){
 /* ★이 판이 '지난 도전' 이 되어 만료됐음을 알린다. 결과는 기록하지 않고 연속 도전 기록도
    건드리지 않는다 — 진짜 오늘 판은 다른 탭에 살아 있다. */
 function renderStale(){
-  $('overTitle').textContent = T('staleTitle');
+  const fork = staleWhy === 'fork';
+  $('overTitle').textContent = T(fork ? 'forkTitle' : 'staleTitle');
   $('finalScore').textContent = score;
   $('newBest').textContent = '';
   $('streakLine').textContent = '';
-  $('finalSub').textContent = T('staleSub', chalNo != null ? chalNo : dailyNo());
+  $('finalSub').textContent = T(fork ? 'forkSub' : 'staleSub', chalNo != null ? chalNo : dailyNo());
   $('btnAgain').textContent = T('playFree');
   $('btnShare').textContent = T('share');
 }
-function expireStale(){
+function expireStale(why){
   if (staleExpired) return;
+  staleWhy = (why === 'fork') ? 'fork' : 'date';
   staleExpired = true;
   over = true; running = false; paused = false;
   releaseAll();
   lastDaily = null;                    /* 결과 없음 — 공유·스트릭 줄도 뜨지 않는다 */
   renderStale();
-  announce(T('staleSub', chalNo != null ? chalNo : dailyNo()));
+  announce(T(staleWhy === 'fork' ? 'forkSub' : 'staleSub', chalNo != null ? chalNo : dailyNo()));
   showOverlay('over','btnAgain');
 }
 function showDailyResult(){
@@ -1304,8 +1369,10 @@ boardCv.addEventListener('pointercancel', () => { sw = null; });
 document.addEventListener('touchmove', e => { if (sw) e.preventDefault(); }, { passive:false });
 
 /* ======================= UI ======================= */
-$('btnStart').onclick = () => newGame('free');
-$('btnDaily').onclick = () => startDaily();
+/* ★준비 중이면 버튼이 이미 잠겨 있지만, 핸들러에서도 한 번 더 막는다(이중 방어 ②) —
+   스크립트 등 disabled 를 우회해 들어오는 경로까지 같은 규칙을 지키게 한다. */
+$('btnStart').onclick = () => { if (preparing) return; newGame('free'); };
+$('btnDaily').onclick = () => { if (preparing) return; startDaily(); };
 $('btnAgain').onclick = () => newGame('free');
 $('btnResume').onclick = () => setPaused(false);
 $('btnLang').onclick = () => {
@@ -1392,6 +1459,11 @@ window.__bd = {
   end: () => { endGame(); return true; },
   /* 임계구역이 어떤 수단으로 열렸는지 — 검증기가 두 경로를 구분해 단언하기 위한 창구 */
   lockState: () => ({ webLocks: hasWebLocks, name: DAILY_LOCK, depth: lockDepth, preparing }),
+  /* 이 탭이 어느 판의 어느 리비전을 기준으로 삼고 있는지 — 비교-교환 검증용 창구 */
+  runInfo: () => ({ runId, rev: runRev, rejectWhy }),
+  /* 만료 여부와 그 사유 · 시작 창 버튼의 잠금 상태 */
+  expiry: () => ({ expired: staleExpired, why: staleWhy }),
+  btnState: () => ({ daily: !!$('btnDaily').disabled, start: !!$('btnStart').disabled }),
   /* '오늘의 도전' 진입점 — 버튼 클릭과 같은 경로 */
   startDaily: () => { startDaily(); return true; }
 };
