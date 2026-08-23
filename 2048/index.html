@@ -111,7 +111,7 @@
 </div>
 
 <main>
-  <div id="board" role="grid" aria-label="game board"></div>
+  <div id="board" role="grid" tabindex="0" aria-label="game board"></div>
   <p id="srSummary" class="sr-only" aria-live="polite"></p>
   <p class="hint" data-i18n="hint">화살표 키 또는 손가락으로 밀어서 같은 숫자를 합치세요.</p>
 </main>
@@ -485,9 +485,62 @@ function canMove(){
 /* ======================= 오버레이·낭독기 ======================= */
 /* 오버레이를 열 때 첫 행동 버튼으로 초점을 옮기고, 닫을 때 원래 있던 곳으로 되돌린다(D4·D5).
    키보드·화면낭독기 사용자가 '갑자기 뜬 창'을 놓치지 않게 하는 최소 장치다. */
+/* 초점을 '되돌려도 되는 자리' 인지 판정한다 — 화면에 보이고, 숨은 오버레이 안이 아니고,
+   inert(키보드 차단) 안도 아니어야 한다. body 는 목적지로 인정하지 않는다.
+   (R2 결함: 결과 창을 닫은 뒤 이미 숨겨진 버튼으로 초점을 되돌리려 해 초점이 사라졌다) */
+function isRestorable(el){
+  if (!el || el === document.body || !el.isConnected) return false;
+  if (typeof el.focus !== 'function') return false;
+  if (el.closest && el.closest('.overlay:not(.show)')) return false;
+  if (el.hasAttribute && el.hasAttribute('inert')) return false;
+  if (el.closest && el.closest('[inert]')) return false;
+  const r = el.getBoundingClientRect();
+  if (!r.width && !r.height) return false;
+  if (getComputedStyle(el).visibility === 'hidden') return false;
+  return true;
+}
+/* 되돌릴 자리가 마땅치 않을 때 가는 곳 — 항상 보이는 게임판이다. */
+function fallbackFocus(){ return $('board'); }
+function focusSafely(el){
+  let target = isRestorable(el) ? el : fallbackFocus();
+  if (!isRestorable(target)) return null;
+  try{ target.focus(); }catch(_){ return null; }
+  return target;
+}
+/* 창이 열려 있는 동안 창 밖(헤더·점수·본문·푸터)을 키보드로 못 가게 막는다.
+   inert 를 지원하지 않는 브라우저에서는 tabindex 를 -1 로 내렸다가 되돌린다. */
+const INERT_SUPPORTED = ('inert' in HTMLElement.prototype);
+const FOCUSABLE_SEL = 'a[href],button,input,select,textarea,[tabindex]';
+function outsideBoxes(){
+  return [...document.body.children].filter(el => !el.classList.contains('overlay') && el.id !== 'toast');
+}
+function setBranchTabbable(root, on){
+  const els = [root, ...root.querySelectorAll(FOCUSABLE_SEL)].filter(e => e.matches && e.matches(FOCUSABLE_SEL));
+  for (const e of els){
+    if (!on){
+      if (!e.hasAttribute('data-ti-saved'))
+        e.setAttribute('data-ti-saved', e.getAttribute('tabindex') === null ? '' : e.getAttribute('tabindex'));
+      e.setAttribute('tabindex', '-1');
+    } else if (e.hasAttribute('data-ti-saved')){
+      const v = e.getAttribute('data-ti-saved');
+      if (v === '') e.removeAttribute('tabindex'); else e.setAttribute('tabindex', v);
+      e.removeAttribute('data-ti-saved');
+    }
+  }
+}
+function setOutsideInert(on){
+  for (const el of outsideBoxes()){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+    if (!INERT_SUPPORTED) setBranchTabbable(el, !on);
+  }
+}
+const anyOverlayOpen = () => ['over','win','start'].some(id => { const e = $(id); return e && e.classList.contains('show'); });
 function showOverlay(id, firstBtnId){
   const el = $(id); if (!el) return;
-  if (!el.classList.contains('show')) lastFocus = document.activeElement;
+  /* 창이 아직 하나도 안 열려 있을 때의 초점만 '돌아갈 자리' 로 기억한다.
+     창에서 창으로 넘어갈 때 덮어쓰면 앞 창의 버튼(곧 숨겨질 것)이 목적지가 되어 버린다. */
+  if (!anyOverlayOpen()) lastFocus = isRestorable(document.activeElement) ? document.activeElement : null;
+  setOutsideInert(true);
   el.classList.add('show');
   const b = $(firstBtnId);
   if (b) setTimeout(() => { try{ b.focus(); }catch(_){} }, 0);
@@ -498,7 +551,8 @@ function hideOverlays(){
     const el = $(id);
     if (el && el.classList.contains('show')){ el.classList.remove('show'); closed = true; }
   }
-  if (closed && lastFocus && lastFocus.focus){ try{ lastFocus.focus(); }catch(_){} }
+  setOutsideInert(false);          /* ★초점을 옮기기 전에 먼저 풀어야 한다 — 막힌 곳으로는 초점이 가지 않는다 */
+  if (closed) focusSafely(lastFocus);
   lastFocus = null;
 }
 /* 화면낭독기에 한 줄 요약을 알린다(눈에는 보이지 않는 영역). */
@@ -651,8 +705,10 @@ function showDailyResult(){
   const d = dailyState().result; if (!d) return;
   lastDaily = d; over = true; mode = 'daily';
   renderOver({ score: d.score, max: d.max, time: d.time, isNew: false });
-  $('start').classList.remove('show');
+  /* ★순서가 중요하다. 시작 창을 먼저 숨기면 그 안의 버튼이 '돌아갈 자리' 로 잡혀 버린다.
+     결과 창을 먼저 열어 창→창 전환으로 처리한 뒤 시작 창을 숨긴다(R2 결함 수정). */
   showOverlay('over','btnAgain');
+  $('start').classList.remove('show');
 }
 function refreshStart(){
   const n = dailyNo(), done = dailyDoneToday();
@@ -721,6 +777,9 @@ function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('sho
 
 applyLang(); refreshStart();
 $('best').textContent = best;
+/* 시작 창은 처음부터 열린 채로 그려진다. 그래서 showOverlay 를 거치지 않아 초점이 body 에 남아 있었다.
+   같은 경로를 한 번 태워 첫 행동 버튼(오늘의 도전)으로 초점을 옮기고 창 밖을 막는다(R2 결함 수정). */
+if ($('start').classList.contains('show')) showOverlay('start', 'btnDaily');
 window.addEventListener('resize', () => { if (grid) render(); });
 window.addEventListener('orientationchange', () => setTimeout(() => { if (grid) render(); }, 150));
 
