@@ -452,20 +452,36 @@ function dailyState(){
   if (!r || r.date !== dayKey()) return { date:null, no:null, run:null, result:null };
   return { date:r.date, no:r.no, run:r.run||null, result:r.result||null };
 }
-/* 한 번의 setItem = 한 번의 원자적 쓰기. 중간에 끊겨도 반쪽 기록이 남지 않는다. */
+/* '오늘의 기록' 이 아니라 '지금 하고 있는 이 도전의 기록' 을 읽는다.
+   자정을 넘기면 dailyState() 는 빈 값을 주지만, 진행 중인 판은 여전히 시작일 것이다. */
+function chalRec(){
+  const r = dailyRec();
+  if (!r || !chalDate || r.date !== chalDate) return { run:null, result:null };
+  return { run: r.run || null, result: r.result || null };
+}
+/* 한 번의 setItem = 한 번의 원자적 쓰기. 중간에 끊겨도 반쪽 기록이 남지 않는다.
+   날짜·번호는 호출 시점이 아니라 ★도전 시작 시 못박은 식별자를 쓴다. */
 function saveDaily(patch){
-  const cur = dailyState();
-  const rec = { date: dayKey(), no: dailyNo(),
-                run:    ('run'    in patch) ? patch.run    : cur.run,
-                result: ('result' in patch) ? patch.result : cur.result };
+  const prev = chalRec();
+  const rec = { date: chalDate || dayKey(), no: (chalNo != null) ? chalNo : dailyNo(),
+                run:    ('run'    in patch) ? patch.run    : prev.run,
+                result: ('result' in patch) ? patch.result : prev.result };
   localStorage.setItem('bd.daily', JSON.stringify(rec));
 }
 const dailyDoneToday = () => !!dailyState().result;
-function bumpStreak(){
+/* 'YYYY-MM-DD' 하루 전 키. 자정을 넘겨 끝낸 판도 시작일 기준으로 스트릭을 세기 위해 필요하다. */
+function prevDayKey(key){
+  const [y,m,d] = key.split('-').map(Number);
+  const dt = new Date(y, m-1, d); dt.setDate(dt.getDate()-1);
+  return dayKey(dt);
+}
+/* 스트릭도 '끝낸 시각' 이 아니라 ★도전 시작일 기준이다. */
+function bumpStreak(dayStr){
+  const day = dayStr || dayKey();
   let st; try{ st = JSON.parse(localStorage.getItem('bd.streak')||'{}'); }catch(_){ st = {}; }
-  const today = dayKey(), y = new Date(); y.setDate(y.getDate()-1); const yest = dayKey(y);
-  const n = st.last === today ? (st.n||1) : st.last === yest ? (st.n||0)+1 : 1;
-  localStorage.setItem('bd.streak', JSON.stringify({ last: today, n })); return n;
+  const yest = prevDayKey(day);
+  const n = st.last === day ? (st.n||1) : st.last === yest ? (st.n||0)+1 : 1;
+  localStorage.setItem('bd.streak', JSON.stringify({ last: day, n })); return n;
 }
 
 /* ======================= 7-bag 조각 생성기 ======================= */
@@ -497,6 +513,12 @@ let board = null;              /* [ROWS][COLS] · 0 = 빈 칸, 1~7 = 조각 코�
 let cur = null;                /* { type, rot, r, c } — r,c 는 회전 상자의 좌상단 판 좌표 */
 let nextQ = [], hold = null, holdUsed = false, nextPiece = null;
 let score = 0, lines = 0, level = 1, best = 0, initialBest = 0;
+/* ★도전 식별자 — 일일 판을 시작한 순간의 날짜·번호·seed 를 여기에 못박는다.
+   저장·복원·결과가 전부 이 값을 쓰므로, 자정을 넘겨도 판이 다음 날로 이주하지 않는다.
+   (codex R1 issue3: 호출 시점 dayKey()/dailyNo() 를 쓰면 23:59 에 시작한 판이 자정 뒤
+    락하는 순간 다음 날 기록으로 저장되고, 재개 시 다음 날 seed 를 그 인덱스만큼 건너뛰어
+    서로 다른 날짜의 상태가 섞이며 다음 날 1회권까지 잘못 소비됐다.) */
+let chalDate = null, chalNo = null, chalSeedKey = null;
 let over = false, paused = false, running = false, mode = 'free';
 let pieceIndex = 0;            /* 조각 열에서 지금까지 꺼낸 개수 — 일일 복원의 핵심 */
 let clears = [0,0,0,0];        /* 1·2·3·4줄 지움 횟수 */
@@ -547,10 +569,13 @@ function tryRotate(dir){                             /* dir: +1 시계, -1 반�
   return false;
 }
 /* 조각이 성공적으로 움직인 뒤 락 딜레이를 어떻게 다룰지 한 곳에서 정한다.
-   더 아래로 내려갔으면 유예를 새로 받고(리셋 횟수도 초기화), 같은 높이에서 버티는 중이면
-   최대 15번까지만 유예를 연장한다 — 무한정 버티기를 막는 표준 규칙이다. */
+   ★리셋 예산(lockResets)은 한 조각의 수명 전체에 걸쳐 누적되며 15회가 상한이다.
+   더 아래로 내려가면 유예 타이머(lockAcc)만 새로 시작할 뿐 예산은 되살아나지 않는다.
+   (codex R1 issue2: 하강할 때 예산을 0 으로 되돌리면 한 조각이 높이마다 15회씩 다시 받아
+    계단형 스택에서 사실상 무한히 버틸 수 있었다 — ko/en 설명의 '한 조각당 15번' 과도 어긋났다.)
+   예산이 0 으로 돌아가는 곳은 새 조각이 나올 때(spawn)와 홀드 교체 때뿐이다. */
 function afterShift(){
-  if (cur.r > lowestRow){ lowestRow = cur.r; lockResets = 0; lockAcc = 0; }
+  if (cur.r > lowestRow){ lowestRow = cur.r; lockAcc = 0; }
   else if (grounded() && lockResets < LOCK_RESET_MAX){ lockResets++; lockAcc = 0; }
 }
 function ghostRow(){
@@ -926,7 +951,10 @@ function resetCommon(){
 function newGame(m = 'free'){
   mode = m;
   resetCommon();
-  nextType = makeBagger(m === 'daily' ? mulberry32(hashStr(dailySeedKey())) : Math.random);
+  /* ★도전 식별자를 여기서 한 번만 못박는다. 이후 저장·복원·결과는 전부 이 값을 쓴다. */
+  if (m === 'daily'){ chalDate = dayKey(); chalNo = dailyNo(); chalSeedKey = dailySeedKey(); }
+  else { chalDate = null; chalNo = null; chalSeedKey = null; }
+  nextType = makeBagger(m === 'daily' ? mulberry32(hashStr(chalSeedKey)) : Math.random);
   refillQueue();
   startTime = Date.now();
   lastDaily = null;
@@ -944,7 +972,12 @@ function resumeDaily(){
   if (!run) return newGame('daily');
   mode = 'daily';
   resetCommon();
-  nextType = makeBagger(mulberry32(hashStr(dailySeedKey())));
+  /* ★seed 는 '지금 날짜' 가 아니라 저장된 판의 식별자에서 되살린다.
+     (옛 형식 기록에는 seedKey 가 없으므로 그때만 현재 날짜로 폴백한다) */
+  chalSeedKey = run.seedKey || dailySeedKey();
+  chalDate = run.date || dayKey();
+  chalNo = (run.no != null) ? run.no : dailyNo();
+  nextType = makeBagger(mulberry32(hashStr(chalSeedKey)));
   for (let i = 0; i < (run.pieceIndex || 0); i++) nextType();
   refillQueue();
   board = run.board.map(row => row.slice());
@@ -956,18 +989,35 @@ function resumeDaily(){
   startTime = Date.now() - (run.elapsed || 0);
   lastDaily = null;
   hideOverlays();
-  spawnNext();
+  /* ★저장 시점에 떨어지던 조각이 있으면 그 조각을 그대로 되살린다(새로 뽑지 않는다).
+     조각 열에서 이미 꺼낸 개수(pieceIndex)는 위에서 되감아 뒀으므로 다음 대기열도 그대로 이어진다. */
+  if (run.cur && run.cur.type){
+    cur = { type: run.cur.type, rot: run.cur.rot | 0, r: run.cur.r | 0, c: run.cur.c | 0 };
+    gravAcc = 0; lockAcc = 0; lockResets = 0; lowestRow = cur.r;
+    holdUsed = !!run.cur.holdUsed;
+    if (collides(cur)){ cur = null; endGame(); return; }
+    updateSummary();
+  } else {
+    spawnNext();
+  }
   updateHud();
-  $('subtitle').textContent = T('daily', dailyNo());
+  $('subtitle').textContent = T('daily', chalNo != null ? chalNo : dailyNo());
   announce(T('srResumed', score));
   focusSafely($('board'));
 }
-/* 락이 끝날 때마다 진행 상태를 통째로 저장한다(성공기준 ④). */
+/* 락이 끝날 때마다, 그리고 판을 시작한 직후에 진행 상태를 통째로 저장한다.
+   ★떨어지던 조각(cur)까지 저장한다 — 저장 시점이 락 경계든 시작 직후든 복원이 정확해진다.
+   (codex R1 issue1: 시작 직후 저장은 이미 첫 조각을 꺼낸 pieceIndex=1 상태인데 cur 이 없어서,
+    첫 락 전에 새로고침하면 복원기가 첫 조각을 건너뛰고 두 번째 조각을 스폰했다 —
+    같은 날짜·같은 seed 인데 재로딩 여부에 따라 조각 열이 달라졌다.)
+   ★도전 식별자(date·no·seedKey)도 함께 넣는다 — 복원이 '지금 날짜' 가 아니라 '그 판' 을 따르게. */
 function saveDailyRun(){
   if (mode !== 'daily' || over) return;
   saveDaily({ run: { board: board.map(row => row.slice()),
                      pieceIndex, score, lines, level, hold, clears: clears.slice(),
-                     elapsed: Date.now() - startTime, initialBest } });
+                     elapsed: Date.now() - startTime, initialBest,
+                     date: chalDate, no: chalNo, seedKey: chalSeedKey,
+                     cur: cur ? { type:cur.type, rot:cur.rot, r:cur.r, c:cur.c, holdUsed } : null } });
 }
 function fmtTime(ms){ const s = Math.round(ms/1000); return s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`; }
 function endGame(){
@@ -980,8 +1030,12 @@ function endGame(){
   const isNew = score > 0 && score > initialBest;
   const elapsed = Date.now() - startTime;
   if (mode === 'daily'){
-    const rec = { date: dayKey(), no: dailyNo(), score, lines, level,
-                  time: fmtTime(elapsed), clears: clears.slice(), streak: bumpStreak() };
+    /* ★결과도 도전 시작일에 기록한다 — 자정을 넘겨 끝내도 다음 날 1회권을 소비하지 않는다.
+       자정 경계 정책: 시작일 기준으로 끝까지 기록하고, 날짜가 바뀐 뒤 재방문하면 그 판은
+       '지난 도전' 으로 만료되며 새 날짜의 1회권은 온전히 남는다. */
+    const rec = { date: chalDate || dayKey(), no: (chalNo != null) ? chalNo : dailyNo(), score, lines, level,
+                  time: fmtTime(elapsed), clears: clears.slice(),
+                  streak: bumpStreak(chalDate || dayKey()) };
     saveDaily({ result: rec, run: null });   /* 끝났으니 진행 중 판은 지우고 결과만 남긴다 */
     lastDaily = rec;
   } else lastDaily = null;
@@ -1157,11 +1211,13 @@ window.__bd = {
   bagSeq: (key, n) => bagSequence(key, n),
   dropInterval: (lv) => dropInterval(lv),
   state: () => ({ mode, score, lines, level, over, paused, running, pieceIndex,
+                  chalDate, chalNo, chalSeedKey,
                   hold, holdUsed, clears: clears.slice(), next: nextQ.slice(),
                   cur: cur ? { ...cur } : null,
                   board: board ? board.map(r => r.slice()) : null,
                   lockAcc, lockResets, grounded: grounded() }),
   daily: () => dailyState(),
+  chal: () => ({ date: chalDate, no: chalNo, seedKey: chalSeedKey }),
   newGame: (m) => { newGame(m); return true; },
   resume: () => { resumeDaily(); return true; },
   act: (a) => doAct(a),
