@@ -225,6 +225,8 @@ const I18N = {
     start:'자유 플레이', daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
     dailyHint:'매일 새 판 · 전 세계 같은 블록 순서 · 하루 한 번', dailyHintDone:'오늘 도전 완료 — 내일 새 판이 열립니다',
     dailyOver:(n)=>`오늘의 도전 #${n} 완료`, streak:(n)=>`🔥 ${n}일 연속 도전`, playFree:'자유 플레이 한 판',
+    staleTitle:'오늘의 도전이 다른 곳에서 시작됐어요',
+    staleSub:(n)=>`이 판은 지난 도전 #${n} 이라 여기서 만료됐습니다. 점수는 기록되지 않고 연속 도전 기록도 그대로입니다. 오늘의 도전은 새로 연 탭에서 이어 하세요.`,
     dailyShare:(n,s,l,v,t,k)=>`🧱 한판고 블록 낙하 · 오늘의 도전 #${n}\n${s}점 · ${l}줄 · 레벨 ${v} · ${t}${k>1?` · 🔥${k}일 연속`:''}\n`,
     clearsLine:(a,b,c,d)=>`1️⃣×${a} 2️⃣×${b} 3️⃣×${c} 4️⃣×${d}`,
     howTitle:'게임 방법',
@@ -277,6 +279,8 @@ const I18N = {
     start:'Free Play', daily:(n)=>`Daily Challenge #${n}`, dailyDone:(n)=>`Daily #${n} · See result`,
     dailyHint:'New board every day · same block order for everyone · one try a day', dailyHintDone:'Done for today — a new board opens tomorrow',
     dailyOver:(n)=>`Daily Challenge #${n} complete`, streak:(n)=>`🔥 ${n}-day streak`, playFree:'Play a free round',
+    staleTitle:'Today’s challenge was started elsewhere',
+    staleSub:(n)=>`This run is the previous challenge #${n}, so it has expired here. Its score is not recorded and your streak is unchanged. Continue today’s challenge in the tab you just opened.`,
     dailyShare:(n,s,l,v,t,k)=>`🧱 Hanpango Block Drop · Daily #${n}\n${s} pts · ${l} lines · level ${v} · ${t}${k>1?` · 🔥${k}-day streak`:''}\n`,
     clearsLine:(a,b,c,d)=>`1️⃣×${a} 2️⃣×${b} 3️⃣×${c} 4️⃣×${d}`,
     howTitle:'How to Play',
@@ -459,14 +463,24 @@ function chalRec(){
   if (!r || !chalDate || r.date !== chalDate) return { run:null, result:null };
   return { run: r.run || null, result: r.result || null };
 }
+/* ★bd.daily 는 날짜 한 칸뿐이라, 어제 도전을 켜 둔 탭이 나중에 저장하면 오늘 탭이 막 시작한
+   판을 어제 것으로 덮어쓴다 — 오늘 진행판이 사라지고 오늘 1회권까지 다시 열린다(codex R2 issue1).
+   그래서 저장 직전에 기록을 ★다시 읽어, 저장된 날짜가 내 도전 시작일보다 최신이면 내 쓰기를 거부한다.
+   'YYYY-MM-DD' 는 사전순 비교가 곧 시간순 비교다. */
+function staleDaily(){
+  const r = dailyRec();
+  return !!(r && r.date && chalDate && r.date > chalDate);
+}
 /* 한 번의 setItem = 한 번의 원자적 쓰기. 중간에 끊겨도 반쪽 기록이 남지 않는다.
    날짜·번호는 호출 시점이 아니라 ★도전 시작 시 못박은 식별자를 쓴다. */
 function saveDaily(patch){
+  if (staleDaily()) return false;      /* ★더 최신 날짜의 기록이 있다 — 덮어쓰지 않는다 */
   const prev = chalRec();
   const rec = { date: chalDate || dayKey(), no: (chalNo != null) ? chalNo : dailyNo(),
                 run:    ('run'    in patch) ? patch.run    : prev.run,
                 result: ('result' in patch) ? patch.result : prev.result };
   localStorage.setItem('bd.daily', JSON.stringify(rec));
+  return true;
 }
 const dailyDoneToday = () => !!dailyState().result;
 /* 'YYYY-MM-DD' 하루 전 키. 자정을 넘겨 끝낸 판도 시작일 기준으로 스트릭을 세기 위해 필요하다. */
@@ -519,6 +533,11 @@ let score = 0, lines = 0, level = 1, best = 0, initialBest = 0;
     락하는 순간 다음 날 기록으로 저장되고, 재개 시 다음 날 seed 를 그 인덱스만큼 건너뛰어
     서로 다른 날짜의 상태가 섞이며 다음 날 1회권까지 잘못 소비됐다.) */
 let chalDate = null, chalNo = null, chalSeedKey = null;
+/* 이 판이 '지난 도전' 이 되어 만료됐는가(다른 탭이 더 최신 날짜 도전을 시작한 경우) */
+let staleExpired = false;
+/* ★진행 중 판의 부제는 언제 그리든 ★시작할 때 못박은 번호를 쓴다 — 자정을 넘겨도 번호가 바뀌지
+   않는다(codex R2 issue2). dailyNo() 는 옛 형식 기록에 번호가 없을 때만 쓰는 폴백이다. */
+const chalTitle = () => T('daily', chalNo != null ? chalNo : dailyNo());
 let over = false, paused = false, running = false, mode = 'free';
 let pieceIndex = 0;            /* 조각 열에서 지금까지 꺼낸 개수 — 일일 복원의 핵심 */
 let clears = [0,0,0,0];        /* 1·2·3·4줄 지움 횟수 */
@@ -624,6 +643,7 @@ function lockPiece(){
   }
   updateHud();
   saveDailyRun();                 /* ★락마다 원자 저장 — 새로고침·탭 닫기에도 판이 남는다 */
+  if (over) return;               /* 저장이 거부돼 만료됐다 — 다음 조각을 뽑지 않는다 */
   spawnNext();
 }
 function clearLines(){
@@ -944,7 +964,7 @@ function resetCommon(){
   score = 0; lines = 0; level = 1; clears = [0,0,0,0];
   pieceIndex = 0; over = false; paused = false; running = true;
   gravAcc = 0; lockAcc = 0; lockResets = 0; lowestRow = -1;
-  lastT = 0; acc = 0; pausedAt = 0;
+  lastT = 0; acc = 0; pausedAt = 0; staleExpired = false;
   initialBest = best;      /* 이 판을 시작한 순간의 최고점을 박아 둔다 — 신기록은 이 값을 넘겨야 한다 */
   releaseAll();
 }
@@ -961,7 +981,7 @@ function newGame(m = 'free'){
   hideOverlays();
   spawnNext();
   updateHud();
-  $('subtitle').textContent = m === 'daily' ? T('daily', dailyNo()) : T('subtitle');
+  $('subtitle').textContent = m === 'daily' ? chalTitle() : T('subtitle');
   if (m === 'daily') saveDailyRun();   /* 시작하자마자 저장 — 새로고침해도 '이어하기' 가 된다 */
   focusSafely($('board'));
 }
@@ -1001,7 +1021,7 @@ function resumeDaily(){
     spawnNext();
   }
   updateHud();
-  $('subtitle').textContent = T('daily', chalNo != null ? chalNo : dailyNo());
+  $('subtitle').textContent = chalTitle();
   announce(T('srResumed', score));
   focusSafely($('board'));
 }
@@ -1013,11 +1033,12 @@ function resumeDaily(){
    ★도전 식별자(date·no·seedKey)도 함께 넣는다 — 복원이 '지금 날짜' 가 아니라 '그 판' 을 따르게. */
 function saveDailyRun(){
   if (mode !== 'daily' || over) return;
-  saveDaily({ run: { board: board.map(row => row.slice()),
-                     pieceIndex, score, lines, level, hold, clears: clears.slice(),
-                     elapsed: Date.now() - startTime, initialBest,
-                     date: chalDate, no: chalNo, seedKey: chalSeedKey,
-                     cur: cur ? { type:cur.type, rot:cur.rot, r:cur.r, c:cur.c, holdUsed } : null } });
+  const written = saveDaily({ run: { board: board.map(row => row.slice()),
+                                     pieceIndex, score, lines, level, hold, clears: clears.slice(),
+                                     elapsed: Date.now() - startTime, initialBest,
+                                     date: chalDate, no: chalNo, seedKey: chalSeedKey,
+                                     cur: cur ? { type:cur.type, rot:cur.rot, r:cur.r, c:cur.c, holdUsed } : null } });
+  if (!written) expireStale();   /* ★쓰기가 거부됐다 = 오늘 도전이 다른 곳에서 시작됐다 */
 }
 function fmtTime(ms){ const s = Math.round(ms/1000); return s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`; }
 function endGame(){
@@ -1030,6 +1051,9 @@ function endGame(){
   const isNew = score > 0 && score > initialBest;
   const elapsed = Date.now() - startTime;
   if (mode === 'daily'){
+    /* ★다른 탭이 더 최신 날짜의 도전을 시작해 뒀다면 이 판은 이미 '지난 도전' 이다 —
+       결과를 기록하지도, 연속 도전 기록을 올리지도 않는다(codex R2 issue1). */
+    if (staleDaily()){ expireStale(); return; }
     /* ★결과도 도전 시작일에 기록한다 — 자정을 넘겨 끝내도 다음 날 1회권을 소비하지 않는다.
        자정 경계 정책: 시작일 기준으로 끝까지 기록하고, 날짜가 바뀐 뒤 재방문하면 그 판은
        '지난 도전' 으로 만료되며 새 날짜의 1회권은 온전히 남는다. */
@@ -1052,6 +1076,27 @@ function renderOver(r){
   $('finalSub').textContent = T('finalSub', r.lines, r.level, r.time);
   $('btnAgain').textContent = d ? T('playFree') : T('again');
   $('btnShare').textContent = T('share');
+}
+/* ★이 판이 '지난 도전' 이 되어 만료됐음을 알린다. 결과는 기록하지 않고 연속 도전 기록도
+   건드리지 않는다 — 진짜 오늘 판은 다른 탭에 살아 있다. */
+function renderStale(){
+  $('overTitle').textContent = T('staleTitle');
+  $('finalScore').textContent = score;
+  $('newBest').textContent = '';
+  $('streakLine').textContent = '';
+  $('finalSub').textContent = T('staleSub', chalNo != null ? chalNo : dailyNo());
+  $('btnAgain').textContent = T('playFree');
+  $('btnShare').textContent = T('share');
+}
+function expireStale(){
+  if (staleExpired) return;
+  staleExpired = true;
+  over = true; running = false; paused = false;
+  releaseAll();
+  lastDaily = null;                    /* 결과 없음 — 공유·스트릭 줄도 뜨지 않는다 */
+  renderStale();
+  announce(T('staleSub', chalNo != null ? chalNo : dailyNo()));
+  showOverlay('over','btnAgain');
 }
 function showDailyResult(){
   const d = dailyState().result; if (!d) return;
@@ -1158,10 +1203,11 @@ $('btnAgain').onclick = () => newGame('free');
 $('btnResume').onclick = () => setPaused(false);
 $('btnLang').onclick = () => {
   lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); refreshStart();
-  if (mode === 'daily' && running && !over) $('subtitle').textContent = T('daily', dailyNo());
+  if (mode === 'daily' && running && !over) $('subtitle').textContent = chalTitle();
   else if (!running || mode !== 'daily') $('subtitle').textContent = T('subtitle');
-  if (over && lastDaily) renderOver({ score:lastDaily.score, lines:lastDaily.lines, level:lastDaily.level,
-                                      time:lastDaily.time, clears:lastDaily.clears||[0,0,0,0], isNew:false });
+  if (over && staleExpired) renderStale();          /* 만료 안내는 결과 창이 아니다 */
+  else if (over && lastDaily) renderOver({ score:lastDaily.score, lines:lastDaily.lines, level:lastDaily.level,
+                                           time:lastDaily.time, clears:lastDaily.clears||[0,0,0,0], isNew:false });
   else if (over) renderOver({ score, lines, level, time:fmtTime(Date.now()-startTime), clears:clears.slice(), isNew:false });
 };
 $('btnSound').onclick = () => {
@@ -1234,7 +1280,9 @@ window.__bd = {
   setLevel: (v) => { level = v; updateHud(); return level; },
   /* 실시간을 기다리지 않고 고정 틱만큼 논리를 진행시킨다 — 락 딜레이·중력 검증용 */
   tickMs: (ms) => { let n = Math.round(ms / TICK); while (n-- > 0) step(TICK); return true; },
-  lock: () => { lockPiece(); return true; }
+  lock: () => { lockPiece(); return true; },
+  /* 게임오버 경로를 실시간 대기 없이 직접 태운다 — 만료·결과 기록 분기 검증용 */
+  end: () => { endGame(); return true; }
 };
 })();
 </script>
