@@ -33,18 +33,28 @@
      라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
      바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
      이 게임의 시그니처는 앰버다(--sig). 글자로 쓸 때는 더 어두운 --sig-ink 를 쓴다.
-     타일 색(--t2 ~ --t2048)은 흰 바탕에 맞춰 다시 골랐고, 숫자 글자색과의 대비를
-     전부 계산해 4.5:1 이상을 확인했다(가장 낮은 값 8.260:1 · 2048 타일). */
+     타일 색(--t2 ~ --t2048)은 값이 커질수록 무지개 순서(빨→주→노→초→파→남→보)로 올라가고,
+     그 위는 진보라·자주·금·진금으로 이어진다. 2048 을 넘어선 타일은 검정 바탕에 금테를 두른다.
+     숫자 글자색은 타일마다 흰/검 중 대비가 높은 쪽을 계산으로 골라 --t*-ink 에 박아 두었다
+     (라이트=전부 흰 글자 · 다크=전부 검은 글자, 넘어선 타일만 흰 글자).
+     검증: evidence/theme-light-2026-08-23/check_rainbow.py 가 타일 대 판 3:1, 글자 대 타일 4.5:1 을
+     전부 다시 계산한다 — 눈대중으로 고른 색이 아니다. */
   :root{
     --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
     --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
     --sig:#d97706; --sig-ink:#92400e; --sig-soft:#fef3c7; --on-sig:#111827;
     --good:#15803d;
     --board:#e6e9ee; --cell:#f2f4f7; --cell-line:#dfe3ea;
-    --t2:#ffffff; --t4:#fff2cc; --t8:#bae6fd; --t16:#bbf7d0; --t32:#fde68a; --t64:#fdba74;
-    --t128:#fca5a5; --t256:#f9a8d4; --t512:#c4b5fd; --t1024:#fbbf24; --t2048:#f59e0b;
-    --t-more:#fdba74;
-    --tile-ink-lo:#111827; --tile-ink-hi:#111827;
+    --ink-w:#ffffff; --ink-b:#111827;
+    --r1:#dc2626; --r2:#9a3412; --r3:#a16207; --r4:#15803d;
+    --r5:#2563eb; --r6:#4338ca; --r7:#9333ea;
+    --t2:var(--r1); --t4:var(--r2); --t8:var(--r3); --t16:var(--r4);
+    --t32:var(--r5); --t64:var(--r6); --t128:var(--r7);
+    --t256:#6b21a8; --t512:#a21caf; --t1024:#946c00; --t2048:#6b4f00;
+    --t-more:#111827; --t-more-ring:#f59e0b;
+    --t2-ink:var(--ink-w); --t4-ink:var(--ink-w); --t8-ink:var(--ink-w); --t16-ink:var(--ink-w);
+    --t32-ink:var(--ink-w); --t64-ink:var(--ink-w); --t128-ink:var(--ink-w); --t256-ink:var(--ink-w);
+    --t512-ink:var(--ink-w); --t1024-ink:var(--ink-w); --t2048-ink:var(--ink-w); --t-more-ink:var(--ink-w);
     --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
     --safe-b:env(safe-area-inset-bottom,0px);
   }
@@ -55,10 +65,13 @@
       --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1200;
       --good:#34d399;
       --board:#1e1b4b; --cell:#2b2861; --cell-line:#3d3a80;
-      --t2:#3d3a80; --t4:#4b4796; --t8:#38bdf8; --t16:#4ade80; --t32:#facc15; --t64:#fb923c;
-      --t128:#f87171; --t256:#f472b6; --t512:#a78bfa; --t1024:#f59e0b; --t2048:#fbbf24;
-      --t-more:#fde68a;
-      --tile-ink-lo:#f1f0ff; --tile-ink-hi:#1a1200;
+      --r1:#f87171; --r2:#fb923c; --r3:#facc15; --r4:#4ade80;
+      --r5:#38bdf8; --r6:#818cf8; --r7:#c084fc;
+      --t256:#d946ef; --t512:#f472b6; --t1024:#fbbf24; --t2048:#f59e0b;
+      --t-more:#0b0920; --t-more-ring:#fbbf24;
+      --t2-ink:var(--ink-b); --t4-ink:var(--ink-b); --t8-ink:var(--ink-b); --t16-ink:var(--ink-b);
+      --t32-ink:var(--ink-b); --t64-ink:var(--ink-b); --t128-ink:var(--ink-b); --t256-ink:var(--ink-b);
+      --t512-ink:var(--ink-b); --t1024-ink:var(--ink-b); --t2048-ink:var(--ink-b); --t-more-ink:var(--ink-w);
       --scrim:rgba(8,6,30,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
     }
   }
@@ -87,6 +100,7 @@
   .tile{position:absolute;display:flex;align-items:center;justify-content:center;border-radius:9px;
         font-weight:800;line-height:1;
         transition:transform .12s ease, opacity .12s ease;will-change:transform}
+  .tile.beyond{box-shadow:inset 0 0 0 2px var(--t-more-ring)}
   .tile.pop{animation:pop .12s ease}
   .tile.merge{animation:mrg .12s ease}
   @keyframes pop{from{transform:var(--tf) scale(.4);opacity:0}to{transform:var(--tf) scale(1);opacity:1}}
@@ -324,7 +338,11 @@ const boardEl = $('board');
 const TILE_BG = { 2:'var(--t2)', 4:'var(--t4)', 8:'var(--t8)', 16:'var(--t16)', 32:'var(--t32)',
                   64:'var(--t64)', 128:'var(--t128)', 256:'var(--t256)', 512:'var(--t512)',
                   1024:'var(--t1024)', 2048:'var(--t2048)' };
-const TILE_FG = v => (v <= 4 ? 'var(--tile-ink-lo)' : 'var(--tile-ink-hi)');
+/* 글자색도 값마다 토큰으로 정해 둔다 — 어느 쪽이 더 잘 보이는지는 계산으로 고른 결과다. */
+const TILE_INK = { 2:'var(--t2-ink)', 4:'var(--t4-ink)', 8:'var(--t8-ink)', 16:'var(--t16-ink)',
+                   32:'var(--t32-ink)', 64:'var(--t64-ink)', 128:'var(--t128-ink)', 256:'var(--t256-ink)',
+                   512:'var(--t512-ink)', 1024:'var(--t1024-ink)', 2048:'var(--t2048-ink)' };
+const TILE_FG = v => TILE_INK[v] || 'var(--t-more-ink)';
 const EMO = { 0:'⬛', 2:'⬜', 4:'🟦', 8:'🟩', 16:'🟨', 32:'🟧', 64:'🟥',
               128:'🟪', 256:'🟫', 512:'🔶', 1024:'🔷', 2048:'⭐' };
 const emoOf = v => EMO[v] || '⭐';
@@ -627,6 +645,7 @@ function render(){
     el.style.setProperty('--tf', tf);
     el.style.transform = tf;
     el.style.background = TILE_BG[t.v] || 'var(--t-more)';
+    el.classList.toggle('beyond', !TILE_BG[t.v]);
     el.style.color = TILE_FG(t.v);
     el.style.fontSize = t.v >= 1024 ? 'clamp(12px,4.2vw,26px)' : t.v >= 128 ? 'clamp(14px,5vw,30px)' : 'clamp(16px,5.8vw,34px)';
     el.style.zIndex = t.removing ? 1 : 2;
