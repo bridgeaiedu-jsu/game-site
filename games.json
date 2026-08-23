@@ -2,15 +2,50 @@
   {
     "id": "block-puzzle",
     "path": "/block-puzzle/",
-    "title": { "ko": "블록 퍼즐", "en": "Block Puzzle" },
+    "title": {
+      "ko": "블록 퍼즐",
+      "en": "Block Puzzle"
+    },
     "desc": {
       "ko": "10×10 판에 블록을 놓고 가로·세로 줄을 지우는 퍼즐",
       "en": "Drop blocks on a 10×10 board and clear rows and columns"
     },
     "thumb": "/block-puzzle/thumb.webp",
-    "playtime": { "ko": "한 판 1~3분", "en": "1–3 min a round" },
+    "playtime": {
+      "ko": "한 판 1~3분",
+      "en": "1–3 min a round"
+    },
     "daily": true,
     "released": "2026-08-22",
-    "tags": ["puzzle", "casual", "daily"]
+    "tags": [
+      "puzzle",
+      "casual",
+      "daily"
+    ]
+  },
+  {
+    "id": "2048",
+    "path": "/2048/",
+    "title": {
+      "ko": "2048",
+      "en": "2048"
+    },
+    "desc": {
+      "ko": "같은 숫자를 밀어서 합쳐 2048 타일을 만드는 숫자 퍼즐",
+      "en": "Slide and merge equal numbers to reach the 2048 tile"
+    },
+    "thumb": "/2048/thumb.webp",
+    "playtime": {
+      "ko": "한 판 2~5분",
+      "en": "2–5 min a round"
+    },
+    "daily": true,
+    "released": "2026-08-23",
+    "tags": [
+      "puzzle",
+      "numbers",
+      "casual",
+      "daily"
+    ]
   }
 ]

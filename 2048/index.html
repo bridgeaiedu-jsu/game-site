@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>2048 — 숫자 합치기 퍼즐 | 2048 Number Puzzle</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 2048. 같은 숫자를 밀어 합치고 2048 타일을 만드세요. 매일 새로 열리는 오늘의 도전, 한 판 2~5분, 모바일 최적화. Free 2048 number puzzle with a daily challenge — play instantly in your browser.">
+<meta name="theme-color" content="#1e1b4b">
+<meta property="og:title" content="2048 — 숫자 합치기 퍼즐 | 2048 Number Puzzle">
+<meta property="og:description" content="같은 숫자를 밀어 합쳐 2048을 만드는 무료 퍼즐. 설치 없이 바로 플레이.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/2048/">
+<link rel="canonical" href="https://hanpango.com/2048/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ============================================================
+     ADSENSE (1/3) — 승인 후 아래 한 줄의 주석을 풀고 ca-pub-XXXX 를 본인 ID로 교체
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+     ============================================================ -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"2048","alternateName":"2048 숫자 퍼즐","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  :root{
+    --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+    --text:#f1f0ff; --muted:#a5a1d8; --accent:#f59e0b; --good:#34d399;
+    --cell:#2b2861; --cell-line:#3d3a80;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em}
+  h1 small{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:6px}
+  .hdr-btns{display:flex;gap:6px}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:8px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 10px;text-align:center}
+  .score b{display:block;font-size:1.35rem;line-height:1.1}
+  .score span{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:rgba(255,255,255,.02)}
+  .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
+  .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 게임오버 자리 */
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  /* ---- 판 ---- */
+  #board{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel);border-radius:12px;touch-action:none}
+  .bg-cell{position:absolute;background:var(--cell);border-radius:9px}
+  .tile{position:absolute;display:flex;align-items:center;justify-content:center;border-radius:9px;
+        font-weight:800;line-height:1;
+        transition:transform .12s ease, opacity .12s ease;will-change:transform}
+  .tile.pop{animation:pop .12s ease}
+  .tile.merge{animation:mrg .12s ease}
+  @keyframes pop{from{transform:var(--tf) scale(.4);opacity:0}to{transform:var(--tf) scale(1);opacity:1}}
+  @keyframes mrg{0%{transform:var(--tf) scale(1)}50%{transform:var(--tf) scale(1.18)}100%{transform:var(--tf) scale(1)}}
+  .hint{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:rgba(8,6,30,.86);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .card h2{margin:0 0 6px;font-size:1.5rem}
+  .card .big{font-size:2.6rem;font-weight:800;color:var(--accent);line-height:1.1}
+  .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--accent);color:#1a1200}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">2048</span> <small id="subtitle" data-i18n="subtitle">숫자 합치기 퍼즐</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 다른 게임</a>
+    <button class="ibtn" id="btnSound" aria-label="sound">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="score">0</b><span data-i18n="score">점수</span></div>
+  <div class="score"><b id="best">0</b><span data-i18n="best">최고</span></div>
+  <div class="score"><b id="maxTile">0</b><span data-i18n="maxTile">최고 타일</span></div>
+</div>
+
+<main>
+  <div id="board" aria-label="game board"></div>
+  <p class="hint" data-i18n="hint">화살표 키 또는 손가락으로 밀어서 같은 숫자를 합치세요.</p>
+</main>
+
+<!-- ---- 게임 오버 ---- -->
+<div class="overlay" id="over">
+  <div class="card">
+    <h2 id="overTitle" data-i18n="gameOver">게임 오버</h2>
+    <div class="big" id="finalScore">0</div>
+    <div class="new" id="streakLine" style="color:var(--accent)"></div>
+    <div class="new" id="newBest"></div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 게임오버 300×250 자리. 주의: 게임오버 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">점수 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- ---- 2048 달성 ---- -->
+<div class="overlay" id="win">
+  <div class="card">
+    <h2 data-i18n="winTitle">2048 달성! 🎉</h2>
+    <div class="big" id="winScore">0</div>
+    <div class="sub" data-i18n="winSub">계속 밀어서 더 큰 숫자를 노려 보세요.</div>
+    <button class="btn primary" id="btnKeep" data-i18n="keepGoing">계속하기</button>
+    <button class="btn ghost" id="btnWinShare" data-i18n="share">점수 공유</button>
+  </div>
+</div>
+
+<!-- ---- 시작 화면 ---- -->
+<div class="overlay show" id="start">
+  <div class="card">
+    <h2 data-i18n="title2">2048</h2>
+    <div class="sub" data-i18n="startSub">같은 숫자를 밀어서 합치세요.<br>2048 타일을 만들면 성공.<br>한 판 2~5분.</div>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnStart" data-i18n="start">자유 플레이</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ---- 콘텐츠(검색·광고 정책용 — 게임만 있는 페이지는 AdSense 승인이 잘 안 됨) ---- -->
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">4×4 판에서 화살표 키(데스크톱)나 손가락 스와이프(모바일)로 타일 전체를 한 방향으로 밉니다. 같은 숫자 두 개가 부딪히면 하나로 합쳐지고 두 배가 됩니다.</p>
+  <p data-i18n="how2">한 번 움직일 때마다 빈 칸 하나에 2 또는 4가 새로 나타납니다. 합쳐진 숫자만큼 점수가 오르고, 2048 타일을 만들면 성공입니다. 성공 후에도 계속 이어서 더 큰 숫자에 도전할 수 있습니다.</p>
+  <p data-i18n="how3">판이 가득 차고 더 이상 합칠 수 있는 이웃이 없으면 게임이 끝납니다. 한 번의 이동으로 판이 전혀 바뀌지 않으면 그 방향은 무효이며 새 타일도 나오지 않습니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 같은 순서로 같은 자리에 타일을 받고, 하루 한 번만 도전할 수 있습니다. 결과를 이모지 판으로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다.</p>
+  <h2 data-i18n="tipsTitle">고득점 팁</h2>
+  <details><summary data-i18n="tip1q">가장 큰 숫자를 한 구석에 고정하세요</summary><p data-i18n="tip1a">큰 타일이 판 가운데를 돌아다니면 작은 숫자가 갇힙니다. 한 구석(예: 왼쪽 아래)을 정해 큰 숫자를 거기에 두고, 그 방향으로만 주로 미세요.</p></details>
+  <details><summary data-i18n="tip2q">한 줄을 계단처럼 정렬하세요</summary><p data-i18n="tip2a">구석 줄을 큰 숫자부터 작은 숫자 순으로 내림차순 정렬해 두면 연쇄 합치기가 한 번에 터집니다.</p></details>
+  <details><summary data-i18n="tip3q">위로 미는 습관을 버리세요</summary><p data-i18n="tip3a">큰 숫자를 아래 구석에 모으기로 했다면 위 방향은 최후의 수단입니다. 무심코 위로 밀면 구석의 큰 숫자가 빠져나와 판이 무너집니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
+  <details><summary data-i18n="faq2q">최고 점수는 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.</p></details>
+  <details><summary data-i18n="faq3q">오프라인에서도 되나요?</summary><p data-i18n="faq3a">한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 2048 · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ======================= i18n ======================= */
+const I18N = {
+  ko: {
+    title:'2048', subtitle:'숫자 합치기 퍼즐', title2:'2048', score:'점수', best:'최고', maxTile:'최고 타일',
+    hint:'화살표 키 또는 손가락으로 밀어서 같은 숫자를 합치세요.',
+    gameOver:'게임 오버', again:'다시 하기', share:'점수 공유',
+    startSub:'같은 숫자를 밀어서 합치세요.<br>2048 타일을 만들면 성공.<br>한 판 2~5분.',
+    newBest:'🎉 최고 기록 갱신!', finalSub:(m,t)=>`최고 타일 ${m} · 플레이 ${t}`,
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    copied:'점수가 복사됐어요', shareText:(s,m)=>`2048에서 ${s}점 · 최고 타일 ${m}! 한 판 도전해 보세요 👉 `,
+    start:'자유 플레이', daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
+    dailyHint:'매일 새 판 · 전 세계 같은 타일 순서 · 하루 한 번', dailyHintDone:'오늘 도전 완료 — 내일 새 판이 열립니다',
+    dailyOver:(n)=>`오늘의 도전 #${n} 완료`, streak:(n)=>`🔥 ${n}일 연속 도전`, playFree:'자유 플레이 한 판',
+    dailyShare:(n,s,m,k)=>`🔢 한판고 2048 · 오늘의 도전 #${n}\n점수 ${s} · 최고 타일 ${m}${k>1?` · 🔥${k}일 연속`:''}\n`,
+    winTitle:'2048 달성! 🎉', winSub:'계속 밀어서 더 큰 숫자를 노려 보세요.', keepGoing:'계속하기',
+    howTitle:'게임 방법',
+    how1:'4×4 판에서 화살표 키(데스크톱)나 손가락 스와이프(모바일)로 타일 전체를 한 방향으로 밉니다. 같은 숫자 두 개가 부딪히면 하나로 합쳐지고 두 배가 됩니다.',
+    how2:'한 번 움직일 때마다 빈 칸 하나에 2 또는 4가 새로 나타납니다. 합쳐진 숫자만큼 점수가 오르고, 2048 타일을 만들면 성공입니다. 성공 후에도 계속 이어서 더 큰 숫자에 도전할 수 있습니다.',
+    how3:'판이 가득 차고 더 이상 합칠 수 있는 이웃이 없으면 게임이 끝납니다. 한 번의 이동으로 판이 전혀 바뀌지 않으면 그 방향은 무효이며 새 타일도 나오지 않습니다.',
+    dailyTitle:'오늘의 도전', dailyDesc:'매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 같은 순서로 같은 자리에 타일을 받고, 하루 한 번만 도전할 수 있습니다. 결과를 이모지 판으로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다.',
+    tipsTitle:'고득점 팁',
+    tip1q:'가장 큰 숫자를 한 구석에 고정하세요', tip1a:'큰 타일이 판 가운데를 돌아다니면 작은 숫자가 갇힙니다. 한 구석(예: 왼쪽 아래)을 정해 큰 숫자를 거기에 두고, 그 방향으로만 주로 미세요.',
+    tip2q:'한 줄을 계단처럼 정렬하세요', tip2a:'구석 줄을 큰 숫자부터 작은 숫자 순으로 내림차순 정렬해 두면 연쇄 합치기가 한 번에 터집니다.',
+    tip3q:'위로 미는 습관을 버리세요', tip3a:'큰 숫자를 아래 구석에 모으기로 했다면 위 방향은 최후의 수단입니다. 무심코 위로 밀면 구석의 큰 숫자가 빠져나와 판이 무너집니다.',
+    faqTitle:'자주 묻는 질문',
+    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'최고 점수는 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.',
+    faq3q:'오프라인에서도 되나요?', faq3a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
+    footer:'© 2026 2048 · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개', home:'🏠 다른 게임',
+    docTitle:'2048 — 숫자 합치기 퍼즐 | 2048 Number Puzzle', langBtn:'EN'
+  },
+  en: {
+    title:'2048', subtitle:'merge the numbers', title2:'2048', score:'Score', best:'Best', maxTile:'Top tile',
+    hint:'Swipe or use arrow keys to slide and merge equal numbers.',
+    gameOver:'Game Over', again:'Play Again', share:'Share Score',
+    startSub:'Slide tiles to merge equal numbers.<br>Reach the 2048 tile to win.<br>2–5 minutes per round.',
+    newBest:'🎉 New best score!', finalSub:(m,t)=>`Top tile ${m} · ${t} played`,
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    copied:'Score copied', shareText:(s,m)=>`I scored ${s} in 2048 with a ${m} tile! Try a round 👉 `,
+    start:'Free Play', daily:(n)=>`Daily Challenge #${n}`, dailyDone:(n)=>`Daily #${n} · See result`,
+    dailyHint:'New board every day · same tiles for everyone · one try a day', dailyHintDone:'Done for today — a new board opens tomorrow',
+    dailyOver:(n)=>`Daily Challenge #${n} complete`, streak:(n)=>`🔥 ${n}-day streak`, playFree:'Play a free round',
+    dailyShare:(n,s,m,k)=>`🔢 Hanpango 2048 · Daily #${n}\nScore ${s} · top tile ${m}${k>1?` · 🔥${k}-day streak`:''}\n`,
+    winTitle:'You made 2048! 🎉', winSub:'Keep sliding and go for an even bigger tile.', keepGoing:'Keep Going',
+    howTitle:'How to Play',
+    how1:'Slide every tile in one direction with the arrow keys (desktop) or a finger swipe (mobile) on the 4×4 board. When two equal numbers collide they merge into one tile worth double.',
+    how2:'After each move a new 2 or 4 appears in an empty cell. You score the value of every merge, and reaching the 2048 tile wins the round. You can keep going afterwards for a bigger tile.',
+    how3:'The game ends when the board is full and no neighbouring tiles can merge. If a move would not change the board at all, that direction does nothing and no new tile appears.',
+    dailyTitle:'Daily Challenge', dailyDesc:'A new board opens every midnight. Every player in the world gets the same tiles in the same places, and you get one try per day. Share your emoji board and compete with friends. Play on consecutive days to build a 🔥 streak.',
+    tipsTitle:'Tips for High Scores',
+    tip1q:'Anchor your biggest tile in one corner', tip1a:'A big tile wandering through the middle traps the small ones. Pick a corner (say bottom-left), keep your largest number there and mostly push in that direction.',
+    tip2q:'Order one row like a staircase', tip2a:'Keeping the anchor row sorted in descending order lets a whole chain of merges fire in a single move.',
+    tip3q:'Break the habit of swiping up', tip3a:'If you decided to build in the bottom corner, up is a last resort. One careless up-swipe pulls the big tile out of the corner and the board collapses.',
+    faqTitle:'FAQ',
+    faq1q:'Do I need to install anything?', faq1a:'No. It runs right in your browser. Add it to your home screen to use it like an app.',
+    faq2q:'Where is my best score saved?', faq2a:'Only in this device\'s browser. Nothing is sent to a server.',
+    faq3q:'Does it work offline?', faq3a:'Once loaded, you can keep playing without an internet connection.',
+    footer:'© 2026 2048 · Privacy: scores are stored only on your device; third-party cookies (e.g. Google) may be used to serve ads.',
+    navPrivacy:'Privacy Policy', navAbout:'About', home:'🏠 More games',
+    docTitle:'2048 — merge the numbers | 2048 숫자 퍼즐', langBtn:'한국어'
+  }
+};
+/* 언어 키는 사이트 공통(bp.lang) — 포털·블록퍼즐과 공유한다. */
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  document.getElementById('btnLang').textContent = T('langBtn');
+  localStorage.setItem('bp.lang', lang);
+}
+
+/* ======================= 상수·상태 ======================= */
+const N = 4;
+const $ = id => document.getElementById(id);
+const boardEl = $('board');
+/* 타일 색 — 값이 커질수록 따뜻해진다(블록퍼즐 팔레트 계열) */
+const TILE_BG = { 2:'#3d3a80', 4:'#4b4796', 8:'#38bdf8', 16:'#4ade80', 32:'#facc15',
+                  64:'#fb923c', 128:'#f87171', 256:'#f472b6', 512:'#a78bfa',
+                  1024:'#f59e0b', 2048:'#fbbf24' };
+const TILE_FG = v => (v <= 4 ? '#f1f0ff' : '#1a1200');
+const EMO = { 0:'⬛', 2:'⬜', 4:'🟦', 8:'🟩', 16:'🟨', 32:'🟧', 64:'🟥',
+              128:'🟪', 256:'🟫', 512:'🔶', 1024:'🔷', 2048:'⭐' };
+const emoOf = v => EMO[v] || '⭐';
+
+let grid, tiles, tileSeq, score, best, startTime, over, won, keepGoing, mode, rng;
+best = +localStorage.getItem('g2048.best') || 0;
+
+/* ======================= 사운드(WebAudio · 파일 없음) ======================= */
+let soundOn = localStorage.getItem('g2048.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime; o.start(t); g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   // 2026-08-23 = #1 (블록퍼즐과 동일 기준일)
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const dailySeedKey = (d=new Date()) => 'hanpango-daily-2048-' + dayKey(d);
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('g2048.daily')||'null'); }catch(_){ return null; } };
+const dailyDoneToday = () => { const r = dailyRec(); return !!(r && r.date === dayKey()); };
+function bumpStreak(){
+  let st; try{ st = JSON.parse(localStorage.getItem('g2048.streak')||'{}'); }catch(_){ st = {}; }
+  const today = dayKey(), y = new Date(); y.setDate(y.getDate()-1); const yest = dayKey(y);
+  const n = st.last === today ? (st.n||1) : st.last === yest ? (st.n||0)+1 : 1;
+  localStorage.setItem('g2048.streak', JSON.stringify({ last: today, n })); return n;
+}
+
+/* ======================= 판 ======================= */
+const idx = (r,c) => r*N + c;
+const emptyCells = () => { const out=[]; for(let r=0;r<N;r++) for(let c=0;c<N;c++) if(!grid[r][c]) out.push([r,c]); return out; };
+const maxTile = () => Math.max(0, ...grid.flat().map(t => t ? t.v : 0));
+
+/* 검증용 스폰 로그(결정성 확인). 게임 동작에는 영향이 없다. */
+const spawnLog = [];
+function spawn(){
+  const cells = emptyCells();
+  if (!cells.length) return null;
+  const pick = Math.floor(rng() * cells.length);
+  const [r,c] = cells[pick];
+  const v = rng() < 0.9 ? 2 : 4;
+  const t = { id: ++tileSeq, r, c, v, isNew: true, merged: false };
+  grid[r][c] = t; tiles.push(t);
+  spawnLog.push({ cell: idx(r,c), r, c, v });
+  return t;
+}
+
+/* ======================= 이동·합치기 ======================= */
+const VEC = { left:[0,-1], right:[0,1], up:[-1,0], down:[1,0] };
+function traversal(dir){
+  const rs = [...Array(N).keys()], cs = [...Array(N).keys()];
+  if (dir === 'right') cs.reverse();
+  if (dir === 'down') rs.reverse();
+  return { rs, cs };
+}
+function farthest(r, c, dr, dc){
+  let pr = r, pc = c;
+  for (;;){
+    const nr = pr + dr, nc = pc + dc;
+    if (nr < 0 || nc < 0 || nr >= N || nc >= N) return { prev:[pr,pc], next:null };
+    if (grid[nr][nc]) return { prev:[pr,pc], next:[nr,nc] };
+    pr = nr; pc = nc;
+  }
+}
+function move(dir){
+  if (over || !grid) return false;
+  const [dr,dc] = VEC[dir];
+  const { rs, cs } = traversal(dir);
+  let moved = false, gained = 0, mergedTop = 0;
+  for (const t of tiles) t.merged = false;
+  for (const r of rs) for (const c of cs){
+    const t = grid[r][c];
+    if (!t) continue;
+    const { prev, next } = farthest(r, c, dr, dc);
+    if (next){
+      const other = grid[next[0]][next[1]];
+      if (other && other.v === t.v && !other.merged && !t.merged){
+        /* 합치기 — 뒤 타일을 앞 타일 자리로 보낸 뒤(애니메이션) 하나만 남긴다 */
+        grid[r][c] = null;
+        t.r = next[0]; t.c = next[1]; t.removing = true;
+        other.v *= 2; other.merged = true; other.justMerged = true;
+        gained += other.v; mergedTop = Math.max(mergedTop, other.v);
+        moved = true; continue;
+      }
+    }
+    if (prev[0] !== r || prev[1] !== c){
+      grid[r][c] = null; grid[prev[0]][prev[1]] = t; t.r = prev[0]; t.c = prev[1];
+      moved = true;
+    }
+  }
+  if (!moved) return false;
+  score += gained;
+  if (gained){
+    /* 합칠 때 피치 상승 — 합쳐진 값이 클수록 높은 음 */
+    beep(220 * Math.pow(2, Math.log2(mergedTop)/6), .07, 'triangle', .05);
+    vib(15);
+  } else beep(180, .03, 'sine', .03);
+  render();
+  setTimeout(afterMove, 120);   /* CSS transform 120ms 와 동일 */
+  return true;
+}
+function afterMove(){
+  tiles = tiles.filter(t => !t.removing);
+  for (const t of tiles) t.justMerged = false;
+  spawn();
+  render();
+  updateHud();
+  if (!won && maxTile() >= 2048){
+    won = true;
+    if (!keepGoing){ $('winScore').textContent = score; $('win').classList.add('show'); beep(880,.18,'triangle',.06); }
+  }
+  if (!canMove()) endGame();
+}
+function canMove(){
+  if (emptyCells().length) return true;
+  for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+    const v = grid[r][c].v;
+    if (r+1<N && grid[r+1][c].v === v) return true;
+    if (c+1<N && grid[r][c+1].v === v) return true;
+  }
+  return false;
+}
+
+/* ======================= 그리기 ======================= */
+const PAD = 3.2;                                  /* 칸 사이 여백(%) */
+const CELL = (100 - PAD*(N+1)) / N;               /* 칸 한 변(%) */
+const posPct = i => PAD + i * (CELL + PAD);
+function render(){
+  if (!boardEl.querySelector('.bg-cell')){
+    for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+      const d = document.createElement('div');
+      d.className = 'bg-cell';
+      d.style.cssText = `left:${posPct(c)}%;top:${posPct(r)}%;width:${CELL}%;height:${CELL}%`;
+      boardEl.appendChild(d);
+    }
+  }
+  const seen = new Set();
+  for (const t of tiles){
+    seen.add(t.id);
+    let el = boardEl.querySelector(`[data-id="${t.id}"]`);
+    if (!el){
+      el = document.createElement('div');
+      el.className = 'tile'; el.dataset.id = t.id;
+      el.style.cssText = `left:${posPct(0)}%;top:${posPct(0)}%;width:${CELL}%;height:${CELL}%`;
+      boardEl.appendChild(el);
+    }
+    /* 타일 자체 폭 기준 % 이동 — 판 크기가 바뀌어도 비율이 유지된다 */
+    const step = (CELL + PAD) / CELL * 100;
+    const tf = `translate(${(t.c*step).toFixed(3)}%, ${(t.r*step).toFixed(3)}%)`;
+    el.style.setProperty('--tf', tf);
+    el.style.transform = tf;
+    el.style.background = TILE_BG[t.v] || '#fde68a';
+    el.style.color = TILE_FG(t.v);
+    el.style.fontSize = t.v >= 1024 ? 'clamp(12px,4.2vw,26px)' : t.v >= 128 ? 'clamp(14px,5vw,30px)' : 'clamp(16px,5.8vw,34px)';
+    el.style.zIndex = t.removing ? 1 : 2;
+    el.textContent = t.v;
+    if (t.isNew){ el.classList.add('pop'); t.isNew = false; setTimeout(()=>el.classList.remove('pop'),130); }
+    if (t.justMerged){ el.classList.add('merge'); setTimeout(()=>el.classList.remove('merge'),130); }
+  }
+  for (const el of [...boardEl.querySelectorAll('.tile')]) if (!seen.has(+el.dataset.id)) el.remove();
+}
+function updateHud(){
+  $('score').textContent = score;
+  $('maxTile').textContent = maxTile();
+  if (score > best){ best = score; localStorage.setItem('g2048.best', best); }
+  $('best').textContent = best;
+}
+
+/* ======================= 게임 흐름 ======================= */
+function newGame(m = 'free'){
+  mode = m;
+  rng = m === 'daily' ? mulberry32(hashStr(dailySeedKey())) : Math.random;
+  grid = Array.from({length:N}, () => Array(N).fill(null));
+  tiles = []; tileSeq = 0; score = 0; over = false; won = false; keepGoing = false;
+  startTime = Date.now(); spawnLog.length = 0;
+  boardEl.innerHTML = '';
+  spawn(); spawn();
+  render(); updateHud();
+  $('over').classList.remove('show'); $('start').classList.remove('show'); $('win').classList.remove('show');
+  $('subtitle').textContent = m === 'daily' ? T('daily', dailyNo()) : T('subtitle');
+}
+function fmtTime(ms){ const s = Math.round(ms/1000); return s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`; }
+const boardEmoji = () => grid.map(row => row.map(t => emoOf(t ? t.v : 0)).join('')).join('\n');
+let lastDaily = null;
+function endGame(){
+  over = true;
+  const prevBest = +localStorage.getItem('g2048.best') || 0;
+  const isNew = score > 0 && score >= prevBest;
+  if (mode === 'daily'){
+    const rec = { date: dayKey(), no: dailyNo(), score, max: maxTile(),
+                  time: fmtTime(Date.now()-startTime), board: boardEmoji(), streak: bumpStreak() };
+    localStorage.setItem('g2048.daily', JSON.stringify(rec)); lastDaily = rec;
+  } else lastDaily = null;
+  renderOver({ score, max: maxTile(), time: fmtTime(Date.now()-startTime), isNew });
+  beep(220, .25, 'sawtooth', .05); vib([60,40,60]);
+  setTimeout(() => $('over').classList.add('show'), 350);
+}
+function renderOver(r){
+  const d = lastDaily;
+  $('overTitle').textContent = d ? T('dailyOver', d.no) : T('gameOver');
+  $('finalScore').textContent = r.score;
+  $('newBest').textContent = r.isNew ? T('newBest') : '';
+  $('streakLine').textContent = d ? T('streak', d.streak) : '';
+  $('finalSub').textContent = T('finalSub', r.max, r.time);
+  $('btnAgain').textContent = d ? T('playFree') : T('again');
+  $('btnShare').textContent = T('share');
+}
+function showDailyResult(){
+  const d = dailyRec(); if (!d) return;
+  lastDaily = d; over = true; mode = 'daily';
+  renderOver({ score: d.score, max: d.max, time: d.time, isNew: false });
+  $('start').classList.remove('show'); $('over').classList.add('show');
+}
+function refreshStart(){
+  const n = dailyNo(), done = dailyDoneToday();
+  $('btnDaily').textContent = done ? T('dailyDone', n) : T('daily', n);
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint');
+}
+
+/* ======================= 입력 ======================= */
+const KEYS = { ArrowLeft:'left', ArrowRight:'right', ArrowUp:'up', ArrowDown:'down' };
+window.addEventListener('keydown', e => {
+  const dir = KEYS[e.key];
+  if (!dir || !grid) return;
+  if ($('start').classList.contains('show') || $('over').classList.contains('show') || $('win').classList.contains('show')) return;
+  e.preventDefault(); move(dir);
+}, { passive:false });
+
+let sw = null;
+boardEl.addEventListener('pointerdown', e => {
+  sw = { x:e.clientX, y:e.clientY, id:e.pointerId };
+  try{ boardEl.setPointerCapture(e.pointerId); }catch(_){}
+});
+function swipeEnd(e){
+  if (!sw || e.pointerId !== sw.id) return;
+  const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null;
+  const ax = Math.abs(dx), ay = Math.abs(dy);
+  if (Math.max(ax,ay) < 24) return;               /* 탭은 무시 */
+  move(ax > ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+}
+boardEl.addEventListener('pointerup', swipeEnd);
+boardEl.addEventListener('pointercancel', () => { sw = null; });
+document.addEventListener('touchmove', e => { if (sw) e.preventDefault(); }, { passive:false });
+
+/* ======================= UI ======================= */
+$('btnStart').onclick = () => newGame('free');
+$('btnDaily').onclick = () => dailyDoneToday() ? showDailyResult() : newGame('daily');
+$('btnAgain').onclick = () => newGame('free');
+$('btnKeep').onclick = () => { keepGoing = true; $('win').classList.remove('show'); };
+$('btnLang').onclick = () => {
+  lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); refreshStart();
+  if (mode === 'daily' && !over) $('subtitle').textContent = T('daily', dailyNo());
+  if (over && lastDaily) renderOver({ score:lastDaily.score, max:lastDaily.max, time:lastDaily.time, isNew:false });
+  else if (over) renderOver({ score, max:maxTile(), time: fmtTime(Date.now()-startTime), isNew:false });
+};
+$('btnSound').onclick = () => { soundOn = !soundOn; localStorage.setItem('g2048.sound', soundOn?'1':'0'); $('btnSound').textContent = soundOn ? '🔊' : '🔇'; if (soundOn) beep(600,.05,'sine',.04); };
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+async function doShare(){
+  const url = location.href.split('#')[0];
+  const d = lastDaily;
+  const text = d ? T('dailyShare', d.no, d.score, d.max, d.streak) + d.board + '\n' + url
+                 : T('shareText', score, maxTile()) + url;
+  try{
+    if (navigator.share) await navigator.share({ title: T('docTitle'), text, url });
+    else { await navigator.clipboard.writeText(text); toast(T('copied')); }
+  }catch(_){}
+}
+$('btnShare').onclick = doShare;
+$('btnWinShare').onclick = doShare;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1600); }
+
+applyLang(); refreshStart();
+$('best').textContent = best;
+window.addEventListener('resize', () => { if (grid) render(); });
+window.addEventListener('orientationchange', () => setTimeout(() => { if (grid) render(); }, 150));
+
+/* 검증 훅 — 스폰 결정성·상태 확인용. 게임 로직에 영향 없음. */
+window.__g2048 = {
+  spawns: () => spawnLog.slice(),
+  state: () => ({ mode, score, max: maxTile(), over, won,
+                  grid: grid ? grid.map(row => row.map(t => t ? t.v : 0)) : null }),
+  seedKey: (d) => dailySeedKey(d ? new Date(d) : new Date()),
+  seedDraws: (key, n) => { const f = mulberry32(hashStr(key)); return Array.from({length:n}, () => +f().toFixed(9)); },
+  move: (dir) => move(dir),
+  newGame: (m) => newGame(m),
+  /* 판을 특정 배치로 세팅한다 — 승리(2048)·게임오버 경로를 검증하기 위한 것.
+     점수는 기기에만 저장되고 순위표가 없으므로 외부 영향이 없다. */
+  setGrid: (vals) => {
+    grid = Array.from({length:N}, () => Array(N).fill(null));
+    tiles = []; tileSeq = 0;
+    for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+      const v = vals[r][c];
+      if (v){ const t = { id: ++tileSeq, r, c, v, isNew:false, merged:false }; grid[r][c]=t; tiles.push(t); }
+    }
+    boardEl.innerHTML = ''; over = false; render(); updateHud();
+    return true;
+  }
+};
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

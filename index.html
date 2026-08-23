@@ -109,6 +109,12 @@
           <span class="body"><h2>블록 퍼즐 / Block Puzzle</h2>
             <p>10×10 판에 블록을 놓고 가로·세로 줄을 지우는 퍼즐<br>Drop blocks on a 10×10 board and clear rows and columns</p></span>
         </a></li>
+        <li><a class="card" href="/2048/">
+          <span class="thumb"><img src="/2048/thumb.webp" alt="2048 숫자 퍼즐 / 2048 Number Puzzle" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 2~5분 / 2–5 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>2048 / 2048</h2>
+            <p>같은 숫자를 밀어서 합쳐 2048 타일을 만드는 숫자 퍼즐<br>Slide and merge equal numbers to reach the 2048 tile</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -180,6 +186,13 @@ const FALLBACK = [{
   thumb:'/block-puzzle/thumb.webp',
   playtime:{ko:'한 판 1~3분',en:'1–3 min a round'},
   daily:true, released:'2026-08-22', tags:['puzzle','casual','daily']
+},{
+  id:'2048', path:'/2048/',
+  title:{ko:'2048',en:'2048'},
+  desc:{ko:'같은 숫자를 밀어서 합쳐 2048 타일을 만드는 숫자 퍼즐',en:'Slide and merge equal numbers to reach the 2048 tile'},
+  thumb:'/2048/thumb.webp',
+  playtime:{ko:'한 판 2~5분',en:'2–5 min a round'},
+  daily:true, released:'2026-08-23', tags:['puzzle','numbers','casual','daily']
 }];
 
 let games = FALLBACK;
