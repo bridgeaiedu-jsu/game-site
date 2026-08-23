@@ -73,6 +73,14 @@
   footer{width:100%;max-width:960px;color:var(--muted);font-size:.72rem;padding:10px 14px calc(20px + var(--safe-b));text-align:center;line-height:2}
   footer a{color:var(--muted)}
   /* ---- 후원 QR ---- */
+  /* ---- 후원 모달 오버레이 (block-puzzle 규약 포팅 · 타일 .card 와 분리) ---- */
+  .overlay{position:fixed;inset:0;background:rgba(8,6,30,.86);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .overlay .card{display:block;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px;width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:visible;transition:none;transform:none}
+  .overlay .card h2{margin:0 0 6px;font-size:1.5rem}
+  .overlay .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .overlay .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px;font:inherit;font-weight:700}
+  .overlay .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
   .donate-link-btn{background:#FEE500;color:#191919;text-align:center;text-decoration:none;box-sizing:border-box}
   /* PC(정밀 포인터): 카카오페이 송금 링크는 모바일 전용(PC 는 404) — 버튼·힌트 숨김, QR 만 */
   @media (hover:hover) and (pointer:fine){.donate-link-btn,.donate-hint{display:none}}
