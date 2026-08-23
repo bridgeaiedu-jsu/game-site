@@ -34,27 +34,38 @@
      바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
      이 게임의 시그니처는 앰버다(--sig). 글자로 쓸 때는 더 어두운 --sig-ink 를 쓴다.
      타일 색(--t2 ~ --t2048)은 값이 커질수록 무지개 순서(빨→주→노→초→파→남→보)로 올라가고,
-     그 위는 진보라·자주·금·진금으로 이어진다. 2048 을 넘어선 타일은 검정 바탕에 금테를 두른다.
+     그 위는 자홍·분홍·금·진금으로 이어진다. 2048 을 넘어선 타일은 검정 바탕에 금테를 두른다.
+     ★채움은 선명한 원색을 쓰고, 흰 판에서 타일이 묻히지 않게 하는 일은 **같은 색상의 어두운
+       테두리**(--t*-edge · 무지개 구간은 --r*-edge 를 가리킨다)가 맡는다. 안쪽 위에 얇은 광택
+       (--tile-gloss)을 한 줄 얹어 입체감을 준다. 채움·글자색은 두 테마가 같고, 다크에서는
+       테두리만 밝은 톤으로 바꿔 끼운다.
      숫자 글자색은 타일마다 흰/검 중 대비가 높은 쪽을 계산으로 골라 --t*-ink 에 박아 두었다
-     (라이트=전부 흰 글자 · 다크=전부 검은 글자, 넘어선 타일만 흰 글자).
-     검증: evidence/theme-light-2026-08-23/check_rainbow.py 가 타일 대 판 3:1, 글자 대 타일 4.5:1 을
-     전부 다시 계산한다 — 눈대중으로 고른 색이 아니다. */
+     (대부분 검은 글자 · 남색 64 와 넘어선 타일만 흰 글자 — 그쪽이 4.5:1 을 넘는다).
+     검증: evidence/theme-light-2026-08-23/check_rainbow.py 가 테두리 대 판 3:1, 글자 대 타일 4.5:1,
+     이웃 색차 10 을 전부 다시 계산한다 — 눈대중으로 고른 색이 아니다. */
   :root{
     --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
     --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
     --sig:#d97706; --sig-ink:#92400e; --sig-soft:#fef3c7; --on-sig:#111827;
     --good:#15803d;
-    --board:#e6e9ee; --cell:#f2f4f7; --cell-line:#dfe3ea;
+    --board:#eef1f5; --cell:#f8fafc; --cell-line:#dfe3ea;
     --ink-w:#ffffff; --ink-b:#111827;
-    --r1:#dc2626; --r2:#9a3412; --r3:#a16207; --r4:#15803d;
-    --r5:#2563eb; --r6:#4338ca; --r7:#9333ea;
+    --r1:#ef4444; --r2:#f97316; --r3:#facc15; --r4:#22c55e;
+    --r5:#3b82f6; --r6:#5f63f0; --r7:#ae63f8;
+    --r1-edge:#b91c1c; --r2-edge:#c2410c; --r3-edge:#a16207; --r4-edge:#15803d;
+    --r5-edge:#1d4ed8; --r6-edge:#4338ca; --r7-edge:#7e22ce;
     --t2:var(--r1); --t4:var(--r2); --t8:var(--r3); --t16:var(--r4);
     --t32:var(--r5); --t64:var(--r6); --t128:var(--r7);
-    --t256:#6b21a8; --t512:#a21caf; --t1024:#946c00; --t2048:#6b4f00;
+    --t256:#e879f9; --t512:#ec4899; --t1024:#f59e0b; --t2048:#d97706;
     --t-more:#111827; --t-more-ring:#f59e0b;
-    --t2-ink:var(--ink-w); --t4-ink:var(--ink-w); --t8-ink:var(--ink-w); --t16-ink:var(--ink-w);
-    --t32-ink:var(--ink-w); --t64-ink:var(--ink-w); --t128-ink:var(--ink-w); --t256-ink:var(--ink-w);
-    --t512-ink:var(--ink-w); --t1024-ink:var(--ink-w); --t2048-ink:var(--ink-w); --t-more-ink:var(--ink-w);
+    --t2-edge:var(--r1-edge); --t4-edge:var(--r2-edge); --t8-edge:var(--r3-edge);
+    --t16-edge:var(--r4-edge); --t32-edge:var(--r5-edge); --t64-edge:var(--r6-edge);
+    --t128-edge:var(--r7-edge); --t256-edge:#a21caf; --t512-edge:#be185d;
+    --t1024-edge:#b45309; --t2048-edge:#92400e;
+    --t2-ink:var(--ink-b); --t4-ink:var(--ink-b); --t8-ink:var(--ink-b); --t16-ink:var(--ink-b);
+    --t32-ink:var(--ink-b); --t64-ink:var(--ink-w); --t128-ink:var(--ink-b); --t256-ink:var(--ink-b);
+    --t512-ink:var(--ink-b); --t1024-ink:var(--ink-b); --t2048-ink:var(--ink-b); --t-more-ink:var(--ink-w);
+    --tile-gloss:rgba(255,255,255,.35);
     --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
     --safe-b:env(safe-area-inset-bottom,0px);
   }
@@ -65,13 +76,11 @@
       --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1200;
       --good:#34d399;
       --board:#1e1b4b; --cell:#2b2861; --cell-line:#3d3a80;
-      --r1:#f87171; --r2:#fb923c; --r3:#facc15; --r4:#4ade80;
-      --r5:#38bdf8; --r6:#818cf8; --r7:#c084fc;
-      --t256:#d946ef; --t512:#f472b6; --t1024:#fbbf24; --t2048:#f59e0b;
+      --r1-edge:#fecaca; --r2-edge:#fed7aa; --r3-edge:#fef08a; --r4-edge:#bbf7d0;
+      --r5-edge:#bfdbfe; --r6-edge:#c7d2fe; --r7-edge:#e9d5ff;
+      --t256-edge:#f5d0fe; --t512-edge:#fbcfe8; --t1024-edge:#fde68a; --t2048-edge:#fcd34d;
       --t-more:#0b0920; --t-more-ring:#fbbf24;
-      --t2-ink:var(--ink-b); --t4-ink:var(--ink-b); --t8-ink:var(--ink-b); --t16-ink:var(--ink-b);
-      --t32-ink:var(--ink-b); --t64-ink:var(--ink-b); --t128-ink:var(--ink-b); --t256-ink:var(--ink-b);
-      --t512-ink:var(--ink-b); --t1024-ink:var(--ink-b); --t2048-ink:var(--ink-b); --t-more-ink:var(--ink-w);
+      --tile-gloss:rgba(255,255,255,.22);
       --scrim:rgba(8,6,30,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
     }
   }
@@ -100,7 +109,6 @@
   .tile{position:absolute;display:flex;align-items:center;justify-content:center;border-radius:9px;
         font-weight:800;line-height:1;
         transition:transform .12s ease, opacity .12s ease;will-change:transform}
-  .tile.beyond{box-shadow:inset 0 0 0 2px var(--t-more-ring)}
   .tile.pop{animation:pop .12s ease}
   .tile.merge{animation:mrg .12s ease}
   @keyframes pop{from{transform:var(--tf) scale(.4);opacity:0}to{transform:var(--tf) scale(1);opacity:1}}
@@ -338,6 +346,11 @@ const boardEl = $('board');
 const TILE_BG = { 2:'var(--t2)', 4:'var(--t4)', 8:'var(--t8)', 16:'var(--t16)', 32:'var(--t32)',
                   64:'var(--t64)', 128:'var(--t128)', 256:'var(--t256)', 512:'var(--t512)',
                   1024:'var(--t1024)', 2048:'var(--t2048)' };
+/* 테두리색도 값마다 토큰으로 정해 둔다 — 채움은 선명하게 두고 경계는 이 어두운 색이 만든다. */
+const TILE_EDGE = { 2:'var(--t2-edge)', 4:'var(--t4-edge)', 8:'var(--t8-edge)', 16:'var(--t16-edge)',
+                    32:'var(--t32-edge)', 64:'var(--t64-edge)', 128:'var(--t128-edge)',
+                    256:'var(--t256-edge)', 512:'var(--t512-edge)', 1024:'var(--t1024-edge)',
+                    2048:'var(--t2048-edge)' };
 /* 글자색도 값마다 토큰으로 정해 둔다 — 어느 쪽이 더 잘 보이는지는 계산으로 고른 결과다. */
 const TILE_INK = { 2:'var(--t2-ink)', 4:'var(--t4-ink)', 8:'var(--t8-ink)', 16:'var(--t16-ink)',
                    32:'var(--t32-ink)', 64:'var(--t64-ink)', 128:'var(--t128-ink)', 256:'var(--t256-ink)',
@@ -645,7 +658,9 @@ function render(){
     el.style.setProperty('--tf', tf);
     el.style.transform = tf;
     el.style.background = TILE_BG[t.v] || 'var(--t-more)';
-    el.classList.toggle('beyond', !TILE_BG[t.v]);
+    /* 안쪽 테두리 2px + 위쪽 얇은 광택 — 자리·크기를 밀지 않으려고 그림자로 넣는다. */
+    el.style.boxShadow = 'inset 0 0 0 2px ' + (TILE_EDGE[t.v] || 'var(--t-more-ring)')
+                       + ', inset 0 2px 0 var(--tile-gloss)';
     el.style.color = TILE_FG(t.v);
     el.style.fontSize = t.v >= 1024 ? 'clamp(12px,4.2vw,26px)' : t.v >= 128 ? 'clamp(14px,5vw,30px)' : 'clamp(16px,5.8vw,34px)';
     el.style.zIndex = t.removing ? 1 : 2;
