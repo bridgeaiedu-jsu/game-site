@@ -225,6 +225,7 @@ const I18N = {
     start:'자유 플레이', daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
     dailyHint:'매일 새 판 · 전 세계 같은 블록 순서 · 하루 한 번', dailyHintDone:'오늘 도전 완료 — 내일 새 판이 열립니다',
     dailyOver:(n)=>`오늘의 도전 #${n} 완료`, streak:(n)=>`🔥 ${n}일 연속 도전`, playFree:'자유 플레이 한 판',
+    preparing:'판을 준비하는 중…',
     staleTitle:'오늘의 도전이 다른 곳에서 시작됐어요',
     staleSub:(n)=>`이 판은 지난 도전 #${n} 이라 여기서 만료됐습니다. 점수는 기록되지 않고 연속 도전 기록도 그대로입니다. 오늘의 도전은 새로 연 탭에서 이어 하세요.`,
     dailyShare:(n,s,l,v,t,k)=>`🧱 한판고 블록 낙하 · 오늘의 도전 #${n}\n${s}점 · ${l}줄 · 레벨 ${v} · ${t}${k>1?` · 🔥${k}일 연속`:''}\n`,
@@ -279,6 +280,7 @@ const I18N = {
     start:'Free Play', daily:(n)=>`Daily Challenge #${n}`, dailyDone:(n)=>`Daily #${n} · See result`,
     dailyHint:'New board every day · same block order for everyone · one try a day', dailyHintDone:'Done for today — a new board opens tomorrow',
     dailyOver:(n)=>`Daily Challenge #${n} complete`, streak:(n)=>`🔥 ${n}-day streak`, playFree:'Play a free round',
+    preparing:'Getting your board ready…',
     staleTitle:'Today’s challenge was started elsewhere',
     staleSub:(n)=>`This run is the previous challenge #${n}, so it has expired here. Its score is not recorded and your streak is unchanged. Continue today’s challenge in the tab you just opened.`,
     dailyShare:(n,s,l,v,t,k)=>`🧱 Hanpango Block Drop · Daily #${n}\n${s} pts · ${l} lines · level ${v} · ${t}${k>1?` · 🔥${k}-day streak`:''}\n`,
@@ -481,9 +483,19 @@ function chalRec(){
 const DAILY_LOCK = 'bd.daily';
 const hasWebLocks = (() => { try{ return !!(navigator.locks && typeof navigator.locks.request === 'function'); }catch(_){ return false; } })();
 let dailyChain = Promise.resolve();   /* 한 탭 안에서는 저장 순서를 그대로 지킨다 */
+/* ★이미 이 탭이 잠금을 쥐고 있으면 다시 요청하지 않고 그 자리에서 실행한다.
+   같은 이름의 배타 잠금을 중첩 요청하면 자기 자신을 기다리는 교착이 된다.
+   (자격 판정을 잠금 안에서 하게 되면서 그 안에서 저장 함수를 부르는 경로가 생겼다) */
+let lockDepth = 0;
 function withDailyLock(fn){
-  if (!hasWebLocks){ fn(); return; }               /* 잠금 수단 없음 — 같은 순서로 즉시 실행 */
-  const run = () => navigator.locks.request(DAILY_LOCK, { mode:'exclusive' }, () => { fn(); });
+  if (lockDepth > 0){ fn(); return; }              /* 재진입 — 이미 임계구역 안이다 */
+  if (!hasWebLocks){                               /* 잠금 수단 없음 — 같은 순서로 즉시 실행 */
+    lockDepth++; try { fn(); } finally { lockDepth--; }
+    return;
+  }
+  const run = () => navigator.locks.request(DAILY_LOCK, { mode:'exclusive' }, () => {
+    lockDepth++; try { fn(); } finally { lockDepth--; }
+  });
   dailyChain = dailyChain.then(run, run).catch(() => {});
   return dailyChain;
 }
@@ -570,6 +582,9 @@ let score = 0, lines = 0, level = 1, best = 0, initialBest = 0;
 let chalDate = null, chalNo = null, chalSeedKey = null;
 /* 이 판이 '지난 도전' 이 되어 만료됐는가(다른 탭이 더 최신 날짜 도전을 시작한 경우) */
 let staleExpired = false;
+/* 새 일일 판을 만들어 두고 아직 최초 저장이 커밋되지 않은 상태(보통 수십 ms).
+   이 동안에는 판을 열지 않는다 — 열어 두면 그 사이 다른 탭도 빈 상태를 보고 또 하나를 만든다. */
+let preparing = false;
 /* ★진행 중 판의 부제는 언제 그리든 ★시작할 때 못박은 번호를 쓴다 — 자정을 넘겨도 번호가 바뀌지
    않는다(codex R2 issue2). dailyNo() 는 옛 형식 기록에 번호가 없을 때만 쓰는 폴백이다. */
 const chalTitle = () => T('daily', chalNo != null ? chalNo : dailyNo());
@@ -1013,12 +1028,47 @@ function newGame(m = 'free'){
   refillQueue();
   startTime = Date.now();
   lastDaily = null;
-  hideOverlays();
+  if (m !== 'daily') hideOverlays();
   spawnNext();
   updateHud();
   $('subtitle').textContent = m === 'daily' ? chalTitle() : T('subtitle');
-  if (m === 'daily') saveDailyRun();   /* 시작하자마자 저장 — 새로고침해도 '이어하기' 가 된다 */
+  if (m === 'daily'){
+    /* ★새 일일 판은 '최초 저장이 커밋된 뒤' 에만 화면을 연다.
+       커밋 전에 열어 두면 그 대기 창 동안 다른 탭도 빈 기록을 보고 또 하나의 판을 시작해,
+       두 판이 서로를 덮는다(codex R4 지적: 하루 한 판 계약 위반).
+       그 짧은 동안(보통 수십 ms)은 시작 창을 '준비 중' 으로 두고 판을 멈춰 입력을 막는다. */
+    preparing = true; running = false;
+    $('dailyHint').textContent = T('preparing');
+    withDailyLock(() => {
+      preparing = false;
+      if (saveDailyRunLocked()){
+        running = true;
+        refreshStart();                 /* '준비 중' 문구를 원래대로 돌려 둔다 */
+        hideOverlays();
+        focusSafely($('board'));
+      } else {
+        refreshStart();
+        expireStale();                  /* 더 최신 도전이 이미 있다 — 이 판은 만료다 */
+      }
+    });
+    return;
+  }
   focusSafely($('board'));
+}
+/* ★'오늘의 도전' 진입점 — 자격 판정과 최초 저장을 ★같은 잠금 안에서 한다.
+   잠금 밖에서 판정하면 판정과 첫 저장 사이에 다른 탭이 같은 판정을 내려 판이 둘 생긴다. */
+function startDaily(){
+  /* ★잠금을 기다리는 동안 사용자에게 '준비 중' 을 보여 주고 판은 열지 않는다.
+     (다른 탭이 잠금을 쥐고 있으면 그만큼 기다린다 — 보통 수십 ms) */
+  preparing = true;
+  $('dailyHint').textContent = T('preparing');
+  withDailyLock(() => {
+    preparing = false;
+    const st = dailyState();            /* ★잠금 안에서 최신 상태를 다시 읽는다 */
+    if (st.result){ refreshStart(); return showDailyResult(); }   /* 오늘은 이미 끝냈다 */
+    if (st.run){ refreshStart(); return resumeDaily(); }          /* 하던 판이 있다 — 이어서 */
+    newGame('daily');                                             /* 둘 다 없을 때만 새 판 */
+  });
 }
 /* 오늘 하던 판을 그대로 이어서 연다. 조각 열은 seed 로 다시 만들어 꺼낸 개수만큼 건너뛴다 —
    같은 순서가 이어지므로 중단·복원이 유리하지도 불리하지도 않다. */
@@ -1066,17 +1116,27 @@ function resumeDaily(){
     첫 락 전에 새로고침하면 복원기가 첫 조각을 건너뛰고 두 번째 조각을 스폰했다 —
     같은 날짜·같은 seed 인데 재로딩 여부에 따라 조각 열이 달라졌다.)
    ★도전 식별자(date·no·seedKey)도 함께 넣는다 — 복원이 '지금 날짜' 가 아니라 '그 판' 을 따르게. */
+/* ★잠금을 이미 쥔 상태에서 부르는 본체. 저장했으면 true, 더 최신 기록 때문에 거부됐으면 false.
+   (저장할 것이 없는 경우도 실패가 아니므로 true 다) */
+/* 지금 이 순간의 판을 통째로 뜬다. ★저장은 잠금 때문에 조금 뒤에 일어날 수 있으므로,
+   '저장하려던 그 순간' 을 여기서 박아 둔다(그 사이 판이 움직여도 뒤섞이지 않는다). */
+function dailyRunSnapshot(){
+  return { board: board.map(row => row.slice()),
+           pieceIndex, score, lines, level, hold, clears: clears.slice(),
+           elapsed: Date.now() - startTime, initialBest,
+           date: chalDate, no: chalNo, seedKey: chalSeedKey,
+           cur: cur ? { type:cur.type, rot:cur.rot, r:cur.r, c:cur.c, holdUsed } : null };
+}
+function saveDailyRunLocked(snap){
+  if (mode !== 'daily' || over) return true;
+  return saveDaily({ run: snap || dailyRunSnapshot() });
+}
+/* 잠금을 잡고 본체를 부르는 껍데기 — 락마다 저장하는 경로가 쓴다. */
 function saveDailyRun(){
   if (mode !== 'daily' || over) return;
-  /* ★스냅샷은 지금 상태로 먼저 뜬다 — 임계구역이 비동기로 열릴 수 있어서, 그 사이 판이
-     움직여도 '저장하려던 그 순간' 이 저장되게 한다. */
-  const snap = { board: board.map(row => row.slice()),
-                 pieceIndex, score, lines, level, hold, clears: clears.slice(),
-                 elapsed: Date.now() - startTime, initialBest,
-                 date: chalDate, no: chalNo, seedKey: chalSeedKey,
-                 cur: cur ? { type:cur.type, rot:cur.rot, r:cur.r, c:cur.c, holdUsed } : null };
+  const snap = dailyRunSnapshot();               /* ★호출 시점 상태를 박아 둔다 */
   withDailyLock(() => {
-    if (!saveDaily({ run: snap })) expireStale();   /* ★거부 = 오늘 도전이 다른 곳에서 시작됐다 */
+    if (!saveDailyRunLocked(snap)) expireStale();   /* ★거부 = 오늘 도전이 다른 곳에서 시작됐다 */
   });
 }
 function fmtTime(ms){ const s = Math.round(ms/1000); return s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`; }
@@ -1245,12 +1305,7 @@ document.addEventListener('touchmove', e => { if (sw) e.preventDefault(); }, { p
 
 /* ======================= UI ======================= */
 $('btnStart').onclick = () => newGame('free');
-$('btnDaily').onclick = () => {
-  const st = dailyState();
-  if (st.result) return showDailyResult();   /* 오늘은 이미 끝냈다 — 결과만 다시 보여 준다 */
-  if (st.run)    return resumeDaily();       /* 하던 판이 있으면 이어서 — 다시 시작은 안 된다 */
-  newGame('daily');
-};
+$('btnDaily').onclick = () => startDaily();
 $('btnAgain').onclick = () => newGame('free');
 $('btnResume').onclick = () => setPaused(false);
 $('btnLang').onclick = () => {
@@ -1336,7 +1391,9 @@ window.__bd = {
   /* 게임오버 경로를 실시간 대기 없이 직접 태운다 — 만료·결과 기록 분기 검증용 */
   end: () => { endGame(); return true; },
   /* 임계구역이 어떤 수단으로 열렸는지 — 검증기가 두 경로를 구분해 단언하기 위한 창구 */
-  lockState: () => ({ webLocks: hasWebLocks, name: DAILY_LOCK })
+  lockState: () => ({ webLocks: hasWebLocks, name: DAILY_LOCK, depth: lockDepth, preparing }),
+  /* '오늘의 도전' 진입점 — 버튼 클릭과 같은 경로 */
+  startDaily: () => { startDaily(); return true; }
 };
 })();
 </script>
