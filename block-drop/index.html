@@ -463,6 +463,30 @@ function chalRec(){
   if (!r || !chalDate || r.date !== chalDate) return { run:null, result:null };
   return { run: r.run || null, result: r.result || null };
 }
+/* ── 탭 간 임계구역(critical section) ────────────────────────────────────────
+   bd.daily 한 칸을 여러 탭이 나눠 쓴다. '읽고 → 검사하고 → 쓴다' 사이에 다른 탭의 쓰기가
+   끼어들면 검사 결과가 낡은 것이 되어, 어제 판을 켜 둔 탭이 오늘 판을 지워 버린다
+   (codex R3 지적: read-check-write TOCTOU). 그래서 읽기·검사·쓰기와 결과·스트릭·완료 화면
+   확정까지를 ★하나의 배타 잠금 안에서 실행한다.
+     지원 브라우저 : navigator.locks(Web Locks) — 브라우저가 탭 사이 배타를 보장한다.
+     미지원 브라우저: 잠금 수단이 없어 같은 순서로 즉시 실행한다(아래 ★한계).
+   ★한계(정직하게 적는다): Web Locks 가 없는 옛 브라우저에서는 탭 간 배타를 걸 수단이 없다.
+     localStorage 토큰 락으로 흉내낼 수는 있으나 원자적 비교-교환이 없어 완전하지 않고,
+     저장 키가 하나 늘어 개인정보 고지 목록까지 함께 바뀌어야 한다. 그 환경에서는 '한 번 읽어
+     검사하고 곧바로 쓴다'는 보호만 적용되며 아주 좁은 창이 남는다.
+     (Web Locks 지원: Chrome 69+ · Firefox 96+ · Safari 15.4+)
+   ★또 하나의 한계: 잠금을 아예 잡지 않는 쓰기(예: 서비스워커 캐시에 남은 옛 버전 탭)는
+     어떤 잠금으로도 막을 수 없다. 그 경우에도 이 탭의 다음 저장에서 최신 날짜 검사가
+     걸려 만료로 이어진다. */
+const DAILY_LOCK = 'bd.daily';
+const hasWebLocks = (() => { try{ return !!(navigator.locks && typeof navigator.locks.request === 'function'); }catch(_){ return false; } })();
+let dailyChain = Promise.resolve();   /* 한 탭 안에서는 저장 순서를 그대로 지킨다 */
+function withDailyLock(fn){
+  if (!hasWebLocks){ fn(); return; }               /* 잠금 수단 없음 — 같은 순서로 즉시 실행 */
+  const run = () => navigator.locks.request(DAILY_LOCK, { mode:'exclusive' }, () => { fn(); });
+  dailyChain = dailyChain.then(run, run).catch(() => {});
+  return dailyChain;
+}
 /* ★bd.daily 는 날짜 한 칸뿐이라, 어제 도전을 켜 둔 탭이 나중에 저장하면 오늘 탭이 막 시작한
    판을 어제 것으로 덮어쓴다 — 오늘 진행판이 사라지고 오늘 1회권까지 다시 열린다(codex R2 issue1).
    그래서 저장 직전에 기록을 ★다시 읽어, 저장된 날짜가 내 도전 시작일보다 최신이면 내 쓰기를 거부한다.
@@ -474,8 +498,14 @@ function staleDaily(){
 /* 한 번의 setItem = 한 번의 원자적 쓰기. 중간에 끊겨도 반쪽 기록이 남지 않는다.
    날짜·번호는 호출 시점이 아니라 ★도전 시작 시 못박은 식별자를 쓴다. */
 function saveDaily(patch){
-  if (staleDaily()) return false;      /* ★더 최신 날짜의 기록이 있다 — 덮어쓰지 않는다 */
-  const prev = chalRec();
+  /* ★기록을 한 번만 읽어 '중단 신호(더 최신 날짜)' 와 '이어 붙일 이전 값' 을 함께 파생한다.
+     두 번 읽으면 그 사이에 다른 탭 쓰기가 끼어들 수 있고, 두 번째 읽기는 날짜 불일치를
+     '빈 이전 값' 으로만 접어 중단 신호를 잃는다(codex R3 지적). */
+  const r = dailyRec();
+  if (r && r.date && chalDate && r.date > chalDate) return false;   /* 더 최신 기록 — 덮어쓰지 않는다 */
+  const prev = (r && chalDate && r.date === chalDate)
+    ? { run: r.run || null, result: r.result || null }
+    : { run: null, result: null };
   const rec = { date: chalDate || dayKey(), no: (chalNo != null) ? chalNo : dailyNo(),
                 run:    ('run'    in patch) ? patch.run    : prev.run,
                 result: ('result' in patch) ? patch.result : prev.result };
@@ -489,12 +519,17 @@ function prevDayKey(key){
   const dt = new Date(y, m-1, d); dt.setDate(dt.getDate()-1);
   return dayKey(dt);
 }
-/* 스트릭도 '끝낸 시각' 이 아니라 ★도전 시작일 기준이다. */
-function bumpStreak(dayStr){
+/* 스트릭도 '끝낸 시각' 이 아니라 ★도전 시작일 기준이다.
+   ★계산(peek)과 쓰기(commit)를 나눠 둔다 — 결과가 실제로 커밋된 뒤에만 스트릭을 올리기
+   위해서다. 먼저 올려 두면 저장이 거부됐을 때 스트릭만 남는다(codex R3 지적). */
+function peekStreak(dayStr){
   const day = dayStr || dayKey();
   let st; try{ st = JSON.parse(localStorage.getItem('bd.streak')||'{}'); }catch(_){ st = {}; }
   const yest = prevDayKey(day);
-  const n = st.last === day ? (st.n||1) : st.last === yest ? (st.n||0)+1 : 1;
+  return st.last === day ? (st.n||1) : st.last === yest ? (st.n||0)+1 : 1;
+}
+function commitStreak(dayStr, n){
+  const day = dayStr || dayKey();
   localStorage.setItem('bd.streak', JSON.stringify({ last: day, n })); return n;
 }
 
@@ -1033,12 +1068,16 @@ function resumeDaily(){
    ★도전 식별자(date·no·seedKey)도 함께 넣는다 — 복원이 '지금 날짜' 가 아니라 '그 판' 을 따르게. */
 function saveDailyRun(){
   if (mode !== 'daily' || over) return;
-  const written = saveDaily({ run: { board: board.map(row => row.slice()),
-                                     pieceIndex, score, lines, level, hold, clears: clears.slice(),
-                                     elapsed: Date.now() - startTime, initialBest,
-                                     date: chalDate, no: chalNo, seedKey: chalSeedKey,
-                                     cur: cur ? { type:cur.type, rot:cur.rot, r:cur.r, c:cur.c, holdUsed } : null } });
-  if (!written) expireStale();   /* ★쓰기가 거부됐다 = 오늘 도전이 다른 곳에서 시작됐다 */
+  /* ★스냅샷은 지금 상태로 먼저 뜬다 — 임계구역이 비동기로 열릴 수 있어서, 그 사이 판이
+     움직여도 '저장하려던 그 순간' 이 저장되게 한다. */
+  const snap = { board: board.map(row => row.slice()),
+                 pieceIndex, score, lines, level, hold, clears: clears.slice(),
+                 elapsed: Date.now() - startTime, initialBest,
+                 date: chalDate, no: chalNo, seedKey: chalSeedKey,
+                 cur: cur ? { type:cur.type, rot:cur.rot, r:cur.r, c:cur.c, holdUsed } : null };
+  withDailyLock(() => {
+    if (!saveDaily({ run: snap })) expireStale();   /* ★거부 = 오늘 도전이 다른 곳에서 시작됐다 */
+  });
 }
 function fmtTime(ms){ const s = Math.round(ms/1000); return s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`; }
 function endGame(){
@@ -1051,19 +1090,32 @@ function endGame(){
   const isNew = score > 0 && score > initialBest;
   const elapsed = Date.now() - startTime;
   if (mode === 'daily'){
-    /* ★다른 탭이 더 최신 날짜의 도전을 시작해 뒀다면 이 판은 이미 '지난 도전' 이다 —
-       결과를 기록하지도, 연속 도전 기록을 올리지도 않는다(codex R2 issue1). */
-    if (staleDaily()){ expireStale(); return; }
     /* ★결과도 도전 시작일에 기록한다 — 자정을 넘겨 끝내도 다음 날 1회권을 소비하지 않는다.
        자정 경계 정책: 시작일 기준으로 끝까지 기록하고, 날짜가 바뀐 뒤 재방문하면 그 판은
-       '지난 도전' 으로 만료되며 새 날짜의 1회권은 온전히 남는다. */
-    const rec = { date: chalDate || dayKey(), no: (chalNo != null) ? chalNo : dailyNo(), score, lines, level,
+       '지난 도전' 으로 만료되며 새 날짜의 1회권은 온전히 남는다.
+       ★스트릭은 여기서 '계산만' 한다. 실제로 올리는 것도, 완료 화면을 확정하는 것도
+       저장이 커밋된 뒤다 — 먼저 올려 두면 저장이 거부됐을 때 스트릭과 완료 화면만
+       남아 '지난 도전인데 오늘 도전을 끝낸 것처럼' 보인다(codex R3 지적). */
+    const day = chalDate || dayKey();
+    const rec = { date: day, no: (chalNo != null) ? chalNo : dailyNo(), score, lines, level,
                   time: fmtTime(elapsed), clears: clears.slice(),
-                  streak: bumpStreak(chalDate || dayKey()) };
-    saveDaily({ result: rec, run: null });   /* 끝났으니 진행 중 판은 지우고 결과만 남긴다 */
-    lastDaily = rec;
-  } else lastDaily = null;
-  renderOver({ score, lines, level, time: fmtTime(elapsed), clears: clears.slice(), isNew });
+                  streak: peekStreak(day) };
+    withDailyLock(() => {
+      /* 이 안에서는 다른 탭이 끼어들 수 없다 — 검사·저장·스트릭·화면이 한 덩어리다 */
+      if (staleDaily()){ expireStale(); return; }
+      if (!saveDaily({ result: rec, run: null })){ expireStale(); return; }
+      commitStreak(day, rec.streak);   /* ★커밋 성공 뒤에만 스트릭을 올린다 */
+      lastDaily = rec;                 /* ★완료 화면도 커밋 뒤에 확정한다 */
+      finishOver({ score, lines, level, time: rec.time, clears: rec.clears, isNew });
+    });
+    return;
+  }
+  lastDaily = null;
+  finishOver({ score, lines, level, time: fmtTime(elapsed), clears: clears.slice(), isNew });
+}
+/* 게임오버 화면을 실제로 띄우는 마무리 — 일일 모드는 저장이 커밋된 뒤에만 여기로 온다. */
+function finishOver(r){
+  renderOver(r);
   sOver();
   setTimeout(() => showOverlay('over','btnAgain'), 350);
 }
@@ -1282,7 +1334,9 @@ window.__bd = {
   tickMs: (ms) => { let n = Math.round(ms / TICK); while (n-- > 0) step(TICK); return true; },
   lock: () => { lockPiece(); return true; },
   /* 게임오버 경로를 실시간 대기 없이 직접 태운다 — 만료·결과 기록 분기 검증용 */
-  end: () => { endGame(); return true; }
+  end: () => { endGame(); return true; },
+  /* 임계구역이 어떤 수단으로 열렸는지 — 검증기가 두 경로를 구분해 단언하기 위한 창구 */
+  lockState: () => ({ webLocks: hasWebLocks, name: DAILY_LOCK })
 };
 })();
 </script>
