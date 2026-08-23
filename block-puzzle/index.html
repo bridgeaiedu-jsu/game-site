@@ -80,6 +80,7 @@
   .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
   .toast.show{opacity:1}
   /* ---- 후원 QR ---- */
+  .donate-link-btn{background:#FEE500;color:#191919;text-align:center;text-decoration:none;box-sizing:border-box}
   .donate-qr{display:block;margin:10px auto;width:240px;height:240px;max-width:70vw;max-height:70vw;background:#fff;border-radius:12px;padding:8px}
   .donate-sep{margin-top:16px}
   .donate-link{background:none;border:0;color:var(--muted);font:inherit;font-size:.72rem;cursor:pointer;padding:0;text-decoration:underline}
@@ -147,6 +148,8 @@
     <img class="donate-qr" src="/donate-qr.webp" width="240" height="240"
          alt="카카오페이 송금코드 / KakaoPay transfer code" decoding="async">
     <div class="sub" data-i18n="donateHelp">카카오톡 또는 카카오페이 앱 카메라로 스캔하세요 · 금액은 자유입니다.</div>
+    <a class="btn donate-link-btn" id="btnDonateLink" href="https://qr.kakaopay.com/FPhniPQcA" target="_blank" rel="noopener noreferrer" data-i18n="donateLink">💛 카카오페이로 후원하기</a>
+    <div class="sub" data-i18n="donateHint">휴대폰에서는 위 버튼, PC 에서는 QR 을 스캔하세요.</div>
     <button class="btn ghost" id="btnDonateClose" data-i18n="close">닫기</button>
   </div>
 </div>
@@ -209,7 +212,7 @@ const I18N = {
     footer:'© 2026 Block Puzzle · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
     navPrivacy:'개인정보처리방침', navAbout:'소개', home:'🏠 다른 게임',
     donate:'☕ 커피 한 잔 후원하기', donateTitle:'☕ 커피 한 잔', close:'닫기',
-    donateHelp:'카카오톡 또는 카카오페이 앱 카메라로 스캔하세요 · 금액은 자유입니다.',
+    donateHelp:'카카오톡 또는 카카오페이 앱 카메라로 스캔하세요 · 금액은 자유입니다.', donateLink:'💛 카카오페이로 후원하기', donateHint:'휴대폰에서는 위 버튼, PC 에서는 QR 을 스캔하세요.',
     docTitle:'블록 퍼즐 — 심심할 때 한 판 | Block Puzzle', langBtn:'EN'
   },
   en: {
@@ -240,7 +243,7 @@ const I18N = {
     footer:'© 2026 Block Puzzle · Privacy: scores are stored only on your device; third-party cookies (e.g. Google) may be used to serve ads.',
     navPrivacy:'Privacy Policy', navAbout:'About', home:'🏠 More games',
     donate:'☕ Buy me a coffee', donateTitle:'☕ Buy me a coffee', close:'Close',
-    donateHelp:'Scan with the KakaoTalk or KakaoPay app · any amount is welcome.',
+    donateHelp:'Scan with the KakaoTalk or KakaoPay app · any amount is welcome.', donateLink:'💛 Donate via KakaoPay', donateHint:'On a phone tap the button above; on a PC scan the QR.',
     docTitle:'Block Puzzle — a quick round | 블록 퍼즐', langBtn:'한국어'
   }
 };
