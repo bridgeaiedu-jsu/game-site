@@ -10,7 +10,7 @@
 
 const GAMES = ['block-puzzle', '2048', 'block-drop', 'word'];
 const HOST = 'hanpango.com';
-const MAX_BODY = 256;               /* 본문은 짧은 JSON 하나면 충분하다 */
+const MAX_BODY = 256;               /* 본문은 짧은 JSON 하나면 충분하다 — 바이트 기준 */
 
 /* 테이블은 isolate 당 한 번만 만든다 — 요청마다 DDL 을 던지면 쓸데없이 느려진다.
    (모듈 변수는 그 isolate 가 사는 동안 유지된다.) */
@@ -42,16 +42,34 @@ export async function onRequest(context){
   if (request.method !== 'POST') return new Response(null, { status: 405, headers: { Allow: 'POST' } });
   if (!sameSite(request)) return new Response(null, { status: 403 });
 
-  let body;
+  /* ★상한은 **바이트**로 잰다. 문자열 길이로 재면 한글 한 글자가 1 로 세어져 UTF-8 로는
+     세 배까지 커진 본문이 통과한다. 그리고 다 읽은 뒤에 재면 이미 다 받은 셈이라 상한이
+     상한 노릇을 못 한다 — 미리 알 수 있으면 읽기 전에 끊고, 아니면 읽으면서 끊는다. */
+  const declared = Number(request.headers.get('Content-Length'));
+  if (Number.isFinite(declared) && declared > MAX_BODY) return new Response(null, { status: 413 });
+  if (!request.body) return new Response(null, { status: 400 });
+
+  let bytes;
   try {
-    body = await request.text();
+    const reader = request.body.getReader();
+    const chunks = [];
+    let n = 0;
+    for (;;){
+      const { done, value } = await reader.read();
+      if (done) break;
+      n += value.length;
+      if (n > MAX_BODY){ await reader.cancel(); return new Response(null, { status: 413 }); }
+      chunks.push(value);
+    }
+    bytes = new Uint8Array(n);
+    let at = 0;
+    for (const c of chunks){ bytes.set(c, at); at += c.length; }
   } catch (e) {
     return new Response(null, { status: 400 });
   }
-  if (body.length > MAX_BODY) return new Response(null, { status: 413 });
 
   let data;
-  try { data = JSON.parse(body || '{}'); }
+  try { data = JSON.parse(new TextDecoder().decode(bytes) || '{}'); }
   catch (e) { return new Response(null, { status: 400 }); }
   if (!data || typeof data !== 'object') return new Response(null, { status: 400 });
 

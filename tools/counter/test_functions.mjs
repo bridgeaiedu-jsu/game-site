@@ -65,6 +65,33 @@ for (const [name, body, want] of [
   ok(name + ' → ' + want, r.status === want, String(r.status));
 }
 {
+  /* ★상한은 바이트로 재야 한다(codex R1 차단 2). 한글은 UTF-8 로 한 글자 3바이트라
+     문자열 길이로 재면 상한의 세 배까지 통과한다. */
+  const ko = JSON.stringify({ type: 'visit', x: '가'.repeat(100) });
+  const utf16 = ko.length, utf8 = new TextEncoder().encode(ko).length;
+  const r = await hit({ request: req('POST', ko), env: { DB: makeDB() } });
+  ok(`한글 본문(문자 ${utf16} · UTF-8 ${utf8}B) → 413`, r.status === 413, String(r.status));
+  ok('문자 길이로는 상한 안이었다(그래서 바이트로 재야 한다)', utf16 <= 256 && utf8 > 256,
+     `문자 ${utf16} · 바이트 ${utf8}`);
+  /* 이 요청에는 Content-Length 가 없다 — 즉 위 413 은 선검사가 아니라 **읽으면서 끊는**
+     스트리밍 경로가 잡아낸 것이다. 두 경로가 각각 확인된다. */
+  ok('그 본문에는 Content-Length 가 없다(스트리밍 경로가 잡았다는 뜻)',
+     req('POST', ko).headers.get('Content-Length') === null);
+
+  /* Content-Length 가 이미 크다고 말하면 본문을 읽기 전에 끊는다. */
+  let read = false;
+  const spy = new Request('https://hanpango.com/api/hit', {
+    method: 'POST', headers: { Origin: 'https://hanpango.com', 'Content-Length': '1000' },
+    body: JSON.stringify({ type: 'visit' }) });
+  Object.defineProperty(spy, 'body', { get(){ read = true; return null; } });
+  const r2 = await hit({ request: spy, env: { DB: makeDB() } });
+  ok('Content-Length 1000 → 413', r2.status === 413, String(r2.status));
+  ok('그 판정은 본문을 읽기 전에 난다', read === false, '본문 접근=' + read);
+
+  const r3 = await hit({ request: req('POST', JSON.stringify({ type: 'visit' })), env: { DB: makeDB() } });
+  ok('정상 visit 은 그대로 204', r3.status === 204, String(r3.status));
+}
+{
   const g = async (h, b = JSON.stringify({ type: 'visit' }), m = 'POST', db = makeDB()) =>
     (await hit({ request: req(m, b, h), env: { DB: db } })).status;
   ok('POST 아님 → 405', await g({ Origin: 'https://hanpango.com' }, null, 'GET') === 405);
