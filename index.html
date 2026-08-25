@@ -26,6 +26,8 @@
 <!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
      광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 방문·판수를 보내고 화면의 숫자를 채운다(실패해도 화면은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){ dataLayer.push(arguments); }
@@ -73,6 +75,10 @@
   header{width:100%;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:16px 0 6px}
   h1{font-size:1.25rem;margin:0;letter-spacing:.02em}
   h1 small{display:block;color:var(--muted);font-weight:400;font-size:.8rem;margin-top:4px;letter-spacing:0}
+  /* 공개 카운터 — 있는 듯 없는 듯 작게. 숫자를 못 받으면 줄째로 감춰(hidden) 자리도 남기지 않는다 */
+  .hp-stat{color:var(--muted);font-size:.72rem;margin:2px 0 0;letter-spacing:0}
+  .hp-stat b{font-weight:600;color:var(--muted-2)}
+  .card .hp-stat{display:block;margin-top:6px}
   .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer}
   .ibtn:active{transform:scale(.96)}
   /* ---- 광고 슬롯 ---- */
@@ -140,6 +146,7 @@
   <header>
     <h1>한판고 · hanpango<small data-i18n="slogan">설치 없이 바로 하는 미니게임</small></h1>
     <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statVisits">오늘 방문 <b data-hp="visits.today">–</b> · 누적 <b data-hp="visits.total">–</b></p>
   </header>
 
   <!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
@@ -226,6 +233,7 @@ const I18N = {
     install:'📲 홈 화면에 추가',
     donate:'☕ 후원', donateTitle:'☕ 커피 한 잔', close:'닫기',
     donateHelp:'카카오톡 또는 카카오페이 앱 카메라로 스캔하세요 · 금액은 자유입니다.', donateLink:'💛 카카오페이로 후원하기', donateHint:'위 버튼을 누르면 카카오페이가 열립니다.',
+    statVisits:'오늘 방문 <b data-hp="visits.today">–</b> · 누적 <b data-hp="visits.total">–</b>',
     docTitle:'한판고 — 설치 없이 바로 하는 미니게임 | Hanpango Mini Games', langBtn:'EN'
   },
   en: {
@@ -238,6 +246,7 @@ const I18N = {
     install:'📲 Add to Home Screen',
     donate:'☕ Support', donateTitle:'☕ Buy me a coffee', close:'Close',
     donateHelp:'Scan with the KakaoTalk or KakaoPay app · any amount is welcome.', donateLink:'💛 Donate via KakaoPay', donateHint:'Tap the button above to open KakaoPay.',
+    statVisits:'<b data-hp="visits.today">–</b> visits today · <b data-hp="visits.total">–</b> all-time',
     docTitle:'Hanpango — browser mini games, no install | 한판고', langBtn:'한국어'
   }
 };
@@ -287,8 +296,20 @@ function tile(g){
   return `<li><a class="card" href="${esc(g.path)}">
     <span class="thumb"><img src="${esc(g.thumb)}" alt="${esc(g.title[lang] || g.title.ko)}" width="640" height="640" loading="lazy" decoding="async">
       <span class="badges">${badges}</span></span>
-    <span class="body"><h2>${esc(g.title[lang] || g.title.ko)}</h2><p>${esc(g.desc[lang] || g.desc.ko)}</p></span>
+    <span class="body"><h2>${esc(g.title[lang] || g.title.ko)}</h2><p>${esc(g.desc[lang] || g.desc.ko)}</p>${playLine(g)}</span>
   </a></li>`;
+}
+
+/* 타일 아래 한 줄 — 이 게임을 오늘 몇 판, 통틀어 몇 판 했는지.
+   타일은 언어를 바꿀 때마다 다시 그려지므로 data-i18n 을 쓰지 않고 여기서 바로 그 언어로 쓴다.
+   게임 이름은 주소에서 뽑는다(/2048/ → 2048) — 집계 키와 같은 값이다. */
+function playLine(g){
+  const key = String(g.path || '').replace(/^\/|\/$/g, '');
+  if (!key) return '';
+  const today = `<b data-hp="plays.${key}.today">–</b>`, total = `<b data-hp="plays.${key}.total">–</b>`;
+  const text = lang === 'ko' ? `오늘 ${today}판 · 누적 ${total}판`
+                             : `${today} today · ${total} all-time`;
+  return `<span class="hp-stat" data-hp-line hidden>${text}</span>`;
 }
 
 function soonTile(){
@@ -298,6 +319,9 @@ function soonTile(){
 
 function render(){
   document.getElementById('grid').innerHTML = games.map(tile).join('') + soonTile();
+  /* 다시 그리면 숫자가 지워진다 — 언어 전환·목록 갱신 뒤에 다시 채운다.
+     hp-stats.js 는 defer 라 첫 렌더보다 늦을 수 있으므로 있는지 보고 부른다. */
+  if (window.hpStats) window.hpStats();
 }
 
 function applyLang(){
@@ -312,6 +336,11 @@ function applyLang(){
 }
 
 document.getElementById('btnLang').onclick = () => { lang = (lang === 'ko') ? 'en' : 'ko'; applyLang(); };
+
+/* 방문 1회 — hp-stats.js 가 defer 라 이 줄보다 늦게 실행된다. 화면이 준비된 뒤에 부른다.
+   (세션당 한 번만 세는 것은 hp-stats.js 쪽에서 막는다.) */
+const hpVisit = () => { if (window.hpHit) window.hpHit('visit'); };
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hpVisit); else hpVisit();
 
 applyLang();
 
