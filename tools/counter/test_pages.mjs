@@ -81,6 +81,22 @@ for (const KEY of GAMES){
      !/[^)]\s*window\.hpHit\('play'/.test(html.replace(/if \(window\.hpHit\) window\.hpHit\('play'/g, '')));
 }
 
+console.log('\n== hidden 가드 (숨긴 줄이 정말 숨는가) ==');
+{
+  /* 'hidden' 은 브라우저 기본값 [hidden]{display:none} 으로만 걸려 있다 — 선택자가 조금이라도
+     더 센 규칙이 display 를 선언하면 그 기본값을 덮어, 숫자를 못 받은 줄이 그대로 보인다.
+     그래서 display 를 선언한 페이지에는 반드시 [hidden] 가드가 함께 있어야 한다. */
+  for (const p of ['index.html', ...GAMES.map(g => g + '/index.html')]){
+    const html = read(p);
+    const withoutGuard = html.replace(/\.hp-stat\[hidden\][^{}]*{[^{}]*}/g, '');
+    const declaresDisplay = /\.hp-stat[^{}]*{[^{}]*display[^{}]*}/.test(withoutGuard);
+    const guarded = /\.hp-stat\[hidden\]\s*{[^{}]*display\s*:\s*none\s*!important[^{}]*}/.test(html);
+    ok(p.padEnd(22) + ' hidden 가드 규칙이 있다', guarded);
+    ok(p.padEnd(22) + ' display 선언이 hidden 을 이기지 못한다', !declaresDisplay || guarded,
+       'display 선언=' + declaresDisplay + ' · 가드=' + guarded);
+  }
+}
+
 console.log('\n== 인라인 스크립트 문법 ==');
 {
   let n = 0, bad = 0;

@@ -79,6 +79,9 @@
   .hp-stat{color:var(--muted);font-size:.72rem;margin:2px 0 0;letter-spacing:0}
   .hp-stat b{font-weight:600;color:var(--muted-2)}
   .card .hp-stat{display:block;margin-top:6px}
+  /* ★hidden 을 이기지 못하게 못박는다 — 위의 display 선언(.card .hp-stat)은 선택자가 더 세서
+     브라우저 기본값 [hidden]{display:none} 을 덮는다. 그러면 숫자를 못 받았을 때도 빈 줄이 보인다. */
+  .hp-stat[hidden]{display:none!important}
   .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer}
   .ibtn:active{transform:scale(.96)}
   /* ---- 광고 슬롯 ---- */
