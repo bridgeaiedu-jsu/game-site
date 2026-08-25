@@ -26,6 +26,16 @@ const MUTATION = argOf('--mutate', null);
    흩뿌리면 다음 사람이 조용히 늘려도 아무도 알아채지 못한다. */
 const ALLOWED_EXTERNAL_SCRIPT_HOSTS = ['pagead2.googlesyndication.com', 'www.googletagmanager.com'];
 
+/* 동일 출처 예외 — 방문·판수 집계는 이 사이트 자신의 /api/ 로만 나간다. fetch 를 통째로
+   금지하면 그 집계를 못 짜고, 통째로 허용하면 어디로든 나갈 수 있다. 그래서 **주소를 문자열로
+   박아 둔 상대경로**만, 그것도 이 목록으로 시작할 때만 통과시킨다. 절대 URL(https://…)이나
+   변수로 넘긴 주소는 어디로 갈지 정적으로 알 수 없으므로 통과시키지 않는다. XHR 은 예외 없이 0 이다. */
+const ALLOWED_SAME_ORIGIN_PATHS = ['/api/'];
+const allowedFetchTarget = t => {
+  const m = String(t).trim().match(/^['"]([^'"]+)['"]$/);   /* 문자열 리터럴만 인정한다 */
+  return !!m && ALLOWED_SAME_ORIGIN_PATHS.some(pre => m[1].indexOf(pre) === 0);
+};
+
 /* --------------------------------------------------- 고의 결함(뮤테이션) */
 /* ★대상 파일의 줄바꿈을 실측해 쓴다 — CRLF 로 못박으면 LF 파일에서 앵커가 통째로 어긋나
    '주입 실패'가 무더기로 나고 검출력이 조용히 0 이 된다. */
@@ -349,9 +359,11 @@ section('0. 정적 스캔 — 규약·금지선');
   const strayHosts = [...new Set(extScriptHosts
     .filter(h => ALLOWED_EXTERNAL_SCRIPT_HOSTS.indexOf(h) < 0))];
   const strayRuntime = [];
-  if (/\bfetch\s*\(/.test(SRC)) strayRuntime.push('fetch(');
+  /* fetch 는 '있다/없다' 가 아니라 **어디로 가는가** 로 본다 — 첫 인자를 꺼내 판정한다. */
+  for (const m of SRC.matchAll(/\bfetch\s*\(\s*([^,)]*)/g))
+    if (!allowedFetchTarget(m[1])) strayRuntime.push('fetch(' + String(m[1]).trim().slice(0, 40) + ')');
   if (/XMLHttpRequest/.test(SRC)) strayRuntime.push('XMLHttpRequest');
-  ok('★런타임 외부 요청이 없다(fetch·XHR·허용 목록 밖 외부 script src)',
+  ok('★런타임 외부 요청이 없다(fetch 는 동일 출처 /api/ 만 · XHR 0 · 허용 목록 밖 외부 script src 0)',
      strayRuntime.length === 0 && strayHosts.length === 0,
      '외부 요청 흔적: ' + strayRuntime.concat(strayHosts).join(', '));
   ok('ADSENSE 자리 3곳', (html.match(/ADSENSE \(/g) || []).length === 3,

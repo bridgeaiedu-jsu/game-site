@@ -4,7 +4,7 @@
  * ★캐시 버전: 파일을 추가/변경하면 CACHE 문자열을 올려라(구버전은 activate 에서 삭제된다).
  *   DEPLOY.md '게임 추가 절차' 체크리스트 참조.
  */
-const CACHE = 'hanpango-v18';
+const CACHE = 'hanpango-v19';
 
 /* 사이트 총량 ~100KB(정적) — 전량 프리캐시한다.
  * 디렉터리 형태(/block-puzzle/)와 파일 형태(/block-puzzle/index.html)를 둘 다 넣는 것은
@@ -12,6 +12,7 @@ const CACHE = 'hanpango-v18';
 const PRECACHE = [
   '/',
   '/games.json',
+  '/js/hp-stats.js',
   '/block-puzzle/',
   '/block-puzzle/thumb.webp',
   '/2048/',
@@ -95,6 +96,11 @@ self.addEventListener('fetch', (event) => {
   //   respondWith 를 호출하지 않으면 브라우저 기본 네트워크 경로로 그대로 나간다.
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  /* ★/api/ 는 절대 캐시하지 않는다 — 방문·판수는 매번 지금 값을 받아야 한다.
+     respondWith 를 부르지 않고 그대로 내보내면 브라우저 기본 네트워크 경로로 나간다
+     (network-only). 캐시에 한 번이라도 들어가면 통계가 과거에 얼어붙는다. */
+  if (url.pathname.startsWith('/api/')) return;
 
   const accept = request.headers.get('accept') || '';
   const isDocument = request.mode === 'navigate' || accept.includes('text/html');
