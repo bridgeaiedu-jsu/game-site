@@ -16,7 +16,7 @@
 # ── ★이 러너 자신의 종료코드 계약(R3) ─────────────────────────────────────────
 #     exit 0 = 주입 전부가 지목한 검사로 탐지 · 예외 0 · 주입실패 0 · 원본 PASS
 #     exit 1 = 검출력 실패(미탐지·엉뚱탐지) — 검증기에 구멍이 있다
-#     exit 2 = 하네스 비정상(예외중단·판정요약 미도달/형식 이상·주입실패·러너오류·원본이 이미 FAIL·
+#     exit 2 = 하네스 비정상(예외중단·판정요약 미도달/형식 이상/2줄 이상·주입실패·러너오류·원본이 이미 FAIL·
 #              CLI 사용 오류) → 이 경우 검출력 수치 자체를 신뢰할 수 없다.
 #   ★원본 정상의 정의(R4 · codex R3 issue#1): 종료코드 0 **그리고** 요약에서 파싱한 FAIL 이 0
 #     **그리고** 예외 0. 종료코드만 믿으면 'FAIL 을 내면서 exit 0' 인 검증기를 원본 정상으로 오인한다.
@@ -129,17 +129,39 @@ def run(mut=None):
 SUMMARY_RE = re.compile(r"PASS\s+(\d+)\s*·\s*FAIL\s+(\d+)")
 
 
-def summary_of(out):
-    """검증기 판정 줄을 **고정 형식으로 파싱**한다 → (요약문, PASS 수, FAIL 수).
-    파싱하지 못하면 None — 판정에 도달하지 못했거나 형식이 어긋난 것이므로 하네스 비정상이다.
-    ★수치를 읽지 않고 '요약 줄이 있다' 로만 통과시키면, 검증기가 FAIL 을 내면서 exit 0 을 내는
-      경우를 원본 정상으로 인정하게 된다(codex R3 issue#1)."""
+def summary_matches(out):
+    """판정 요약 형식에 맞는 줄을 **모두** 모은다 — 개수 자체가 판정 재료다."""
+    hits = []
     for line in out.splitlines():
         t = line.strip()
         m = SUMMARY_RE.search(t)
         if m:
-            return (t.lstrip("= ").strip(), int(m.group(1)), int(m.group(2)))
-    return None
+            hits.append((t, m))
+    return hits
+
+
+def summary_of(out):
+    """검증기 판정 줄을 **고정 형식으로 파싱**한다 → (요약문, PASS 수, FAIL 수).
+    파싱하지 못하면 None — 판정에 도달하지 못했거나 형식이 어긋난 것이므로 하네스 비정상이다.
+    ★수치를 읽지 않고 '요약 줄이 있다' 로만 통과시키면, 검증기가 FAIL 을 내면서 exit 0 을 내는
+      경우를 원본 정상으로 인정하게 된다(codex R3 issue#1).
+    ★유일한 최종행 고정(codex R4 advice): 요약 형식 줄이 **정확히 1줄** 일 때만 파싱을 인정한다.
+      2줄 이상이면 어느 줄이 최종 판정인지 러너가 고를 수 없다 — 첫 줄을 집는 방식은 중간 집계를
+      최종 판정으로 오인해 FAIL 이 든 진짜 최종행을 조용히 지나친다(그 순간 fail-open 이 다시
+      열린다). 최종행을 유일하게 세우지 못하면 하네스 비정상(exit 2)이다."""
+    hits = summary_matches(out)
+    if len(hits) != 1:
+        return None
+    t, m = hits[0]
+    return (t.lstrip("= ").strip(), int(m.group(1)), int(m.group(2)))
+
+
+def summary_fault(out):
+    """요약 파싱 실패 사유를 한 줄로 — '없음' 과 '여러 줄' 은 원인이 다르니 구별해 적는다."""
+    n = len(summary_matches(out))
+    if n == 0:
+        return "판정 요약 줄 없음/형식 이상 — 검증기가 판정에 도달하지 못함"
+    return "판정 요약 형식 줄이 %d줄 — 최종 요약행은 정확히 1줄이어야 한다" % n
 
 
 def summary_line(out):
@@ -176,7 +198,7 @@ print()
 rc, out, err = run()
 base = summary_of(out)
 base_exc = exceptions(err)
-print("[원본] exit %d — %s" % (rc, base[0] if base else "(판정 요약 줄 없음/형식 이상 — 검증기가 판정에 도달하지 못함)"))
+print("[원본] exit %d — %s" % (rc, base[0] if base else "(" + summary_fault(out) + ")"))
 # ★원본 정상 = 종료코드 0 **그리고** 요약 파싱 성공 **그리고** FAIL 0 **그리고** 예외 0.
 #   종료코드만 믿지 않는다 — 검증기가 FAIL 을 내면서 exit 0 을 내는 경우를 걸러야 한다.
 baseline_ok = (rc == 0 and base is not None and base[2] == 0 and not base_exc)
@@ -185,7 +207,7 @@ if not baseline_ok:
     if rc != 0:
         why.append("종료코드 %d" % rc)
     if base is None:
-        why.append("요약 파싱 실패")
+        why.append(summary_fault(out))
     elif base[2] != 0:
         why.append("원본 FAIL %d건(종료코드는 %d)" % (base[2], rc))
     if base_exc:
@@ -209,7 +231,7 @@ for m, expect in MUTS:
         # ★fail-open 차단 지점: 지목 FAIL 이 먼저 찍혔더라도 예외로 중단됐으면 탐지가 아니다.
         crashed += 1
         verdict = "★예외중단·요약이상(러너 오류 — 탐지 아님)"
-        crashes.append((m, hit, (exc or ["(예외 줄 없음 · 판정 요약 미도달/형식 이상)"])[0].strip()[:120]))
+        crashes.append((m, hit, (exc or ["(예외 줄 없음 · " + summary_fault(out) + ")"])[0].strip()[:120]))
     elif rc == 1 and hit:
         detected += 1
         verdict = "탐지(FAIL %d건)" % len(fl)
@@ -223,7 +245,7 @@ for m, expect in MUTS:
     else:
         runerr += 1
         verdict = "★러너오류(예상 밖 종료코드)"
-    print("  %-28s exit %d  %-34s %s" % (m, rc, verdict, s or "(판정 요약 줄 없음)"))
+    print("  %-28s exit %d  %-34s %s" % (m, rc, verdict, s or "(" + summary_fault(out) + ")"))
 
 print("-" * 78)
 print("  원본 정상=%s · 탐지 %d · 엉뚱탐지 %d · 미탐지 %d · 예외중단 %d · 주입실패 %d · 러너오류 %d  (총 %d종)"
