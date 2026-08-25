@@ -239,6 +239,11 @@
 <script>
 (() => {
 'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·점수 계산에는 관여하지 않는다. 태그가 아직 실리지 않았거나
+   차단됐으면 조용히 지나간다. 닉네임 같은 개인정보도, 광고 노출·클릭도 보내지 않는다. */
+const GA_GAME = '2048';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
 /* ======================= i18n ======================= */
 const I18N = {
   ko: {
@@ -719,6 +724,7 @@ function newGame(m = 'free'){
   $('subtitle').textContent = m === 'daily' ? T('daily', dailyNo()) : T('subtitle');
   /* 일일은 시작하자마자 저장한다 — 새로고침해도 '다시 시작' 이 아니라 '이어하기' 가 된다(issue4) */
   if (m === 'daily') saveDailyRun();
+  ga('game_start', { game: GA_GAME });
 }
 /* 오늘 하던 판을 그대로 이어서 연다. 난수는 소비한 횟수만큼 앞으로 감아 같은 순서를 잇는다. */
 function resumeDaily(){
@@ -760,6 +766,8 @@ function endGame(){
   renderOver({ score, max: maxTile(), time: fmtTime(Date.now()-startTime), isNew });
   beep(220, .25, 'sawtooth', .05); vib([60,40,60]);
   setTimeout(() => showOverlay('over','btnAgain'), 350);
+  ga('game_over', { game: GA_GAME, score, moves: moveCount, duration_s: Math.round((Date.now() - startTime) / 1000), daily: mode === 'daily' });
+  if (lastDaily) ga('daily_complete', { game: GA_GAME, streak: lastDaily.streak });
 }
 function renderOver(r){
   const d = lastDaily;
@@ -826,6 +834,7 @@ $('btnLang').onclick = () => {
   if (mode === 'daily' && !over) $('subtitle').textContent = T('daily', dailyNo());
   if (over && lastDaily) renderOver({ score:lastDaily.score, max:lastDaily.max, time:lastDaily.time, isNew:false });
   else if (over) renderOver({ score, max:maxTile(), time: fmtTime(Date.now()-startTime), isNew:false });
+  ga('lang_switch', { lang });
 };
 $('btnSound').onclick = () => { soundOn = !soundOn; localStorage.setItem('g2048.sound', soundOn?'1':'0');
   $('btnSound').textContent = soundOn ? '🔊' : '🔇'; applyA11yLabels();   /* 이름·눌림 상태를 즉시 갱신(D7) */
