@@ -1,0 +1,108 @@
+# tools/ — 이 사이트를 기계로 검사하는 도구
+
+눈으로 훑어서 놓치는 것(색 대비·색차, 트레이 색 배정, 낱말 게임의 규약 준수)을 계산으로
+판정한다. 전부 **읽기 전용**이다 — 대상 파일을 고치지 않는다. 고의 결함(뮤테이션)은 임시
+사본에만 주입한다.
+
+- 기준 커밋: `d460a92` (adsense site code · sw cache v17)
+- 출처: `pack/round/evidence/theme-light-2026-08-23/`, `pack/round/evidence/word-hanpango-2026-08-23/`
+  (라운드 증거는 그 라운드의 기록이라 불변 — 여기 있는 것은 사본이다)
+- 실행 위치: **저장소 루트**. 아래 예시 경로는 모두 루트 기준 상대경로다.
+- 필요한 것: `python3`, `node` (실측 환경 — Python 3.12.10 · Node v22.17.1)
+
+공통 종료코드: `0` = 전부 통과 · `1` = 미달 있음 · `2` = 검사를 세울 수 없음(설정·하네스 오류).
+`2` 는 "통과/불통과를 판정하지 못했다"는 뜻이라, 자동 호출자는 `1` 과 절대 섞어 쓰면 안 된다.
+
+---
+
+## check_rainbow.py — 무지개 팔레트 결정론 검사
+
+블록 낙하·블록 퍼즐·2048 세 페이지의 색을 계산으로 판정한다. 합격선은 셋이다:
+테두리 대 바탕 **3:1** 이상, 타일 위 글자 대 채움 **4.5:1** 이상, 이웃한 색끼리
+CIEDE2000 색차 **10** 이상. (채움 대 바탕 대비는 재서 표에 남기되 판정에는 쓰지 않는다 —
+선명한 채움을 허용하고 바탕과의 구별은 어두운 테두리가 맡는 것이 R2 설계다.)
+7색 토큰(`--r1`~`--r7`, `--r1-edge`~`--r7-edge`)이 세 파일에 모두 있고 값이 같은지,
+색 값이 토큰 밖(스타일 규칙·스크립트)에 박혀 있지 않은지도 본다.
+
+```sh
+python3 tools/check_rainbow.py .                       # 저장소 루트를 대상으로
+python3 tools/check_rainbow.py . --json rainbow.json   # 측정값을 파일로
+python3 tools/check_rainbow.py . --inject 2048/index.html:--r3-edge=#fef08a   # 검출력 확인
+```
+마지막 줄은 고의로 테두리를 밝혀 **FAIL 이 나와야 정상**이다(검사기가 살아 있는지 보는 법).
+
+## verify_puzzle_tray.js — 블록 퍼즐 트레이 색 검증
+
+배포되는 `block-puzzle/index.html` 안의 `<script>` 를 **그대로 꺼내** 최소 DOM 스텁 위에서
+돌리고 실제 `refillTray()` 를 호출한다(사본을 만들어 재지 않는다). 트레이 한 벌의 세 조각
+색이 항상 서로 다른가, 7색이 모두 쓰이는가, 색을 정하는 것이 난수가 아니라 조각 종류인가를 본다.
+
+```sh
+node tools/verify_puzzle_tray.js --html block-puzzle/index.html
+node tools/verify_puzzle_tray.js --html block-puzzle/index.html --rounds 20000
+node tools/verify_puzzle_tray.js --html block-puzzle/index.html --mutate no-dedup   # 검출력 확인
+```
+`--baseline <바뀌기 전 파일>` 을 주면 같은 난수 흐름에서 **뽑히는 모양 순서가 하나도
+달라지지 않았는지**까지 대조한다(색만 바꾸고 게임 로직은 건드리지 않았음을 증명할 때).
+
+## verify_word.js — 오늘의 낱말 검증
+
+`word/index.html` 의 성공 기준 ①~⑧ 을 기계로 확인한다. 공유 저장소 하나 위에 여러 '탭'을
+띄우고, Web Locks 를 모의해 임계구역·비교-교환(CAS)을 실제로 밟고, 가짜 시계로 날짜를 넘겨
+일일 결정성·만료를 본다. 채점(빈칸 특례·중복 자모 풀), 정답 순서 무중복, 공유 문자열의 정답
+누설, 오버레이 4개의 inert·초점 복귀, 출처·라이선스 링크 자리까지 정적·동적으로 함께 본다.
+
+```sh
+node tools/verify_word.js                                  # 기본 대상 = 이 저장소의 word/index.html
+node tools/verify_word.js --html word/index.html
+node tools/verify_word.js --mutate w-no-cas                # 검출력 확인(임시 사본에만 주입)
+```
+
+## run_mutations.py — 위 검증기의 검출력 검산
+
+`verify_word.js` 가 **고의 결함을 정말로 잡는지** 를 17종 주입으로 검산한다.
+'탐지'의 정의가 엄격하다: `exit 1` **그리고** 지목한 검사가 FAIL 목록에 있고 **그리고**
+예외 0 · 최종 요약행 도달. 죽어서 FAIL 이 난 것은 탐지로 세지 않는다.
+
+```sh
+python3 tools/run_mutations.py --html word/index.html
+python3 tools/run_mutations.py --html word/index.html --verifier <망가뜨린 사본>  # 러너 자기검사
+```
+러너 자신의 종료코드: `0` = 17종 전부 지목 검사로 탐지 + 원본 정상 · `1` = 검출력 실패
+(미탐지·엉뚱탐지) · `2` = 하네스 비정상(예외중단, 판정 요약 미도달/형식 이상/**2줄 이상**,
+주입실패, 원본이 이미 FAIL, CLI 사용 오류).
+
+> **최종 요약행은 정확히 1줄이어야 한다.** 요약 형식(`PASS n · FAIL n`) 줄이 두 줄 이상이면
+> 어느 줄이 최종 판정인지 고를 수 없으므로 파싱을 인정하지 않고 exit 2 로 떨어뜨린다.
+> 앞줄을 집으면 중간 집계를 최종 판정으로 오인해 FAIL 이 든 진짜 최종행을 지나친다.
+
+---
+
+## 기준 커밋 d460a92 에서의 실측 (2026-08-25)
+
+| 도구 | 명령 | 결과 | exit |
+|---|---|---|---|
+| check_rainbow.py | `python3 tools/check_rainbow.py .` | 판정 검사 232건 · 미달 0 (참고 측정 170건은 판정 제외) | 0 |
+| verify_puzzle_tray.js | `node tools/verify_puzzle_tray.js --html block-puzzle/index.html` | PASS 3 · FAIL 0 (트레이 5000벌) | 0 |
+| verify_word.js | `node tools/verify_word.js --html word/index.html` | PASS 163 · **FAIL 1** | 1 |
+| run_mutations.py | `python3 tools/run_mutations.py --html word/index.html` | 탐지 17/17 · 엉뚱탐지 0 · 미탐지 0 · 예외중단 0 · 주입실패 0 / **원본 정상=False** | 2 |
+
+검출력(고의 결함이 정말 잡히는가)도 같은 커밋에서 확인했다 — 둘 다 exit 1 로 잡아냈다:
+`check_rainbow.py --inject 2048/index.html:--r3-edge=#fef08a` → 미달 3건,
+`verify_puzzle_tray.js --mutate no-dedup` → PASS 2 · FAIL 1.
+어느 실행도 대상 파일을 바꾸지 않았다(실행 후 작업 트리 무변경 확인).
+
+### 남아 있는 FAIL 1건 — 광고 스크립트와 '외부 요청 없음' 규약의 충돌
+
+`verify_word.js` 의 `★런타임 외부 요청이 없다(fetch·XHR·외부 script src)` 검사가 FAIL 이다.
+페이지가 망가진 것이 아니라, **검사가 규약으로 삼은 전제가 제품 결정으로 바뀌었다.**
+
+- `04e8ce3` 시점에는 애드센스 스크립트가 **HTML 주석 안**에 자리표시자로만 있었고,
+  검사기는 주석을 걷어낸 뒤 보므로 통과했다.
+- `d460a92` 가 그 자리표시자를 **살아 있는 외부 스크립트**로 바꿨다(7개 페이지 전부):
+  `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=…">`
+- `fetch(` · `XMLHttpRequest` 는 여전히 0건이다. 걸린 것은 외부 `script src` 하나뿐이다.
+
+이 FAIL 때문에 `run_mutations.py` 도 '원본 정상' 게이트에서 exit 2 가 된다(검출력 자체는
+17/17 로 멀쩡하다 — 게이트만 닫힌 것이다). **검사 문구를 고칠지, 광고를 예외로 둘지는
+제품 규약의 문제라 도구 이관 범위에서 손대지 않았다.** 판단이 서면 그때 한 줄로 좁혀 고친다.
