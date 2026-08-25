@@ -253,6 +253,11 @@
 <script>
 (() => {
 'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·점수 계산에는 관여하지 않는다. 태그가 아직 실리지 않았거나
+   차단됐으면 조용히 지나간다. 닉네임 같은 개인정보도, 광고 노출·클릭도 보내지 않는다. */
+const GA_GAME = 'block-drop';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
 /* ======================= i18n ======================= */
 const I18N = {
   ko: {
@@ -1180,6 +1185,7 @@ function newGame(m = 'free'){
         refreshStart();                 /* '준비 중' 문구를 원래대로 돌려 둔다 */
         hideOverlays();
         focusSafely($('board'));
+        ga('game_start', { game: GA_GAME });   /* ★판이 실제로 열린 뒤에만 센다 */
       } else {
         refreshStart();
         expireStale(rejectWhy);         /* 더 최신 도전이 있거나 같은 판이 다른 탭에 있다 */
@@ -1188,6 +1194,7 @@ function newGame(m = 'free'){
     return;
   }
   focusSafely($('board'));
+  ga('game_start', { game: GA_GAME });
 }
 /* ★'오늘의 도전' 진입점 — 자격 판정과 최초 저장을 ★같은 잠금 안에서 한다.
    잠금 밖에서 판정하면 판정과 첫 저장 사이에 다른 탭이 같은 판정을 내려 판이 둘 생긴다. */
@@ -1323,6 +1330,10 @@ function finishOver(r){
   renderOver(r);
   sOver();
   setTimeout(() => showOverlay('over','btnAgain'), 350);
+  /* 자유·일일이 함께 지나는 유일한 깔때기다 — 만료(expireStale)로 끝난 판은 여기 오지 않으니
+     기록되지 않은 판을 세지 않는다. */
+  ga('game_over', { game: GA_GAME, score, moves: pieceIndex, duration_s: Math.round((Date.now() - startTime) / 1000), daily: mode === 'daily' });
+  if (lastDaily) ga('daily_complete', { game: GA_GAME, streak: lastDaily.streak });
 }
 function renderOver(r){
   const d = lastDaily;
@@ -1465,6 +1476,7 @@ $('btnLang').onclick = () => {
   else if (over && lastDaily) renderOver({ score:lastDaily.score, lines:lastDaily.lines, level:lastDaily.level,
                                            time:lastDaily.time, clears:lastDaily.clears||[0,0,0,0], isNew:false });
   else if (over) renderOver({ score, lines, level, time:fmtTime(Date.now()-startTime), clears:clears.slice(), isNew:false });
+  ga('lang_switch', { lang });
 };
 $('btnSound').onclick = () => {
   soundOn = !soundOn; localStorage.setItem('bd.sound', soundOn ? '1' : '0');
