@@ -276,6 +276,12 @@
 <script>
 (() => {
 'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 채점·정답 선택·통계 어디에도 관여하지 않는다. 태그가 아직 실리지 않았거나
+   차단됐으면 조용히 지나간다. 정답·추측 낱말 같은 내용과 개인정보는 보내지 않고, 광고
+   노출·클릭도 재지 않는다. */
+const GA_GAME = 'word';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
 /* ======================= i18n ======================= */
 const I18N = {
   ko: {
@@ -712,6 +718,7 @@ const MAX_TRIES = 6, SLOTS = 6;
 let mode = 'free';                 /* 'daily' | 'free' */
 let answer = '', answerSlots = [];
 let guesses = [];                  /* 제출된 낱말 문자열 배열 */
+let startedAt = 0;                 /* 판을 연 시각 — 측정(duration_s)에만 쓴다 */
 let rows = [];                     /* 각 시도의 채점 결과 */
 let over = false, won = false, running = false;
 let shift = false, lastFocus = null, lastResult = null;
@@ -942,6 +949,7 @@ function hideOverlays(){
 /* ======================= 게임 흐름 ======================= */
 function resetCommon(){
   guesses = []; rows = [];
+  startedAt = Date.now();
   for (const k in keyState) delete keyState[k];
   clearComp();
   over = false; won = false; running = true;
@@ -958,6 +966,7 @@ function newFree(){
   hideOverlays();
   buildBoard(); drawBoard(); paintKeys();
   focusSafely(fallbackFocus());
+  ga('game_start', { game: GA_GAME });
 }
 /* ★준비 중에는 시작 창의 버튼 자체를 잠근다 — 잠금 대기 동안 다른 경로가 열리면
    뒤늦게 풀린 콜백이 화면을 갈아엎는 입력 경합이 생긴다(블록 낙하 R6 교훈). */
@@ -987,6 +996,7 @@ function newDaily(){
       refreshStart();
       hideOverlays();
       focusSafely(fallbackFocus());
+      ga('game_start', { game: GA_GAME });   /* ★판이 실제로 열린 뒤에만 센다 */
     } else {
       refreshStart();
       expireStale(rejectWhy);
@@ -1091,6 +1101,7 @@ function finish(){
     /* ★통계는 '오늘의 도전' 만 센다 — 자유 모드는 횟수 제한이 없어 승률이 뜻을 잃는다 */
     lastResult = { win: won, tries, no: null, streak: 0, answer };
     showResult();
+    ga('game_over', { game: GA_GAME, score: won ? 1 : 0, moves: tries, duration_s: Math.round((Date.now() - startedAt) / 1000), daily: false });
     return;
   }
   const day = chalDate || dayKey();
@@ -1105,6 +1116,9 @@ function finish(){
     commitStats(won, tries);
     lastResult = { win: won, tries, no: rec.no, streak: rec.streak, answer };
     showResult();
+    /* ★저장이 커밋된 뒤에만 센다 — 만료·거부로 끝난 판은 기록되지 않으므로 세지 않는다. */
+    ga('game_over', { game: GA_GAME, score: won ? 1 : 0, moves: tries, duration_s: Math.round((Date.now() - startedAt) / 1000), daily: true });
+    ga('daily_complete', { game: GA_GAME, streak: rec.streak });
   });
 }
 function showResult(){
@@ -1267,6 +1281,7 @@ $('btnLang').onclick = () => {
   if (over && staleExpired) renderStale();
   else if (over && lastResult) showResultText();
   drawBoard(); applyKbLabels(); paintKeys();
+  ga('lang_switch', { lang });
 };
 function showResultText(){
   const r = lastResult; if (!r) return;
