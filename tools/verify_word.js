@@ -24,7 +24,7 @@ const MUTATION = argOf('--mutate', null);
    검사를 통째로 끄는 대신 **여기 적힌 호스트만** 예외로 둔다. 목록 밖의 외부 요청은 여전히 0
    이어야 하고, fetch·XHR 은 예외 없이 0 이다. 목록은 이 한 곳에만 둔다 — 검사 안에 호스트를
    흩뿌리면 다음 사람이 조용히 늘려도 아무도 알아채지 못한다. */
-const ALLOWED_EXTERNAL_SCRIPT_HOSTS = ['pagead2.googlesyndication.com'];
+const ALLOWED_EXTERNAL_SCRIPT_HOSTS = ['pagead2.googlesyndication.com', 'www.googletagmanager.com'];
 
 /* --------------------------------------------------- 고의 결함(뮤테이션) */
 /* ★대상 파일의 줄바꿈을 실측해 쓴다 — CRLF 로 못박으면 LF 파일에서 앵커가 통째로 어긋나
@@ -307,6 +307,9 @@ const flush = async (n = 12) => { for (let i = 0; i < n; i++) await new Promise(
 /* ------------------------------------------------------------ 테스트 틀 */
 let pass = 0, fail = 0;
 const failures = [];
+/* 정적 마크업만 남긴다 — <script> 블록은 통째로 걷어낸다(선택자 문자열을 링크로 오인하지
+   않기 위해서다). 문서 어디에 스크립트가 들어오든 결과가 흔들리지 않는다. */
+function markupOf(html){ return html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ''); }
 function ok(name, cond, detail) {
   if (cond) { pass++; console.log('  PASS  ' + name); }
   else { fail++; failures.push(name); console.log(`  FAIL  ${name}${detail ? ' — ' + detail : ''}`); }
@@ -353,8 +356,11 @@ section('0. 정적 스캔 — 규약·금지선');
      '외부 요청 흔적: ' + strayRuntime.concat(strayHosts).join(', '));
   ok('ADSENSE 자리 3곳', (html.match(/ADSENSE \(/g) || []).length === 3,
      `${(html.match(/ADSENSE \(/g) || []).length}곳`);
-  /* 마크업 안의 링크만 센다 — 스크립트의 선택자 문자열까지 세면 3곳으로 보인다 */
-  const markup = html.slice(0, html.indexOf('<script>'));
+  /* 마크업 안의 링크만 센다 — 스크립트의 선택자 문자열까지 세면 3곳으로 보인다.
+     ★<script> 블록을 통째로 걷어내고 본다. 예전처럼 '첫 <script> 앞' 으로 자르면, <head> 에
+       인라인 스크립트가 하나만 들어와도(예: GA4 태그) 마크업이 머리말만 남아 본문 링크가
+       통째로 사라진다 — 페이지는 멀쩡한데 검사만 무너지는 가짜 FAIL 이 난다. */
+  const markup = markupOf(html);
   ok('🏠 다른 게임 링크 2곳', (markup.match(/data-i18n="home"/g) || []).length === 2,
      `${(markup.match(/data-i18n="home"/g) || []).length}곳`);
   ok('핀치줌을 막지 않는다',
@@ -373,7 +379,7 @@ section('0. 정적 스캔 — 규약·금지선');
   const HREF_B = 'https://www.korean.go.kr/front/etcData/etcDataView.do?etc_seq=60';
   const HREF_L = 'https://www.kogl.or.kr/info/license.do';
   const hasHref = (s, u) => s.indexOf('href="' + u + '"') >= 0;
-  const markupAll = html.slice(0, html.indexOf('<script>'));
+  const markupAll = markupOf(html);   /* 위와 같은 기준 — 스크립트를 걷어낸 정적 마크업 */
   const credZone = (() => {   /* 정적 마크업의 출처 표시 블록 */
     const i = markupAll.indexOf('data-i18n="dataCredit"');
     return i < 0 ? '' : markupAll.slice(i, markupAll.indexOf('</div>', i));
