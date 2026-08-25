@@ -26,6 +26,8 @@
 <!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
      광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){ dataLayer.push(arguments); }
@@ -107,6 +109,9 @@
   .card h2{margin:0 0 6px;font-size:1.5rem}
   .card .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1}
   .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  /* 공개 카운터 — 있는 듯 없는 듯 작게. 숫자를 못 받으면 줄째로 감춘다(hidden) */
+  .card .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .card .hp-stat b{font-weight:600}
   .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
   .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
   .btn.primary{background:var(--sig);color:var(--on-sig)}
@@ -183,6 +188,7 @@
     <button class="btn primary" id="btnDaily">오늘의 도전</button>
     <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
     <button class="btn ghost" id="btnStart" data-i18n="start">자유 플레이</button>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.block-puzzle.today">–</b>판 · 누적 <b data-hp="plays.block-puzzle.total">–</b>판</p>
   </div>
 </div>
 
@@ -263,6 +269,7 @@ const I18N = {
     navPrivacy:'개인정보처리방침', navAbout:'소개', home:'🏠 다른 게임',
     donate:'☕ 커피 한 잔 후원하기', donateTitle:'☕ 커피 한 잔', close:'닫기',
     donateHelp:'카카오톡 또는 카카오페이 앱 카메라로 스캔하세요 · 금액은 자유입니다.', donateLink:'💛 카카오페이로 후원하기', donateHint:'위 버튼을 누르면 카카오페이가 열립니다.',
+    statPlays:'오늘 <b data-hp="plays.block-puzzle.today">–</b>판 · 누적 <b data-hp="plays.block-puzzle.total">–</b>판',
     docTitle:'블록 퍼즐 — 심심할 때 한 판 | Block Puzzle', langBtn:'EN'
   },
   en: {
@@ -294,6 +301,7 @@ const I18N = {
     navPrivacy:'Privacy Policy', navAbout:'About', home:'🏠 More games',
     donate:'☕ Buy me a coffee', donateTitle:'☕ Buy me a coffee', close:'Close',
     donateHelp:'Scan with the KakaoTalk or KakaoPay app · any amount is welcome.', donateLink:'💛 Donate via KakaoPay', donateHint:'Tap the button above to open KakaoPay.',
+    statPlays:'<b data-hp="plays.block-puzzle.today">–</b> today · <b data-hp="plays.block-puzzle.total">–</b> all-time',
     docTitle:'Block Puzzle — a quick round | 블록 퍼즐', langBtn:'한국어'
   }
 };
@@ -307,6 +315,9 @@ function applyLang(){
   });
   document.getElementById('btnLang').textContent = T('langBtn');
   localStorage.setItem('bp.lang', lang);
+  /* 문안을 innerHTML 로 갈아 끼우면 채운 숫자가 지워진다 — 다시 채운다.
+     hp-stats.js 는 defer 라 없을 수도 있으므로 있는지 보고 부른다. */
+  if (window.hpStats) window.hpStats();
 }
 
 /* ======================= 상수·상태 ======================= */
@@ -466,6 +477,7 @@ function newGame(m = 'free'){
   $('subtitle').textContent = m === 'daily' ? T('daily', dailyNo()) : T('subtitle');
   draw();
   ga('game_start', { game: GA_GAME });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
 }
 function fmtTime(ms){ const s = Math.round(ms/1000); return s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`; }
 let lastDaily = null;   // 게임오버 카드에 표시 중인 일일 도전 기록
