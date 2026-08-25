@@ -36,6 +36,32 @@ const allowedFetchTarget = t => {
   return !!m && ALLOWED_SAME_ORIGIN_PATHS.some(pre => m[1].indexOf(pre) === 0);
 };
 
+/* fetch(HIT) 처럼 이름으로 넘긴 주소는 **같은 파일 안의 const 선언**에서 값을 찾아 푼다.
+   찾지 못하면 풀지 않은 채로 둔다 — 모르는 주소는 통과시키지 않는다. */
+function resolveFetchArg(arg, src){
+  const t = String(arg).trim();
+  if (/^['"]/.test(t)) return t;                       /* 이미 리터럴 */
+  if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(t)) return t; /* 식별자가 아니면 그대로(=불통과) */
+  /* 정규식을 **문자열**로 짓는다 — 문자열 안에서는 백슬래시를 한 번 더 써야 정규식까지 살아 남는다.
+     ('\s' 는 그냥 s 가 되어 아무것도 못 찾는다.) */
+  const re = new RegExp('(?:const|let|var)\\s+' + t + '\\s*=\\s*([\'"][^\'"]*[\'"])');
+  const m = re.exec(src);
+  return m ? m[1] : t;
+}
+
+/* 페이지가 끌어 쓰는 **이 저장소 안의** 스크립트도 같은 잣대로 본다. 인라인만 보면
+   fetch 를 외부 js 로 옮기는 것만으로 검사를 피할 수 있다(codex R1 advice). */
+function localScriptSources(html, htmlPath){
+  const out = [];
+  for (const m of html.replace(/<!--[\s\S]*?-->/g, '').matchAll(/<script[^>]+src=["'](\/[^"']+)["']/gi)){
+    const rel = m[1].split('?')[0].replace(/^\//, '');
+    const file = path.join(path.dirname(htmlPath), '..', rel);
+    try { out.push({ rel: m[1], code: fs.readFileSync(file, 'utf8') }); }
+    catch (e) { out.push({ rel: m[1], code: null }); }   /* 못 읽으면 그대로 알린다 */
+  }
+  return out;
+}
+
 /* --------------------------------------------------- 고의 결함(뮤테이션) */
 /* ★대상 파일의 줄바꿈을 실측해 쓴다 — CRLF 로 못박으면 LF 파일에서 앵커가 통째로 어긋나
    '주입 실패'가 무더기로 나고 검출력이 조용히 0 이 된다. */
@@ -359,10 +385,19 @@ section('0. 정적 스캔 — 규약·금지선');
   const strayHosts = [...new Set(extScriptHosts
     .filter(h => ALLOWED_EXTERNAL_SCRIPT_HOSTS.indexOf(h) < 0))];
   const strayRuntime = [];
-  /* fetch 는 '있다/없다' 가 아니라 **어디로 가는가** 로 본다 — 첫 인자를 꺼내 판정한다. */
-  for (const m of SRC.matchAll(/\bfetch\s*\(\s*([^,)]*)/g))
-    if (!allowedFetchTarget(m[1])) strayRuntime.push('fetch(' + String(m[1]).trim().slice(0, 40) + ')');
-  if (/XMLHttpRequest/.test(SRC)) strayRuntime.push('XMLHttpRequest');
+  /* 인라인 스크립트와, 페이지가 끌어 쓰는 이 저장소 안의 스크립트를 함께 본다. */
+  const scanned = [{ rel: '(인라인)', code: SRC }, ...localScriptSources(html, HTML)];
+  for (const { rel, code } of scanned){
+    if (code === null){ strayRuntime.push('읽지 못한 스크립트 ' + rel); continue; }
+    /* fetch 는 '있다/없다' 가 아니라 **어디로 가는가** 로 본다 — 첫 인자를 꺼내 판정한다.
+       이름으로 넘겼으면 같은 파일의 const 선언에서 값을 찾아 푼다. */
+    for (const m of code.matchAll(/\bfetch\s*\(\s*([^,)]*)/g)){
+      const target = resolveFetchArg(m[1], code);
+      if (!allowedFetchTarget(target))
+        strayRuntime.push(rel + ' fetch(' + String(m[1]).trim().slice(0, 40) + ')');
+    }
+    if (/XMLHttpRequest/.test(code)) strayRuntime.push(rel + ' XMLHttpRequest');
+  }
   ok('★런타임 외부 요청이 없다(fetch 는 동일 출처 /api/ 만 · XHR 0 · 허용 목록 밖 외부 script src 0)',
      strayRuntime.length === 0 && strayHosts.length === 0,
      '외부 요청 흔적: ' + strayRuntime.concat(strayHosts).join(', '));
