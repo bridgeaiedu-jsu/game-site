@@ -210,6 +210,10 @@
 <script>
 (() => {
 'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   어느 게임으로 들어갔는지만 센다. 태그가 아직 실리지 않았거나 차단됐으면 조용히 지나간다.
+   개인정보도, 광고 노출·클릭도 보내지 않는다. */
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
 /* ======================= i18n (block-puzzle 과 bp.lang 공유) ======================= */
 const I18N = {
   ko: {
@@ -343,6 +347,15 @@ fetch('/games.json', { cache:'no-cache' })
   .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
   .then(list => { if (Array.isArray(list) && list.length) { games = list; render(); } })
   .catch(() => { /* 폴백 배열로 이미 렌더돼 있음 — 화면은 그대로 동작한다 */ });
+
+/* 타일 클릭 — 목록은 games.json 으로 다시 그려지므로 타일마다 붙이지 않고 문서 한 곳에서
+   위임해 받는다. 게임 이름은 링크 주소에서 그대로 읽는다. */
+document.addEventListener('click', e => {
+  const a = e.target && e.target.closest && e.target.closest('a.card');
+  if (!a) return;
+  const m = (a.getAttribute('href') || '').match(/^\/([^\/]+)\//);
+  if (m) ga('game_open', { game: m[1] });
+});
 })();
 </script>
 
