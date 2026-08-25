@@ -26,6 +26,8 @@
 <!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
      광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){ dataLayer.push(arguments); }
@@ -122,6 +124,9 @@
   .card h2{margin:0 0 6px;font-size:1.5rem}
   .card .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1}
   .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  /* 공개 카운터 — 있는 듯 없는 듯 작게. 숫자를 못 받으면 줄째로 감춘다(hidden) */
+  .card .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .card .hp-stat b{font-weight:600}
   .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
   .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
   .btn.primary{background:var(--sig);color:var(--on-sig)}
@@ -220,6 +225,7 @@
     <button class="btn primary" id="btnDaily">오늘의 도전</button>
     <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
     <button class="btn ghost" id="btnStart" data-i18n="start">자유 플레이</button>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.block-drop.today">–</b>판 · 누적 <b data-hp="plays.block-drop.total">–</b>판</p>
   </div>
 </div>
 
@@ -302,6 +308,7 @@ const I18N = {
     faq3q:'오프라인에서도 되나요?', faq3a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
     footer:'© 2026 블록 낙하 · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
     navPrivacy:'개인정보처리방침', navAbout:'소개', home:'🏠 다른 게임',
+    statPlays:'오늘 <b data-hp="plays.block-drop.today">–</b>판 · 누적 <b data-hp="plays.block-drop.total">–</b>판',
     docTitle:'블록 낙하 — 떨어지는 블록 쌓기 퍼즐 | Block Drop', langBtn:'EN',
     /* 화면낭독기용 — 눈에 보이는 문구가 아니라 '읽어 주는' 문구다 */
     ariaBoard:'블록 낙하 게임판, 가로 10칸 세로 20칸',
@@ -359,6 +366,7 @@ const I18N = {
     faq3q:'Does it work offline?', faq3a:'Once loaded, you can keep playing without an internet connection.',
     footer:'© 2026 Block Drop · Privacy: scores are stored only on your device; third-party cookies (e.g. Google) may be used to serve ads.',
     navPrivacy:'Privacy Policy', navAbout:'About', home:'🏠 More games',
+    statPlays:'<b data-hp="plays.block-drop.today">–</b> today · <b data-hp="plays.block-drop.total">–</b> all-time',
     docTitle:'Block Drop — stack the falling blocks | 블록 낙하', langBtn:'한국어',
     ariaBoard:'Block Drop board, 10 columns by 20 rows',
     ariaSoundOn:'Turn sound off (currently on)', ariaSoundOff:'Turn sound on (currently off)',
@@ -389,6 +397,9 @@ function applyLang(){
   applyA11yLabels();
   updateSummary();
   localStorage.setItem('bp.lang', lang);
+  /* 문안을 innerHTML 로 갈아 끼우면 채운 숫자가 지워진다 — 다시 채운다.
+     hp-stats.js 는 defer 라 없을 수도 있으므로 있는지 보고 부른다. */
+  if (window.hpStats) window.hpStats();
 }
 /* 접근성 이름을 현재 언어로 맞춘다 — 소리 버튼은 켜짐/꺼짐 상태까지 이름과 aria-pressed 에 담는다.
    화면에 보이는 글자를 바꾸는 게 아니라 화면낭독기가 읽어 주는 이름을 바꾸는 것이다. */
@@ -1185,7 +1196,8 @@ function newGame(m = 'free'){
         refreshStart();                 /* '준비 중' 문구를 원래대로 돌려 둔다 */
         hideOverlays();
         focusSafely($('board'));
-        ga('game_start', { game: GA_GAME });   /* ★판이 실제로 열린 뒤에만 센다 */
+        ga('game_start', { game: GA_GAME });
+  if (window.hpHit) window.hpHit('play', GA_GAME);   /* ★판이 실제로 열린 뒤에만 센다 */
       } else {
         refreshStart();
         expireStale(rejectWhy);         /* 더 최신 도전이 있거나 같은 판이 다른 탭에 있다 */
@@ -1195,6 +1207,7 @@ function newGame(m = 'free'){
   }
   focusSafely($('board'));
   ga('game_start', { game: GA_GAME });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
 }
 /* ★'오늘의 도전' 진입점 — 자격 판정과 최초 저장을 ★같은 잠금 안에서 한다.
    잠금 밖에서 판정하면 판정과 첫 저장 사이에 다른 탭이 같은 판정을 내려 판이 둘 생긴다. */
