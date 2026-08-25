@@ -227,6 +227,11 @@
 <script>
 (() => {
 'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·점수 계산에는 관여하지 않는다. 태그가 아직 실리지 않았거나
+   차단됐으면 조용히 지나간다. 닉네임 같은 개인정보도, 광고 노출·클릭도 보내지 않는다. */
+const GA_GAME = 'block-puzzle';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
 /* ======================= i18n ======================= */
 const I18N = {
   ko: {
@@ -325,7 +330,7 @@ const SHAPES = [
 // 큰 블록 가중치 낮춤 → 체감 난이도 완만(한 판 1~3분 목표)
 const WEIGHTS = SHAPES.map(s => s.length >= 9 ? 0.45 : s.length === 5 ? 0.8 : 1);
 
-let grid, tray, score, best, lines, startTime, over, drag = null, combo = 0;
+let grid, tray, score, best, lines, moves, startTime, over, drag = null, combo = 0;
 best = +localStorage.getItem('bp.best') || 0;
 
 const $ = id => document.getElementById(id);
@@ -414,6 +419,7 @@ function anyFits(){
 function place(p, r, c){
   for (const [dr,dc] of p.shape) grid[r+dr][c+dc] = p.color;
   p.used = true;
+  moves++;                       /* 놓은 조각 수 — 측정용 계수일 뿐 판정에는 쓰지 않는다 */
   let gained = p.shape.length;
   // 줄 지우기
   const fullR = [], fullC = [];
@@ -455,10 +461,11 @@ function newGame(m = 'free'){
   mode = m;
   rng = m === 'daily' ? mulberry32(hashStr('hanpango-daily-' + dayKey())) : Math.random;
   grid = Array.from({length:N}, () => Array(N).fill(null));
-  score = 0; lines = 0; combo = 0; over = false; startTime = Date.now(); drag = null;
+  score = 0; lines = 0; moves = 0; combo = 0; over = false; startTime = Date.now(); drag = null;
   refillTray(); updateHud(); $('over').classList.remove('show'); $('start').classList.remove('show');
   $('subtitle').textContent = m === 'daily' ? T('daily', dailyNo()) : T('subtitle');
   draw();
+  ga('game_start', { game: GA_GAME });
 }
 function fmtTime(ms){ const s = Math.round(ms/1000); return s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`; }
 let lastDaily = null;   // 게임오버 카드에 표시 중인 일일 도전 기록
@@ -473,6 +480,8 @@ function endGame(){
   renderOver({ score, lines, time: fmtTime(Date.now()-startTime), isNew });
   beep(220, .25, 'sawtooth', .05); vib([60,40,60]);
   setTimeout(() => $('over').classList.add('show'), 350);
+  ga('game_over', { game: GA_GAME, score, moves, duration_s: Math.round((Date.now() - startTime) / 1000), daily: mode === 'daily' });
+  if (lastDaily) ga('daily_complete', { game: GA_GAME, streak: lastDaily.streak });
 }
 function renderOver(r){
   const d = lastDaily;
@@ -610,7 +619,7 @@ document.addEventListener('touchmove', e => { if (drag) e.preventDefault(); }, {
 $('btnStart').onclick = () => newGame('free');
 $('btnDaily').onclick = () => dailyDoneToday() ? showDailyResult() : newGame('daily');
 $('btnAgain').onclick = () => newGame('free');
-$('btnLang').onclick = () => { lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); refreshStart(); if (mode === 'daily' && !over) $('subtitle').textContent = T('daily', dailyNo()); if (over && lastDaily) renderOver({score:lastDaily.score, lines:lastDaily.lines, time:lastDaily.time, isNew:false}); else if (over) renderOver({score, lines, time: fmtTime(Date.now()-startTime), isNew:false}); };
+$('btnLang').onclick = () => { lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); refreshStart(); if (mode === 'daily' && !over) $('subtitle').textContent = T('daily', dailyNo()); if (over && lastDaily) renderOver({score:lastDaily.score, lines:lastDaily.lines, time:lastDaily.time, isNew:false}); else if (over) renderOver({score, lines, time: fmtTime(Date.now()-startTime), isNew:false}); ga('lang_switch', { lang }); };
 $('btnSound').onclick = () => { soundOn = !soundOn; localStorage.setItem('bp.sound', soundOn?'1':'0'); $('btnSound').textContent = soundOn ? '🔊' : '🔇'; if (soundOn) beep(600,.05,'sine',.04); };
 $('btnSound').textContent = soundOn ? '🔊' : '🔇';
 $('btnShare').onclick = async () => {
