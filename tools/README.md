@@ -76,6 +76,15 @@ python3 tools/run_mutations.py --html word/index.html --verifier <망가뜨린 �
 > 어느 줄이 최종 판정인지 고를 수 없으므로 파싱을 인정하지 않고 exit 2 로 떨어뜨린다.
 > 앞줄을 집으면 중간 집계를 최종 판정으로 오인해 FAIL 이 든 진짜 최종행을 지나친다.
 
+## counter/ — 공개 카운터(방문·판수) 단위 시험
+
+`functions/api/*` 는 D1 최소 stub 으로(쿼리 문자열·응답 코드), `js/hp-stats.js` 는 vm 위에서,
+페이지는 마크업·i18n·발화 짝·인라인 스크립트 문법으로 본다. 브라우저도 D1 도 필요 없다.
+
+```sh
+node tools/counter/test_functions.mjs . && node tools/counter/test_client.mjs . && node tools/counter/test_pages.mjs .
+```
+
 ---
 
 ## 기준 커밋 d460a92 에서의 실측 (2026-08-25)
