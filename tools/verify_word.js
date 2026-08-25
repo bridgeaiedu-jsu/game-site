@@ -20,6 +20,12 @@ const argOf = (n, d) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1]
 const HTML = argOf('--html', path.join(__dirname, '..', 'word', 'index.html'));
 const MUTATION = argOf('--mutate', null);
 
+/* 허용 목록 — 광고 스크립트는 제품 결정으로 들어온 외부 요청이다(d460a92 · 7개 페이지 전부).
+   검사를 통째로 끄는 대신 **여기 적힌 호스트만** 예외로 둔다. 목록 밖의 외부 요청은 여전히 0
+   이어야 하고, fetch·XHR 은 예외 없이 0 이다. 목록은 이 한 곳에만 둔다 — 검사 안에 호스트를
+   흩뿌리면 다음 사람이 조용히 늘려도 아무도 알아채지 못한다. */
+const ALLOWED_EXTERNAL_SCRIPT_HOSTS = ['pagead2.googlesyndication.com'];
+
 /* --------------------------------------------------- 고의 결함(뮤테이션) */
 /* ★대상 파일의 줄바꿈을 실측해 쓴다 — CRLF 로 못박으면 LF 파일에서 앵커가 통째로 어긋나
    '주입 실패'가 무더기로 나고 검출력이 조용히 0 이 된다. */
@@ -332,10 +338,19 @@ section('0. 정적 스캔 — 규약·금지선');
   const keys = [...SRC.matchAll(/localStorage\.(?:getItem|setItem|removeItem)\('([^']+)'/g)].map(m => m[1]);
   eq('★저장 키는 정확히 wd 4개 + bp.lang', [...new Set(keys)].sort(),
      ['bp.lang', 'wd.daily', 'wd.sound', 'wd.stats', 'wd.streak']);
-  ok('★런타임 외부 요청이 없다(fetch·XHR·외부 script src)',
-     !/\bfetch\s*\(/.test(SRC) && !/XMLHttpRequest/.test(SRC) &&
-     !/<script[^>]+src=["']https?:/i.test(html.replace(/<!--[\s\S]*?-->/g, '')),
-     '외부 요청 흔적');
+  /* 주석 안 자리표시자는 요청을 내지 않으므로 걷어내고 본다. 그리고 **호스트**로 판정한다 —
+     질의 문자열(client=…)이 바뀌었다고 통과·불통과가 흔들리면 안 된다. */
+  const extScriptHosts = [...html.replace(/<!--[\s\S]*?-->/g, '')
+    .matchAll(/<script[^>]+src=["'](https?:\/\/[^"']+)["']/gi)]
+    .map(m => { try { return new URL(m[1]).hostname; } catch (e) { return m[1]; } });
+  const strayHosts = [...new Set(extScriptHosts
+    .filter(h => ALLOWED_EXTERNAL_SCRIPT_HOSTS.indexOf(h) < 0))];
+  const strayRuntime = [];
+  if (/\bfetch\s*\(/.test(SRC)) strayRuntime.push('fetch(');
+  if (/XMLHttpRequest/.test(SRC)) strayRuntime.push('XMLHttpRequest');
+  ok('★런타임 외부 요청이 없다(fetch·XHR·허용 목록 밖 외부 script src)',
+     strayRuntime.length === 0 && strayHosts.length === 0,
+     '외부 요청 흔적: ' + strayRuntime.concat(strayHosts).join(', '));
   ok('ADSENSE 자리 3곳', (html.match(/ADSENSE \(/g) || []).length === 3,
      `${(html.match(/ADSENSE \(/g) || []).length}곳`);
   /* 마크업 안의 링크만 센다 — 스크립트의 선택자 문자열까지 세면 3곳으로 보인다 */

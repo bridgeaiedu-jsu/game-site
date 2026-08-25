@@ -84,25 +84,14 @@ python3 tools/run_mutations.py --html word/index.html --verifier <망가뜨린 �
 |---|---|---|---|
 | check_rainbow.py | `python3 tools/check_rainbow.py .` | 판정 검사 232건 · 미달 0 (참고 측정 170건은 판정 제외) | 0 |
 | verify_puzzle_tray.js | `node tools/verify_puzzle_tray.js --html block-puzzle/index.html` | PASS 3 · FAIL 0 (트레이 5000벌) | 0 |
-| verify_word.js | `node tools/verify_word.js --html word/index.html` | PASS 163 · **FAIL 1** | 1 |
-| run_mutations.py | `python3 tools/run_mutations.py --html word/index.html` | 탐지 17/17 · 엉뚱탐지 0 · 미탐지 0 · 예외중단 0 · 주입실패 0 / **원본 정상=False** | 2 |
+| verify_word.js | `node tools/verify_word.js --html word/index.html` | PASS 164 · FAIL 0 | 0 |
+| run_mutations.py | `python3 tools/run_mutations.py --html word/index.html` | 원본 정상=True · 탐지 17/17 · 엉뚱탐지 0 · 미탐지 0 · 예외중단 0 · 주입실패 0 | 0 |
 
 검출력(고의 결함이 정말 잡히는가)도 같은 커밋에서 확인했다 — 둘 다 exit 1 로 잡아냈다:
 `check_rainbow.py --inject 2048/index.html:--r3-edge=#fef08a` → 미달 3건,
 `verify_puzzle_tray.js --mutate no-dedup` → PASS 2 · FAIL 1.
 어느 실행도 대상 파일을 바꾸지 않았다(실행 후 작업 트리 무변경 확인).
 
-### 남아 있는 FAIL 1건 — 광고 스크립트와 '외부 요청 없음' 규약의 충돌
-
-`verify_word.js` 의 `★런타임 외부 요청이 없다(fetch·XHR·외부 script src)` 검사가 FAIL 이다.
-페이지가 망가진 것이 아니라, **검사가 규약으로 삼은 전제가 제품 결정으로 바뀌었다.**
-
-- `04e8ce3` 시점에는 애드센스 스크립트가 **HTML 주석 안**에 자리표시자로만 있었고,
-  검사기는 주석을 걷어낸 뒤 보므로 통과했다.
-- `d460a92` 가 그 자리표시자를 **살아 있는 외부 스크립트**로 바꿨다(7개 페이지 전부):
-  `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=…">`
-- `fetch(` · `XMLHttpRequest` 는 여전히 0건이다. 걸린 것은 외부 `script src` 하나뿐이다.
-
-이 FAIL 때문에 `run_mutations.py` 도 '원본 정상' 게이트에서 exit 2 가 된다(검출력 자체는
-17/17 로 멀쩡하다 — 게이트만 닫힌 것이다). **검사 문구를 고칠지, 광고를 예외로 둘지는
-제품 규약의 문제라 도구 이관 범위에서 손대지 않았다.** 판단이 서면 그때 한 줄로 좁혀 고친다.
+외부 요청 검사는 `verify_word.js` 상단의 `ALLOWED_EXTERNAL_SCRIPT_HOSTS`(현재 애드센스
+호스트 하나)만 예외로 두고, 그 목록 밖의 외부 `script src` 와 `fetch`·`XHR` 은 0 을 요구한다 —
+호스트를 늘리려면 그 한 곳을 고쳐야 하므로 늘어난 사실이 디프에 남는다.
