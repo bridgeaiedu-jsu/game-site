@@ -4,11 +4,13 @@
  * ★캐시 버전: 파일을 추가/변경하면 CACHE 문자열을 올려라(구버전은 activate 에서 삭제된다).
  *   DEPLOY.md '게임 추가 절차' 체크리스트 참조.
  */
-const CACHE = 'hanpango-v19';
+const CACHE = 'hanpango-v20';
 
 /* 사이트 총량 ~100KB(정적) — 전량 프리캐시한다.
- * 디렉터리 형태(/block-puzzle/)와 파일 형태(/block-puzzle/index.html)를 둘 다 넣는 것은
- * 의도적이다: 사용자는 전자로, sitemap·직접 링크는 후자로 들어올 수 있다. */
+ * ★디렉터리 형태(/block-puzzle/)만 넣는다 — 파일 형태(/block-puzzle/index.html)는 넣지 않는다.
+ * Cloudflare Pages 가 그 주소를 308(리다이렉트)로 되돌려 주기 때문에, 한 줄만 넣어도
+ * cache.addAll 이 통째로 reject 되어 프리캐시가 전부 실패한다(2026-08-26 실측).
+ * 사용자·sitemap·직접 링크는 모두 디렉터리 형태로 들어오므로 이것으로 충분하다. */
 const PRECACHE = [
   '/',
   '/games.json',
@@ -21,6 +23,8 @@ const PRECACHE = [
   '/block-drop/thumb.webp',
   '/word/',
   '/word/thumb.webp',
+  '/shooting/',
+  '/shooting/thumb.webp',
   '/privacy/',
   '/about/',
   '/icon.svg',

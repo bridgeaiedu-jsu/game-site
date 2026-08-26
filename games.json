@@ -97,5 +97,30 @@
       "korean",
       "daily"
     ]
+  },
+  {
+    "id": "shooting",
+    "path": "/shooting/",
+    "title": {
+      "ko": "슛팅",
+      "en": "Shooting"
+    },
+    "desc": {
+      "ko": "한 손가락으로 움직이고 자동 발사 — 90초 동안 도형을 부수며 콤보를 쌓는 스트레스 해소 슈팅",
+      "en": "One-finger move, auto-fire — smash shapes and chain combos in 90 seconds"
+    },
+    "thumb": "/shooting/thumb.webp",
+    "playtime": {
+      "ko": "한 판 90초",
+      "en": "90 s a round"
+    },
+    "daily": true,
+    "released": "2026-08-26",
+    "tags": [
+      "arcade",
+      "shooter",
+      "casual",
+      "daily"
+    ]
   }
 ]

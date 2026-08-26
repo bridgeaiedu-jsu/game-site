@@ -187,6 +187,12 @@
           <span class="body"><h2>오늘의 낱말 / Daily Word</h2>
             <p>두 글자 낱말을 자음·모음 여섯 칸으로 맞히는 한글 퍼즐<br>Guess a two-syllable Korean word from its letters in six tries</p></span>
         </a></li>
+        <li><a class="card" href="/shooting/">
+          <span class="thumb"><img src="/shooting/thumb.webp" alt="슛팅 / Shooting" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 90초 / 90 s a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>슛팅 / Shooting</h2>
+            <p>한 손가락으로 움직이고 자동 발사 — 90초 동안 도형을 부수며 콤보를 쌓는 스트레스 해소 슈팅<br>One-finger move, auto-fire — smash shapes and chain combos in 90 seconds</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -285,6 +291,13 @@ const FALLBACK = [{
   thumb:'/word/thumb.webp',
   playtime:{ko:'한 판 2~5분',en:'2–5 min a round'},
   daily:true, released:'2026-08-23', tags:['puzzle','word','korean','daily']
+},{
+  id:'shooting', path:'/shooting/',
+  title:{ko:'슛팅',en:'Shooting'},
+  desc:{ko:'한 손가락으로 움직이고 자동 발사 — 90초 동안 도형을 부수며 콤보를 쌓는 스트레스 해소 슈팅',en:'One-finger move, auto-fire — smash shapes and chain combos in 90 seconds'},
+  thumb:'/shooting/thumb.webp',
+  playtime:{ko:'한 판 90초',en:'90 s a round'},
+  daily:true, released:'2026-08-26', tags:['arcade','shooter','casual','daily']
 }];
 
 let games = FALLBACK;
