@@ -7,6 +7,7 @@
  * 사용법: node tools/counter/test_functions.mjs [저장소 경로]
  * 종료코드: 0 = 전부 PASS · 1 = FAIL 있음
  */
+import fs from 'fs';
 import { pathToFileURL } from 'url';
 import path from 'path';
 
@@ -20,6 +21,27 @@ const { onRequest: stats } = await load('functions/api/stats.js');
 let pass = 0, fail = 0;
 const ok = (n, c, d) => { if (c){ pass++; console.log('  PASS  ' + n); }
                           else { fail++; console.log('  FAIL  ' + n + (d ? ' — ' + d : '')); } };
+
+/* ★게임 목록의 단일 출처는 루트 `games.json` 이다. 런타임은 `functions/_games.js` 를 보므로,
+   둘이 어긋나지 않는지부터 확인한다 — 어긋난 채로 아래를 계속 재면 무엇을 재고 있는지 모른다. */
+const IDS = JSON.parse(fs.readFileSync(path.resolve(ROOT, 'games.json'), 'utf8')).map(g => g.id);
+const { GAMES } = await load('functions/_games.js');
+const src = f => fs.readFileSync(path.resolve(ROOT, f), 'utf8');
+/* 목록에 **없는** 이름 — 화이트리스트가 거르는지 볼 때 쓴다. 목록에서 골라 내므로,
+   언젠가 그 이름이 진짜 게임이 되어도 시험이 저절로 다른 이름으로 옮겨 간다. */
+const OUTSIDER = ['chess', 'not-a-game'].find(n => IDS.indexOf(n) < 0);
+
+console.log('== 게임 목록 단일 출처 ==');
+ok('games.json 에서 id 를 읽었다 (' + IDS.length + '개)',
+   IDS.length > 0 && IDS.every(x => typeof x === 'string' && x), JSON.stringify(IDS));
+ok('games.json 의 id 에 중복이 없다', new Set(IDS).size === IDS.length, IDS.join(','));
+ok('functions/_games.js 의 GAMES 가 games.json 의 id 배열과 순서까지 같다',
+   Array.isArray(GAMES) && GAMES.length === IDS.length && GAMES.every((g, i) => g === IDS[i]),
+   '_games.js=[' + GAMES + '] · games.json=[' + IDS + ']');
+for (const t of ['functions/api/hit.js', 'functions/api/stats.js'])
+  ok(t + ' 는 목록을 스스로 들고 있지 않다',
+     /import\s*\{[^}]*\bGAMES\b[^}]*\}\s*from\s*'\.\.\/_games\.js'/.test(src(t))
+     && !/const\s+GAMES\s*=\s*\[/.test(src(t)), t);
 
 /* 최소 D1 stub — 던진 SQL 과 바인딩을 기록만 한다. */
 function makeDB(rows = [], opts = {}){
@@ -48,24 +70,19 @@ console.log('== hit.js ==');
      JSON.stringify(up && up.bind));
   ok('day 는 YYYY-MM-DD 꼴이다', !!up && /^\d{4}-\d{2}-\d{2}$/.test(up.bind[0]), up && up.bind[0]);
 }
-{
+/* games.json 에 있는 게임이 하나도 빠짐없이 같은 관문을 지나는지 본다 — 화이트리스트에
+   넣는 것을 잊으면 그 게임의 판수가 조용히 400 으로 버려진다(게임은 멀쩡히 돌아가므로
+   눈으로는 안 잡힌다). 목록을 여기 옮겨 적지 않고 games.json 에서 받아 돈다. */
+for (const g of IDS){
   const db = makeDB();
-  const r = await hit({ request: req('POST', JSON.stringify({ type: 'play', game: '2048' })), env: { DB: db } });
+  const r = await hit({ request: req('POST', JSON.stringify({ type: 'play', game: g })), env: { DB: db } });
   const up = db.log.find(q => q.sql.indexOf('INSERT INTO hits') === 0);
-  ok('play + 화이트리스트 게임 → 204', r.status === 204 && up.bind[2] === '2048', String(r.status));
-}
-{
-  /* 새로 들어온 게임도 같은 관문을 지나는지 본다 — 화이트리스트에 넣는 것을 잊으면
-     판수가 조용히 400 으로 버려진다(게임은 멀쩡히 돌아가므로 눈으로는 안 잡힌다). */
-  const db = makeDB();
-  const r = await hit({ request: req('POST', JSON.stringify({ type: 'play', game: 'shooting' })), env: { DB: db } });
-  const up = db.log.find(q => q.sql.indexOf('INSERT INTO hits') === 0);
-  ok('play + shooting → 204', r.status === 204 && !!up && up.bind[2] === 'shooting',
+  ok('play + ' + g + ' → 204', r.status === 204 && !!up && up.bind[2] === g,
      String(r.status) + ' · ' + JSON.stringify(up && up.bind));
 }
 for (const [name, body, want] of [
   ['play 인데 game 없음', JSON.stringify({ type: 'play' }), 400],
-  ['목록에 없는 game',    JSON.stringify({ type: 'play', game: 'chess' }), 400],
+  ['목록에 없는 game (' + OUTSIDER + ')', JSON.stringify({ type: 'play', game: OUTSIDER }), 400],
   ['모르는 type',         JSON.stringify({ type: 'ad_click' }), 400],
   ['JSON 이 아님',        '{{{', 400],
   ['본문 256B 초과',      JSON.stringify({ type: 'visit', pad: 'x'.repeat(300) }), 413],
@@ -114,11 +131,13 @@ for (const [name, body, want] of [
 
 console.log('\n== stats.js ==');
 {
+  /* 표에는 목록의 첫 게임과 '표에 낀 모르는 게임' 이 함께 있다고 두고, 응답이 목록대로만
+     나오는지 본다. 게임 이름은 games.json 에서 받아 쓴다. */
+  const G0 = IDS[0];
   const rows = [
-    { kind: 'visit', game: '',      total: 30, today: 4 },
-    { kind: 'play',  game: '2048',  total: 12, today: 3 },
-    { kind: 'play',  game: 'word',  total:  7, today: 0 },
-    { kind: 'play',  game: 'chess', total: 99, today: 9 },   /* 표에 낀 모르는 게임 */
+    { kind: 'visit', game: '',       total: 30, today: 4 },
+    { kind: 'play',  game: G0,       total: 12, today: 3 },
+    { kind: 'play',  game: OUTSIDER, total: 99, today: 9 },   /* 표에 낀 모르는 게임 */
   ];
   const db = makeDB(rows);
   const r = await stats({ request: new Request('https://hanpango.com/api/stats'), env: { DB: db } });
@@ -133,15 +152,19 @@ console.log('\n== stats.js ==');
          && q.sql.includes('GROUP BY kind, game'), q && q.sql);
   const j = await r.json();
   ok('visits 집계', j.visits.today === 4 && j.visits.total === 30, JSON.stringify(j.visits));
-  ok('plays 집계', j.plays['2048'].today === 3 && j.plays['2048'].total === 12, JSON.stringify(j.plays['2048']));
+  ok('plays 집계 (' + G0 + ')', j.plays[G0].today === 3 && j.plays[G0].total === 12, JSON.stringify(j.plays[G0]));
   ok('기록 없는 게임도 0 으로 칸이 있다',
-     j.plays['block-drop'].today === 0 && j.plays['block-puzzle'].total === 0, JSON.stringify(j.plays));
-  ok('목록에 없는 게임은 응답에 넣지 않는다', !('chess' in j.plays), JSON.stringify(Object.keys(j.plays)));
+     IDS.slice(1).every(g => j.plays[g] && j.plays[g].today === 0 && j.plays[g].total === 0),
+     JSON.stringify(j.plays));
+  ok('목록에 없는 게임(' + OUTSIDER + ')은 응답에 넣지 않는다',
+     !(OUTSIDER in j.plays), JSON.stringify(Object.keys(j.plays)));
   /* ★hit.js 화이트리스트만 고치고 stats.js 를 잊으면 판수는 쌓이는데 화면에 칸이 없어
-     시작 카드의 판수 줄이 영영 hidden 으로 남는다(조용한 고장) — 칸의 존재를 못박는다. */
-  ok('shooting 칸이 응답에 있다(기록 0 이어도)',
-     !!j.plays.shooting && j.plays.shooting.today === 0 && j.plays.shooting.total === 0,
-     JSON.stringify(j.plays.shooting));
+     시작 카드의 판수 줄이 영영 hidden 으로 남는다(조용한 고장) — games.json 의 게임이
+     하나도 빠짐없이 칸을 갖는지 못박는다. 견주는 것은 '집합' 이다: '2048' 같은 정수꼴
+     이름은 자바스크립트가 객체 키 순서를 앞으로 당기므로 순서로는 견줄 수 없다. */
+  const slots = Object.keys(j.plays);
+  ok('games.json 의 게임 ' + IDS.length + '개가 빠짐없이 칸을 갖는다(기록 0 이어도)',
+     slots.length === IDS.length && IDS.every(g => slots.indexOf(g) >= 0), JSON.stringify(slots));
   ok('day 는 YYYY-MM-DD 꼴이다', /^\d{4}-\d{2}-\d{2}$/.test(j.day), j.day);
 }
 {

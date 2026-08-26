@@ -7,7 +7,10 @@
  * CORS 헤더는 두지 않는다 — 이 사이트 자신만 읽으면 되므로 동일 출처로 충분하다.
  */
 
-const GAMES = ['block-puzzle', '2048', 'block-drop', 'word', 'shooting'];
+/* 게임 목록은 여기서 갖지 않는다 — `functions/_games.js` 하나가 런타임 출처다.
+   (예전에는 hit.js·stats.js 가 각자 목록을 들고 있어, 새 게임을 한쪽에만 적으면
+    그 게임의 기록이 조용히 사라졌다.) */
+import { GAMES } from '../_games.js';
 
 let tableReady = false;
 async function ensureTable(db){

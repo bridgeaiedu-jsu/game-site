@@ -12,13 +12,28 @@ import path from 'path';
 import vm from 'vm';
 
 const ROOT = process.argv[2] || '.';
-const GAMES = ['block-puzzle', '2048', 'block-drop', 'word', 'shooting'];
-const PAGES = ['index.html', ...GAMES.map(g => g + '/index.html'), 'about/index.html', 'privacy/index.html'];
+/* 게임 목록은 루트 games.json 에서 받아 온다. 여기에 옮겨 적으면 새 게임을 더할 때 이
+   파일을 잊기 쉽고, 그러면 검사는 통과하는데 정작 새 게임은 한 줄도 안 본 채 지나간다
+   (「슛팅」 때 실제로 밟은 함정이다). */
+const GAMES = JSON.parse(fs.readFileSync(path.resolve(ROOT, 'games.json'), 'utf8')).map(g => g.id);
 const read = f => fs.readFileSync(path.resolve(ROOT, f), 'utf8');
 
 let pass = 0, fail = 0;
 const ok = (n, c, d) => { if (c){ pass++; console.log('  PASS  ' + n); }
                           else { fail++; console.log('  FAIL  ' + n + (d ? ' — ' + d : '')); } };
+
+console.log('== 게임 목록 (games.json 에서 파생) ==');
+/* 목록이 비면 아래 게임별 검사가 한 번도 안 돌고 그대로 PASS 로 끝난다 — 목록이
+   실제로 채워졌음을 먼저 못박는다. */
+ok('games.json 에서 게임 ' + GAMES.length + '개를 읽었다',
+   GAMES.length > 0 && GAMES.every(g => typeof g === 'string' && g), JSON.stringify(GAMES));
+/* 목록에 있는데 페이지가 없으면 그것은 검사기 고장이 아니라 사이트 결함이다 — 포털 타일이
+   404 로 간다. 읽다가 터지게 두면 종료코드가 '판정 실패' 와 '검사기 오류' 를 뭉개므로,
+   FAIL 로 세우고 그 게임의 나머지 검사는 건너뛴다. */
+const MISSING = GAMES.filter(g => !fs.existsSync(path.resolve(ROOT, g + '/index.html')));
+ok('목록의 게임에 모두 페이지가 있다', MISSING.length === 0, '페이지 없음: ' + MISSING.join(', '));
+const PLAYABLE = GAMES.filter(g => MISSING.indexOf(g) < 0);
+const PAGES = ['index.html', ...PLAYABLE.map(g => g + '/index.html'), 'about/index.html', 'privacy/index.html'];
 
 console.log('== 포털 (index.html) ==');
 {
@@ -58,7 +73,7 @@ console.log('== 포털 (index.html) ==');
      /if \(window\.hpStats\) window\.hpStats\(\)/.test(html) && /if \(window\.hpHit\) window\.hpHit\('visit'\)/.test(html));
 }
 
-for (const KEY of GAMES){
+for (const KEY of PLAYABLE){
   console.log('\n== ' + KEY + ' ==');
   const html = read(KEY + '/index.html');
   ok('hp-stats.js 를 defer 로 싣는다', /<script src="\/js\/hp-stats\.js" defer><\/script>/.test(html));
@@ -86,7 +101,7 @@ console.log('\n== hidden 가드 (숨긴 줄이 정말 숨는가) ==');
   /* 'hidden' 은 브라우저 기본값 [hidden]{display:none} 으로만 걸려 있다 — 선택자가 조금이라도
      더 센 규칙이 display 를 선언하면 그 기본값을 덮어, 숫자를 못 받은 줄이 그대로 보인다.
      그래서 display 를 선언한 페이지에는 반드시 [hidden] 가드가 함께 있어야 한다. */
-  for (const p of ['index.html', ...GAMES.map(g => g + '/index.html')]){
+  for (const p of ['index.html', ...PLAYABLE.map(g => g + '/index.html')]){
     const html = read(p);
     const withoutGuard = html.replace(/\.hp-stat\[hidden\][^{}]*{[^{}]*}/g, '');
     const declaresDisplay = /\.hp-stat[^{}]*{[^{}]*display[^{}]*}/.test(withoutGuard);

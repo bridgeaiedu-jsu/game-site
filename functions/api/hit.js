@@ -8,7 +8,10 @@
  * 남용 방어는 Cloudflare Rate Limiting 이 맡는다(/api/hit · IP당 10초 30건).
  */
 
-const GAMES = ['block-puzzle', '2048', 'block-drop', 'word', 'shooting'];
+/* 게임 목록은 여기서 갖지 않는다 — `functions/_games.js` 하나가 런타임 출처다.
+   (예전에는 hit.js·stats.js 가 각자 목록을 들고 있어, 새 게임을 한쪽에만 적으면
+    그 게임의 기록이 조용히 사라졌다.) */
+import { GAMES } from '../_games.js';
 const HOST = 'hanpango.com';
 const MAX_BODY = 256;               /* 본문은 짧은 JSON 하나면 충분하다 — 바이트 기준 */
 
