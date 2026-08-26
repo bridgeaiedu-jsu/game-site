@@ -8,9 +8,13 @@
  * `games.json` 의 id 배열이 순서까지 같은지 검사해, 다르면 FAIL 한다. 게임을 더할 때
  * 손으로 적는 곳은 games.json 과 이 파일 둘뿐이고, 하나를 잊으면 시험에서 걸린다.
  *
- * 파일 이름이 `_` 로 시작하는 것은 Pages 가 이것을 라우트가 아닌 보조 모듈로 두게 하려는
- * 것이다(`_middleware.js` 와 같은 자리). 배포 후 `/api/hit`·`/api/stats` 가 평소대로
- * 응답하는지 한 번 확인할 것.
+ * ★이 파일이 라우트로 생기지 않는 이유는 **파일 이름이 아니라 `onRequest` 계열 export 가
+ * 없기 때문**이다. Pages 의 라우트 생성기는 `onRequest*` 를 내보내는 모듈만 라우트 표에
+ * 넣는다(workers-sdk `packages/pages-functions/src/routing/filepath-routing.ts`).
+ * 앞의 `_` 는 '라우트가 아닌 보조 파일' 이라는 **명명 관례**일 뿐, 그 자체가 막아 주지 않는다.
+ * 그러니 이 파일에 `onRequest` 를 붙이지 마라 — 붙이는 순간 `/_games` 가 진짜 라우트가 된다.
+ * 라우트가 아니어도 hit.js·stats.js 가 이 파일을 import 하므로 그 의존성을 따라 함께
+ * 번들된다(Pages 는 핸들러와 가져온 모듈을 하나의 ES module Worker 로 묶는다).
  */
 
 export const GAMES = ['block-puzzle', '2048', 'block-drop', 'word', 'shooting'];
