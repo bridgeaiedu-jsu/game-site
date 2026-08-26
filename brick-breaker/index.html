@@ -1194,9 +1194,14 @@ window.addEventListener('orientationchange', () => setTimeout(resize, 150));
 if ($('start').classList.contains('show')) show('start');
 rafId = requestAnimationFrame(loop);
 
-/* ======================= 검증 훅 ======================= */
-/* 게임 로직에 영향을 주지 않는 읽기·주입 창구다. 점수는 기기에만 저장되고 순위표가 없으므로
-   외부에 영향이 없다(다른 게임의 __sh·__bd·__g2048 과 같은 취지). */
+/* ======================= 검증 창구(관측 전용) ======================= */
+/* ★배포되는 이 창구에는 **읽기만 하는 getter** 만 둔다. 판을 시작하거나 시간을 진행시키거나
+   공·아이템을 만드는 **상태 변경 명령은 여기에 두지 않는다** — 그런 것이 전역에 열려 있으면
+   콘솔이나 외부 스크립트가 관측을 넘어 제품 상태를 바꾸고, `newGame` 같은 것은 GA game_start·
+   공개 카운터 전송·일일 결과 저장까지 실제로 일으킨다(codex R1 S1).
+   검증에 필요한 변경 명령은 연기시험 하네스가 **메모리 위에서만** 이 파일 뒤에 덧붙인다
+   (`evidence-brick/smoke_brick.mjs` 의 test bridge — 배포 파일에는 그 코드가 한 줄도 없다).
+   반환값은 전부 사본이다 — 받은 쪽에서 고쳐도 게임 안쪽이 바뀌지 않는다. */
 window.__bb = {
   const: () => ({ VW, VH, LIVES, STAGES, COMBO_MS, PAD_W, PAD_W_WIDE, PAD_H, PAD_Y,
                   BALL_R, BALL_V0, BALL_V_STEP, SLOW_MUL, MIN_VY_RATIO,
@@ -1214,18 +1219,9 @@ window.__bb = {
                   items: items.filter(i => i.on).length,
                   parts: parts.filter(p => p.on).length }),
   daily: () => ({ done: dailyDoneToday(), rec: dailyRec(), no: dailyNo(), streak: streakNow() }),
-  newGame: (m) => { startRun(m); return true; },
-  startDaily: () => { startDaily(); return true; },
-  /* 실시간을 기다리지 않고 논리만 고정 폭으로 진행시킨다 — 스테이지·아이템 만료 검증용 */
-  tickMs: (ms, dtMs) => { const d = (dtMs || 16) / 1000; let n = Math.round(ms / (dtMs || 16));
-                          while (n-- > 0 && running && !over) step(d); return true; },
-  /* 패들을 특정 자리로 옮긴다 — 손가락 드래그와 같은 경로(목표 좌표를 준다). */
-  moveTo: (x) => { const h = padW/2; padTargetX = Math.max(h, Math.min(VW-h, x)); padX = padTargetX; return padX; },
-  launch: () => launchBall(),
-  /* ★'같은 날짜 = 같은 판' 을 기계가 대조하게 하는 창구.
-     원시 난수열(seedDraws)이 아니라 **실제로 놓인 벽돌의 자리·내구도·색·품은 아이템** 을 준다 —
-     원시 난수열 비교는 연출이 같은 생성기를 몰래 소비해도 통과해 버린다. */
-  recordLevel: (on) => { levelLog = on ? (levelLog || []) : null; return !!levelLog; },
+  /* ★'같은 날짜 = 같은 판' 을 기계가 대조하게 하는 창구. 원시 난수열(seedDraws)이 아니라
+     **실제로 놓인 벽돌의 자리·내구도·색·품은 아이템** 을 준다 — 원시 난수열 비교는 연출이
+     같은 생성기를 몰래 소비해도 통과해 버린다. 기록을 켜는 것은 변경이므로 bridge 쪽에 있다. */
   levelLogMax: () => LEVEL_LOG_MAX,
   level: () => (levelLog ? levelLog.map(o => ({ ...o })) : null),
   levelTranscript: () => (levelLog
@@ -1234,19 +1230,6 @@ window.__bb = {
   brickList: () => bricks.filter(b => b.on).map(b => ({ x:b.x, y:b.y, hp:b.hp, hpMax:b.hpMax, ci:b.ci, drop:b.drop })),
   ballList: () => balls.filter(b => b.on).map(b => ({ x:b.x, y:b.y, vx:b.vx, vy:b.vy, stuck:b.stuck })),
   itemList: () => items.filter(i => i.on).map(i => ({ x:i.x, y:i.y, kind:i.kind })),
-  /* 공을 원하는 자리·속도로 놓는다(수평 고착 방지 검사용 — 게임이 쓰는 것과 같은 배열이다) */
-  setBall: (i, o) => { const b = balls[i]; if (!b) return false;
-                       b.on = true; b.stuck = false;
-                       if (o.x !== undefined) b.x = o.x; if (o.y !== undefined) b.y = o.y;
-                       if (o.vx !== undefined) b.vx = o.vx; if (o.vy !== undefined) b.vy = o.vy;
-                       for (let k = 0; k < balls.length; k++) if (k !== i) balls[k].on = false;
-                       return true; },
-  dropItem: (kind, x, y) => dropItem(kind, x, y),
-  applyItem: (kind) => { applyItem(kind); return true; },
-  burstAt: (x, y, n) => { burst(x, y, C.fill[0], n, 120); return parts.filter(p => p.on).length; },
-  clearBricks: () => { for (const b of bricks) b.on = false; return true; },
-  frenzy: () => { triggerFrenzy(); return true; },
-  end: () => { endRun(); return true; },
   shown: (id) => $(id).classList.contains('show'),
   reduceMotion: () => reduceMotion(),
   sound: () => soundOn,
