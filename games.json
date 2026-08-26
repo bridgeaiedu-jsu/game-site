@@ -122,5 +122,29 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "brick-breaker",
+    "path": "/brick-breaker/",
+    "title": {
+      "ko": "벽돌깨기",
+      "en": "Brick Breaker"
+    },
+    "desc": {
+      "ko": "한 손가락으로 패들을 움직여 공을 튕기고 벽돌을 부수는 아케이드 — 콤보를 채우면 관통·분열 폭발",
+      "en": "Slide the paddle with one finger, bounce the ball, smash bricks — fill the combo for a piercing multi-ball burst"
+    },
+    "thumb": "/brick-breaker/thumb.webp",
+    "playtime": {
+      "ko": "한 판 2~5분",
+      "en": "2–5 min a round"
+    },
+    "daily": true,
+    "released": "2026-08-26",
+    "tags": [
+      "arcade",
+      "casual",
+      "daily"
+    ]
   }
 ]
