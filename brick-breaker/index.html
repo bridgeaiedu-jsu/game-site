@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>벽돌깨기 — 한 손가락 아케이드 | Brick Breaker</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 벽돌깨기. 한 손가락으로 패들을 밀어 공을 튕기고 벽돌을 부수세요. 콤보를 채우면 관통·분열이 동시에 터지고, 아이템 네 가지가 판을 뒤집습니다. 스테이지 3개, 매일 새로 열리는 오늘의 도전, 모바일 최적화. Free one-finger brick breaker with combo bursts and a daily challenge — play instantly in your browser.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#120d2e" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="벽돌깨기 — 한 손가락 아케이드 | Brick Breaker">
+<meta property="og:description" content="한 손가락으로 패들을 움직여 공을 튕기고 벽돌을 부수는 아케이드 — 콤보를 채우면 관통·분열 폭발. 설치 없이 바로 플레이.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/brick-breaker/">
+<link rel="canonical" href="https://hanpango.com/brick-breaker/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"벽돌깨기","alternateName":"Brick Breaker","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본이다. 다크는 아래 @media 에서 ★같은 이름의 값만 바꿔 끼운다 —
+     HTML 마크업은 두 테마가 완전히 동일하다.
+     이 게임의 시그니처는 보라다(--sig). 버튼 글자는 --on-sig 를 쓴다.
+     ★벽돌 색·패들 색·공 색은 캔버스가 쓴다. 캔버스는 var() 를 못 읽으므로 자바스크립트가
+       이 토큰 값을 읽어 간다(색을 코드에 박지 않기 위해서다).
+     ★무지개 7색(--r1 빨 ~ --r7 보)이 색의 원천이고 벽돌은 그것을 가리키기만 한다.
+       채움은 선명한 원색을 쓰고, 흰 바탕에서 묻히지 않게 하는 일은 **같은 색상의 어두운
+       테두리**(--r1-edge ~ --r7-edge)가 맡는다. 다크에서는 테두리를 밝은 톤으로 바꿔 끼운다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#7c3aed; --sig-ink:#5b21b6; --sig-soft:#ede9fe; --on-sig:#ffffff;
+    --good:#15803d;
+    --board:#f2f4f7; --cell:#fbfcfe; --cell-line:#dfe3ea;
+    --r1:#ef4444; --r2:#f97316; --r3:#facc15; --r4:#22c55e;
+    --r5:#3b82f6; --r6:#5f63f0; --r7:#ae63f8;
+    --r1-edge:#b91c1c; --r2-edge:#c2410c; --r3-edge:#a16207; --r4-edge:#15803d;
+    --r5-edge:#1d4ed8; --r6-edge:#4338ca; --r7-edge:#7e22ce;
+    --paddle:#5b21b6; --paddle-edge:#2e1065; --ball:#1d4ed8; --ball-pierce:#b91c1c;
+    --star:#dfe3ea; --rage:#f97316; --rage-ink:#c2410c;
+    --blk-shine:rgba(255,255,255,.28); --blk-shade:rgba(0,0,0,.18);
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --flash:rgba(255,255,255,.75);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#a78bfa; --sig-ink:#c4b5fd; --sig-soft:#241f5c; --on-sig:#2e1065;
+      --good:#34d399;
+      --board:#120d2e; --cell:#241f5c; --cell-line:#332c78;
+      --r1-edge:#fecaca; --r2-edge:#fed7aa; --r3-edge:#fef08a; --r4-edge:#bbf7d0;
+      --r5-edge:#bfdbfe; --r6-edge:#c7d2fe; --r7-edge:#e9d5ff;
+      --paddle:#c4b5fd; --paddle-edge:#f1f0ff; --ball:#bfdbfe; --ball-pierce:#fecaca;
+      --star:#2b2560; --rage:#fbbf24; --rage-ink:#fde68a;
+      --blk-shine:rgba(255,255,255,.22); --blk-shade:rgba(0,0,0,.18);
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+      --flash:rgba(255,255,255,.55);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em}
+  h1 small{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:6px}
+  .hdr-btns{display:flex;gap:6px}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:6px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .score b{display:block;font-size:1.2rem;line-height:1.1}
+  .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .score.hot b{color:var(--rage-ink)}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
+  .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 결과 화면 자리 */
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  /* ---- 판 ---- */
+  .play{position:relative;display:flex;justify-content:center;width:100%}
+  #stage{height:min(60dvh,640px);aspect-ratio:9/16;background:var(--board);border-radius:12px;touch-action:none;display:block;flex:0 0 auto;cursor:crosshair}
+  #stage:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+  /* 콤보 게이지 — 판 아래 얇은 띠 하나. 숫자가 아니라 길이로 읽는다. */
+  .gauge{width:min(100%,360px);height:8px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);overflow:hidden}
+  .gauge i{display:block;height:100%;width:0;background:var(--rage);transition:width .12s linear}
+  .gauge.full i{background:var(--r1)}
+  .hint{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card h2{margin:0 0 6px;font-size:1.5rem}
+  .card .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1}
+  .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  /* 공개 카운터 — 있는 듯 없는 듯 작게. 숫자를 못 받으면 줄째로 감춘다(hidden) */
+  .card .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  /* ★hidden 을 이기지 못하게 못박는다 — 위의 display 선언(.card .hp-stat)은 선택자가 더 세서
+     브라우저 기본값 [hidden]{display:none} 을 덮는다. 그러면 숫자를 못 받았을 때도 빈 줄이 보인다. */
+  .hp-stat[hidden]{display:none!important}
+  .card .hp-stat b{font-weight:600}
+  .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .card .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[disabled]{opacity:.5;cursor:default}
+  /* 결과 카드의 세 수치 */
+  .stats3{display:flex;gap:6px;margin:10px 0 4px}
+  .stats3 div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .stats3 b{display:block;font-size:1.15rem}
+  .stats3 span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  /* 화면낭독기 전용 — 눈에는 안 보이지만 낭독기는 읽는다(display:none 이면 안 읽힌다) */
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  /* 움직임을 줄여 달라고 한 사람에게는 CSS 전환도 끈다(화면 흔들림은 스크립트가 끈다) */
+  @media (prefers-reduced-motion: reduce){
+    .gauge i{transition:none}
+    .btn:active,.ibtn:active{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">벽돌깨기</span> <small id="subtitle" data-i18n="subtitle">한 손가락 아케이드</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 다른 게임</a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="score">0</b><span data-i18n="scoreLbl">점수</span></div>
+  <div class="score" id="comboBox"><b id="combo">0</b><span data-i18n="comboLbl">콤보</span></div>
+  <div class="score"><b id="stageNo">1</b><span data-i18n="stageLbl">스테이지</span></div>
+  <div class="score"><b id="lives">♥♥♥</b><span data-i18n="livesLbl">목숨</span></div>
+</div>
+
+<main>
+  <div class="play">
+    <canvas id="stage" width="360" height="640" role="img" tabindex="0" aria-label="game screen"></canvas>
+  </div>
+  <div class="gauge" id="gauge" aria-hidden="true"><i id="gaugeFill"></i></div>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="hint" data-i18n="hint">손가락으로 끌어 패들 이동 · 탭하면 공 발사 · 키보드 ← → 또는 A D</p>
+</main>
+
+<!-- 결과 -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card">
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <div class="big" id="finalScore">0</div>
+    <div class="new" id="streakLine" style="color:var(--sig-ink)"></div>
+    <div class="new" id="newBest"></div>
+    <div class="stats3">
+      <div><b id="finalCombo">0</b><span data-i18n="maxComboLbl">최대 콤보</span></div>
+      <div><b id="finalBricks">0</b><span data-i18n="bricksLbl">부순 벽돌</span></div>
+      <div><b id="finalStage">1</b><span data-i18n="stageLbl">스테이지</span></div>
+    </div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- 시작 -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card">
+    <h2 id="startTitle" data-i18n="title2">벽돌깨기</h2>
+    <div class="sub" data-i18n="startSub">손가락으로 패들을 좌우로 미세요.<br>공은 탭하면 나갑니다. 벽돌을 남김없이 부수세요.</div>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnStart" data-i18n="start">자유 플레이</button>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.brick-breaker.today">–</b>판 · 누적 <b data-hp="plays.brick-breaker.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">화면 아무 곳이나 손가락으로 짚고 좌우로 끌면 아래쪽 패들이 따라옵니다. 공은 처음에 패들 위에 얹혀 있습니다 — 화면을 한 번 탭하면 나갑니다. 컴퓨터에서는 마우스를 끌거나 왼쪽·오른쪽 화살표, A·D 키로 움직이고, 스페이스나 클릭으로 발사합니다. 조작은 이것뿐입니다.</p>
+  <p data-i18n="how2">공은 벽과 패들에 튕기며 위쪽 벽돌을 부숩니다. 벽돌은 한 번에 부서지는 것도 있고 두세 번 맞아야 부서지는 것도 있습니다 — 금이 갈수록 색이 옅어지니 몇 번 더 때려야 하는지 눈으로 보입니다. 벽돌을 부술 때마다 점수가 오르고 콤보가 1씩 쌓입니다. 2.5초 동안 아무것도 못 부수면 콤보는 0으로 돌아갑니다.</p>
+  <p data-i18n="how3">공이 패들 어디에 맞느냐로 튕기는 각도가 정해집니다. 가운데로 받으면 곧게 올라가고, 가장자리로 받으면 크게 꺾입니다. 각도가 너무 눕지 않도록 최소 각도가 걸려 있어, 공이 좌우로만 왔다 갔다 하며 판이 멈추는 일은 없습니다.</p>
+  <p data-i18n="how4">공을 바닥으로 흘리면 목숨이 하나 줄고 공이 다시 패들 위로 돌아옵니다. 목숨은 셋입니다. 벽돌을 모두 부수면 다음 스테이지가 열리고, 스테이지는 셋입니다. 셋을 다 깨거나 목숨이 0이 되면 '결과' 화면이 뜹니다 — 점수·최대 콤보·부순 벽돌 수·도달 스테이지를 보여 주고, 버튼 하나로 바로 다시 시작합니다.</p>
+  <h2 data-i18n="itemTitle">아이템과 콤보 폭발</h2>
+  <p data-i18n="itemDesc">벽돌을 부수면 가끔 네모난 아이템이 떨어집니다. 패들로 받으면 바로 켜집니다. <b>분열</b>은 공을 셋으로 늘리고, <b>확장</b>은 패들을 넓히고, <b>관통</b>은 공이 벽돌을 뚫고 지나가게 하고, <b>느리게</b>는 공을 천천히 만들어 숨을 돌리게 해 줍니다. 확장·관통·느리게는 잠깐 동안만 켜져 있다가 저절로 꺼집니다.</p>
+  <p data-i18n="rageDesc">벽돌을 부술 때마다 판 아래 띠가 조금씩 찹니다. 띠가 가득 차면 <b>관통과 분열이 동시에</b> 3초 동안 터집니다. 공이 셋으로 갈라진 채 벽돌을 뚫고 지나가므로 화면이 한 번에 쓸려 나갑니다. 이 3초가 이 게임에서 제일 시원한 구간입니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 완전히 같은 벽돌 배치·같은 내구도·같은 아이템 자리를 받고, 하루에 한 번만 도전할 수 있습니다. 결과를 이모지 한 줄로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다. 자유 플레이는 횟수 제한이 없습니다.</p>
+  <h2 data-i18n="tipsTitle">고득점 팁</h2>
+  <details><summary data-i18n="tip1q">콤보를 끊지 마세요</summary><p data-i18n="tip1a">점수는 부순 개수가 아니라 콤보 배수로 벌립니다. 콤보 20에서 부수는 벽돌 하나가 콤보 0에서 부수는 셋보다 큽니다. 공이 벽돌 밭에 들어가 있는 동안이 콤보를 몰아 쌓을 기회입니다.</p></details>
+  <details><summary data-i18n="tip2q">가장자리로 받아 각을 만드세요</summary><p data-i18n="tip2a">패들 가운데로만 받으면 공이 같은 길만 오갑니다. 일부러 가장자리로 받아 각을 크게 주면 공이 벽돌 밭 옆구리로 파고들어 한 번에 여러 줄을 훑습니다.</p></details>
+  <details><summary data-i18n="tip3q">분열은 벽돌이 많을 때</summary><p data-i18n="tip3a">공이 셋이면 콤보 시계가 세 배로 유지됩니다. 벽돌이 아직 빽빽할 때 받으면 콤보가 끊기지 않고 계속 올라갑니다. 벽돌이 몇 개 안 남았을 때는 오히려 금방 끝나 버립니다.</p></details>
+  <details><summary data-i18n="tip4q">관통이 켜지면 위로 보내세요</summary><p data-i18n="tip4a">관통 중에는 공이 멈추지 않고 뚫고 지나갑니다. 이때 공을 벽돌 밭 한가운데로 올려 보내면 한 번에 한 줄을 통째로 지웁니다. 관통이 꺼지기 전에 최대한 위로 올려 두세요.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
+  <details><summary data-i18n="faq2q">최고 점수는 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.</p></details>
+  <details><summary data-i18n="faq3q">소리를 끌 수 있나요?</summary><p data-i18n="faq3a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 그대로 유지됩니다. 효과음은 모두 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다.</p></details>
+  <details><summary data-i18n="faq4q">화면이 흔들리는 게 불편합니다</summary><p data-i18n="faq4a">기기 설정에서 '동작 줄이기'를 켜면 화면 흔들림이 자동으로 꺼집니다. 게임 진행에는 아무 차이가 없습니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 벽돌깨기 · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·점수 계산에는 관여하지 않는다. 태그가 아직 실리지 않았거나
+   차단됐으면 조용히 지나간다. 닉네임 같은 개인정보도, 광고 노출·클릭도 보내지 않는다. */
+const GA_GAME = 'brick-breaker';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ======================= i18n ======================= */
+const I18N = {
+  ko: {
+    title:'벽돌깨기', subtitle:'한 손가락 아케이드', title2:'벽돌깨기',
+    scoreLbl:'점수', comboLbl:'콤보', stageLbl:'스테이지', livesLbl:'목숨',
+    maxComboLbl:'최대 콤보', bricksLbl:'부순 벽돌',
+    hint:'손가락으로 끌어 패들 이동 · 탭하면 공 발사 · 키보드 ← → 또는 A D',
+    result:'결과', again:'다시 하기', share:'결과 공유', start:'자유 플레이',
+    home:'🏠 다른 게임',
+    startSub:'손가락으로 패들을 좌우로 미세요.<br>공은 탭하면 나갑니다. 벽돌을 남김없이 부수세요.',
+    newBest:'🎉 최고 기록 갱신!',
+    clearAll:'🏆 세 스테이지 완주!',
+    finalSub:(b,t)=>`최고 ${b}점 · 플레이 ${t}`,
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    copied:'결과가 복사됐어요',
+    shareText:(s,c)=>`벽돌깨기에서 ${s}점 · 최대 콤보 ${c}! 한 판 도전해 보세요 👉 `,
+    daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
+    dailyHint:'매일 새 판 · 전 세계 같은 배치 · 하루 한 번',
+    dailyHintDone:'오늘 도전 완료 — 내일 새 판이 열립니다',
+    dailyOver:(n)=>`오늘의 도전 #${n} 완료`, streak:(n)=>`🔥 ${n}일 연속 도전`,
+    dailyShare:(n,s,c,b,g,r)=>`🧱 한판고 벽돌깨기 · 오늘의 도전 #${n}\n${s}점 · 최대 콤보 ${c} · 벽돌 ${b}개 · 스테이지 ${g}${r>1?` · 🔥${r}일 연속`:''}\n`,
+    stageLine:(g)=>'🧱'.repeat(Math.max(1, Math.min(g,3))),
+    frenzyOn:'관통 + 분열!', stageUp:(g)=>`스테이지 ${g}`,
+    srStart:'게임 시작.', srOver:(s)=>`끝. ${s}점.`,
+    itemMulti:'분열', itemWide:'확장', itemPierce:'관통', itemSlow:'느리게',
+    docTitle:'벽돌깨기 — 한 손가락 아케이드 | Brick Breaker', langBtn:'EN',
+    ariaStage:'벽돌깨기 게임 화면 — 패들을 좌우로 움직여 공을 튕기고 벽돌을 부순다',
+    ariaSoundOn:'소리 끄기 (지금 켜짐)', ariaSoundOff:'소리 켜기 (지금 꺼짐)',
+    ariaLang:'언어 바꾸기 — English 로', ariaHome:'다른 게임 목록으로',
+    statPlays:'오늘 <b data-hp="plays.brick-breaker.today">–</b>판 · 누적 <b data-hp="plays.brick-breaker.total">–</b>판',
+    howTitle:'게임 방법',
+    how1:'화면 아무 곳이나 손가락으로 짚고 좌우로 끌면 아래쪽 패들이 따라옵니다. 공은 처음에 패들 위에 얹혀 있습니다 — 화면을 한 번 탭하면 나갑니다. 컴퓨터에서는 마우스를 끌거나 왼쪽·오른쪽 화살표, A·D 키로 움직이고, 스페이스나 클릭으로 발사합니다. 조작은 이것뿐입니다.',
+    how2:'공은 벽과 패들에 튕기며 위쪽 벽돌을 부숩니다. 벽돌은 한 번에 부서지는 것도 있고 두세 번 맞아야 부서지는 것도 있습니다 — 금이 갈수록 색이 옅어지니 몇 번 더 때려야 하는지 눈으로 보입니다. 벽돌을 부술 때마다 점수가 오르고 콤보가 1씩 쌓입니다. 2.5초 동안 아무것도 못 부수면 콤보는 0으로 돌아갑니다.',
+    how3:'공이 패들 어디에 맞느냐로 튕기는 각도가 정해집니다. 가운데로 받으면 곧게 올라가고, 가장자리로 받으면 크게 꺾입니다. 각도가 너무 눕지 않도록 최소 각도가 걸려 있어, 공이 좌우로만 왔다 갔다 하며 판이 멈추는 일은 없습니다.',
+    how4:'공을 바닥으로 흘리면 목숨이 하나 줄고 공이 다시 패들 위로 돌아옵니다. 목숨은 셋입니다. 벽돌을 모두 부수면 다음 스테이지가 열리고, 스테이지는 셋입니다. 셋을 다 깨거나 목숨이 0이 되면 \'결과\' 화면이 뜹니다 — 점수·최대 콤보·부순 벽돌 수·도달 스테이지를 보여 주고, 버튼 하나로 바로 다시 시작합니다.',
+    itemTitle:'아이템과 콤보 폭발',
+    itemDesc:'벽돌을 부수면 가끔 네모난 아이템이 떨어집니다. 패들로 받으면 바로 켜집니다. <b>분열</b>은 공을 셋으로 늘리고, <b>확장</b>은 패들을 넓히고, <b>관통</b>은 공이 벽돌을 뚫고 지나가게 하고, <b>느리게</b>는 공을 천천히 만들어 숨을 돌리게 해 줍니다. 확장·관통·느리게는 잠깐 동안만 켜져 있다가 저절로 꺼집니다.',
+    rageDesc:'벽돌을 부술 때마다 판 아래 띠가 조금씩 찹니다. 띠가 가득 차면 <b>관통과 분열이 동시에</b> 3초 동안 터집니다. 공이 셋으로 갈라진 채 벽돌을 뚫고 지나가므로 화면이 한 번에 쓸려 나갑니다. 이 3초가 이 게임에서 제일 시원한 구간입니다.',
+    dailyTitle:'오늘의 도전',
+    dailyDesc:'매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 완전히 같은 벽돌 배치·같은 내구도·같은 아이템 자리를 받고, 하루에 한 번만 도전할 수 있습니다. 결과를 이모지 한 줄로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다. 자유 플레이는 횟수 제한이 없습니다.',
+    tipsTitle:'고득점 팁',
+    tip1q:'콤보를 끊지 마세요',
+    tip1a:'점수는 부순 개수가 아니라 콤보 배수로 벌립니다. 콤보 20에서 부수는 벽돌 하나가 콤보 0에서 부수는 셋보다 큽니다. 공이 벽돌 밭에 들어가 있는 동안이 콤보를 몰아 쌓을 기회입니다.',
+    tip2q:'가장자리로 받아 각을 만드세요',
+    tip2a:'패들 가운데로만 받으면 공이 같은 길만 오갑니다. 일부러 가장자리로 받아 각을 크게 주면 공이 벽돌 밭 옆구리로 파고들어 한 번에 여러 줄을 훑습니다.',
+    tip3q:'분열은 벽돌이 많을 때',
+    tip3a:'공이 셋이면 콤보 시계가 세 배로 유지됩니다. 벽돌이 아직 빽빽할 때 받으면 콤보가 끊기지 않고 계속 올라갑니다. 벽돌이 몇 개 안 남았을 때는 오히려 금방 끝나 버립니다.',
+    tip4q:'관통이 켜지면 위로 보내세요',
+    tip4a:'관통 중에는 공이 멈추지 않고 뚫고 지나갑니다. 이때 공을 벽돌 밭 한가운데로 올려 보내면 한 번에 한 줄을 통째로 지웁니다. 관통이 꺼지기 전에 최대한 위로 올려 두세요.',
+    faqTitle:'자주 묻는 질문',
+    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'최고 점수는 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.',
+    faq3q:'소리를 끌 수 있나요?', faq3a:'네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 그대로 유지됩니다. 효과음은 모두 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다.',
+    faq4q:'화면이 흔들리는 게 불편합니다', faq4a:'기기 설정에서 \'동작 줄이기\'를 켜면 화면 흔들림이 자동으로 꺼집니다. 게임 진행에는 아무 차이가 없습니다.',
+    footer:'© 2026 벽돌깨기 · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개'
+  },
+  en: {
+    title:'Brick Breaker', subtitle:'one-finger arcade', title2:'Brick Breaker',
+    scoreLbl:'score', comboLbl:'combo', stageLbl:'stage', livesLbl:'lives',
+    maxComboLbl:'best combo', bricksLbl:'bricks',
+    hint:'Drag to move the paddle · tap to launch · or use ← → / A D',
+    result:'Result', again:'Play again', share:'Share result', start:'Free play',
+    home:'🏠 Other games',
+    startSub:'Drag to slide the paddle.<br>Tap to launch the ball. Clear every brick.',
+    newBest:'🎉 New best!',
+    clearAll:'🏆 All three stages cleared!',
+    finalSub:(b,t)=>`Best ${b} · played ${t}`,
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    copied:'Result copied',
+    shareText:(s,c)=>`I scored ${s} with a ${c} combo in Brick Breaker! Try it 👉 `,
+    daily:(n)=>`Daily challenge #${n}`, dailyDone:(n)=>`Daily challenge #${n} · see result`,
+    dailyHint:'New round daily · same layout worldwide · once a day',
+    dailyHintDone:'Done for today — a new round opens tomorrow',
+    dailyOver:(n)=>`Daily challenge #${n} complete`, streak:(n)=>`🔥 ${n}-day streak`,
+    dailyShare:(n,s,c,b,g,r)=>`🧱 Hanpango Brick Breaker · Daily #${n}\n${s} pts · ${c} combo · ${b} bricks · stage ${g}${r>1?` · 🔥${r}-day streak`:''}\n`,
+    stageLine:(g)=>'🧱'.repeat(Math.max(1, Math.min(g,3))),
+    frenzyOn:'PIERCE + SPLIT!', stageUp:(g)=>`Stage ${g}`,
+    srStart:'Game started.', srOver:(s)=>`Finished. ${s} points.`,
+    itemMulti:'split', itemWide:'wide', itemPierce:'pierce', itemSlow:'slow',
+    docTitle:'Brick Breaker — one-finger arcade | 벽돌깨기', langBtn:'한국어',
+    ariaStage:'Brick breaker game screen — slide the paddle, bounce the ball, smash bricks',
+    ariaSoundOn:'Turn sound off (currently on)', ariaSoundOff:'Turn sound on (currently off)',
+    ariaLang:'Change language — switch to Korean', ariaHome:'Go to the other games',
+    statPlays:'<b data-hp="plays.brick-breaker.today">–</b> today · <b data-hp="plays.brick-breaker.total">–</b> all-time',
+    howTitle:'How to play',
+    how1:'Put a finger anywhere on the screen and drag sideways — the paddle at the bottom follows. The ball starts resting on the paddle: tap once and it launches. On a computer, drag the mouse or use the left and right arrows, or A and D, and press space or click to launch. That is the whole control scheme.',
+    how2:'The ball bounces off the walls and the paddle and breaks the bricks above. Some bricks break in one hit, others take two or three — they fade as they crack, so you can see how many hits are left. Every brick you break adds score and raises your combo by one. If you break nothing for 2.5 seconds the combo drops back to zero.',
+    how3:'Where the ball lands on the paddle decides the angle. Catch it in the middle and it goes straight up; catch it near the edge and it flies off sharply. A minimum angle is enforced, so the ball can never settle into a flat left-right rally that stalls the round.',
+    how4:'Let the ball fall past the paddle and you lose a life; the ball returns to the paddle. You have three. Clear every brick and the next stage opens — there are three. Finish all three, or run out of lives, and the "Result" screen appears with your score, best combo, bricks smashed and the stage you reached, plus one button to start again.',
+    itemTitle:'Items and the combo burst',
+    itemDesc:'Breaking a brick sometimes drops a small square item. Catch it with the paddle and it takes effect at once. <b>Split</b> turns one ball into three, <b>wide</b> stretches the paddle, <b>pierce</b> lets the ball punch straight through bricks, and <b>slow</b> takes the pace down so you can breathe. Wide, pierce and slow last a short while and then wear off on their own.',
+    rageDesc:'Every brick you break fills the bar under the board a little. When it is full, <b>pierce and split fire together</b> for three seconds: three balls tearing straight through the bricks clear the screen in one sweep. Those three seconds are the best part of the game.',
+    dailyTitle:'Daily challenge',
+    dailyDesc:'A new round opens every midnight. Everyone in the world gets exactly the same brick layout, the same durabilities and the same item positions, and you get one attempt per day. Share the one-line emoji result and compare with friends. Come back on consecutive days to build a 🔥 streak. Free play has no limit.',
+    tipsTitle:'Scoring tips',
+    tip1q:'Never let the combo break',
+    tip1a:'Score comes from the combo multiplier, not from raw count. One brick broken at combo 20 beats three broken at combo 0. The stretch while the ball is inside the brick field is where combos are built.',
+    tip2q:'Use the paddle edges to open angles',
+    tip2a:'Catching everything dead centre sends the ball down the same lane again and again. Deliberately catching it near an edge opens a sharp angle that digs into the side of the field and sweeps several rows.',
+    tip3q:'Take split while the field is full',
+    tip3a:'Three balls keep the combo clock alive three times over. Caught while the bricks are still dense, split keeps the combo climbing. With only a few bricks left it just ends the stage early.',
+    tip4q:'Send a piercing ball upward',
+    tip4a:'While pierce is on, the ball never stops at a brick. Steer it up into the middle of the field and it wipes a whole row in one pass. Get it as high as you can before pierce wears off.',
+    faqTitle:'FAQ',
+    faq1q:'Do I need to install anything?', faq1a:'No. It runs straight in the browser. Add it to your home screen to use it like an app.',
+    faq2q:'Where is my best score stored?', faq2a:'Only in the browser on this device. Nothing is sent to a server.',
+    faq3q:'Can I turn the sound off?', faq3a:'Yes — the speaker button at the top right toggles it, and your choice is remembered next time. Every effect is generated by the browser on the spot, so there are no audio files to download.',
+    faq4q:'The screen shake bothers me', faq4a:'Turn on "reduce motion" in your device settings and the shake switches off automatically. Nothing else about the game changes.',
+    footer:'© 2026 Brick Breaker · Privacy: scores stay on your device; third-party cookies (Google and others) may be used to serve ads.',
+    navPrivacy:'Privacy policy', navAbout:'About'
+  }
+};
+/* 언어 키는 사이트 공통(bp.lang) — 포털·다른 게임과 공유한다. */
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  $('btnLang2').textContent = T('langBtn');
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  /* 문안을 innerHTML 로 갈아 끼우면 채운 숫자가 지워진다 — 다시 채운다.
+     hp-stats.js 는 defer 라 없을 수도 있으므로 있는지 보고 부른다. */
+  if (window.hpStats) window.hpStats();
+}
+/* 접근성 이름을 현재 언어로 맞춘다 — 소리 버튼은 켜짐/꺼짐 상태까지 이름과 aria-pressed 에 담는다. */
+function applyA11yLabels(){
+  for (const id of ['btnSound','btnSound2']){
+    const b = $(id); if (!b) continue;
+    b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  }
+  for (const id of ['btnLang','btnLang2']){ const l = $(id); if (l) l.setAttribute('aria-label', T('ariaLang')); }
+  const st = $('stage'); if (st) st.setAttribute('aria-label', T('ariaStage'));
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+}
+
+/* ======================= 색 토큰 읽기 ======================= */
+/* 캔버스는 var() 를 못 읽는다 — CSS 에 적힌 값을 한 번 읽어다 쓴다. 색을 코드에 박지 않기
+   위해서다. 테마가 바뀌면(다크 전환) 다시 읽는다. */
+let C = {};
+function readTokens(){
+  const s = getComputedStyle(document.documentElement);
+  const g = n => s.getPropertyValue(n).trim();
+  C = {
+    board:g('--board'), cell:g('--cell'), line:g('--cell-line'), star:g('--star'),
+    text:g('--text'), muted:g('--muted'), sig:g('--sig'), sigInk:g('--sig-ink'),
+    paddle:g('--paddle'), paddleEdge:g('--paddle-edge'), ball:g('--ball'), ballPierce:g('--ball-pierce'),
+    rage:g('--rage'), flash:g('--flash'),
+    fill:[g('--r1'),g('--r2'),g('--r3'),g('--r4'),g('--r5'),g('--r6'),g('--r7')],
+    edge:[g('--r1-edge'),g('--r2-edge'),g('--r3-edge'),g('--r4-edge'),g('--r5-edge'),g('--r6-edge'),g('--r7-edge')]
+  };
+}
+readTokens();
+try {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  (mq.addEventListener ? mq.addEventListener.bind(mq,'change') : mq.addListener.bind(mq))(() => readTokens());
+} catch(e){}
+
+/* 움직임 줄이기 — 흔들림을 끄는 유일한 스위치다. 값은 그때그때 읽는다(설정을 바꾸면 바로 반영). */
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } };
+
+/* ======================= 사운드(WebAudio · 파일 없음) ======================= */
+let soundOn = localStorage.getItem('bb.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0, freq2=null){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime + delay;
+    if (freq2 !== null) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq2), t + dur);
+    o.start(t);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+/* 잡음 한 줌 — 폭발·파열음. 오실레이터로는 안 나는 소리다. */
+function noise(dur=0.18, gain=0.06, from=1400, to=120){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const n = Math.floor(actx.sampleRate * dur);
+    const buf = actx.createBuffer(1, n, actx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random()*2-1) * (1 - i/n);
+    const src = actx.createBufferSource(); src.buffer = buf;
+    const f = actx.createBiquadFilter(); f.type = 'lowpass';
+    const g = actx.createGain(); g.gain.value = gain;
+    const t = actx.currentTime;
+    f.frequency.setValueAtTime(from, t);
+    f.frequency.exponentialRampToValueAtTime(Math.max(40,to), t + dur);
+    src.connect(f); f.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.start(t); src.stop(t + dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sWall   = () => beep(300, .02, 'square', .012);
+const sPaddle = () => beep(520, .03, 'square', .022, 0, 700);
+const sCrack  = () => beep(260, .03, 'square', .02);
+const sBreak  = (n) => { beep(420 + Math.min(n,20)*22, .07, 'triangle', .045, 0, 260); noise(.08, .028, 2200, 400); };
+const sItem   = () => { beep(660, .07, 'sine', .05, 0, 1180); vib(15); };
+const sLose   = () => { beep(160, .22, 'sawtooth', .05, 0, 60); vib([40,30,40]); };
+const sStage  = () => { beep(523, .1, 'triangle', .05); beep(659, .1, 'triangle', .05, .1);
+                        beep(784, .2, 'triangle', .05, .2); };
+const sFrenzy = () => { noise(.5, .09, 4000, 90);
+                        beep(220, .14, 'triangle', .05); beep(330, .14, 'triangle', .05, .12);
+                        beep(440, .26, 'triangle', .05, .24); vib([20,40,80]); };
+const sOver   = () => { beep(520, .12, 'triangle', .05); beep(392, .12, 'triangle', .05, .12);
+                        beep(262, .3, 'triangle', .05, .24); };
+
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   // 2026-08-23 = #1 (다른 게임과 동일 기준일)
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const dailySeedKey = (d=new Date()) => 'hanpango-daily-brick-breaker-' + dayKey(d);
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('bb.daily')||'null'); }catch(_){ return null; } };
+/* 오늘 이미 끝냈는가. 날짜가 바뀌면 없는 것으로 친다 — 자정에 자동으로 새 판이 열린다. */
+function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && r.result); }
+function saveDaily(result){
+  localStorage.setItem('bb.daily', JSON.stringify({ date: dayKey(), no: dailyNo(), result }));
+}
+/* 🔥스트릭 — 어제 했으면 이어지고, 하루라도 건너뛰면 1 부터 다시 센다. */
+function bumpStreak(){
+  const day = dayKey();
+  let st; try{ st = JSON.parse(localStorage.getItem('bb.streak')||'{}'); }catch(_){ st = {}; }
+  if (st.last === day) return st.n || 1;
+  const y = new Date(); y.setDate(y.getDate()-1);
+  const n = (st.last === dayKey(y)) ? (st.n || 0) + 1 : 1;
+  localStorage.setItem('bb.streak', JSON.stringify({ last: day, n }));
+  return n;
+}
+const streakNow = () => { try{ const s = JSON.parse(localStorage.getItem('bb.streak')||'{}'); return s.n || 0; }catch(_){ return 0; } };
+
+/* ======================= 게임 상수 ======================= */
+/* 좌표는 논리 단위 360×640 고정이다. 화면 크기는 CSS 가 정하고, 그리기 직전에 배율만 건다 —
+   그래서 어떤 기기에서도 '같은 판'이 된다(속도·거리가 화면 크기에 흔들리지 않는다). */
+const VW = 360, VH = 640;
+const LIVES      = 3;
+const STAGES     = 3;
+const COMBO_MS   = 2500;       /* 이 시간 안에 못 부수면 콤보 초기화 */
+const PAD_W      = 64, PAD_W_WIDE = 100, PAD_H = 11, PAD_Y = VH - 48;
+const PAD_V      = 520;        /* 키보드 이동 속도 */
+const BALL_R     = 6;
+const BALL_V0    = 300;        /* 스테이지 1 기준 속도(논리단위/초) */
+const BALL_V_STEP= 26;         /* 스테이지마다 조금씩 빨라진다 */
+const SLOW_MUL   = 0.68;       /* '느리게' 아이템 배수 */
+/* ★수평 고착 방지 — 속도 대비 세로 성분의 하한. 이 값이 없으면 공이 좌우로만 오가며
+   판이 영영 끝나지 않는다(벽돌에 닿지 않는 각도로 갇힌다). 튕길 때마다 이 하한을 건다. */
+const MIN_VY_RATIO = 0.34;
+const BRICK_COLS = 9;
+const BRICK_ROWS = [5, 6, 7];  /* 스테이지별 줄 수 */
+const BRICK_TOP  = 78, BRICK_GAP = 3, BRICK_H = 18, BRICK_PAD = 12;
+const BRICK_W = (VW - BRICK_PAD*2 - BRICK_GAP*(BRICK_COLS-1)) / BRICK_COLS;
+const BRICK_PTS  = 100;
+const DENSITY = [0.82, 0.86, 0.9];      /* 스테이지별 벽돌이 놓일 확률 */
+const HP_MAX_BY_STAGE = [2, 2, 3];      /* 스테이지별 최대 내구도 */
+const DROP_P = 0.14;                    /* 벽돌 하나가 아이템을 품을 확률 */
+const ITEM_TYPES = ['multi','wide','pierce','slow'];
+const ITEM_V     = 130;                 /* 아이템 낙하 속도 */
+const ITEM_MS    = 6000;                /* 확장·관통·느리게 지속 시간 */
+const FRENZY_MS  = 3000;                /* 콤보 게이지 폭발(관통+분열) */
+const GAUGE_MAX  = 100, GAUGE_GAIN = 7;
+const PARTICLE_MAX = 200;               /* 상한 — 저사양에서 먼저 줄이는 곳 */
+const BALL_MAX   = 12;                  /* 공 풀 상한 — 분열이 겹쳐도 이 위로는 안 는다 */
+const ITEM_MAX   = 10;
+
+/* ======================= 상태 ======================= */
+const cv = $('stage'), ctx = cv.getContext('2d', { alpha:false });
+let mode = 'free', running = false, over = false, paused = false;
+/* ★난수는 두 갈래로 완전히 갈라 둔다(슛팅에서 얻은 교훈 — codex R1 차단 1).
+   ①levelRng — 벽돌이 '어디에 · 얼마나 단단하게 · 어떤 아이템을 품고' 놓이는가. 일일 모드에서는
+     날짜 seed 로 고정되며 **오직 스테이지를 짤 때만** 쓴다. ★아이템 드롭도 부술 때 굴리지 않고
+     스테이지를 짤 때 벽돌마다 미리 정해 둔다 — 부술 때 굴리면 '몇 개를 어떤 순서로 부쉈는가'
+     라는 플레이가 난수를 소비해, 같은 날짜인데도 사람마다 판이 갈라진다.
+   ②fxRng — 파편 방향·수명 같은 연출. 판마다 달라도 되고 달라야 자연스럽다. 항상 Math.random.
+   두 갈래를 섞지 마라. 연출에서 levelRng 를 한 번이라도 당겨 쓰면 결정성이 조용히 무너진다. */
+let levelRng = Math.random, seedKeyNow = '';
+const fxRng = Math.random;
+let score = 0, shownScore = 0, best = +localStorage.getItem('bb.best') || 0;
+let combo = 0, maxCombo = 0, comboT = 0, broken = 0, lives = LIVES;
+let stage = 1, stageReached = 1, cleared = false;
+let gauge = 0, frenzyT = 0, frenzyCount = 0;
+let wideT = 0, pierceT = 0, slowT = 0;
+let padX = VW/2, padTargetX = VW/2, padW = PAD_W, keyL = false, keyR = false, dragging = false;
+let elapsed = 0, shakeT = 0, shakeMag = 0, flashT = 0;
+let lastResult = null;
+/* 스테이지 기록(기본 꺼짐 · null). 검증기가 켰을 때만 배열이 되어 쌓인다 — 평소 비용 0.
+   ★상한을 둔다: 켜 둔 채 오래 돌려도 메모리가 무한히 늘지 않게 **최근 LEVEL_LOG_MAX 건**만
+   남긴다(오래된 것부터 버린다). 판이 바뀌어도 비우지 않는 굴러가는 창이다 — 판마다 비우면
+   상한에 영영 닿지 않아(한 판이 놓는 벽돌이 상한보다 적다) 방어가 공허해진다. 한 판만
+   보려면 새 인스턴스에서 켜고 그 판만 돌리면 된다(검증기가 그렇게 쓴다). */
+const LEVEL_LOG_MAX = 200;
+let levelLog = null;
+let rafId = 0, prevTs = 0, starPhase = 0;
+
+/* 오브젝트 풀 — 판이 도는 동안 새 객체를 만들지 않는다(60fps 유지의 절반은 여기서 온다). */
+const balls = [], bricks = [], items = [], parts = [], pops = [];
+for (let i = 0; i < BALL_MAX; i++) balls.push({ on:false, x:0, y:0, vx:0, vy:0, stuck:false });
+for (let i = 0; i < BRICK_COLS * 8; i++) bricks.push({ on:false, x:0, y:0, hp:0, hpMax:0, ci:0, drop:'', flash:0 });
+for (let i = 0; i < ITEM_MAX; i++) items.push({ on:false, x:0, y:0, kind:'' });
+for (let i = 0; i < PARTICLE_MAX; i++) parts.push({ on:false, x:0, y:0, vx:0, vy:0, life:0, max:0, col:'', sz:0 });
+for (let i = 0; i < 14; i++) pops.push({ on:false, x:0, y:0, life:0, txt:'', col:'' });
+const take = pool => { for (const o of pool) if (!o.on) return o; return null; };
+
+/* 별 배경 — 스크롤하는 점. 판마다 같은 자리에 있어야 산만하지 않으므로 고정 표를 쓴다. */
+const STARS = [];
+{ const f = mulberry32(20260826); for (let i = 0; i < 46; i++) STARS.push({ x:f()*VW, y:f()*VH, s:f()*1.6+0.5, v:f()*18+8 }); }
+
+/* ======================= HUD ======================= */
+function updateHud(){
+  $('score').textContent = Math.round(shownScore);
+  $('combo').textContent = combo;
+  $('stageNo').textContent = stage;
+  $('lives').textContent = lives > 0 ? '♥'.repeat(lives) : '–';
+  $('comboBox').classList.toggle('hot', combo >= 10);
+  const pct = Math.min(100, Math.round(gauge / GAUGE_MAX * 100));
+  $('gaugeFill').style.width = pct + '%';
+  $('gauge').classList.toggle('full', pct >= 100);
+}
+
+/* ======================= 스테이지 짜기 ======================= */
+/* ★이 함수만이 levelRng 를 당긴다. 뽑는 개수·순서가 곧 일일 도전의 계약이므로 여기에 난수를
+   더하거나 빼면 그날의 판이 통째로 달라진다. 아이템도 여기서 미리 정한다(부술 때가 아니라). */
+function buildStage(g){
+  for (const b of bricks) b.on = false;
+  const rows = BRICK_ROWS[Math.min(g, STAGES) - 1];
+  const density = DENSITY[Math.min(g, STAGES) - 1];
+  const hpMax = HP_MAX_BY_STAGE[Math.min(g, STAGES) - 1];
+  for (let r = 0; r < rows; r++){
+    for (let c = 0; c < BRICK_COLS; c++){
+      const there = levelRng() < density;
+      const hpRoll = levelRng();
+      const dropRoll = levelRng();
+      const typeRoll = levelRng();
+      if (!there) continue;
+      const b = take(bricks); if (!b) continue;
+      b.on = true;
+      b.x = BRICK_PAD + c * (BRICK_W + BRICK_GAP);
+      b.y = BRICK_TOP + r * (BRICK_H + BRICK_GAP);
+      /* 아래로 갈수록 무른 벽돌 — 위쪽이 단단해야 공을 오래 붙잡아 둔다. */
+      const hardness = 1 - r / Math.max(1, rows - 1);
+      b.hp = b.hpMax = 1 + Math.min(hpMax - 1, Math.floor(hpRoll * hpMax * (0.45 + hardness * 0.9)));
+      b.ci = r % 7;
+      b.drop = dropRoll < DROP_P ? ITEM_TYPES[Math.floor(typeRoll * ITEM_TYPES.length)] : '';
+      b.flash = 0;
+      /* 기록 — '같은 날짜면 같은 판' 을 기계가 대조할 수 있게 남긴다(연출은 안 남긴다). */
+      if (levelLog){
+        levelLog.push({ stage:g, r, c, hp:b.hp, ci:b.ci, drop:b.drop });
+        if (levelLog.length > LEVEL_LOG_MAX) levelLog.splice(0, levelLog.length - LEVEL_LOG_MAX);
+      }
+    }
+  }
+}
+const bricksLeft = () => { let n = 0; for (const b of bricks) if (b.on) n++; return n; };
+
+/* ======================= 공 ======================= */
+const ballSpeed = () => (BALL_V0 + (stage - 1) * BALL_V_STEP) * (slowT > 0 ? SLOW_MUL : 1);
+/* ★튕긴 뒤에는 반드시 이 함수를 지난다 — 속도를 현재 기준으로 다시 맞추고, 세로 성분이
+   하한보다 얕으면 하한까지 세운다(수평 고착 방지). 속도를 매번 다시 맞추기 때문에
+   '느리게' 가 켜지고 꺼질 때 별도 처리 없이 그대로 반영된다. */
+function normalizeBall(b){
+  const sp = ballSpeed();
+  let len = Math.hypot(b.vx, b.vy) || 1;
+  let vx = b.vx / len, vy = b.vy / len;
+  if (Math.abs(vy) < MIN_VY_RATIO){
+    const sign = vy < 0 ? -1 : (vy > 0 ? 1 : -1);
+    vy = sign * MIN_VY_RATIO;
+    const rest = Math.sqrt(Math.max(0, 1 - vy*vy));
+    vx = (vx < 0 ? -1 : 1) * rest;
+  }
+  b.vx = vx * sp; b.vy = vy * sp;
+}
+function stickBall(){
+  for (const b of balls) b.on = false;
+  const b = balls[0];
+  b.on = true; b.stuck = true;
+  b.x = padX; b.y = PAD_Y - BALL_R - 1; b.vx = 0; b.vy = 0;
+}
+function launchBall(){
+  let any = false;
+  for (const b of balls){
+    if (!b.on || !b.stuck) continue;
+    b.stuck = false;
+    b.vx = 0; b.vy = -1;      /* 곧게 위로 — 각은 패들로 만든다 */
+    normalizeBall(b);
+    any = true;
+  }
+  if (any) sPaddle();
+  return any;
+}
+/* 분열 — 지금 살아 있는 공마다 좌우로 갈라진 사본을 하나씩 더 만든다. 방향은 난수가 아니라
+   고정 각도다(±25°). 연출이 아니라 게임 상태라서 판마다 같아야 한다. */
+function splitBalls(){
+  const live = balls.filter(b => b.on && !b.stuck);
+  for (const src of live){
+    for (const sign of [-1, 1]){
+      const nb = take(balls); if (!nb) return;
+      const a = Math.atan2(src.vy, src.vx) + sign * 0.44;
+      const sp = Math.hypot(src.vx, src.vy) || ballSpeed();
+      nb.on = true; nb.stuck = false;
+      nb.x = src.x; nb.y = src.y;
+      nb.vx = Math.cos(a) * sp; nb.vy = Math.sin(a) * sp;
+      normalizeBall(nb);
+    }
+  }
+}
+
+/* ======================= 파티클·팝업 ======================= */
+function burst(x, y, col, n, spread){
+  /* 파티클은 상한을 넘지 않는다 — 풀이 비면 그냥 덜 뿌린다(끊기는 것보다 낫다). */
+  for (let i = 0; i < n; i++){
+    const p = take(parts); if (!p) return;
+    /* ★연출은 fxRng 다 — 여기서 levelRng 를 쓰면 '부순 횟수' 가 벽돌 배치를 바꾼다. */
+    const a = fxRng() * Math.PI * 2, sp = 40 + fxRng() * spread;
+    p.on = true; p.x = x; p.y = y;
+    p.vx = Math.cos(a)*sp; p.vy = Math.sin(a)*sp - 20;
+    p.max = p.life = 0.32 + fxRng()*0.4; p.col = col; p.sz = 2 + fxRng()*3;
+  }
+}
+function pop(x, y, txt, col){
+  const p = take(pops); if (!p) return;
+  p.on = true; p.x = x; p.y = y; p.life = 0.75; p.txt = txt; p.col = col;
+}
+function shake(mag){ if (reduceMotion()) return; shakeMag = Math.max(shakeMag, mag); shakeT = Math.max(shakeT, 0.24); }
+
+/* ======================= 판 진행 ======================= */
+function resetRun(){
+  for (const o of balls) o.on = false;
+  for (const o of bricks) o.on = false;
+  for (const o of items) o.on = false;
+  for (const o of parts) o.on = false;
+  for (const o of pops)  o.on = false;
+  score = 0; shownScore = 0; combo = 0; maxCombo = 0; comboT = 0; broken = 0;
+  lives = LIVES; stage = 1; stageReached = 1; cleared = false;
+  gauge = 0; frenzyT = 0; frenzyCount = 0; wideT = 0; pierceT = 0; slowT = 0;
+  padX = padTargetX = VW/2; padW = PAD_W; elapsed = 0;
+  shakeT = 0; shakeMag = 0; flashT = 0; keyL = keyR = false; dragging = false;
+  over = false; paused = false;
+}
+function startRun(m){
+  mode = m;
+  seedKeyNow = (m === 'daily') ? dailySeedKey() : '';
+  levelRng = (m === 'daily') ? mulberry32(hashStr(seedKeyNow)) : Math.random;
+  resetRun();
+  buildStage(1);
+  stickBall();
+  running = true;
+  hide('start'); hide('over');
+  $('subtitle').textContent = (m === 'daily') ? T('daily', dailyNo()) : T('subtitle');
+  updateHud();
+  say(T('srStart'));
+  ga('game_start', { game: GA_GAME });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+  try { cv.focus({ preventScroll:true }); } catch(e){ }
+  prevTs = 0;
+}
+function nextStage(){
+  if (stage >= STAGES){ cleared = true; endRun(); return; }
+  stage++;
+  stageReached = Math.max(stageReached, stage);
+  buildStage(stage);
+  for (const o of items) o.on = false;
+  wideT = 0; pierceT = 0; slowT = 0; padW = PAD_W;
+  stickBall();
+  pop(VW/2, VH*0.42, T('stageUp', stage), C.sigInk);
+  sStage();
+  updateHud();
+}
+function endRun(){
+  if (!running) return;
+  running = false; over = true;
+  const durS = Math.max(0, Math.round(elapsed / 1000));
+  const isNew = score > best;
+  if (isNew){ best = score; localStorage.setItem('bb.best', best); }
+  let streak = 0;
+  if (mode === 'daily'){
+    /* ★duration 을 함께 남긴다 — 목숨을 3초 만에 소진한 판도 다시 열었을 때 실제 시간으로
+       보이게 한다(슛팅에서 codex R1 차단 3 으로 잡힌 왜곡을 되풀이하지 않는다). */
+    saveDaily({ score, maxCombo, bricks: broken, stage: stageReached, cleared,
+                frenzy: frenzyCount, duration: durS });
+    streak = bumpStreak();
+    ga('daily_complete', { game: GA_GAME, streak });
+  }
+  lastResult = { score, maxCombo, bricks: broken, stage: stageReached, cleared,
+                 frenzy: frenzyCount, durS, isNew, streak, no: dailyNo(), mode };
+  ga('game_over', { game: GA_GAME, score, moves: broken, duration_s: durS, daily: mode === 'daily' });
+  sOver();
+  renderOver();
+  refreshStart();
+  say(T('srOver', score));
+}
+function renderOver(){
+  const r = lastResult; if (!r) return;
+  $('overTitle').textContent = (r.mode === 'daily') ? T('dailyOver', r.no) : T('result');
+  $('finalScore').textContent = r.score;
+  $('finalCombo').textContent = r.maxCombo;
+  $('finalBricks').textContent = r.bricks;
+  $('finalStage').textContent = r.stage;
+  $('finalSub').textContent   = T('finalSub', best, fmtTime(r.durS));
+  $('newBest').textContent    = r.cleared ? T('clearAll') : (r.isNew ? T('newBest') : '');
+  $('streakLine').textContent = (r.mode === 'daily' && r.streak > 1) ? T('streak', r.streak) : '';
+  show('over');
+}
+const fmtTime = s => `${Math.floor(s/60)}:${pad2(s%60)}`;
+
+/* ======================= 한 걸음(고정 논리) ======================= */
+function step(dt){          /* dt = 초 */
+  elapsed += dt*1000;
+
+  /* --- 패들 --- */
+  if (keyL) padTargetX -= PAD_V*dt;
+  if (keyR) padTargetX += PAD_V*dt;
+  const half = padW/2;
+  padTargetX = Math.max(half, Math.min(VW-half, padTargetX));
+  /* 손가락을 따라가되 살짝 미끄러진다 — 딱 붙으면 손맛이 없고, 너무 늦으면 답답하다. */
+  padX += (padTargetX - padX) * Math.min(1, dt*20);
+  padX = Math.max(half, Math.min(VW-half, padX));
+
+  /* --- 아이템 효과 시계 --- */
+  if (wideT > 0){ wideT -= dt*1000; if (wideT <= 0){ wideT = 0; padW = PAD_W; } }
+  if (pierceT > 0){ pierceT -= dt*1000; if (pierceT < 0) pierceT = 0; }
+  if (slowT > 0){ slowT -= dt*1000; if (slowT < 0) slowT = 0; }
+  if (frenzyT > 0){ frenzyT -= dt*1000; if (frenzyT < 0) frenzyT = 0; }
+
+  /* --- 공 --- */
+  for (const b of balls){
+    if (!b.on) continue;
+    if (b.stuck){ b.x = padX; b.y = PAD_Y - BALL_R - 1; continue; }
+    /* 속도를 매 프레임 현재 기준으로 맞춘다 — '느리게' 가 켜지고 꺼지는 순간이 자연히 반영되고,
+       튕김이 겹쳐 속도가 조금씩 밀리는 것도 여기서 바로잡힌다. */
+    normalizeBall(b);
+    b.x += b.vx*dt; b.y += b.vy*dt;
+    /* 벽 */
+    if (b.x < BALL_R){ b.x = BALL_R; b.vx = Math.abs(b.vx); sWall(); }
+    if (b.x > VW-BALL_R){ b.x = VW-BALL_R; b.vx = -Math.abs(b.vx); sWall(); }
+    if (b.y < BALL_R){ b.y = BALL_R; b.vy = Math.abs(b.vy); sWall(); }
+    /* 패들 — 맞은 자리가 각을 정한다. 가운데면 곧게, 가장자리면 크게 꺾인다. */
+    if (b.vy > 0 && b.y + BALL_R >= PAD_Y && b.y - BALL_R <= PAD_Y + PAD_H){
+      if (b.x >= padX - half - BALL_R && b.x <= padX + half + BALL_R){
+        const off = Math.max(-1, Math.min(1, (b.x - padX) / half));
+        const a = off * 1.05;                 /* 최대 약 60° */
+        const sp = ballSpeed();
+        b.vx = Math.sin(a) * sp;
+        b.vy = -Math.cos(a) * sp;
+        b.y = PAD_Y - BALL_R - 0.5;
+        normalizeBall(b);
+        sPaddle();
+      }
+    }
+    /* 벽돌 — 겹친 정도가 작은 축으로 튕긴다(모서리에서 엉뚱한 방향으로 튀지 않게). */
+    const pierce = (pierceT > 0 || frenzyT > 0);
+    for (const k of bricks){
+      if (!k.on) continue;
+      if (b.x + BALL_R < k.x || b.x - BALL_R > k.x + BRICK_W) continue;
+      if (b.y + BALL_R < k.y || b.y - BALL_R > k.y + BRICK_H) continue;
+      if (!pierce){
+        const ox = Math.min(b.x + BALL_R - k.x, k.x + BRICK_W - (b.x - BALL_R));
+        const oy = Math.min(b.y + BALL_R - k.y, k.y + BRICK_H - (b.y - BALL_R));
+        if (ox < oy) b.vx = -b.vx; else b.vy = -b.vy;
+        normalizeBall(b);
+      }
+      hitBrick(k);
+      break;                                   /* 한 프레임에 벽돌 하나까지만 */
+    }
+    /* 바닥 아래로 흘렀다 */
+    if (b.y - BALL_R > VH + 6){
+      b.on = false;
+      if (!balls.some(x => x.on)) loseLife();
+    }
+  }
+
+  /* --- 아이템 --- */
+  for (const it of items){
+    if (!it.on) continue;
+    it.y += ITEM_V*dt;
+    if (it.y > VH + 12){ it.on = false; continue; }
+    if (it.y + 7 >= PAD_Y && it.y - 7 <= PAD_Y + PAD_H &&
+        it.x >= padX - half - 8 && it.x <= padX + half + 8){
+      it.on = false;
+      applyItem(it.kind);
+    }
+  }
+
+  /* --- 콤보 시계 --- */
+  if (combo > 0){ comboT -= dt*1000; if (comboT <= 0) combo = 0; }
+  /* --- 파티클·팝업 --- */
+  for (const p of parts){
+    if (!p.on) continue;
+    p.life -= dt; if (p.life <= 0){ p.on = false; continue; }
+    p.x += p.vx*dt; p.y += p.vy*dt; p.vy += 300*dt; p.vx *= 0.99;
+  }
+  for (const p of pops){
+    if (!p.on) continue;
+    p.life -= dt; if (p.life <= 0){ p.on = false; continue; }
+    p.y -= 42*dt;
+  }
+  if (shakeT > 0){ shakeT -= dt; if (shakeT <= 0) shakeMag = 0; }
+  if (flashT > 0) flashT -= dt;
+  /* 점수는 굴러서 올라간다 — 숫자가 튀지 않고 흐르면 훨씬 시원하다. */
+  shownScore += (score - shownScore) * Math.min(1, dt*9);
+  if (Math.abs(score - shownScore) < 0.6) shownScore = score;
+
+  if (running && bricksLeft() === 0) nextStage();
+}
+function hitBrick(k){
+  k.hp--; k.flash = 0.12;
+  if (k.hp > 0){ sCrack(); burst(k.x + BRICK_W/2, k.y + BRICK_H/2, C.fill[k.ci], 3, 60); return; }
+  k.on = false; broken++;
+  combo++; comboT = COMBO_MS; if (combo > maxCombo) maxCombo = combo;
+  const gain = Math.round(BRICK_PTS * k.hpMax * (1 + combo*0.1));
+  score += gain;
+  const cx = k.x + BRICK_W/2, cy = k.y + BRICK_H/2;
+  burst(cx, cy, C.fill[k.ci], k.hpMax >= 3 ? 16 : 10, k.hpMax >= 3 ? 190 : 130);
+  pop(cx, cy - 6, combo >= 3 ? ('×' + combo) : ('+' + gain), combo >= 10 ? C.rage : C.fill[k.ci]);
+  sBreak(combo);
+  shake(k.hpMax >= 3 ? 5 : 3);
+  if (k.drop) dropItem(k.drop, cx, cy);
+  if (frenzyT <= 0){
+    gauge += GAUGE_GAIN;
+    if (gauge >= GAUGE_MAX) triggerFrenzy();
+  }
+}
+function dropItem(kind, x, y){
+  const it = take(items); if (!it) return false;
+  it.on = true; it.kind = kind; it.x = x; it.y = y;
+  return true;
+}
+function applyItem(kind){
+  if (kind === 'multi') splitBalls();
+  else if (kind === 'wide'){ padW = PAD_W_WIDE; wideT = ITEM_MS; }
+  else if (kind === 'pierce') pierceT = ITEM_MS;
+  else if (kind === 'slow') slowT = ITEM_MS;
+  pop(padX, PAD_Y - 22, T('item' + kind[0].toUpperCase() + kind.slice(1)), C.sigInk);
+  sItem();
+}
+/* 카타르시스 장치 — 게이지가 차면 저절로 켜진다(누를 버튼이 없다는 것이 이 게임의 규칙이다).
+   관통과 분열이 동시에 걸려, 갈라진 공이 벽돌을 뚫고 지나가며 화면을 쓸어 낸다. */
+function triggerFrenzy(){
+  gauge = 0; frenzyT = FRENZY_MS; frenzyCount++;
+  flashT = 0.22; shake(10);
+  splitBalls();
+  comboT = COMBO_MS;
+  pop(VW/2, VH*0.42, T('frenzyOn'), C.rage);
+  sFrenzy();
+}
+function loseLife(){
+  lives--;
+  combo = 0;
+  flashT = 0.16; shake(8);
+  sLose();
+  if (lives <= 0){ endRun(); return; }
+  /* 목숨을 잃으면 걸려 있던 효과는 풀고 다시 패들 위에서 시작한다. */
+  wideT = 0; pierceT = 0; slowT = 0; padW = PAD_W;
+  stickBall();
+}
+
+/* ======================= 그리기 ======================= */
+let dpr = 1, cssW = 0, cssH = 0;
+function resize(){
+  const r = cv.getBoundingClientRect();
+  dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  cssW = r.width || VW; cssH = r.height || VH;
+  cv.width  = Math.round(cssW * dpr);
+  cv.height = Math.round(cssH * dpr);
+  draw();
+}
+function draw(){
+  const sx = (cv.width / VW), sy = (cv.height / VH);
+  ctx.setTransform(sx, 0, 0, sy, 0, 0);
+  /* 흔들림 — 논리 좌표계 위에서 살짝 밀어 준다. 움직임 줄이기가 켜져 있으면 0 이다. */
+  if (shakeT > 0 && shakeMag > 0){
+    const k = shakeT / 0.24;
+    ctx.translate((Math.random()*2-1)*shakeMag*k, (Math.random()*2-1)*shakeMag*k);
+  }
+  ctx.fillStyle = C.board; ctx.fillRect(-20, -20, VW+40, VH+40);
+  /* 별 — 아래로 흐른다. 판이 멈춰 있어도 흐르게 두어 화면이 죽지 않게 한다. */
+  ctx.fillStyle = C.star;
+  for (const s of STARS){
+    const y = (s.y + starPhase * s.v) % (VH + 8);
+    ctx.beginPath(); ctx.arc(s.x, y, s.s, 0, Math.PI*2); ctx.fill();
+  }
+  /* 폭발 중에는 바탕에 옅은 띠를 깐다 — 상태가 화면 전체로 읽힌다. */
+  if (frenzyT > 0){
+    ctx.globalAlpha = 0.10; ctx.fillStyle = C.rage;
+    ctx.fillRect(0, 0, VW, VH); ctx.globalAlpha = 1;
+  }
+  for (const k of bricks) if (k.on) drawBrick(k);
+  for (const it of items) if (it.on) drawItem(it);
+  drawPaddle();
+  for (const b of balls) if (b.on) drawBall(b);
+  for (const p of parts){
+    if (!p.on) continue;
+    ctx.globalAlpha = Math.max(0, p.life / p.max);
+    ctx.fillStyle = p.col;
+    ctx.fillRect(p.x - p.sz/2, p.y - p.sz/2, p.sz, p.sz);
+  }
+  ctx.globalAlpha = 1;
+  ctx.textAlign = 'center'; ctx.font = '700 20px system-ui, sans-serif';
+  for (const p of pops){
+    if (!p.on) continue;
+    ctx.globalAlpha = Math.min(1, p.life / 0.4);
+    ctx.fillStyle = p.col; ctx.fillText(p.txt, p.x, p.y);
+  }
+  ctx.globalAlpha = 1;
+  if (flashT > 0){
+    ctx.globalAlpha = Math.min(0.9, flashT * 4);
+    ctx.fillStyle = C.flash; ctx.fillRect(-20, -20, VW+40, VH+40);
+    ctx.globalAlpha = 1;
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+function drawBrick(k){
+  /* 금이 갈수록 옅어진다 — 몇 번 더 때려야 하는지가 색으로 읽힌다. */
+  const wear = k.hpMax > 1 ? (k.hp / k.hpMax) : 1;
+  ctx.globalAlpha = k.flash > 0 ? 1 : (0.45 + wear * 0.55);
+  ctx.fillStyle = k.flash > 0 ? C.flash : C.fill[k.ci];
+  ctx.strokeStyle = C.edge[k.ci]; ctx.lineWidth = 3;
+  roundRect(k.x, k.y, BRICK_W, BRICK_H, 4); ctx.fill(); ctx.stroke();
+  ctx.globalAlpha = 1;
+  /* 두 번 이상 맞아야 하는 벽돌은 가운데에 점을 찍어 남은 내구도를 알린다. */
+  if (k.hp > 1){
+    ctx.fillStyle = C.edge[k.ci];
+    for (let i = 0; i < k.hp - 1; i++){
+      ctx.beginPath();
+      ctx.arc(k.x + BRICK_W/2 + (i - (k.hp-2)/2) * 7, k.y + BRICK_H/2, 1.8, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+  if (k.flash > 0) k.flash -= 0.02;
+}
+function drawPaddle(){
+  const half = padW/2;
+  ctx.fillStyle = (pierceT > 0 || frenzyT > 0) ? C.rage : C.paddle;
+  ctx.strokeStyle = C.paddleEdge; ctx.lineWidth = 2.5;
+  roundRect(padX - half, PAD_Y, padW, PAD_H, 5); ctx.fill(); ctx.stroke();
+}
+function drawBall(b){
+  ctx.fillStyle = (pierceT > 0 || frenzyT > 0) ? C.ballPierce : C.ball;
+  ctx.beginPath(); ctx.arc(b.x, b.y, BALL_R, 0, Math.PI*2); ctx.fill();
+}
+function drawItem(it){
+  const map = { multi:C.fill[4], wide:C.fill[3], pierce:C.fill[0], slow:C.fill[6] };
+  const letter = { multi:'3', wide:'W', pierce:'P', slow:'S' };
+  ctx.fillStyle = map[it.kind] || C.sig;
+  ctx.strokeStyle = C.paddleEdge; ctx.lineWidth = 2;
+  roundRect(it.x - 8, it.y - 7, 16, 14, 4); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center'; ctx.font = '700 10px system-ui, sans-serif';
+  ctx.fillText(letter[it.kind] || '?', it.x, it.y + 3.5);
+}
+function roundRect(x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y,   x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x,   y+h, r);
+  ctx.arcTo(x,   y+h, x,   y,   r);
+  ctx.arcTo(x,   y,   x+w, y,   r);
+  ctx.closePath();
+}
+
+/* ======================= 루프 ======================= */
+/* 한 프레임이 아무리 길어져도 논리는 최대 50ms 씩만 나아간다 — 탭을 오래 감췄다 돌아왔을 때
+   한 번에 몰아 계산해 공이 벽을 뚫고 지나가는 것을 막는다. */
+function loop(ts){
+  rafId = requestAnimationFrame(loop);
+  if (!prevTs) prevTs = ts;
+  let dt = (ts - prevTs) / 1000; prevTs = ts;
+  if (dt > 0.05) dt = 0.05;
+  starPhase += dt;
+  if (running && !paused && !over) step(dt);
+  draw();
+  updateHud();
+}
+
+/* ======================= 조작 ======================= */
+/* 포인터는 캔버스 위 어디서 시작해도 잡는다 — '한 손가락' 이 이 게임의 전부다. */
+function pointerX(ev){
+  const r = cv.getBoundingClientRect();
+  return Math.max(0, Math.min(VW, (ev.clientX - r.left) / (r.width || 1) * VW));
+}
+cv.addEventListener('pointerdown', ev => {
+  dragging = true;
+  try { cv.setPointerCapture(ev.pointerId); } catch(e){}
+  padTargetX = pointerX(ev);
+  /* 탭 한 번이 곧 발사다 — 따로 버튼을 두지 않는다. */
+  if (running && !over) launchBall();
+  ev.preventDefault();
+});
+cv.addEventListener('pointermove', ev => { if (dragging) padTargetX = pointerX(ev); });
+const stopDrag = () => { dragging = false; };
+cv.addEventListener('pointerup', stopDrag);
+cv.addEventListener('pointercancel', stopDrag);
+cv.addEventListener('contextmenu', ev => ev.preventDefault());
+/* 물리 자판은 code 로 본다 — 한글 입력 상태여도 같은 자리를 누르면 같이 움직인다. */
+window.addEventListener('keydown', ev => {
+  if (ev.code === 'ArrowLeft'  || ev.code === 'KeyA'){ keyL = true; ev.preventDefault(); }
+  if (ev.code === 'ArrowRight' || ev.code === 'KeyD'){ keyR = true; ev.preventDefault(); }
+  if (ev.code === 'Space'){
+    if (running && !over && !$('start').classList.contains('show') && !$('over').classList.contains('show')){
+      launchBall(); ev.preventDefault();
+    }
+  }
+});
+window.addEventListener('keyup', ev => {
+  if (ev.code === 'ArrowLeft'  || ev.code === 'KeyA') keyL = false;
+  if (ev.code === 'ArrowRight' || ev.code === 'KeyD') keyR = false;
+});
+/* 탭을 떠나면 판을 세운다 — 돌아왔을 때 공이 엉뚱한 곳에 가 있지 않게. */
+document.addEventListener('visibilitychange', () => {
+  paused = document.hidden;
+  if (!paused) prevTs = 0;
+  if (paused) keyL = keyR = false;
+});
+
+/* ======================= 창(오버레이) ======================= */
+let lastFocus = null;
+function show(id){
+  const o = $(id); o.classList.add('show');
+  setOutsideInert(true);
+  const f = o.querySelector('button:not([disabled]), a[href]');
+  if (f) try { f.focus({ preventScroll:true }); } catch(e){}
+}
+function hide(id){
+  $(id).classList.remove('show');
+  if (!$('start').classList.contains('show') && !$('over').classList.contains('show')) setOutsideInert(false);
+}
+/* 창이 떠 있는 동안 뒤쪽을 초점에서 통째로 뺀다 — 탭이 창 밖으로 새면 갇힌 것처럼 느껴진다. */
+function setOutsideInert(on){
+  for (const el of document.querySelectorAll('body > header, body > main, body > section, body > footer, body > .ad-slot, body > .scores')){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+  }
+}
+function say(msg){ $('srSummary').textContent = msg; }
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600); }
+
+/* ======================= 시작 화면 ======================= */
+function refreshStart(){
+  const done = dailyDoneToday();
+  const no = dailyNo();
+  $('btnDaily').textContent = done ? T('dailyDone', no) : T('daily', no);
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint');
+  const s = streakNow();
+  $('btnDaily').disabled = false;   /* 끝냈어도 '결과 보기' 로는 눌린다 */
+  $('dailyHint').textContent += (s > 1 ? ' · ' + T('streak', s) : '');
+}
+/* 오늘 이미 끝냈으면 새 판을 열지 않고 저장된 결과를 보여 준다(하루 한 번). */
+function startDaily(){
+  if (dailyDoneToday()){
+    const r = dailyRec();
+    lastResult = { score:r.result.score, maxCombo:r.result.maxCombo,
+                   bricks:r.result.bricks || 0, stage:r.result.stage || 1,
+                   cleared:!!r.result.cleared, frenzy:r.result.frenzy || 0,
+                   /* ★저장된 실제 시간을 쓴다 — 없는 것은 duration 을 남기기 전에 만들어진
+                      옛 기록뿐이므로 그때만 0 으로 물러선다(슛팅의 codex R1 차단 3 과 같은 계약). */
+                   durS: r.result.duration ?? 0,
+                   isNew:false, streak:streakNow(),
+                   no:r.no || dailyNo(), mode:'daily' };
+    /* ★시작 창을 먼저 닫는다. 두 창은 z-index 가 같고 start 가 DOM 뒤라, 닫지 않으면 결과 창
+       위에 시작 창이 그대로 남아 사용자는 결과를 못 본다. 초점과 aria-modal 도 두 겹이 된다. */
+    hide('start');
+    renderOver();
+    return;
+  }
+  startRun('daily');
+}
+
+/* ======================= UI 배선 ======================= */
+$('btnStart').onclick = () => startRun('free');
+$('btnDaily').onclick = () => startDaily();
+$('btnAgain').onclick = () => startRun('free');
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyLang();
+  refreshStart();
+  $('subtitle').textContent = (running && mode === 'daily') ? T('daily', dailyNo()) : T('subtitle');
+  if (over && lastResult) renderOver();
+  ga('lang_switch', { lang });
+}
+$('btnLang').onclick = toggleLang;
+$('btnLang2').onclick = toggleLang;
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('bb.sound', soundOn ? '1' : '0');
+  const face = soundOn ? '🔊' : '🔇';
+  $('btnSound').textContent = face; $('btnSound2').textContent = face;
+  applyA11yLabels();
+  if (soundOn) beep(660, .06, 'sine', .04);
+}
+$('btnSound').onclick = toggleSound;
+$('btnSound2').onclick = toggleSound;
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnSound2').textContent = soundOn ? '🔊' : '🔇';
+
+async function doShare(){
+  const url = location.href.split('#')[0];
+  const r = lastResult;
+  if (!r) return;
+  const text = (r.mode === 'daily')
+    ? T('dailyShare', r.no, r.score, r.maxCombo, r.bricks, r.stage, r.streak) + T('stageLine', r.stage) + '\n' + url
+    : T('shareText', r.score, r.maxCombo) + url;
+  try{
+    if (navigator.share) await navigator.share({ title: T('docTitle'), text, url });
+    else { await navigator.clipboard.writeText(text); toast(T('copied')); }
+  }catch(_){}
+}
+$('btnShare').onclick = doShare;
+
+/* ======================= 기동 ======================= */
+applyLang();
+refreshStart();
+updateHud();
+resize();
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 150));
+/* 시작 창은 처음부터 열린 채로 그려진다 — show 를 한 번 태워 초점을 첫 버튼으로 옮기고
+   창 밖을 inert 로 막는다(다른 게임에서 얻은 교훈). */
+if ($('start').classList.contains('show')) show('start');
+rafId = requestAnimationFrame(loop);
+
+/* ======================= 검증 훅 ======================= */
+/* 게임 로직에 영향을 주지 않는 읽기·주입 창구다. 점수는 기기에만 저장되고 순위표가 없으므로
+   외부에 영향이 없다(다른 게임의 __sh·__bd·__g2048 과 같은 취지). */
+window.__bb = {
+  const: () => ({ VW, VH, LIVES, STAGES, COMBO_MS, PAD_W, PAD_W_WIDE, PAD_H, PAD_Y,
+                  BALL_R, BALL_V0, BALL_V_STEP, SLOW_MUL, MIN_VY_RATIO,
+                  BRICK_COLS, BRICK_ROWS: BRICK_ROWS.slice(), BRICK_W, BRICK_H, BRICK_TOP,
+                  DENSITY: DENSITY.slice(), HP_MAX_BY_STAGE: HP_MAX_BY_STAGE.slice(),
+                  DROP_P, ITEM_TYPES: ITEM_TYPES.slice(), ITEM_MS, FRENZY_MS,
+                  GAUGE_MAX, GAUGE_GAIN, PARTICLE_MAX, BALL_MAX, ITEM_MAX }),
+  seedKey: (d) => dailySeedKey(d ? new Date(d) : new Date()),
+  seedDraws: (key, n) => { const f = mulberry32(hashStr(key)); return Array.from({length:n}, () => +f().toFixed(9)); },
+  state: () => ({ mode, running, over, paused, score, combo, maxCombo, broken, lives,
+                  stage, stageReached, cleared, gauge, frenzyT, frenzyCount,
+                  wideT, pierceT, slowT, padX, padW, seedKey: seedKeyNow, elapsed,
+                  bricks: bricksLeft(),
+                  balls: balls.filter(b => b.on).length,
+                  items: items.filter(i => i.on).length,
+                  parts: parts.filter(p => p.on).length }),
+  daily: () => ({ done: dailyDoneToday(), rec: dailyRec(), no: dailyNo(), streak: streakNow() }),
+  newGame: (m) => { startRun(m); return true; },
+  startDaily: () => { startDaily(); return true; },
+  /* 실시간을 기다리지 않고 논리만 고정 폭으로 진행시킨다 — 스테이지·아이템 만료 검증용 */
+  tickMs: (ms, dtMs) => { const d = (dtMs || 16) / 1000; let n = Math.round(ms / (dtMs || 16));
+                          while (n-- > 0 && running && !over) step(d); return true; },
+  /* 패들을 특정 자리로 옮긴다 — 손가락 드래그와 같은 경로(목표 좌표를 준다). */
+  moveTo: (x) => { const h = padW/2; padTargetX = Math.max(h, Math.min(VW-h, x)); padX = padTargetX; return padX; },
+  launch: () => launchBall(),
+  /* ★'같은 날짜 = 같은 판' 을 기계가 대조하게 하는 창구.
+     원시 난수열(seedDraws)이 아니라 **실제로 놓인 벽돌의 자리·내구도·색·품은 아이템** 을 준다 —
+     원시 난수열 비교는 연출이 같은 생성기를 몰래 소비해도 통과해 버린다. */
+  recordLevel: (on) => { levelLog = on ? (levelLog || []) : null; return !!levelLog; },
+  levelLogMax: () => LEVEL_LOG_MAX,
+  level: () => (levelLog ? levelLog.map(o => ({ ...o })) : null),
+  levelTranscript: () => (levelLog
+      ? levelLog.map(o => `${o.stage}|${o.r}|${o.c}|${o.hp}|${o.ci}|${o.drop}`).join(' ')
+      : null),
+  brickList: () => bricks.filter(b => b.on).map(b => ({ x:b.x, y:b.y, hp:b.hp, hpMax:b.hpMax, ci:b.ci, drop:b.drop })),
+  ballList: () => balls.filter(b => b.on).map(b => ({ x:b.x, y:b.y, vx:b.vx, vy:b.vy, stuck:b.stuck })),
+  itemList: () => items.filter(i => i.on).map(i => ({ x:i.x, y:i.y, kind:i.kind })),
+  /* 공을 원하는 자리·속도로 놓는다(수평 고착 방지 검사용 — 게임이 쓰는 것과 같은 배열이다) */
+  setBall: (i, o) => { const b = balls[i]; if (!b) return false;
+                       b.on = true; b.stuck = false;
+                       if (o.x !== undefined) b.x = o.x; if (o.y !== undefined) b.y = o.y;
+                       if (o.vx !== undefined) b.vx = o.vx; if (o.vy !== undefined) b.vy = o.vy;
+                       for (let k = 0; k < balls.length; k++) if (k !== i) balls[k].on = false;
+                       return true; },
+  dropItem: (kind, x, y) => dropItem(kind, x, y),
+  applyItem: (kind) => { applyItem(kind); return true; },
+  burstAt: (x, y, n) => { burst(x, y, C.fill[0], n, 120); return parts.filter(p => p.on).length; },
+  clearBricks: () => { for (const b of bricks) b.on = false; return true; },
+  frenzy: () => { triggerFrenzy(); return true; },
+  end: () => { endRun(); return true; },
+  shown: (id) => $(id).classList.contains('show'),
+  reduceMotion: () => reduceMotion(),
+  sound: () => soundOn,
+  shake: () => ({ t: shakeT, mag: shakeMag })
+};
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
