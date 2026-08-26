@@ -95,14 +95,21 @@ Sitemap: https://hanpango.com/sitemap.xml
 1. `<게임id>/index.html` 폴더를 만들어 게임을 넣는다 (정적 1파일 · 외부 의존 0).
 2. 같은 폴더에 `thumb.webp` 를 넣는다 (640×640 정사각 · 150KB 이하).
 3. 루트 `games.json` 배열에 한 줄(객체 1개)을 추가한다 — `id·path·title{ko,en}·desc{ko,en}·thumb·playtime{ko,en}·daily·released·tags`.
-4. `sitemap.xml` 에 `<url><loc>https://hanpango.com/<게임id>/</loc>…</url>` 을 추가한다.
-5. ★루트 `index.html` 도 반드시 함께 고친다 — 게임 정보가 **3곳**에 중복되어 있고 셋의 내용이 같아야 한다.
+4. ★`functions/_games.js` 의 `GAMES` 배열에 게임 id 를 추가한다 — 공개 카운터(`/api/hit`·`/api/stats`)의
+   **런타임 출처는 이 한 곳뿐**이다.
+   - [ ] `functions/_games.js` 의 `GAMES` 에 `'<게임id>'` 추가
+   예전에는 `functions/api/hit.js` 와 `functions/api/stats.js` 가 각자 목록을 들고 있었다. 한쪽만
+   고치면 그 게임의 판수가 400 으로 조용히 버려지거나(hit), 판수는 쌓이는데 시작 화면의 판수 줄이
+   영영 안 나타났다(stats). 지금은 두 파일이 `_games.js` 를 들여오므로 손댈 곳은 여기뿐이다.
+   빠뜨리면 `node tools/counter/test_functions.mjs .` 이 `games.json` 과 어긋났다며 FAIL 한다.
+5. `sitemap.xml` 에 `<url><loc>https://hanpango.com/<게임id>/</loc>…</url>` 을 추가한다.
+6. ★루트 `index.html` 도 반드시 함께 고친다 — 게임 정보가 **3곳**에 중복되어 있고 셋의 내용이 같아야 한다.
    - [ ] `games.json` (평소 화면에 쓰이는 원본 데이터)
    - [ ] `index.html` 의 `FALLBACK` 배열 (games.json 을 못 읽을 때 쓰는 대비책)
    - [ ] `index.html` 의 `<noscript>` 목록 (자바스크립트가 꺼진 브라우저·크롤러가 보는 화면)
    세 곳 중 하나라도 빠뜨리면 어떤 방문자에게는 옛 정보가 보인다. 반드시 체크리스트로 확인할 것.
 
-6. ★`sw.js` 도 함께 고친다 — 오프라인 캐시 목록과 캐시 버전 두 가지다.
+7. ★`sw.js` 도 함께 고친다 — 오프라인 캐시 목록과 캐시 버전 두 가지다.
    - [ ] `PRECACHE` 배열에 새 게임 경로 **2줄**을 추가한다 — `/<게임id>/`, `/<게임id>/thumb.webp`
          ★`/<게임id>/index.html` 은 **넣지 않는다**. Cloudflare Pages 가 그 주소를 308 로
          되돌려 주어 `cache.addAll` 이 통째로 reject 되고 프리캐시가 전부 실패한다.
