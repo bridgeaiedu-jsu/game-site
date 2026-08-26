@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>슛팅 — 한 손가락 스트레스 해소 슈팅 | Shooting</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 슛팅 게임. 손가락으로 좌우로만 움직이면 자동으로 발사됩니다. 90초 동안 도형을 부수고 콤보를 쌓아 분노 모드로 화면을 싹 쓸어 버리세요. 매일 새로 열리는 오늘의 도전, 모바일 최적화. Free one-finger arcade shooter with auto-fire and a daily challenge — play instantly in your browser.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#120d2e" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="슛팅 — 한 손가락 스트레스 해소 슈팅 | Shooting">
+<meta property="og:description" content="한 손가락으로 움직이고 자동 발사 — 90초 동안 도형을 부수며 콤보를 쌓는 스트레스 해소 슈팅. 설치 없이 바로 플레이.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/shooting/">
+<link rel="canonical" href="https://hanpango.com/shooting/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"슛팅","alternateName":"Shooting","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본이다. 다크는 아래 @media 에서 ★같은 이름의 값만 바꿔 끼운다 —
+     HTML 마크업은 두 테마가 완전히 동일하다.
+     이 게임의 시그니처는 보라다(--sig). 버튼 글자는 --on-sig 를 쓴다.
+     ★표적 색·기체 색·탄 색은 캔버스가 쓴다. 캔버스는 var() 를 못 읽으므로 자바스크립트가
+       이 토큰 값을 읽어 간다(색을 코드에 박지 않기 위해서다).
+     ★무지개 7색(--r1 빨 ~ --r7 보)이 색의 원천이고 표적은 그것을 가리키기만 한다.
+       채움은 선명한 원색을 쓰고, 흰 바탕에서 묻히지 않게 하는 일은 **같은 색상의 어두운
+       테두리**(--r1-edge ~ --r7-edge)가 맡는다. 다크에서는 테두리를 밝은 톤으로 바꿔 끼운다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#7c3aed; --sig-ink:#5b21b6; --sig-soft:#ede9fe; --on-sig:#ffffff;
+    --good:#15803d;
+    --board:#f2f4f7; --cell:#fbfcfe; --cell-line:#dfe3ea;
+    --r1:#ef4444; --r2:#f97316; --r3:#facc15; --r4:#22c55e;
+    --r5:#3b82f6; --r6:#5f63f0; --r7:#ae63f8;
+    --r1-edge:#b91c1c; --r2-edge:#c2410c; --r3-edge:#a16207; --r4-edge:#15803d;
+    --r5-edge:#1d4ed8; --r6-edge:#4338ca; --r7-edge:#7e22ce;
+    --ship:#5b21b6; --ship-edge:#2e1065; --bullet:#1d4ed8; --bullet-rage:#b91c1c;
+    --star:#dfe3ea; --rage:#f97316; --rage-ink:#c2410c;
+    --blk-shine:rgba(255,255,255,.28); --blk-shade:rgba(0,0,0,.18);
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --flash:rgba(255,255,255,.75);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#a78bfa; --sig-ink:#c4b5fd; --sig-soft:#241f5c; --on-sig:#2e1065;
+      --good:#34d399;
+      --board:#120d2e; --cell:#241f5c; --cell-line:#332c78;
+      --r1-edge:#fecaca; --r2-edge:#fed7aa; --r3-edge:#fef08a; --r4-edge:#bbf7d0;
+      --r5-edge:#bfdbfe; --r6-edge:#c7d2fe; --r7-edge:#e9d5ff;
+      --ship:#c4b5fd; --ship-edge:#f1f0ff; --bullet:#bfdbfe; --bullet-rage:#fecaca;
+      --star:#2b2560; --rage:#fbbf24; --rage-ink:#fde68a;
+      --blk-shine:rgba(255,255,255,.22); --blk-shade:rgba(0,0,0,.18);
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+      --flash:rgba(255,255,255,.55);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em}
+  h1 small{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:6px}
+  .hdr-btns{display:flex;gap:6px}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:6px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .score b{display:block;font-size:1.2rem;line-height:1.1}
+  .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .score.hot b{color:var(--rage-ink)}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
+  .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 결과 화면 자리 */
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  /* ---- 판 ---- */
+  .play{position:relative;display:flex;justify-content:center;width:100%}
+  #stage{height:min(60dvh,640px);aspect-ratio:9/16;background:var(--board);border-radius:12px;touch-action:none;display:block;flex:0 0 auto;cursor:crosshair}
+  #stage:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+  /* 분노 게이지 — 판 아래 얇은 띠 하나. 숫자가 아니라 길이로 읽는다. */
+  .gauge{width:min(100%,360px);height:8px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);overflow:hidden}
+  .gauge i{display:block;height:100%;width:0;background:var(--rage);transition:width .12s linear}
+  .gauge.full i{background:var(--r1)}
+  .hint{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card h2{margin:0 0 6px;font-size:1.5rem}
+  .card .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1}
+  .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  /* 공개 카운터 — 있는 듯 없는 듯 작게. 숫자를 못 받으면 줄째로 감춘다(hidden) */
+  .card .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  /* ★hidden 을 이기지 못하게 못박는다 — 위의 display 선언(.card .hp-stat)은 선택자가 더 세서
+     브라우저 기본값 [hidden]{display:none} 을 덮는다. 그러면 숫자를 못 받았을 때도 빈 줄이 보인다. */
+  .hp-stat[hidden]{display:none!important}
+  .card .hp-stat b{font-weight:600}
+  .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .card .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[disabled]{opacity:.5;cursor:default}
+  /* 결과 카드의 세 수치 */
+  .stats3{display:flex;gap:6px;margin:10px 0 4px}
+  .stats3 div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .stats3 b{display:block;font-size:1.15rem}
+  .stats3 span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  /* 화면낭독기 전용 — 눈에는 안 보이지만 낭독기는 읽는다(display:none 이면 안 읽힌다) */
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  /* 움직임을 줄여 달라고 한 사람에게는 CSS 전환도 끈다(화면 흔들림은 스크립트가 끈다) */
+  @media (prefers-reduced-motion: reduce){
+    .gauge i{transition:none}
+    .btn:active,.ibtn:active{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">슛팅</span> <small id="subtitle" data-i18n="subtitle">한 손가락 스트레스 해소</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 다른 게임</a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="score">0</b><span data-i18n="scoreLbl">점수</span></div>
+  <div class="score" id="comboBox"><b id="combo">0</b><span data-i18n="comboLbl">콤보</span></div>
+  <div class="score"><b id="time">90</b><span data-i18n="timeLbl">시간</span></div>
+  <div class="score"><b id="lives">♥♥♥</b><span data-i18n="livesLbl">목숨</span></div>
+</div>
+
+<main>
+  <div class="play">
+    <canvas id="stage" width="360" height="640" role="img" tabindex="0" aria-label="game screen"></canvas>
+  </div>
+  <div class="gauge" id="gauge" aria-hidden="true"><i id="gaugeFill"></i></div>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="hint" data-i18n="hint">화면을 손가락으로 끌어 좌우 이동 · 발사는 자동 · 키보드 ← → 또는 A D</p>
+</main>
+
+<!-- 결과 -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card">
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <div class="big" id="finalScore">0</div>
+    <div class="new" id="streakLine" style="color:var(--sig-ink)"></div>
+    <div class="new" id="newBest"></div>
+    <div class="stats3">
+      <div><b id="finalCombo">0</b><span data-i18n="maxComboLbl">최대 콤보</span></div>
+      <div><b id="finalKills">0</b><span data-i18n="killsLbl">부순 개수</span></div>
+      <div><b id="finalBest">0</b><span data-i18n="bestLbl">최고</span></div>
+    </div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- 시작 -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card">
+    <h2 id="startTitle" data-i18n="title2">슛팅</h2>
+    <div class="sub" data-i18n="startSub">손가락으로 좌우로만 움직이세요.<br>발사는 알아서 됩니다. 90초 동안 마음껏 부수세요.</div>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnStart" data-i18n="start">자유 플레이</button>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.shooting.today">–</b>판 · 누적 <b data-hp="plays.shooting.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">화면 아무 곳이나 손가락으로 짚고 좌우로 끌면 기체가 따라옵니다. 발사 버튼은 없습니다 — 판이 시작되면 알아서 계속 쏩니다. 컴퓨터에서는 마우스를 끌거나 왼쪽·오른쪽 화살표, A·D 키로 움직이면 됩니다. 조작은 이것뿐입니다.</p>
+  <p data-i18n="how2">위에서 알록달록한 도형이 내려옵니다. 네모는 한 방, 슬라임은 한 방, 운석은 두 방, 큰 덩어리는 세 방을 맞으면 부서집니다. 부술 때마다 점수가 오르고 콤보가 1씩 쌓입니다. 2.5초 동안 아무것도 못 부수면 콤보는 0으로 돌아갑니다. 콤보가 높을수록 한 개를 부술 때 받는 점수가 커집니다.</p>
+  <p data-i18n="how3">도형이 기체에 부딪히면 목숨이 하나 줄고 잠깐 무적이 됩니다. 목숨은 셋입니다. 바닥까지 그냥 내려간 도형은 아무 손해도 주지 않고 사라집니다 — 이 게임은 지지 않으려고 버티는 게임이 아니라 부수는 게임입니다.</p>
+  <p data-i18n="how4">한 판은 90초입니다. 시간이 다 되거나 목숨이 0이 되면 '게임 오버'가 아니라 '결과' 화면이 뜹니다. 점수·최대 콤보·부순 개수를 보여 주고, 버튼 하나로 바로 다시 시작합니다.</p>
+  <h2 data-i18n="rageTitle">분노 모드</h2>
+  <p data-i18n="rageDesc">도형을 부술 때마다 판 아래 띠가 조금씩 찹니다. 띠가 가득 차면 저절로 분노 모드가 켜집니다. 켜지는 순간 화면에 있던 도형이 폭발 한 번으로 전부 사라지고, 이어지는 3초 동안 탄이 세 갈래로 퍼지며 도형을 관통합니다. 이 3초가 이 게임에서 제일 시원한 구간입니다. 콤보를 아끼지 말고 계속 부수면 한 판에 여러 번 켤 수 있습니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 완전히 같은 순서로 같은 도형을 받고, 하루에 한 번만 도전할 수 있습니다. 결과를 이모지 한 줄로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다. 자유 플레이는 횟수 제한이 없습니다.</p>
+  <h2 data-i18n="tipsTitle">고득점 팁</h2>
+  <details><summary data-i18n="tip1q">콤보를 끊지 마세요</summary><p data-i18n="tip1a">점수는 부순 개수가 아니라 콤보 배수로 벌립니다. 콤보 20에서 부수는 한 개가 콤보 0에서 부수는 세 개보다 큽니다. 2.5초 안에 다음 표적을 맞히는 것이 늘 우선입니다.</p></details>
+  <details><summary data-i18n="tip2q">운석은 미리 쏘기 시작하세요</summary><p data-i18n="tip2a">두세 방이 필요한 표적은 화면 위쪽에 있을 때부터 겨눠 두면 내려오는 동안 알아서 다 맞습니다. 아래까지 기다렸다가 쏘면 그 사이 콤보 시계가 흘러갑니다.</p></details>
+  <details><summary data-i18n="tip3q">분노 모드는 몰릴 때 켜집니다</summary><p data-i18n="tip3a">게이지가 거의 찼는데 화면이 도형으로 가득하다면 일부러 한 박자 늦춰 한 개만 더 부수세요. 폭발이 훨씬 많은 도형을 한 번에 쓸어 담습니다.</p></details>
+  <details><summary data-i18n="tip4q">피하려 하지 말고 밀어붙이세요</summary><p data-i18n="tip4a">목숨을 아끼려 화면 구석에 붙어 있으면 표적이 사거리 밖으로 지나갑니다. 목숨 셋은 쓰라고 있는 것입니다. 가운데에서 표적이 몰린 쪽으로 붙는 편이 점수가 훨씬 높습니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
+  <details><summary data-i18n="faq2q">최고 점수는 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.</p></details>
+  <details><summary data-i18n="faq3q">소리를 끌 수 있나요?</summary><p data-i18n="faq3a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 그대로 유지됩니다. 효과음은 모두 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다.</p></details>
+  <details><summary data-i18n="faq4q">화면이 흔들리는 게 불편합니다</summary><p data-i18n="faq4a">기기 설정에서 '동작 줄이기'를 켜면 화면 흔들림이 자동으로 꺼집니다. 게임 진행에는 아무 차이가 없습니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 슛팅 · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·점수 계산에는 관여하지 않는다. 태그가 아직 실리지 않았거나
+   차단됐으면 조용히 지나간다. 닉네임 같은 개인정보도, 광고 노출·클릭도 보내지 않는다. */
+const GA_GAME = 'shooting';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ======================= i18n ======================= */
+const I18N = {
+  ko: {
+    title:'슛팅', subtitle:'한 손가락 스트레스 해소', title2:'슛팅',
+    scoreLbl:'점수', comboLbl:'콤보', timeLbl:'시간', livesLbl:'목숨',
+    maxComboLbl:'최대 콤보', killsLbl:'부순 개수', bestLbl:'최고',
+    hint:'화면을 손가락으로 끌어 좌우 이동 · 발사는 자동 · 키보드 ← → 또는 A D',
+    result:'결과', again:'다시 하기', share:'결과 공유', start:'자유 플레이',
+    home:'🏠 다른 게임',
+    startSub:'손가락으로 좌우로만 움직이세요.<br>발사는 알아서 됩니다. 90초 동안 마음껏 부수세요.',
+    newBest:'🎉 최고 기록 갱신!',
+    finalSub:(k,t)=>`최대 콤보 ${k} · 플레이 ${t}`,
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    copied:'결과가 복사됐어요',
+    shareText:(s,c)=>`슛팅에서 ${s}점 · 최대 콤보 ${c}! 한 판 도전해 보세요 👉 `,
+    daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
+    dailyHint:'매일 새 판 · 전 세계 같은 순서 · 하루 한 번',
+    dailyHintDone:'오늘 도전 완료 — 내일 새 판이 열립니다',
+    dailyOver:(n)=>`오늘의 도전 #${n} 완료`, streak:(n)=>`🔥 ${n}일 연속 도전`,
+    dailyShare:(n,s,c,k,r)=>`💥 한판고 슛팅 · 오늘의 도전 #${n}\n${s}점 · 최대 콤보 ${c} · ${k}개 격파${r>1?` · 🔥${r}일 연속`:''}\n`,
+    gaugeLine:(n)=>'💢'.repeat(Math.min(n,10)) || '·',
+    rageOn:'분노 모드!', srStart:'게임 시작.', srOver:(s)=>`끝. ${s}점.`,
+    docTitle:'슛팅 — 한 손가락 스트레스 해소 슈팅 | Shooting', langBtn:'EN',
+    ariaStage:'슛팅 게임 화면 — 기체를 좌우로 움직여 도형을 부순다',
+    ariaSoundOn:'소리 끄기 (지금 켜짐)', ariaSoundOff:'소리 켜기 (지금 꺼짐)',
+    ariaLang:'언어 바꾸기 — English 로', ariaHome:'다른 게임 목록으로',
+    statPlays:'오늘 <b data-hp="plays.shooting.today">–</b>판 · 누적 <b data-hp="plays.shooting.total">–</b>판',
+    howTitle:'게임 방법',
+    how1:'화면 아무 곳이나 손가락으로 짚고 좌우로 끌면 기체가 따라옵니다. 발사 버튼은 없습니다 — 판이 시작되면 알아서 계속 쏩니다. 컴퓨터에서는 마우스를 끌거나 왼쪽·오른쪽 화살표, A·D 키로 움직이면 됩니다. 조작은 이것뿐입니다.',
+    how2:'위에서 알록달록한 도형이 내려옵니다. 네모는 한 방, 슬라임은 한 방, 운석은 두 방, 큰 덩어리는 세 방을 맞으면 부서집니다. 부술 때마다 점수가 오르고 콤보가 1씩 쌓입니다. 2.5초 동안 아무것도 못 부수면 콤보는 0으로 돌아갑니다. 콤보가 높을수록 한 개를 부술 때 받는 점수가 커집니다.',
+    how3:'도형이 기체에 부딪히면 목숨이 하나 줄고 잠깐 무적이 됩니다. 목숨은 셋입니다. 바닥까지 그냥 내려간 도형은 아무 손해도 주지 않고 사라집니다 — 이 게임은 지지 않으려고 버티는 게임이 아니라 부수는 게임입니다.',
+    how4:'한 판은 90초입니다. 시간이 다 되거나 목숨이 0이 되면 \'게임 오버\'가 아니라 \'결과\' 화면이 뜹니다. 점수·최대 콤보·부순 개수를 보여 주고, 버튼 하나로 바로 다시 시작합니다.',
+    rageTitle:'분노 모드',
+    rageDesc:'도형을 부술 때마다 판 아래 띠가 조금씩 찹니다. 띠가 가득 차면 저절로 분노 모드가 켜집니다. 켜지는 순간 화면에 있던 도형이 폭발 한 번으로 전부 사라지고, 이어지는 3초 동안 탄이 세 갈래로 퍼지며 도형을 관통합니다. 이 3초가 이 게임에서 제일 시원한 구간입니다. 콤보를 아끼지 말고 계속 부수면 한 판에 여러 번 켤 수 있습니다.',
+    dailyTitle:'오늘의 도전',
+    dailyDesc:'매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 완전히 같은 순서로 같은 도형을 받고, 하루에 한 번만 도전할 수 있습니다. 결과를 이모지 한 줄로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다. 자유 플레이는 횟수 제한이 없습니다.',
+    tipsTitle:'고득점 팁',
+    tip1q:'콤보를 끊지 마세요',
+    tip1a:'점수는 부순 개수가 아니라 콤보 배수로 벌립니다. 콤보 20에서 부수는 한 개가 콤보 0에서 부수는 세 개보다 큽니다. 2.5초 안에 다음 표적을 맞히는 것이 늘 우선입니다.',
+    tip2q:'운석은 미리 쏘기 시작하세요',
+    tip2a:'두세 방이 필요한 표적은 화면 위쪽에 있을 때부터 겨눠 두면 내려오는 동안 알아서 다 맞습니다. 아래까지 기다렸다가 쏘면 그 사이 콤보 시계가 흘러갑니다.',
+    tip3q:'분노 모드는 몰릴 때 켜집니다',
+    tip3a:'게이지가 거의 찼는데 화면이 도형으로 가득하다면 일부러 한 박자 늦춰 한 개만 더 부수세요. 폭발이 훨씬 많은 도형을 한 번에 쓸어 담습니다.',
+    tip4q:'피하려 하지 말고 밀어붙이세요',
+    tip4a:'목숨을 아끼려 화면 구석에 붙어 있으면 표적이 사거리 밖으로 지나갑니다. 목숨 셋은 쓰라고 있는 것입니다. 가운데에서 표적이 몰린 쪽으로 붙는 편이 점수가 훨씬 높습니다.',
+    faqTitle:'자주 묻는 질문',
+    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'최고 점수는 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.',
+    faq3q:'소리를 끌 수 있나요?', faq3a:'네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 그대로 유지됩니다. 효과음은 모두 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다.',
+    faq4q:'화면이 흔들리는 게 불편합니다', faq4a:'기기 설정에서 \'동작 줄이기\'를 켜면 화면 흔들림이 자동으로 꺼집니다. 게임 진행에는 아무 차이가 없습니다.',
+    footer:'© 2026 슛팅 · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개'
+  },
+  en: {
+    title:'Shooting', subtitle:'one-finger stress relief', title2:'Shooting',
+    scoreLbl:'score', comboLbl:'combo', timeLbl:'time', livesLbl:'lives',
+    maxComboLbl:'best combo', killsLbl:'smashed', bestLbl:'best',
+    hint:'Drag anywhere to move · fire is automatic · or use ← → / A D',
+    result:'Result', again:'Play again', share:'Share result', start:'Free play',
+    home:'🏠 Other games',
+    startSub:'Just drag left and right.<br>Firing is automatic. Smash away for 90 seconds.',
+    newBest:'🎉 New best!',
+    finalSub:(k,t)=>`Best combo ${k} · played ${t}`,
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    copied:'Result copied',
+    shareText:(s,c)=>`I scored ${s} with a ${c} combo in Shooting! Try it 👉 `,
+    daily:(n)=>`Daily challenge #${n}`, dailyDone:(n)=>`Daily challenge #${n} · see result`,
+    dailyHint:'New round daily · same order worldwide · once a day',
+    dailyHintDone:'Done for today — a new round opens tomorrow',
+    dailyOver:(n)=>`Daily challenge #${n} complete`, streak:(n)=>`🔥 ${n}-day streak`,
+    dailyShare:(n,s,c,k,r)=>`💥 Hanpango Shooting · Daily #${n}\n${s} pts · ${c} combo · ${k} smashed${r>1?` · 🔥${r}-day streak`:''}\n`,
+    gaugeLine:(n)=>'💢'.repeat(Math.min(n,10)) || '·',
+    rageOn:'RAGE!', srStart:'Game started.', srOver:(s)=>`Finished. ${s} points.`,
+    docTitle:'Shooting — one-finger arcade shooter | 슛팅', langBtn:'한국어',
+    ariaStage:'Shooting game screen — move sideways and smash the shapes',
+    ariaSoundOn:'Turn sound off (currently on)', ariaSoundOff:'Turn sound on (currently off)',
+    ariaLang:'Change language — switch to Korean', ariaHome:'Go to the other games',
+    statPlays:'<b data-hp="plays.shooting.today">–</b> today · <b data-hp="plays.shooting.total">–</b> all-time',
+    howTitle:'How to play',
+    how1:'Put a finger anywhere on the screen and drag sideways — the ship follows. There is no fire button: once a round starts it keeps shooting on its own. On a computer, drag the mouse or use the left and right arrows, or A and D. That is the whole control scheme.',
+    how2:'Colourful shapes come down from the top. A square and a slime take one hit, a rock takes two, a big chunk takes three. Every shape you break adds score and raises your combo by one. If you break nothing for 2.5 seconds the combo drops back to zero. The higher the combo, the more each shape is worth.',
+    how3:'If a shape hits your ship you lose one life and go briefly invulnerable. You have three. Shapes that simply reach the bottom cost you nothing and disappear — this is not a game about surviving, it is a game about smashing.',
+    how4:'A round lasts 90 seconds. When time runs out or your lives reach zero you get a "Result" screen, not a "Game over" — score, best combo and shapes smashed, with one button to start again straight away.',
+    rageTitle:'Rage mode',
+    rageDesc:'Every shape you break fills the bar under the board a little. When it is full, rage mode switches on by itself: a single blast clears every shape on screen, and for the next three seconds your shots split into three and pierce straight through. Those three seconds are the best part of the game. Keep breaking without pause and you can trigger it several times in one round.',
+    dailyTitle:'Daily challenge',
+    dailyDesc:'A new round opens every midnight. Everyone in the world gets exactly the same shapes in the same order, and you get one attempt per day. Share the one-line emoji result and compare with friends. Come back on consecutive days to build a 🔥 streak. Free play has no limit.',
+    tipsTitle:'Scoring tips',
+    tip1q:'Never let the combo break',
+    tip1a:'Score comes from the combo multiplier, not from raw count. One shape broken at combo 20 beats three broken at combo 0. Hitting the next target within 2.5 seconds always comes first.',
+    tip2q:'Start shooting rocks early',
+    tip2a:'Targets that need two or three hits will absorb all of them on the way down if you line them up while they are still near the top. Waiting until they are close burns your combo clock.',
+    tip3q:'Trigger rage when the screen is busy',
+    tip3a:'If the bar is nearly full and the screen is packed, hold off for a beat and break just one more. The blast then sweeps up far more shapes at once.',
+    tip4q:'Push forward instead of hiding',
+    tip4a:'Hugging a corner to protect your lives lets targets drift past your line of fire. The three lives are there to be spent. Staying central and leaning into the crowded side scores much higher.',
+    faqTitle:'FAQ',
+    faq1q:'Do I need to install anything?', faq1a:'No. It runs straight in the browser. Add it to your home screen to use it like an app.',
+    faq2q:'Where is my best score stored?', faq2a:'Only in the browser on this device. Nothing is sent to a server.',
+    faq3q:'Can I turn the sound off?', faq3a:'Yes — the speaker button at the top right toggles it, and your choice is remembered next time. Every effect is generated by the browser on the spot, so there are no audio files to download.',
+    faq4q:'The screen shake bothers me', faq4a:'Turn on "reduce motion" in your device settings and the shake switches off automatically. Nothing else about the game changes.',
+    footer:'© 2026 Shooting · Privacy: scores stay on your device; third-party cookies (Google and others) may be used to serve ads.',
+    navPrivacy:'Privacy policy', navAbout:'About'
+  }
+};
+/* 언어 키는 사이트 공통(bp.lang) — 포털·다른 게임과 공유한다. */
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  $('btnLang2').textContent = T('langBtn');
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  /* 문안을 innerHTML 로 갈아 끼우면 채운 숫자가 지워진다 — 다시 채운다.
+     hp-stats.js 는 defer 라 없을 수도 있으므로 있는지 보고 부른다. */
+  if (window.hpStats) window.hpStats();
+}
+/* 접근성 이름을 현재 언어로 맞춘다 — 소리 버튼은 켜짐/꺼짐 상태까지 이름과 aria-pressed 에 담는다. */
+function applyA11yLabels(){
+  for (const id of ['btnSound','btnSound2']){
+    const b = $(id); if (!b) continue;
+    b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  }
+  for (const id of ['btnLang','btnLang2']){ const l = $(id); if (l) l.setAttribute('aria-label', T('ariaLang')); }
+  const st = $('stage'); if (st) st.setAttribute('aria-label', T('ariaStage'));
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+}
+
+/* ======================= 색 토큰 읽기 ======================= */
+/* 캔버스는 var() 를 못 읽는다 — CSS 에 적힌 값을 한 번 읽어다 쓴다. 색을 코드에 박지 않기
+   위해서다. 테마가 바뀌면(다크 전환) 다시 읽는다. */
+let C = {};
+function readTokens(){
+  const s = getComputedStyle(document.documentElement);
+  const g = n => s.getPropertyValue(n).trim();
+  C = {
+    board:g('--board'), cell:g('--cell'), line:g('--cell-line'), star:g('--star'),
+    text:g('--text'), muted:g('--muted'), sig:g('--sig'), sigInk:g('--sig-ink'),
+    ship:g('--ship'), shipEdge:g('--ship-edge'), bullet:g('--bullet'), bulletRage:g('--bullet-rage'),
+    rage:g('--rage'), flash:g('--flash'),
+    fill:[g('--r1'),g('--r2'),g('--r3'),g('--r4'),g('--r5'),g('--r6'),g('--r7')],
+    edge:[g('--r1-edge'),g('--r2-edge'),g('--r3-edge'),g('--r4-edge'),g('--r5-edge'),g('--r6-edge'),g('--r7-edge')]
+  };
+}
+readTokens();
+try {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  (mq.addEventListener ? mq.addEventListener.bind(mq,'change') : mq.addListener.bind(mq))(() => readTokens());
+} catch(e){}
+
+/* 움직임 줄이기 — 흔들림을 끄는 유일한 스위치다. 값은 그때그때 읽는다(설정을 바꾸면 바로 반영). */
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } };
+
+/* ======================= 사운드(WebAudio · 파일 없음) ======================= */
+let soundOn = localStorage.getItem('sh.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0, freq2=null){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime + delay;
+    if (freq2 !== null) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq2), t + dur);
+    o.start(t);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+/* 잡음 한 줌 — 폭발·파열음. 오실레이터로는 안 나는 소리다. */
+function noise(dur=0.18, gain=0.06, from=1400, to=120){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const n = Math.floor(actx.sampleRate * dur);
+    const buf = actx.createBuffer(1, n, actx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random()*2-1) * (1 - i/n);
+    const src = actx.createBufferSource(); src.buffer = buf;
+    const f = actx.createBiquadFilter(); f.type = 'lowpass';
+    const g = actx.createGain(); g.gain.value = gain;
+    const t = actx.currentTime;
+    f.frequency.setValueAtTime(from, t);
+    f.frequency.exponentialRampToValueAtTime(Math.max(40,to), t + dur);
+    src.connect(f); f.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.start(t); src.stop(t + dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sShot  = () => beep(880, .025, 'square', .012, 0, 1500);
+const sHit   = () => beep(320, .03, 'square', .022);
+const sBreak = (n) => { beep(420 + Math.min(n,20)*22, .07, 'triangle', .045, 0, 260); noise(.08, .028, 2200, 400); };
+const sDamage= () => { beep(160, .22, 'sawtooth', .05, 0, 60); vib([40,30,40]); };
+const sRage  = () => { noise(.5, .09, 4000, 90);
+                       beep(220, .14, 'triangle', .05); beep(330, .14, 'triangle', .05, .12);
+                       beep(440, .26, 'triangle', .05, .24); vib([20,40,80]); };
+const sOver  = () => { beep(520, .12, 'triangle', .05); beep(392, .12, 'triangle', .05, .12);
+                       beep(262, .3, 'triangle', .05, .24); };
+
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   // 2026-08-23 = #1 (다른 게임과 동일 기준일)
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const dailySeedKey = (d=new Date()) => 'hanpango-daily-shooting-' + dayKey(d);
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('sh.daily')||'null'); }catch(_){ return null; } };
+/* 오늘 이미 끝냈는가. 날짜가 바뀌면 없는 것으로 친다 — 자정에 자동으로 새 판이 열린다. */
+function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && r.result); }
+function saveDaily(result){
+  localStorage.setItem('sh.daily', JSON.stringify({ date: dayKey(), no: dailyNo(), result }));
+}
+/* 🔥스트릭 — 어제 했으면 이어지고, 하루라도 건너뛰면 1 부터 다시 센다. */
+function bumpStreak(){
+  const day = dayKey();
+  let st; try{ st = JSON.parse(localStorage.getItem('sh.streak')||'{}'); }catch(_){ st = {}; }
+  if (st.last === day) return st.n || 1;
+  const y = new Date(); y.setDate(y.getDate()-1);
+  const n = (st.last === dayKey(y)) ? (st.n || 0) + 1 : 1;
+  localStorage.setItem('sh.streak', JSON.stringify({ last: day, n }));
+  return n;
+}
+const streakNow = () => { try{ const s = JSON.parse(localStorage.getItem('sh.streak')||'{}'); return s.n || 0; }catch(_){ return 0; } };
+
+/* ======================= 게임 상수 ======================= */
+/* 좌표는 논리 단위 360×640 고정이다. 화면 크기는 CSS 가 정하고, 그리기 직전에 배율만 건다 —
+   그래서 어떤 기기에서도 '같은 판'이 된다(속도·거리가 화면 크기에 흔들리지 않는다). */
+const VW = 360, VH = 640;
+const ROUND_MS   = 90000;      /* 90초 타임어택 */
+const LIVES      = 3;
+const INVUL_MS   = 1600;       /* 피격 후 무적 */
+const COMBO_MS   = 2500;       /* 이 시간 안에 못 부수면 콤보 초기화 */
+const FIRE_MS    = 110;        /* 자동 연사 간격 */
+const FIRE_MS_R  = 62;         /* 분노 모드 연사 간격 */
+const BULLET_V   = 620;        /* 논리단위/초 */
+const SHIP_Y     = VH - 74;
+const SHIP_R     = 15;         /* 충돌 반지름 */
+const SHIP_V     = 420;        /* 키보드 이동 속도 */
+const RAGE_MAX   = 100;
+const RAGE_GAIN  = 7;          /* 한 개 부술 때마다 */
+const RAGE_MS    = 3000;
+const PARTICLE_MAX = 220;      /* 상한 — 저사양에서 먼저 줄이는 곳 */
+const SPAWN_MS0  = 720, SPAWN_MS1 = 380;   /* 시작 → 끝 스폰 간격 */
+/* 표적 4종 — 전부 추상 도형이다(사람·동물·피·총기 사실묘사 0). */
+const KINDS = [
+  { k:'block', hp:1, r:14, pts:100, w:5 },
+  { k:'slime', hp:1, r:14, pts:120, w:4 },
+  { k:'rock',  hp:2, r:16, pts:200, w:3 },
+  { k:'big',   hp:3, r:22, pts:350, w:1 }
+];
+const KIND_W_TOTAL = KINDS.reduce((a,b) => a + b.w, 0);
+
+/* ======================= 상태 ======================= */
+const cv = $('stage'), ctx = cv.getContext('2d', { alpha:false });
+let mode = 'free', running = false, over = false, paused = false;
+let rng = Math.random, seedKeyNow = '';
+let score = 0, shownScore = 0, best = +localStorage.getItem('sh.best') || 0;
+let combo = 0, maxCombo = 0, comboT = 0, kills = 0, lives = LIVES;
+let leftMs = ROUND_MS, invulT = 0, rageT = 0, rageGauge = 0, rageCount = 0;
+let shipX = VW/2, shipTargetX = VW/2, keyL = false, keyR = false, dragging = false;
+let fireT = 0, spawnT = 0, elapsed = 0, shakeT = 0, shakeMag = 0, flashT = 0;
+let lastNo = null, lastResult = null;
+let rafId = 0, prevTs = 0, starPhase = 0;
+
+/* 오브젝트 풀 — 판이 도는 동안 새 객체를 만들지 않는다(60fps 유지의 절반은 여기서 온다). */
+const bullets = [], enemies = [], parts = [], pops = [];
+for (let i = 0; i < 60;  i++) bullets.push({ on:false, x:0, y:0, vx:0, vy:0, pierce:false });
+for (let i = 0; i < 40;  i++) enemies.push({ on:false, x:0, y:0, vx:0, vy:0, kind:0, hp:0, r:0, ci:0, flash:0, spin:0, sv:0, wob:0, seedv:0 });
+for (let i = 0; i < PARTICLE_MAX; i++) parts.push({ on:false, x:0, y:0, vx:0, vy:0, life:0, max:0, col:'', sz:0 });
+for (let i = 0; i < 14;  i++) pops.push({ on:false, x:0, y:0, life:0, txt:'', col:'' });
+const take = pool => { for (const o of pool) if (!o.on) return o; return null; };
+
+/* 별 배경 — 스크롤하는 점. 판마다 같은 자리에 있어야 산만하지 않으므로 고정 표를 쓴다. */
+const STARS = [];
+{ const f = mulberry32(20260826); for (let i = 0; i < 46; i++) STARS.push({ x:f()*VW, y:f()*VH, s:f()*1.6+0.5, v:f()*18+8 }); }
+
+/* ======================= HUD ======================= */
+function updateHud(){
+  $('score').textContent = Math.round(shownScore);
+  $('combo').textContent = combo;
+  $('time').textContent = Math.max(0, Math.ceil(leftMs/1000));
+  $('lives').textContent = lives > 0 ? '♥'.repeat(lives) : '–';
+  $('comboBox').classList.toggle('hot', combo >= 10);
+  const pct = Math.min(100, Math.round(rageGauge / RAGE_MAX * 100));
+  $('gaugeFill').style.width = pct + '%';
+  $('gauge').classList.toggle('full', pct >= 100);
+}
+
+/* ======================= 스폰 ======================= */
+function pickKind(){
+  let r = rng() * KIND_W_TOTAL;
+  for (const k of KINDS){ r -= k.w; if (r <= 0) return k; }
+  return KINDS[0];
+}
+function spawn(){
+  const e = take(enemies); if (!e) return;
+  const kd = pickKind();
+  const prog = Math.min(1, elapsed / ROUND_MS);
+  e.on = true; e.kind = kd.k; e.hp = kd.hp; e.r = kd.r;
+  e.x = e.r + rng() * (VW - e.r*2);
+  e.y = -e.r - 6;
+  e.vy = (58 + rng()*52) * (1 + prog*0.55);
+  e.vx = (rng()*2 - 1) * 26;
+  e.ci = Math.floor(rng()*7);
+  e.flash = 0; e.spin = rng()*Math.PI*2; e.sv = (rng()*2-1)*1.2;
+  e.wob = rng()*Math.PI*2; e.seedv = rng();
+}
+
+/* ======================= 파티클·팝업 ======================= */
+function burst(x, y, col, n, spread){
+  /* 파티클은 상한을 넘지 않는다 — 풀이 비면 그냥 덜 뿌린다(끊기는 것보다 낫다). */
+  for (let i = 0; i < n; i++){
+    const p = take(parts); if (!p) return;
+    const a = rng() * Math.PI * 2, sp = 40 + rng() * spread;
+    p.on = true; p.x = x; p.y = y;
+    p.vx = Math.cos(a)*sp; p.vy = Math.sin(a)*sp - 20;
+    p.max = p.life = 0.32 + rng()*0.4; p.col = col; p.sz = 2 + rng()*3;
+  }
+}
+function pop(x, y, txt, col){
+  const p = take(pops); if (!p) return;
+  p.on = true; p.x = x; p.y = y; p.life = 0.75; p.txt = txt; p.col = col;
+}
+function shake(mag){ if (reduceMotion()) return; shakeMag = Math.max(shakeMag, mag); shakeT = Math.max(shakeT, 0.24); }
+
+/* ======================= 판 진행 ======================= */
+function resetRun(){
+  for (const o of bullets) o.on = false;
+  for (const o of enemies) o.on = false;
+  for (const o of parts)   o.on = false;
+  for (const o of pops)    o.on = false;
+  score = 0; shownScore = 0; combo = 0; maxCombo = 0; comboT = 0; kills = 0;
+  lives = LIVES; leftMs = ROUND_MS; invulT = 0; rageT = 0; rageGauge = 0; rageCount = 0;
+  shipX = shipTargetX = VW/2; fireT = 0; spawnT = 0; elapsed = 0;
+  shakeT = 0; shakeMag = 0; flashT = 0; keyL = keyR = false; dragging = false;
+  over = false; paused = false;
+}
+function startRun(m){
+  mode = m;
+  seedKeyNow = (m === 'daily') ? dailySeedKey() : '';
+  rng = (m === 'daily') ? mulberry32(hashStr(seedKeyNow)) : Math.random;
+  resetRun();
+  running = true;
+  hide('start'); hide('over');
+  $('subtitle').textContent = (m === 'daily') ? T('daily', dailyNo()) : T('subtitle');
+  updateHud();
+  say(T('srStart'));
+  ga('game_start', { game: GA_GAME });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+  try { cv.focus({ preventScroll:true }); } catch(e){ }
+  prevTs = 0;
+}
+function endRun(){
+  if (!running) return;
+  running = false; over = true;
+  const durS = Math.round((ROUND_MS - Math.max(0, leftMs)) / 1000);
+  const isNew = score > best;
+  if (isNew){ best = score; localStorage.setItem('sh.best', best); }
+  let streak = 0;
+  if (mode === 'daily'){
+    saveDaily({ score, maxCombo, kills, rage: rageCount });
+    streak = bumpStreak();
+    ga('daily_complete', { game: GA_GAME, streak });
+  }
+  lastResult = { score, maxCombo, kills, rage: rageCount, durS, isNew, streak, no: dailyNo(), mode };
+  ga('game_over', { game: GA_GAME, score, moves: kills, duration_s: durS, daily: mode === 'daily' });
+  sOver();
+  renderOver();
+  refreshStart();
+  say(T('srOver', score));
+}
+function renderOver(){
+  const r = lastResult; if (!r) return;
+  $('overTitle').textContent = (r.mode === 'daily') ? T('dailyOver', r.no) : T('result');
+  $('finalScore').textContent = r.score;
+  $('finalCombo').textContent = r.maxCombo;
+  $('finalKills').textContent = r.kills;
+  $('finalBest').textContent  = best;
+  $('finalSub').textContent   = T('finalSub', r.maxCombo, fmtTime(r.durS));
+  $('newBest').textContent    = r.isNew ? T('newBest') : '';
+  $('streakLine').textContent = (r.mode === 'daily' && r.streak > 1) ? T('streak', r.streak) : '';
+  show('over');
+}
+const fmtTime = s => `${Math.floor(s/60)}:${pad2(s%60)}`;
+
+/* ======================= 한 걸음(고정 논리) ======================= */
+function step(dt){          /* dt = 초 */
+  elapsed += dt*1000;
+  leftMs -= dt*1000;
+
+  /* --- 기체 --- */
+  if (keyL) shipTargetX -= SHIP_V*dt;
+  if (keyR) shipTargetX += SHIP_V*dt;
+  shipTargetX = Math.max(SHIP_R, Math.min(VW-SHIP_R, shipTargetX));
+  /* 손가락을 따라가되 살짝 미끄러진다 — 딱 붙으면 손맛이 없고, 너무 늦으면 답답하다. */
+  shipX += (shipTargetX - shipX) * Math.min(1, dt*18);
+
+  /* --- 자동 연사 --- */
+  fireT -= dt*1000;
+  const raging = rageT > 0;
+  if (fireT <= 0){
+    fireT += raging ? FIRE_MS_R : FIRE_MS;
+    if (fireT < 0) fireT = 0;
+    if (raging){ shoot(0, true); shoot(-170, true); shoot(170, true); }
+    else shoot(0, false);
+    sShot();
+  }
+
+  /* --- 스폰 --- */
+  spawnT -= dt*1000;
+  if (spawnT <= 0){
+    const prog = Math.min(1, elapsed / ROUND_MS);
+    spawnT += SPAWN_MS0 + (SPAWN_MS1 - SPAWN_MS0) * prog;
+    spawn();
+    if (prog > 0.5 && rng() < 0.35) spawn();   /* 후반엔 가끔 두 개 */
+  }
+
+  /* --- 탄 --- */
+  for (const b of bullets){
+    if (!b.on) continue;
+    b.x += b.vx*dt; b.y += b.vy*dt;
+    if (b.y < -14 || b.x < -14 || b.x > VW+14) b.on = false;
+  }
+  /* --- 표적 --- */
+  for (const e of enemies){
+    if (!e.on) continue;
+    e.y += e.vy*dt;
+    e.wob += dt*3;
+    e.x += (e.vx + (e.kind === 'slime' ? Math.sin(e.wob)*30 : 0))*dt;
+    if (e.x < e.r){ e.x = e.r; e.vx = Math.abs(e.vx); }
+    if (e.x > VW-e.r){ e.x = VW-e.r; e.vx = -Math.abs(e.vx); }
+    e.spin += e.sv*dt;
+    if (e.flash > 0) e.flash -= dt;
+    /* 바닥까지 내려간 표적은 아무 손해 없이 사라진다 — 지지 않으려 버티는 게임이 아니다. */
+    if (e.y - e.r > VH + 8) e.on = false;
+  }
+  /* --- 맞음 판정: 탄 × 표적 --- */
+  for (const b of bullets){
+    if (!b.on) continue;
+    for (const e of enemies){
+      if (!e.on) continue;
+      const dx = b.x - e.x, dy = b.y - e.y;
+      if (dx*dx + dy*dy > (e.r+4)*(e.r+4)) continue;
+      if (!b.pierce) b.on = false;
+      e.hp--; e.flash = 0.12;
+      if (e.hp <= 0) killEnemy(e);
+      else { sHit(); burst(b.x, b.y, C.fill[e.ci], 3, 60); }
+      if (!b.on) break;
+    }
+  }
+  /* --- 부딪힘 판정: 기체 × 표적 --- */
+  if (invulT > 0) invulT -= dt*1000;
+  else {
+    for (const e of enemies){
+      if (!e.on) continue;
+      const dx = shipX - e.x, dy = SHIP_Y - e.y, rr = e.r + SHIP_R;
+      if (dx*dx + dy*dy <= rr*rr){ hitShip(e); break; }
+    }
+  }
+  /* --- 콤보 시계 --- */
+  if (combo > 0){ comboT -= dt*1000; if (comboT <= 0) combo = 0; }
+  /* --- 분노 --- */
+  if (rageT > 0) rageT -= dt*1000;
+  /* --- 파티클·팝업 --- */
+  for (const p of parts){
+    if (!p.on) continue;
+    p.life -= dt; if (p.life <= 0){ p.on = false; continue; }
+    p.x += p.vx*dt; p.y += p.vy*dt; p.vy += 300*dt; p.vx *= 0.99;
+  }
+  for (const p of pops){
+    if (!p.on) continue;
+    p.life -= dt; if (p.life <= 0){ p.on = false; continue; }
+    p.y -= 42*dt;
+  }
+  if (shakeT > 0){ shakeT -= dt; if (shakeT <= 0) shakeMag = 0; }
+  if (flashT > 0) flashT -= dt;
+  /* 점수는 굴러서 올라간다 — 숫자가 튀지 않고 흐르면 훨씬 시원하다. */
+  shownScore += (score - shownScore) * Math.min(1, dt*9);
+  if (Math.abs(score - shownScore) < 0.6) shownScore = score;
+
+  if (leftMs <= 0 || lives <= 0){ leftMs = Math.max(0, leftMs); endRun(); }
+}
+function shoot(vx, pierce){
+  const b = take(bullets); if (!b) return;
+  b.on = true; b.x = shipX; b.y = SHIP_Y - 18; b.vx = vx; b.vy = -BULLET_V; b.pierce = pierce;
+}
+function killEnemy(e){
+  e.on = false; kills++;
+  combo++; comboT = COMBO_MS; if (combo > maxCombo) maxCombo = combo;
+  const kd = KINDS.find(k => k.k === e.kind) || KINDS[0];
+  const gain = Math.round(kd.pts * (1 + combo*0.1));
+  score += gain;
+  burst(e.x, e.y, C.fill[e.ci], e.kind === 'big' ? 18 : 10, e.kind === 'big' ? 200 : 130);
+  pop(e.x, e.y - 6, combo >= 3 ? ('×' + combo) : ('+' + gain), combo >= 10 ? C.rage : C.fill[e.ci]);
+  sBreak(combo);
+  shake(e.kind === 'big' ? 6 : 3);
+  if (rageT <= 0){
+    rageGauge += RAGE_GAIN;
+    if (rageGauge >= RAGE_MAX) triggerRage();
+  }
+}
+/* 카타르시스 장치 — 게이지가 차면 저절로 켜진다(누를 버튼이 없다는 것이 이 게임의 규칙이다). */
+function triggerRage(){
+  rageGauge = 0; rageT = RAGE_MS; rageCount++;
+  flashT = 0.22; shake(12);
+  /* 화면 싹쓸이 폭발 1회 — 지금 화면에 있는 표적을 전부 없앤다(점수는 그대로 들어온다). */
+  for (const e of enemies){
+    if (!e.on) continue;
+    const kd = KINDS.find(k => k.k === e.kind) || KINDS[0];
+    kills++; combo++; if (combo > maxCombo) maxCombo = combo;
+    score += Math.round(kd.pts * (1 + combo*0.1));
+    burst(e.x, e.y, C.fill[e.ci], 14, 190);
+    e.on = false;
+  }
+  comboT = COMBO_MS;
+  pop(VW/2, VH*0.42, T('rageOn'), C.rage);
+  sRage();
+}
+function hitShip(e){
+  lives--; invulT = INVUL_MS; combo = 0;
+  e.on = false;
+  burst(shipX, SHIP_Y, C.fill[e.ci], 16, 170);
+  flashT = 0.16; shake(10);
+  sDamage();
+}
+
+/* ======================= 그리기 ======================= */
+let dpr = 1, cssW = 0, cssH = 0;
+function resize(){
+  const r = cv.getBoundingClientRect();
+  dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  cssW = r.width || VW; cssH = r.height || VH;
+  cv.width  = Math.round(cssW * dpr);
+  cv.height = Math.round(cssH * dpr);
+  draw();
+}
+function draw(){
+  const sx = (cv.width / VW), sy = (cv.height / VH);
+  ctx.setTransform(sx, 0, 0, sy, 0, 0);
+  /* 흔들림 — 논리 좌표계 위에서 살짝 밀어 준다. 움직임 줄이기가 켜져 있으면 0 이다. */
+  if (shakeT > 0 && shakeMag > 0){
+    const k = shakeT / 0.24;
+    ctx.translate((Math.random()*2-1)*shakeMag*k, (Math.random()*2-1)*shakeMag*k);
+  }
+  ctx.fillStyle = C.board; ctx.fillRect(-20, -20, VW+40, VH+40);
+  /* 별 — 아래로 흐른다. 판이 멈춰 있어도 흐르게 두어 화면이 죽지 않게 한다. */
+  ctx.fillStyle = C.star;
+  for (const s of STARS){
+    const y = (s.y + starPhase * s.v) % (VH + 8);
+    ctx.beginPath(); ctx.arc(s.x, y, s.s, 0, Math.PI*2); ctx.fill();
+  }
+  /* 분노 중에는 바탕에 옅은 띠를 깐다 — 상태가 화면 전체로 읽힌다. */
+  if (rageT > 0){
+    ctx.globalAlpha = 0.10; ctx.fillStyle = C.rage;
+    ctx.fillRect(0, 0, VW, VH); ctx.globalAlpha = 1;
+  }
+  for (const e of enemies) if (e.on) drawEnemy(e);
+  for (const b of bullets) if (b.on) drawBullet(b);
+  drawShip();
+  for (const p of parts){
+    if (!p.on) continue;
+    ctx.globalAlpha = Math.max(0, p.life / p.max);
+    ctx.fillStyle = p.col;
+    ctx.fillRect(p.x - p.sz/2, p.y - p.sz/2, p.sz, p.sz);
+  }
+  ctx.globalAlpha = 1;
+  ctx.textAlign = 'center'; ctx.font = '700 20px system-ui, sans-serif';
+  for (const p of pops){
+    if (!p.on) continue;
+    ctx.globalAlpha = Math.min(1, p.life / 0.4);
+    ctx.fillStyle = p.col; ctx.fillText(p.txt, p.x, p.y);
+  }
+  ctx.globalAlpha = 1;
+  if (flashT > 0){
+    ctx.globalAlpha = Math.min(0.9, flashT * 4);
+    ctx.fillStyle = C.flash; ctx.fillRect(-20, -20, VW+40, VH+40);
+    ctx.globalAlpha = 1;
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+function drawShip(){
+  /* 무적 동안은 깜빡인다 — 맞았다는 사실이 화면으로 읽혀야 한다. */
+  if (invulT > 0 && Math.floor(invulT / 90) % 2 === 0) return;
+  ctx.save(); ctx.translate(shipX, SHIP_Y);
+  ctx.beginPath();
+  ctx.moveTo(0, -18); ctx.lineTo(13, 12); ctx.lineTo(5, 8);
+  ctx.lineTo(0, 15); ctx.lineTo(-5, 8); ctx.lineTo(-13, 12);
+  ctx.closePath();
+  ctx.fillStyle = rageT > 0 ? C.rage : C.ship; ctx.fill();
+  ctx.lineWidth = 2.5; ctx.strokeStyle = C.shipEdge; ctx.stroke();
+  /* 분사 불꽃 */
+  ctx.beginPath(); ctx.moveTo(-4, 13); ctx.lineTo(0, 22 + Math.random()*6); ctx.lineTo(4, 13);
+  ctx.closePath(); ctx.fillStyle = C.rage; ctx.globalAlpha = .8; ctx.fill(); ctx.globalAlpha = 1;
+  ctx.restore();
+}
+function drawBullet(b){
+  ctx.fillStyle = b.pierce ? C.bulletRage : C.bullet;
+  ctx.beginPath();
+  const w = b.pierce ? 5 : 3.4;
+  roundRect(b.x - w/2, b.y - 7, w, 14, w/2); ctx.fill();
+}
+function drawEnemy(e){
+  const fill = e.flash > 0 ? C.flash : C.fill[e.ci];
+  const edge = C.edge[e.ci];
+  ctx.save(); ctx.translate(e.x, e.y);
+  ctx.lineWidth = 3; ctx.strokeStyle = edge; ctx.fillStyle = fill;
+  if (e.kind === 'block' || e.kind === 'big'){
+    ctx.rotate(e.spin * 0.25);
+    const s = e.r * 1.7;
+    ctx.beginPath(); roundRect(-s/2, -s/2, s, s, 5); ctx.fill(); ctx.stroke();
+    if (e.kind === 'big'){
+      ctx.beginPath(); roundRect(-s/6, -s/6, s/3, s/3, 3); ctx.stroke();
+    }
+  } else if (e.kind === 'rock'){
+    ctx.rotate(e.spin);
+    ctx.beginPath();
+    for (let i = 0; i < 7; i++){
+      const a = i/7 * Math.PI*2;
+      const rr = e.r * (0.78 + ((Math.sin(i*12.9898 + e.seedv*78.233)*43758.5453) % 1 + 1) % 1 * 0.34);
+      const x = Math.cos(a)*rr, y = Math.sin(a)*rr;
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  } else {   /* slime — 눈 달린 정도까지만. 사람·동물 묘사 아님 */
+    const r = e.r, sq = 1 + Math.sin(e.wob)*0.08;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r*1.05/sq, r*sq, 0, Math.PI, 0);
+    ctx.lineTo(r*1.05/sq, r*0.75); ctx.lineTo(-r*1.05/sq, r*0.75);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(-r*0.34, -r*0.12, r*0.24, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc( r*0.34, -r*0.12, r*0.24, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = edge;
+    ctx.beginPath(); ctx.arc(-r*0.34, -r*0.08, r*0.11, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc( r*0.34, -r*0.08, r*0.11, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+function roundRect(x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y,   x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x,   y+h, r);
+  ctx.arcTo(x,   y+h, x,   y,   r);
+  ctx.arcTo(x,   y,   x+w, y,   r);
+  ctx.closePath();
+}
+
+/* ======================= 루프 ======================= */
+/* 한 프레임이 아무리 길어져도 논리는 최대 50ms 씩만 나아간다 — 탭을 오래 감췄다 돌아왔을 때
+   한 번에 몰아 계산해 화면이 튀는 것을 막는다. */
+function loop(ts){
+  rafId = requestAnimationFrame(loop);
+  if (!prevTs) prevTs = ts;
+  let dt = (ts - prevTs) / 1000; prevTs = ts;
+  if (dt > 0.05) dt = 0.05;
+  starPhase += dt;
+  if (running && !paused && !over) step(dt);
+  draw();
+  updateHud();
+}
+
+/* ======================= 조작 ======================= */
+/* 포인터는 캔버스 위 어디서 시작해도 잡는다 — '한 손가락' 이 이 게임의 전부다. */
+function pointerX(ev){
+  const r = cv.getBoundingClientRect();
+  return Math.max(0, Math.min(VW, (ev.clientX - r.left) / (r.width || 1) * VW));
+}
+cv.addEventListener('pointerdown', ev => {
+  dragging = true;
+  try { cv.setPointerCapture(ev.pointerId); } catch(e){}
+  shipTargetX = pointerX(ev);
+  ev.preventDefault();
+});
+cv.addEventListener('pointermove', ev => { if (dragging) shipTargetX = pointerX(ev); });
+const stopDrag = () => { dragging = false; };
+cv.addEventListener('pointerup', stopDrag);
+cv.addEventListener('pointercancel', stopDrag);
+cv.addEventListener('contextmenu', ev => ev.preventDefault());
+/* 물리 자판은 code 로 본다 — 한글 입력 상태여도 같은 자리를 누르면 같이 움직인다. */
+window.addEventListener('keydown', ev => {
+  if (ev.code === 'ArrowLeft'  || ev.code === 'KeyA'){ keyL = true; ev.preventDefault(); }
+  if (ev.code === 'ArrowRight' || ev.code === 'KeyD'){ keyR = true; ev.preventDefault(); }
+});
+window.addEventListener('keyup', ev => {
+  if (ev.code === 'ArrowLeft'  || ev.code === 'KeyA') keyL = false;
+  if (ev.code === 'ArrowRight' || ev.code === 'KeyD') keyR = false;
+});
+/* 탭을 떠나면 판을 세운다 — 90초 타임어택이라 시간이 몰래 흐르면 안 된다. */
+document.addEventListener('visibilitychange', () => {
+  paused = document.hidden;
+  if (!paused) prevTs = 0;
+  if (paused) keyL = keyR = false;
+});
+
+/* ======================= 창(오버레이) ======================= */
+let lastFocus = null;
+function show(id){
+  const o = $(id); o.classList.add('show');
+  setOutsideInert(true);
+  const f = o.querySelector('button:not([disabled]), a[href]');
+  if (f) try { f.focus({ preventScroll:true }); } catch(e){}
+}
+function hide(id){
+  $(id).classList.remove('show');
+  if (!$('start').classList.contains('show') && !$('over').classList.contains('show')) setOutsideInert(false);
+}
+/* 창이 떠 있는 동안 뒤쪽을 초점에서 통째로 뺀다 — 탭이 창 밖으로 새면 갇힌 것처럼 느껴진다. */
+function setOutsideInert(on){
+  for (const el of document.querySelectorAll('body > header, body > main, body > section, body > footer, body > .ad-slot, body > .scores')){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+  }
+}
+function say(msg){ $('srSummary').textContent = msg; }
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600); }
+
+/* ======================= 시작 화면 ======================= */
+function refreshStart(){
+  const done = dailyDoneToday();
+  const no = dailyNo();
+  $('btnDaily').textContent = done ? T('dailyDone', no) : T('daily', no);
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint');
+  const s = streakNow();
+  $('btnDaily').disabled = false;   /* 끝냈어도 '결과 보기' 로는 눌린다 */
+  $('dailyHint').textContent += (s > 1 ? ' · ' + T('streak', s) : '');
+}
+/* 오늘 이미 끝냈으면 새 판을 열지 않고 저장된 결과를 보여 준다(하루 한 번). */
+function startDaily(){
+  if (dailyDoneToday()){
+    const r = dailyRec();
+    lastResult = { score:r.result.score, maxCombo:r.result.maxCombo, kills:r.result.kills,
+                   rage:r.result.rage || 0, durS:90, isNew:false, streak:streakNow(),
+                   no:r.no || dailyNo(), mode:'daily' };
+    renderOver();
+    return;
+  }
+  startRun('daily');
+}
+
+/* ======================= UI 배선 ======================= */
+$('btnStart').onclick = () => startRun('free');
+$('btnDaily').onclick = () => startDaily();
+$('btnAgain').onclick = () => startRun('free');
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyLang();
+  refreshStart();
+  $('subtitle').textContent = (running && mode === 'daily') ? T('daily', dailyNo()) : T('subtitle');
+  if (over && lastResult) renderOver();
+  ga('lang_switch', { lang });
+}
+$('btnLang').onclick = toggleLang;
+$('btnLang2').onclick = toggleLang;
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('sh.sound', soundOn ? '1' : '0');
+  const face = soundOn ? '🔊' : '🔇';
+  $('btnSound').textContent = face; $('btnSound2').textContent = face;
+  applyA11yLabels();
+  if (soundOn) beep(660, .06, 'sine', .04);
+}
+$('btnSound').onclick = toggleSound;
+$('btnSound2').onclick = toggleSound;
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnSound2').textContent = soundOn ? '🔊' : '🔇';
+
+async function doShare(){
+  const url = location.href.split('#')[0];
+  const r = lastResult;
+  if (!r) return;
+  const text = (r.mode === 'daily')
+    ? T('dailyShare', r.no, r.score, r.maxCombo, r.kills, r.streak) + T('gaugeLine', r.rage) + '\n' + url
+    : T('shareText', r.score, r.maxCombo) + url;
+  try{
+    if (navigator.share) await navigator.share({ title: T('docTitle'), text, url });
+    else { await navigator.clipboard.writeText(text); toast(T('copied')); }
+  }catch(_){}
+}
+$('btnShare').onclick = doShare;
+
+/* ======================= 기동 ======================= */
+applyLang();
+refreshStart();
+updateHud();
+resize();
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 150));
+/* 시작 창은 처음부터 열린 채로 그려진다 — show 를 한 번 태워 초점을 첫 버튼으로 옮기고
+   창 밖을 inert 로 막는다(다른 게임에서 얻은 교훈). */
+if ($('start').classList.contains('show')) show('start');
+rafId = requestAnimationFrame(loop);
+
+/* ======================= 검증 훅 ======================= */
+/* 게임 로직에 영향을 주지 않는 읽기·주입 창구다. 점수는 기기에만 저장되고 순위표가 없으므로
+   외부에 영향이 없다(다른 게임의 __bd·__g2048 과 같은 취지). */
+window.__sh = {
+  const: () => ({ VW, VH, ROUND_MS, LIVES, INVUL_MS, COMBO_MS, FIRE_MS, FIRE_MS_R,
+                  BULLET_V, RAGE_MAX, RAGE_GAIN, RAGE_MS, PARTICLE_MAX,
+                  SPAWN_MS0, SPAWN_MS1, KINDS: KINDS.map(k => ({...k})) }),
+  seedKey: (d) => dailySeedKey(d ? new Date(d) : new Date()),
+  seedDraws: (key, n) => { const f = mulberry32(hashStr(key)); return Array.from({length:n}, () => +f().toFixed(9)); },
+  state: () => ({ mode, running, over, paused, score, combo, maxCombo, kills, lives,
+                  leftMs, rageT, rageGauge, rageCount, shipX, invulT, seedKey: seedKeyNow,
+                  enemies: enemies.filter(e => e.on).length,
+                  bullets: bullets.filter(b => b.on).length,
+                  parts: parts.filter(p => p.on).length }),
+  daily: () => ({ done: dailyDoneToday(), rec: dailyRec(), no: dailyNo(), streak: streakNow() }),
+  newGame: (m) => { startRun(m); return true; },
+  startDaily: () => { startDaily(); return true; },
+  /* 실시간을 기다리지 않고 논리만 고정 폭으로 진행시킨다 — 90초 종료·스폰 검증용 */
+  tickMs: (ms, dtMs) => { const d = (dtMs || 16) / 1000; let n = Math.round(ms / (dtMs || 16));
+                          while (n-- > 0 && running && !over) step(d); return true; },
+  /* 기체를 특정 자리로 옮긴다 — 손가락 드래그와 같은 경로(목표 좌표를 준다).
+     이것이 없으면 검증기가 90초를 버티지 못해 '시간 종료' 경로를 아예 못 밟는다. */
+  moveTo: (x) => { shipTargetX = Math.max(SHIP_R, Math.min(VW-SHIP_R, x)); shipX = shipTargetX; return shipX; },
+  enemyList: () => enemies.filter(e => e.on).map(e => ({ x:e.x, y:e.y, r:e.r, kind:e.kind, hp:e.hp })),
+  spawnAt: (kind, x, y) => { const e = take(enemies); if (!e) return false;
+                             const kd = KINDS.find(k => k.k === kind) || KINDS[0];
+                             e.on = true; e.kind = kd.k; e.hp = kd.hp; e.r = kd.r;
+                             e.x = x; e.y = y; e.vx = 0; e.vy = 0; e.ci = 0;
+                             e.flash = 0; e.spin = 0; e.sv = 0; e.wob = 0; e.seedv = 0.5; return true; },
+  rage: () => { triggerRage(); return true; },
+  end: () => { endRun(); return true; },
+  shown: (id) => $(id).classList.contains('show'),
+  reduceMotion: () => reduceMotion(),
+  sound: () => soundOn,
+  shake: () => ({ t: shakeT, mag: shakeMag })
+};
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
