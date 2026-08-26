@@ -12,7 +12,7 @@ import path from 'path';
 import vm from 'vm';
 
 const ROOT = process.argv[2] || '.';
-const GAMES = ['block-puzzle', '2048', 'block-drop', 'word'];
+const GAMES = ['block-puzzle', '2048', 'block-drop', 'word', 'shooting'];
 const PAGES = ['index.html', ...GAMES.map(g => g + '/index.html'), 'about/index.html', 'privacy/index.html'];
 const read = f => fs.readFileSync(path.resolve(ROOT, f), 'utf8');
 

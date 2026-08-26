@@ -8,7 +8,7 @@
  * 남용 방어는 Cloudflare Rate Limiting 이 맡는다(/api/hit · IP당 10초 30건).
  */
 
-const GAMES = ['block-puzzle', '2048', 'block-drop', 'word'];
+const GAMES = ['block-puzzle', '2048', 'block-drop', 'word', 'shooting'];
 const HOST = 'hanpango.com';
 const MAX_BODY = 256;               /* 본문은 짧은 JSON 하나면 충분하다 — 바이트 기준 */
 

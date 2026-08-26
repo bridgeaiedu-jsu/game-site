@@ -54,6 +54,15 @@ console.log('== hit.js ==');
   const up = db.log.find(q => q.sql.indexOf('INSERT INTO hits') === 0);
   ok('play + 화이트리스트 게임 → 204', r.status === 204 && up.bind[2] === '2048', String(r.status));
 }
+{
+  /* 새로 들어온 게임도 같은 관문을 지나는지 본다 — 화이트리스트에 넣는 것을 잊으면
+     판수가 조용히 400 으로 버려진다(게임은 멀쩡히 돌아가므로 눈으로는 안 잡힌다). */
+  const db = makeDB();
+  const r = await hit({ request: req('POST', JSON.stringify({ type: 'play', game: 'shooting' })), env: { DB: db } });
+  const up = db.log.find(q => q.sql.indexOf('INSERT INTO hits') === 0);
+  ok('play + shooting → 204', r.status === 204 && !!up && up.bind[2] === 'shooting',
+     String(r.status) + ' · ' + JSON.stringify(up && up.bind));
+}
 for (const [name, body, want] of [
   ['play 인데 game 없음', JSON.stringify({ type: 'play' }), 400],
   ['목록에 없는 game',    JSON.stringify({ type: 'play', game: 'chess' }), 400],
@@ -128,6 +137,11 @@ console.log('\n== stats.js ==');
   ok('기록 없는 게임도 0 으로 칸이 있다',
      j.plays['block-drop'].today === 0 && j.plays['block-puzzle'].total === 0, JSON.stringify(j.plays));
   ok('목록에 없는 게임은 응답에 넣지 않는다', !('chess' in j.plays), JSON.stringify(Object.keys(j.plays)));
+  /* ★hit.js 화이트리스트만 고치고 stats.js 를 잊으면 판수는 쌓이는데 화면에 칸이 없어
+     시작 카드의 판수 줄이 영영 hidden 으로 남는다(조용한 고장) — 칸의 존재를 못박는다. */
+  ok('shooting 칸이 응답에 있다(기록 0 이어도)',
+     !!j.plays.shooting && j.plays.shooting.today === 0 && j.plays.shooting.total === 0,
+     JSON.stringify(j.plays.shooting));
   ok('day 는 YYYY-MM-DD 꼴이다', /^\d{4}-\d{2}-\d{2}$/.test(j.day), j.day);
 }
 {

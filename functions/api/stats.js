@@ -7,7 +7,7 @@
  * CORS 헤더는 두지 않는다 — 이 사이트 자신만 읽으면 되므로 동일 출처로 충분하다.
  */
 
-const GAMES = ['block-puzzle', '2048', 'block-drop', 'word'];
+const GAMES = ['block-puzzle', '2048', 'block-drop', 'word', 'shooting'];
 
 let tableReady = false;
 async function ensureTable(db){
