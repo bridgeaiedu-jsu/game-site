@@ -526,7 +526,15 @@ const KIND_W_TOTAL = KINDS.reduce((a,b) => a + b.w, 0);
 /* ======================= 상태 ======================= */
 const cv = $('stage'), ctx = cv.getContext('2d', { alpha:false });
 let mode = 'free', running = false, over = false, paused = false;
-let rng = Math.random, seedKeyNow = '';
+/* ★난수는 두 갈래로 완전히 갈라 둔다(codex R1 차단 1).
+   ①spawnRng — 표적이 '무엇이 · 어디서 · 어떻게' 나오는가. 일일 모드에서는 날짜 seed 로
+     고정되며 **오직 스폰 결정에만** 쓴다. 이 흐름을 플레이 행동이 건드리면 '같은 날짜 =
+     같은 스폰 순서' 계약이 깨진다 — 실제로 격파 시 파티클이 같은 생성기를 소비하는 바람에
+     한쪽만 한 번 더 부순 두 판의 스폰 순서가 갈라졌다.
+   ②fxRng — 파편 방향·수명 같은 연출. 판마다 달라도 되고 달라야 자연스럽다. 항상 Math.random.
+   두 갈래를 섞지 마라. 연출에서 spawnRng 를 한 번이라도 당겨 쓰면 결정성이 조용히 무너진다. */
+let spawnRng = Math.random, seedKeyNow = '';
+const fxRng = Math.random;
 let score = 0, shownScore = 0, best = +localStorage.getItem('sh.best') || 0;
 let combo = 0, maxCombo = 0, comboT = 0, kills = 0, lives = LIVES;
 let leftMs = ROUND_MS, invulT = 0, rageT = 0, rageGauge = 0, rageCount = 0;
@@ -560,8 +568,10 @@ function updateHud(){
 }
 
 /* ======================= 스폰 ======================= */
+/* ★아래 두 함수만이 spawnRng 를 당긴다. 뽑는 개수·순서가 곧 일일 도전의 계약이므로
+   여기에 난수를 더하거나 빼면 그날의 판이 통째로 달라진다. */
 function pickKind(){
-  let r = rng() * KIND_W_TOTAL;
+  let r = spawnRng() * KIND_W_TOTAL;
   for (const k of KINDS){ r -= k.w; if (r <= 0) return k; }
   return KINDS[0];
 }
@@ -570,13 +580,13 @@ function spawn(){
   const kd = pickKind();
   const prog = Math.min(1, elapsed / ROUND_MS);
   e.on = true; e.kind = kd.k; e.hp = kd.hp; e.r = kd.r;
-  e.x = e.r + rng() * (VW - e.r*2);
+  e.x = e.r + spawnRng() * (VW - e.r*2);
   e.y = -e.r - 6;
-  e.vy = (58 + rng()*52) * (1 + prog*0.55);
-  e.vx = (rng()*2 - 1) * 26;
-  e.ci = Math.floor(rng()*7);
-  e.flash = 0; e.spin = rng()*Math.PI*2; e.sv = (rng()*2-1)*1.2;
-  e.wob = rng()*Math.PI*2; e.seedv = rng();
+  e.vy = (58 + spawnRng()*52) * (1 + prog*0.55);
+  e.vx = (spawnRng()*2 - 1) * 26;
+  e.ci = Math.floor(spawnRng()*7);
+  e.flash = 0; e.spin = spawnRng()*Math.PI*2; e.sv = (spawnRng()*2-1)*1.2;
+  e.wob = spawnRng()*Math.PI*2; e.seedv = spawnRng();
 }
 
 /* ======================= 파티클·팝업 ======================= */
@@ -584,10 +594,11 @@ function burst(x, y, col, n, spread){
   /* 파티클은 상한을 넘지 않는다 — 풀이 비면 그냥 덜 뿌린다(끊기는 것보다 낫다). */
   for (let i = 0; i < n; i++){
     const p = take(parts); if (!p) return;
-    const a = rng() * Math.PI * 2, sp = 40 + rng() * spread;
+    /* ★연출은 fxRng 다 — 여기서 spawnRng 를 쓰면 '부순 횟수' 가 스폰 순서를 바꾼다. */
+    const a = fxRng() * Math.PI * 2, sp = 40 + fxRng() * spread;
     p.on = true; p.x = x; p.y = y;
     p.vx = Math.cos(a)*sp; p.vy = Math.sin(a)*sp - 20;
-    p.max = p.life = 0.32 + rng()*0.4; p.col = col; p.sz = 2 + rng()*3;
+    p.max = p.life = 0.32 + fxRng()*0.4; p.col = col; p.sz = 2 + fxRng()*3;
   }
 }
 function pop(x, y, txt, col){
@@ -611,7 +622,7 @@ function resetRun(){
 function startRun(m){
   mode = m;
   seedKeyNow = (m === 'daily') ? dailySeedKey() : '';
-  rng = (m === 'daily') ? mulberry32(hashStr(seedKeyNow)) : Math.random;
+  spawnRng = (m === 'daily') ? mulberry32(hashStr(seedKeyNow)) : Math.random;
   resetRun();
   running = true;
   hide('start'); hide('over');
@@ -631,7 +642,9 @@ function endRun(){
   if (isNew){ best = score; localStorage.setItem('sh.best', best); }
   let streak = 0;
   if (mode === 'daily'){
-    saveDaily({ score, maxCombo, kills, rage: rageCount });
+    /* ★duration 을 함께 남긴다(codex R1 차단 3) — 목숨 소진으로 3초 만에 끝낸 판도
+       다시 열면 '플레이 1:30' 으로 보이던 왜곡을 없앤다. */
+    saveDaily({ score, maxCombo, kills, rage: rageCount, duration: durS });
     streak = bumpStreak();
     ga('daily_complete', { game: GA_GAME, streak });
   }
@@ -685,7 +698,7 @@ function step(dt){          /* dt = 초 */
     const prog = Math.min(1, elapsed / ROUND_MS);
     spawnT += SPAWN_MS0 + (SPAWN_MS1 - SPAWN_MS0) * prog;
     spawn();
-    if (prog > 0.5 && rng() < 0.35) spawn();   /* 후반엔 가끔 두 개 */
+    if (prog > 0.5 && spawnRng() < 0.35) spawn();   /* 후반엔 가끔 두 개 — 이 판정도 스폰이다 */
   }
 
   /* --- 탄 --- */
@@ -1002,8 +1015,16 @@ function startDaily(){
   if (dailyDoneToday()){
     const r = dailyRec();
     lastResult = { score:r.result.score, maxCombo:r.result.maxCombo, kills:r.result.kills,
-                   rage:r.result.rage || 0, durS:90, isNew:false, streak:streakNow(),
+                   rage:r.result.rage || 0,
+                   /* ★저장된 실제 시간을 쓴다. 이 값이 없는 것은 duration 을 남기기 전에
+                      만들어진 옛 기록뿐이므로 그때만 90 으로 물러선다(codex R1 차단 3). */
+                   durS: r.result.duration ?? 90,
+                   isNew:false, streak:streakNow(),
                    no:r.no || dailyNo(), mode:'daily' };
+    /* ★시작 창을 먼저 닫는다(codex R1 차단 2). 두 창은 z-index 가 같고 start 가 DOM 뒤라,
+       닫지 않으면 결과 창 위에 시작 창이 그대로 남아 사용자는 결과를 못 본다. 초점과
+       aria-modal 도 두 겹이 된다. */
+    hide('start');
     renderOver();
     return;
   }
