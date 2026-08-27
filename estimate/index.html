@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>눈대중 — 추정 퀴즈 | Eyeball</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 추정 퀴즈. 각도·점 개수·채워진 비율·막대 길이·면적·색 비율을 눈으로 어림잡아 슬라이더로 답하세요. 한 판 10문제, 1~2분. 정확도 %로 자랑하고 매일 새로 열리는 오늘의 도전에서 친구와 겨루세요. Free estimation quiz — eyeball angles, counts and ratios; 10 questions a round with a daily challenge.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#120d2e" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="눈대중 — 추정 퀴즈 | Eyeball">
+<meta property="og:description" content="각도·개수·비율을 눈으로 어림잡아 맞히는 10문제 추정 퀴즈 — 정확도 %로 자랑하기. 설치 없이 바로 플레이.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/estimate/">
+<link rel="canonical" href="https://hanpango.com/estimate/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"눈대중","alternateName":"Eyeball","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본이다. 다크는 아래 @media 에서 ★같은 이름의 값만 바꿔 끼운다 —
+     HTML 마크업은 두 테마가 완전히 동일하다. 시그니처는 보라(--sig).
+     ★캔버스는 var() 를 못 읽으므로 자바스크립트가 이 토큰 값을 읽어 간다(색을 코드에 박지 않는다).
+     ★색 비율 문제의 두 색(--ca1~3 · --cb1~3)은 색각 이상을 배려해 세 쌍 모두 밝기 차이가 크게 잡았고,
+       A 색 타일에는 항상 **줄무늬** 를 함께 그린다(색만으로 구분하지 않는다).
+     ★글자 대비: --text/--muted-2/--sig-ink 는 --bg·--board 위에서 4.5:1 이상이다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#7c3aed; --sig-ink:#5b21b6; --sig-soft:#ede9fe; --on-sig:#ffffff;
+    --good:#15803d; --warn:#a16207; --bad:#b91c1c;
+    --board:#f2f4f7; --frame:#9ca3af;
+    --ink:#1f2937; --ghost:#9ca3af;
+    --ca1:#2563eb; --cb1:#fbbf24;
+    --ca2:#6d28d9; --cb2:#4ade80;
+    --ca3:#0f766e; --cb3:#f9a8d4;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#a78bfa; --sig-ink:#c4b5fd; --sig-soft:#2e2670; --on-sig:#2e1065;
+      --good:#34d399; --warn:#fbbf24; --bad:#fca5a5;
+      --board:#120d2e; --frame:#6b6a9e;
+      --ink:#e5e7eb; --ghost:#6b6a9e;
+      --ca1:#60a5fa; --cb1:#b45309;
+      --ca2:#c4b5fd; --cb2:#166534;
+      --ca3:#5eead4; --cb3:#9d174d;
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em}
+  h1 small{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:6px}
+  .hdr-btns{display:flex;gap:6px}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:6px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .score b{display:block;font-size:1.2rem;line-height:1.1}
+  .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
+  .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 결과 화면 자리 */
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  /* ---- 문제 문장 ---- */
+  .prompt{width:100%;max-width:360px;margin:0;font-weight:700;font-size:1rem;text-align:center;min-height:1.4em}
+  .verdict{width:100%;max-width:360px;margin:0;color:var(--muted-2);font-size:.85rem;text-align:center;min-height:1.3em}
+  /* ---- 판 ---- */
+  .play{position:relative;display:flex;justify-content:center;width:100%}
+  #stage{width:100%;max-width:360px;aspect-ratio:360/320;background:var(--board);border-radius:12px;touch-action:pan-y;display:block;border:1px solid var(--line)}
+  #stage:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+  /* '거의 정확!' 팝업 — 판 위 가운데. 움직임 줄이기면 그냥 나타난다. */
+  .pop{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.6);background:var(--sig);color:var(--on-sig);font-weight:800;font-size:1.3rem;padding:8px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.2,1.4,.4,1),opacity .2s;box-shadow:0 8px 24px var(--shadow)}
+  .pop.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  .pop.good{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  /* ---- 조작부: 값 라벨 · 슬라이더(굵은 핸들 44px) · 숫자 입력 · 확정 ---- */
+  .ctl{width:100%;max-width:360px;display:flex;flex-direction:column;gap:4px}
+  .ctl .val{font-size:2rem;font-weight:800;color:var(--sig-ink);text-align:center;line-height:1.1;font-variant-numeric:tabular-nums}
+  .ctl .val small{font-size:1rem;color:var(--muted)}
+  .row{display:flex;gap:8px;align-items:center}
+  .slider{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:48px;background:transparent;margin:0;cursor:pointer;touch-action:none}
+  .slider:focus-visible{outline:2px solid var(--sig);outline-offset:2px;border-radius:8px}
+  .slider::-webkit-slider-runnable-track{height:10px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}
+  .slider::-webkit-slider-thumb{-webkit-appearance:none;width:44px;height:44px;border-radius:50%;background:var(--sig);border:3px solid var(--bg);box-shadow:0 2px 8px var(--shadow);margin-top:-18px}
+  .slider::-moz-range-track{height:10px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}
+  .slider::-moz-range-thumb{width:44px;height:44px;border-radius:50%;background:var(--sig);border:3px solid var(--bg);box-shadow:0 2px 8px var(--shadow)}
+  .num{width:88px;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);font-size:1.1rem;text-align:center;font-variant-numeric:tabular-nums}
+  .num[hidden]{display:none}
+  .ok{height:48px;border:0;border-radius:12px;background:var(--sig);color:var(--on-sig);font-size:1.05rem;font-weight:800;padding:0 18px;cursor:pointer;min-width:96px}
+  .ok[disabled]{opacity:.5;cursor:default}
+  .ok:active{transform:scale(.98)}
+  .hint{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card h2{margin:0 0 6px;font-size:1.5rem}
+  .card .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1}
+  .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card .marks{font-size:1.25rem;letter-spacing:.06em;margin:4px 0;line-height:1.3;word-break:break-all}
+  .card .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  /* ★hidden 을 이기지 못하게 못박는다 — 위의 display 선언은 선택자가 더 세서 브라우저 기본값
+     [hidden]{display:none} 을 덮는다. 그러면 숫자를 못 받았을 때도 빈 줄이 보인다. */
+  .hp-stat[hidden]{display:none!important}
+  .card .hp-stat b{font-weight:600}
+  .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .card .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[disabled]{opacity:.5;cursor:default}
+  .stats3{display:flex;gap:6px;margin:10px 0 4px}
+  .stats3 div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .stats3 b{display:block;font-size:1.15rem}
+  .stats3 span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* 문제별 칩 — 유형 기호 + 정확도 */
+  .qgrid{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:6px 0 2px}
+  .chip{font-size:.72rem;padding:3px 7px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-variant-numeric:tabular-nums}
+  .chip.g{border-color:var(--good)} .chip.y{border-color:var(--warn)} .chip.r{border-color:var(--bad)}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  /* 움직임을 줄여 달라고 한 사람에게는 CSS 전환도 끈다(캔버스 애니는 스크립트가 0 으로 만든다) */
+  @media (prefers-reduced-motion: reduce){
+    .pop{transition:none}
+    .toast{transition:none}
+    .btn:active,.ibtn:active,.ok:active{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">눈대중</span> <small id="subtitle" data-i18n="subtitle">추정 퀴즈</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 다른 게임</a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="qNo">–</b><span data-i18n="qLbl">문제</span></div>
+  <div class="score"><b id="accNow">–</b><span data-i18n="accLbl">정확도</span></div>
+  <div class="score"><b id="modeTag">–</b><span data-i18n="modeLbl">모드</span></div>
+</div>
+
+<main>
+  <p class="prompt" id="prompt" aria-live="polite"></p>
+  <div class="play">
+    <canvas id="stage" width="360" height="320" role="img" tabindex="0" aria-label="quiz screen"></canvas>
+    <div class="pop" id="pop" aria-hidden="true"></div>
+  </div>
+  <p class="verdict" id="verdict" aria-live="polite"></p>
+  <div class="ctl">
+    <div class="val" id="val">–</div>
+    <div class="row">
+      <input class="slider" id="slider" type="range" min="0" max="100" step="1" value="50" aria-label="answer">
+      <input class="num" id="numIn" type="number" inputmode="numeric" enterkeyhint="done" min="1" max="100" step="1" aria-label="answer number" hidden>
+      <button class="ok" id="btnOk" data-i18n="ok">✔ 확정</button>
+    </div>
+  </div>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="hint" data-i18n="hint">슬라이더를 끌어 값을 맞추고 ✔ · 키보드 ← → (Shift: ±10) · Enter 확정</p>
+</main>
+
+<!-- 결과 -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card">
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <div class="big" id="finalScore">0%</div>
+    <div class="marks" id="marks" aria-hidden="true"></div>
+    <div class="new" id="streakLine" style="color:var(--sig-ink)"></div>
+    <div class="new" id="newBest"></div>
+    <div class="stats3">
+      <div><b id="nGreen">0</b><span data-i18n="greenLbl">정확</span></div>
+      <div><b id="nYellow">0</b><span data-i18n="yellowLbl">근접</span></div>
+      <div><b id="nRed">0</b><span data-i18n="redLbl">빗나감</span></div>
+    </div>
+    <div class="qgrid" id="qgrid"></div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- 시작 -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card">
+    <h2 id="startTitle" data-i18n="title2">눈대중</h2>
+    <div class="sub" data-i18n="startSub">각도·개수·비율을 눈으로 어림잡으세요.<br>10문제 · 1~2분 · 정확도 %로 결과가 나옵니다.</div>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnStart" data-i18n="start">자유 플레이</button>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.estimate.today">–</b>판 · 누적 <b data-hp="plays.estimate.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">화면에 도형이 하나 나옵니다. 두 선 사이의 각도, 흩뿌려진 점의 개수, 막대나 원에서 채워진 비율, 기준 막대에 견준 다른 막대의 길이, 틀 안에서 도형이 차지하는 면적, 두 색 타일 중 한 색의 비율 — 여섯 가지 가운데 하나입니다. 자로 재거나 세지 말고 눈으로 어림잡아 답하세요.</p>
+  <p data-i18n="how2">답은 아래 슬라이더를 손가락으로 끌어 맞춥니다. 핸들 위 큰 숫자가 지금 값입니다. 다 맞췄으면 ✔ 확정을 누르세요. 컴퓨터에서는 왼쪽·오른쪽 화살표로 1씩, Shift 를 누른 채로는 10씩 움직이고 Enter 로 확정합니다. 개수 문제는 숫자를 직접 쳐 넣어도 됩니다.</p>
+  <p data-i18n="how3">확정하면 정답이 도형 위에 겹쳐 그려집니다 — 각도는 호와 숫자로, 점은 번호로, 비율은 정확한 눈금으로. 정답·오차·정확도가 1초 동안 보이고 다음 문제로 넘어갑니다. 열 문제가 끝나면 판 정확도(열 문제 평균)와 문제별 🟩🟨🟥 한 줄이 나옵니다.</p>
+  <h2 data-i18n="scoreTitle">채점 방식</h2>
+  <p data-i18n="score1">문제마다 정확도는 100 에서 오차를 허용폭으로 나눈 비율만큼 깎은 값입니다. 각도는 45°, 비율·길이·면적·색은 40%p 가 허용폭이고, 개수는 정답의 절반(최소 5개)입니다. 정확히 맞히면 100, 허용폭 끝까지 벗어나면 0, 그 사이는 직선으로 줄어듭니다. 판 점수는 열 문제의 평균을 소수 첫째 자리까지 적습니다. 문제별로 80 이상이면 🟩, 50 이상이면 🟨, 그 아래면 🟥 입니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 완전히 같은 열 문제(같은 유형 순서, 같은 각도·점·비율)를 받고, 하루에 한 번만 도전할 수 있습니다. 결과를 이모지 한 줄로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다. 자유 플레이는 횟수 제한이 없습니다.</p>
+  <h2 data-i18n="tipsTitle">잘 맞히는 요령</h2>
+  <details><summary data-i18n="tip1q">각도는 직각과 반직각을 기준으로</summary><p data-i18n="tip1a">90° 와 45° 는 누구나 눈에 익어 있습니다. 두 선이 만드는 각이 직각보다 열렸는지 닫혔는지, 반직각과 견줘 얼마나 다른지를 먼저 정하면 오차가 확 줄어듭니다.</p></details>
+  <details><summary data-i18n="tip2q">점은 덩어리로 세세요</summary><p data-i18n="tip2a">하나씩 세면 시간이 모자랍니다. 대여섯 개씩 한 덩어리로 묶어 덩어리 수를 세고 곱하세요. 화면을 넷으로 나눠 한 칸만 세고 네 배 하는 것도 좋습니다.</p></details>
+  <details><summary data-i18n="tip3q">비율은 절반과 4분의 1 로 자르세요</summary><p data-i18n="tip3a">채워진 부분이 절반을 넘는지, 그다음 4분의 1 을 넘는지 차례로 자르면 25% 단위로 좁혀집니다. 마지막 한 번만 감으로 정하면 됩니다. 면적은 가로세로를 따로 어림잡아 곱하면 정확해집니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
+  <details><summary data-i18n="faq2q">최고 기록은 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.</p></details>
+  <details><summary data-i18n="faq3q">소리를 끌 수 있나요?</summary><p data-i18n="faq3a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 그대로 유지됩니다. 효과음은 모두 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다.</p></details>
+  <details><summary data-i18n="faq4q">색을 구별하기 어렵습니다</summary><p data-i18n="faq4a">색 비율 문제에서 묻는 색의 타일에는 항상 줄무늬가 함께 그려집니다. 색이 아니라 줄무늬가 있는 타일을 세면 됩니다. 기기의 '동작 줄이기' 를 켜면 정답 공개 애니메이션도 꺼집니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 눈대중 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·채점에는 관여하지 않는다. 태그가 아직 실리지 않았거나 차단됐으면
+   조용히 지나간다. 닉네임 같은 개인정보도, 광고 노출·클릭도 보내지 않는다. */
+const GA_GAME = 'estimate';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ======================= i18n ======================= */
+const I18N = {
+  ko: {
+    title:'눈대중', subtitle:'추정 퀴즈', title2:'눈대중',
+    qLbl:'문제', accLbl:'정확도', modeLbl:'모드', modeFree:'자유', modeDaily:'오늘',
+    ok:'✔ 확정',
+    hint:'슬라이더를 끌어 값을 맞추고 ✔ · 키보드 ← → (Shift: ±10) · Enter 확정',
+    result:'결과', again:'다시 하기', share:'결과 공유', start:'자유 플레이',
+    home:'🏠 다른 게임',
+    startSub:'각도·개수·비율을 눈으로 어림잡으세요.<br>10문제 · 1~2분 · 정확도 %로 결과가 나옵니다.',
+    newBest:'🎉 최고 기록 갱신!',
+    greenLbl:'정확', yellowLbl:'근접', redLbl:'빗나감',
+    finalSub:(b,t)=>`최고 ${b}% · 플레이 ${t}`,
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    copied:'결과가 복사됐어요',
+    freeShare:(s,m)=>`👀 눈대중 정확도 ${s}% ${m}\n`,
+    dailyShare:(n,s,m,r)=>`👀 눈대중 #${n} 정확도 ${s}% ${m}${r>1?` 🔥${r}일 연속`:''}\n`,
+    daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
+    dailyHint:'매일 새 10문제 · 전 세계 같은 문제 · 하루 한 번',
+    dailyHintDone:'오늘 도전 완료 — 내일 새 문제가 열립니다',
+    dailyOver:(n)=>`오늘의 도전 #${n} 완료`, streak:(n)=>`🔥 ${n}일 연속 도전`,
+    qAngle:'두 선 사이의 각도는 몇 도?', qCount:'점은 모두 몇 개?', qRatio:'채워진 부분은 몇 %?',
+    qLength:'위 기준 막대(100%)에 견줘 아래 막대는 몇 %?', qArea:'도형이 틀의 몇 %를 차지할까?',
+    qColor:'줄무늬 타일은 전체의 몇 %?',
+    verdict:(a,u,e,c)=>`정답 ${a}${u} · 오차 ${e} · 정확도 ${c}%`,
+    great:'거의 정확!', good:'근접!', miss:'빗나감',
+    srStart:'퀴즈 시작.', srQ:(i,n)=>`${i}번째 문제, ${n}문제 중.`, srOver:(s)=>`끝. 정확도 ${s}%.`,
+    docTitle:'눈대중 — 추정 퀴즈 | Eyeball', langBtn:'EN',
+    ariaStage:'눈대중 퀴즈 화면 — 도형을 보고 각도·개수·비율을 어림잡는다',
+    ariaSlider:'답 슬라이더', ariaNum:'답 숫자 입력',
+    ariaSoundOn:'소리 끄기 (지금 켜짐)', ariaSoundOff:'소리 켜기 (지금 꺼짐)',
+    ariaLang:'언어 바꾸기 — English 로', ariaHome:'다른 게임 목록으로',
+    statPlays:'오늘 <b data-hp="plays.estimate.today">–</b>판 · 누적 <b data-hp="plays.estimate.total">–</b>판',
+    howTitle:'게임 방법',
+    how1:'화면에 도형이 하나 나옵니다. 두 선 사이의 각도, 흩뿌려진 점의 개수, 막대나 원에서 채워진 비율, 기준 막대에 견준 다른 막대의 길이, 틀 안에서 도형이 차지하는 면적, 두 색 타일 중 한 색의 비율 — 여섯 가지 가운데 하나입니다. 자로 재거나 세지 말고 눈으로 어림잡아 답하세요.',
+    how2:'답은 아래 슬라이더를 손가락으로 끌어 맞춥니다. 핸들 위 큰 숫자가 지금 값입니다. 다 맞췄으면 ✔ 확정을 누르세요. 컴퓨터에서는 왼쪽·오른쪽 화살표로 1씩, Shift 를 누른 채로는 10씩 움직이고 Enter 로 확정합니다. 개수 문제는 숫자를 직접 쳐 넣어도 됩니다.',
+    how3:'확정하면 정답이 도형 위에 겹쳐 그려집니다 — 각도는 호와 숫자로, 점은 번호로, 비율은 정확한 눈금으로. 정답·오차·정확도가 1초 동안 보이고 다음 문제로 넘어갑니다. 열 문제가 끝나면 판 정확도(열 문제 평균)와 문제별 🟩🟨🟥 한 줄이 나옵니다.',
+    scoreTitle:'채점 방식',
+    score1:'문제마다 정확도는 100 에서 오차를 허용폭으로 나눈 비율만큼 깎은 값입니다. 각도는 45°, 비율·길이·면적·색은 40%p 가 허용폭이고, 개수는 정답의 절반(최소 5개)입니다. 정확히 맞히면 100, 허용폭 끝까지 벗어나면 0, 그 사이는 직선으로 줄어듭니다. 판 점수는 열 문제의 평균을 소수 첫째 자리까지 적습니다. 문제별로 80 이상이면 🟩, 50 이상이면 🟨, 그 아래면 🟥 입니다.',
+    dailyTitle:'오늘의 도전',
+    dailyDesc:'매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 완전히 같은 열 문제(같은 유형 순서, 같은 각도·점·비율)를 받고, 하루에 한 번만 도전할 수 있습니다. 결과를 이모지 한 줄로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다. 자유 플레이는 횟수 제한이 없습니다.',
+    tipsTitle:'잘 맞히는 요령',
+    tip1q:'각도는 직각과 반직각을 기준으로',
+    tip1a:'90° 와 45° 는 누구나 눈에 익어 있습니다. 두 선이 만드는 각이 직각보다 열렸는지 닫혔는지, 반직각과 견줘 얼마나 다른지를 먼저 정하면 오차가 확 줄어듭니다.',
+    tip2q:'점은 덩어리로 세세요',
+    tip2a:'하나씩 세면 시간이 모자랍니다. 대여섯 개씩 한 덩어리로 묶어 덩어리 수를 세고 곱하세요. 화면을 넷으로 나눠 한 칸만 세고 네 배 하는 것도 좋습니다.',
+    tip3q:'비율은 절반과 4분의 1 로 자르세요',
+    tip3a:'채워진 부분이 절반을 넘는지, 그다음 4분의 1 을 넘는지 차례로 자르면 25% 단위로 좁혀집니다. 마지막 한 번만 감으로 정하면 됩니다. 면적은 가로세로를 따로 어림잡아 곱하면 정확해집니다.',
+    faqTitle:'자주 묻는 질문',
+    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'최고 기록은 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.',
+    faq3q:'소리를 끌 수 있나요?', faq3a:'네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 그대로 유지됩니다. 효과음은 모두 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다.',
+    faq4q:'색을 구별하기 어렵습니다', faq4a:'색 비율 문제에서 묻는 색의 타일에는 항상 줄무늬가 함께 그려집니다. 색이 아니라 줄무늬가 있는 타일을 세면 됩니다. 기기의 \'동작 줄이기\' 를 켜면 정답 공개 애니메이션도 꺼집니다.',
+    footer:'© 2026 눈대중 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개'
+  },
+  en: {
+    title:'Eyeball', subtitle:'estimation quiz', title2:'Eyeball',
+    qLbl:'question', accLbl:'accuracy', modeLbl:'mode', modeFree:'free', modeDaily:'daily',
+    ok:'✔ Lock in',
+    hint:'Drag the slider, then ✔ · keyboard ← → (Shift: ±10) · Enter to lock in',
+    result:'Result', again:'Play again', share:'Share result', start:'Free play',
+    home:'🏠 More games',
+    startSub:'Eyeball angles, counts and ratios.<br>10 questions · 1–2 min · scored as accuracy %.',
+    newBest:'🎉 New best!',
+    greenLbl:'close', yellowLbl:'near', redLbl:'off',
+    finalSub:(b,t)=>`Best ${b}% · time ${t}`,
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    copied:'Result copied',
+    freeShare:(s,m)=>`👀 Eyeball accuracy ${s}% ${m}\n`,
+    dailyShare:(n,s,m,r)=>`👀 Eyeball #${n} accuracy ${s}% ${m}${r>1?` 🔥${r}-day streak`:''}\n`,
+    daily:(n)=>`Daily challenge #${n}`, dailyDone:(n)=>`Daily #${n} · see result`,
+    dailyHint:'10 new questions every day · same for everyone · once a day',
+    dailyHintDone:'Done for today — new questions at midnight',
+    dailyOver:(n)=>`Daily challenge #${n} done`, streak:(n)=>`🔥 ${n}-day streak`,
+    qAngle:'What is the angle between the two lines?', qCount:'How many dots?', qRatio:'What % is filled?',
+    qLength:'Compared with the top bar (100%), how long is the bottom bar?', qArea:'What % of the frame does the shape cover?',
+    qColor:'What % of tiles are striped?',
+    verdict:(a,u,e,c)=>`Answer ${a}${u} · off by ${e} · accuracy ${c}%`,
+    great:'Almost exact!', good:'Close!', miss:'Way off',
+    srStart:'Quiz started.', srQ:(i,n)=>`Question ${i} of ${n}.`, srOver:(s)=>`Finished. Accuracy ${s}%.`,
+    docTitle:'Eyeball — estimation quiz | 눈대중', langBtn:'한국어',
+    ariaStage:'Eyeball quiz screen — look at the figure and estimate the angle, count or ratio',
+    ariaSlider:'answer slider', ariaNum:'answer number',
+    ariaSoundOn:'Turn sound off (currently on)', ariaSoundOff:'Turn sound on (currently off)',
+    ariaLang:'Change language — switch to Korean', ariaHome:'Go to the other games',
+    statPlays:'<b data-hp="plays.estimate.today">–</b> today · <b data-hp="plays.estimate.total">–</b> all-time',
+    howTitle:'How to play',
+    how1:'A figure appears on screen: the angle between two lines, a scatter of dots, the filled part of a bar or a circle, a bar compared with a reference bar, the area a shape covers inside a frame, or the share of one colour among two-colour tiles — one of six kinds. Do not measure or count; just eyeball it and answer.',
+    how2:'Answer by dragging the slider with a finger. The big number above the handle is your current value. When it looks right, press ✔. On a computer, the left and right arrows move by 1 (by 10 with Shift) and Enter locks the answer in. For the dot-count question you can also type the number directly.',
+    how3:'When you lock in, the true value is drawn over the figure — an arc and number for angles, numbering for dots, an exact mark for ratios. The answer, your error and your accuracy stay for one second, then the next question comes. After ten questions you get the round accuracy (the average of ten) and one line of 🟩🟨🟥 per question.',
+    scoreTitle:'Scoring',
+    score1:'Each question scores 100 minus your error as a share of the tolerance. The tolerance is 45° for angles, 40 percentage points for ratio, length, area and colour, and half the true count (at least 5) for dots. An exact answer scores 100, an answer at the edge of the tolerance scores 0, and everything between falls linearly. The round score is the average of ten, to one decimal. Per question, 80 or more is 🟩, 50 or more is 🟨, below that 🟥.',
+    dailyTitle:'Daily challenge',
+    dailyDesc:'A new round opens every midnight. Everyone in the world gets exactly the same ten questions — same order of kinds, same angles, dots and ratios — and you get one attempt per day. Share the one-line emoji result and compare with friends. Come back on consecutive days to build a 🔥 streak. Free play has no limit.',
+    tipsTitle:'Tips',
+    tip1q:'Anchor angles on 90° and 45°',
+    tip1a:'Everyone knows a right angle and a half right angle by eye. Decide first whether the angle is wider or narrower than 90°, then how far it is from 45°, and your error shrinks a lot.',
+    tip2q:'Count dots in clumps',
+    tip2a:'Counting one by one takes too long. Group five or six dots into a clump, count the clumps and multiply. Splitting the screen into quarters, counting one quarter and multiplying by four also works well.',
+    tip3q:'Cut ratios in halves and quarters',
+    tip3a:'Ask whether the filled part is more than half, then more than a quarter of the rest, and you narrow it down in 25% steps. Only the last step needs a guess. For area, estimate width and height separately and multiply.',
+    faqTitle:'FAQ',
+    faq1q:'Do I need to install anything?', faq1a:'No. It runs straight in the browser. Add it to your home screen to use it like an app.',
+    faq2q:'Where is my best score stored?', faq2a:'Only in the browser on this device. Nothing is sent to a server.',
+    faq3q:'Can I turn the sound off?', faq3a:'Yes — the speaker button at the top right toggles it, and your choice is remembered next time. Every effect is generated by the browser on the spot, so there are no audio files to download.',
+    faq4q:'I have trouble telling the colours apart', faq4a:'In the colour question the tiles you are asked about always carry stripes as well. Count the striped tiles rather than the colour. Turning on "reduce motion" on your device also switches off the reveal animation.',
+    footer:'© 2026 Eyeball · Privacy: records stay on your device; third-party cookies (Google and others) may be used to serve ads.',
+    navPrivacy:'Privacy policy', navAbout:'About'
+  }
+};
+/* 언어 키는 사이트 공통(bp.lang) — 포털·다른 게임과 공유한다. */
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+const num = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  $('btnLang2').textContent = T('langBtn');
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  /* 문안을 innerHTML 로 갈아 끼우면 채운 숫자가 지워진다 — 다시 채운다.
+     hp-stats.js 는 defer 라 없을 수도 있으므로 있는지 보고 부른다. */
+  if (window.hpStats) window.hpStats();
+}
+/* 접근성 이름을 현재 언어로 맞춘다 — 소리 버튼은 켜짐/꺼짐 상태까지 이름과 aria-pressed 에 담는다. */
+function applyA11yLabels(){
+  for (const id of ['btnSound','btnSound2']){
+    const b = $(id); if (!b) continue;
+    b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  }
+  for (const id of ['btnLang','btnLang2']){ const l = $(id); if (l) l.setAttribute('aria-label', T('ariaLang')); }
+  const st = $('stage'); if (st) st.setAttribute('aria-label', T('ariaStage'));
+  $('slider').setAttribute('aria-label', T('ariaSlider'));
+  $('numIn').setAttribute('aria-label', T('ariaNum'));
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+}
+
+/* ======================= 색 토큰 읽기 ======================= */
+/* 캔버스는 var() 를 못 읽는다 — CSS 에 적힌 값을 한 번 읽어다 쓴다. 테마가 바뀌면 다시 읽는다. */
+let C = {};
+function readTokens(){
+  const s = getComputedStyle(document.documentElement);
+  const g = n => s.getPropertyValue(n).trim();
+  C = {
+    board:g('--board'), panel:g('--panel'), line:g('--line'), frame:g('--frame'),
+    text:g('--text'), muted:g('--muted'), ink:g('--ink'), ghost:g('--ghost'),
+    sig:g('--sig'), sigInk:g('--sig-ink'), sigSoft:g('--sig-soft'), onSig:g('--on-sig'),
+    good:g('--good'), warn:g('--warn'), bad:g('--bad'),
+    ca:[g('--ca1'), g('--ca2'), g('--ca3')], cb:[g('--cb1'), g('--cb2'), g('--cb3')]
+  };
+}
+readTokens();
+try {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  (mq.addEventListener ? mq.addEventListener.bind(mq,'change') : mq.addListener.bind(mq))(() => readTokens());
+} catch(e){}
+
+/* 움직임 줄이기 — 정답 공개 애니를 0 으로 만드는 유일한 스위치다. 값은 그때그때 읽는다. */
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } };
+
+/* ======================= 사운드(WebAudio · 파일 없음) ======================= */
+let soundOn = localStorage.getItem('es.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0, freq2=null){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();     /* 제스처 뒤에 resume */
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime + delay;
+    if (freq2 !== null) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq2), t + dur);
+    o.start(t);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sLock  = () => beep(520, .04, 'square', .02, 0, 700);
+const sGreat = () => { beep(660, .08, 'triangle', .05); beep(880, .08, 'triangle', .05, .08); beep(1320, .16, 'triangle', .05, .16); vib([20,30,40]); };
+const sGood  = () => { beep(523, .08, 'triangle', .045); beep(659, .14, 'triangle', .045, .09); vib(20); };
+const sMiss  = () => { beep(220, .16, 'sawtooth', .04, 0, 120); vib(40); };
+const sOver  = () => { beep(523, .12, 'triangle', .05); beep(659, .12, 'triangle', .05, .12); beep(784, .3, 'triangle', .05, .24); };
+
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   // 2026-08-23 = #1 (다른 게임과 동일 기준일)
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const dailySeedKey = (d=new Date()) => 'hanpango-daily-estimate-' + dayKey(d);
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('es.daily')||'null'); }catch(_){ return null; } };
+/* 오늘 이미 끝냈는가. 날짜가 바뀌면 없는 것으로 친다 — 자정에 자동으로 새 판이 열린다. */
+function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && r.result); }
+function saveDaily(result){
+  localStorage.setItem('es.daily', JSON.stringify({ date: dayKey(), no: dailyNo(), result }));
+}
+/* 🔥스트릭 — 어제 했으면 이어지고, 하루라도 건너뛰면 1 부터 다시 센다. */
+function bumpStreak(){
+  const day = dayKey();
+  let st; try{ st = JSON.parse(localStorage.getItem('es.streak')||'{}'); }catch(_){ st = {}; }
+  if (st.last === day) return st.n || 1;
+  const y = new Date(); y.setDate(y.getDate()-1);
+  const n = (st.last === dayKey(y)) ? (st.n || 0) + 1 : 1;
+  localStorage.setItem('es.streak', JSON.stringify({ last: day, n }));
+  return n;
+}
+const streakNow = () => { try{ const s = JSON.parse(localStorage.getItem('es.streak')||'{}'); return s.n || 0; }catch(_){ return 0; } };
+
+/* ======================= 상수 ======================= */
+/* 좌표는 논리 단위 360×320 고정이다. 화면 크기는 CSS 가 정하고, 그리기 직전에 배율만 건다 —
+   그래서 어떤 기기에서도 '같은 문제' 가 같은 모양으로 보인다. */
+const VW = 360, VH = 320;
+const N_Q = 10;                                  /* 한 판 문제 수 */
+const TYPES = ['angle','count','ratio','length','area','color'];
+const TOL_ANGLE = 45;                            /* 허용폭(각도) */
+const TOL_PCT   = 40;                            /* 허용폭(비율·길이·면적·색, %p) */
+const countTol  = n => Math.max(5, n * 0.5);     /* 허용폭(개수) */
+const ANGLE_MIN = 5,  ANGLE_MAX = 175;
+const COUNT_MIN = 8,  COUNT_MAX = 80;
+const PCT_MIN   = 3,  PCT_MAX   = 97;
+const LEN_MIN   = 30, LEN_MAX   = 300;
+const TILE_N    = 10;                            /* 색 비율: 10×10 = 100 타일 → 타일 수 = % */
+const DOT_R = 5, DOT_GAP = 4;                    /* 점 반지름 · 최소 중심 거리 = 2·R + GAP = 14 */
+const DOT_MARGIN = DOT_R + 8;
+const REVEAL_MS = 1000;                          /* 정답 표시 시간 */
+const ANIM_MS   = 300;                           /* 정답 겹쳐 그리기 애니 */
+const QUIZ_LOG_MAX = 200;                        /* 문제 기록 상한(굴러가는 창) */
+const AREA_FRAME = { x:30, y:40, w:300, h:220 };
+const RANGE = { angle:[0,180], count:[1,100], ratio:[0,100], length:[0,300], area:[0,100], color:[0,100] };
+const UNIT  = { angle:'°', count:'', ratio:'%', length:'%', area:'%', color:'%' };
+const GLYPH = { angle:'∠', count:'⁘', ratio:'◐', length:'⟷', area:'▣', color:'▦' };
+
+/* ======================= 상태 ======================= */
+const cv = $('stage'), ctx = cv.getContext('2d', { alpha:false });
+let mode = 'free', running = false, over = false, paused = false;
+/* ★난수는 두 갈래로 완전히 갈라 둔다(벽돌깨기·슛팅에서 얻은 교훈).
+   ①quizRng — 유형 순서·각도·점 자리·비율… **문제를 짜는 모든 값**. 일일 모드에서는 날짜 seed 로
+     고정되며 오직 makeRound() 안에서만 당긴다. 슬라이더를 어떻게 끌었든, 몇 초를 썼든 소비되지 않는다.
+   ②fxRng — 연출(팝업 흔들림 같은 것). 항상 Math.random. 자유 모드의 seed 도 여기서 뽑는다.
+   두 갈래를 섞지 마라. 연출에서 quizRng 를 한 번이라도 당기면 '같은 날짜 = 같은 문제' 가 조용히 무너진다. */
+let quizRng = Math.random, seedKeyNow = '';
+const fxRng = Math.random;
+let questions = [], results = [], qi = 0, guess = 0, phase = 'idle';   /* idle | ask | reveal */
+let revealT = 0, animT = 0, elapsed = 0, startedAt = 0;
+let best = +localStorage.getItem('es.best') || 0;
+let lastResult = null;
+/* 문제 기록 — '같은 날짜면 같은 문제' 를 기계가 대조하게 남긴다(연출은 안 남긴다).
+   ★상한을 둔다: 오래 돌려도 메모리가 무한히 늘지 않게 최근 QUIZ_LOG_MAX 건만 남긴다. */
+const quizLog = [];
+let rafId = 0, prevTs = 0, dpr = 1, cssW = VW, cssH = VH;
+
+/* ======================= 문제 생성기(유형별 · 순수 함수) ======================= */
+/* 전부 rng 하나만 받아 문제 객체를 돌려준다 — 전역 상태를 읽지도 쓰지도 않는다.
+   그래서 검증기가 같은 seed 로 몇 번을 불러도 같은 문제가 나온다. */
+const ri = (rng, a, b) => a + Math.floor(rng() * (b - a + 1));   /* 정수 [a, b] */
+function genAngle(rng){
+  const a = ri(rng, ANGLE_MIN, ANGLE_MAX);
+  const rot = ri(rng, 0, 359);                 /* 첫 선의 방향 */
+  const cw = rng() < 0.5;                      /* 둘째 선이 시계 방향인가 */
+  return { type:'angle', a, rot, cw, answer:a, tol:TOL_ANGLE };
+}
+function genCount(rng){
+  const n = ri(rng, COUNT_MIN, COUNT_MAX);
+  const pts = [], minD = DOT_R * 2 + DOT_GAP;
+  let tries = 0;
+  /* 겹침 방지 — 최소 거리 안에 다른 점이 있으면 버리고 다시 뽑는다. 판 넓이(360×320)에서 80개는
+     넉넉히 들어가므로 상한(4000)에 닿는 일은 없지만, 닿더라도 답은 실제로 놓인 개수다. */
+  while (pts.length < n && tries < 4000){
+    tries++;
+    const x = +(DOT_MARGIN + rng() * (VW - DOT_MARGIN * 2)).toFixed(1);
+    const y = +(DOT_MARGIN + rng() * (VH - DOT_MARGIN * 2)).toFixed(1);
+    let free = true;
+    for (const p of pts){ if (Math.hypot(p.x - x, p.y - y) < minD){ free = false; break; } }
+    if (free) pts.push({ x, y });
+  }
+  return { type:'count', n:pts.length, pts, answer:pts.length, tol:countTol(pts.length) };
+}
+function genRatio(rng){
+  const p = ri(rng, PCT_MIN, PCT_MAX);
+  const shape = rng() < 0.5 ? 'bar' : 'pie';
+  const start = ri(rng, 0, 359);               /* 원: 채움이 시작되는 각 */
+  const vert = rng() < 0.35;                   /* 막대: 세로로 세울까 */
+  return { type:'ratio', p, shape, start, vert, answer:p, tol:TOL_PCT };
+}
+function genLength(rng){
+  const r = ri(rng, LEN_MIN, LEN_MAX);         /* 기준 대비 % */
+  const base = ri(rng, 40, 90);                /* 기준 막대 길이(px) — 300% 여도 270px 로 판에 들어간다 */
+  const off1 = ri(rng, 0, 40), off2 = ri(rng, 0, 40);   /* 왼쪽 끝을 어긋나게 — 끝을 맞대고 재지 못하게 */
+  return { type:'length', r, base, target:+(base * r / 100).toFixed(2), off1, off2, answer:r, tol:TOL_PCT };
+}
+function genArea(rng){
+  const p = ri(rng, PCT_MIN, PCT_MAX);
+  const FW = AREA_FRAME.w, FH = AREA_FRAME.h, A = p / 100 * FW * FH;
+  const roll = rng();
+  /* 틀(300×220)에 들어가는 모양만 고른다: 원은 p≤55(57.6 이 한계) · 정사각형은 p≤70(73 이 한계) ·
+     직사각형은 가로세로비 k 를 틀에 맞는 구간 안에서 고르므로 97% 까지 된다. */
+  let shape;
+  if (p <= 55) shape = roll < 0.4 ? 'circle' : (roll < 0.7 ? 'square' : 'rect');
+  else if (p <= 70) shape = roll < 0.5 ? 'square' : 'rect';
+  else shape = 'rect';
+  let w, h;
+  if (shape === 'circle'){ w = h = Math.sqrt(A / Math.PI) * 2; }
+  else if (shape === 'square'){ w = h = Math.sqrt(A); }
+  else {
+    const kMin = A / (FH * FH), kMax = (FW * FW) / A;     /* h≤FH · w≤FW 가 되는 k 구간 */
+    const lo = Math.max(0.55, kMin), hi = Math.min(1.8, kMax);
+    const k = lo + rng() * (hi - lo);
+    w = Math.sqrt(A * k); h = A / w;
+  }
+  const x = rng() * (FW - w), y = rng() * (FH - h);
+  return { type:'area', p, shape, w:+w.toFixed(2), h:+h.toFixed(2), x:+x.toFixed(2), y:+y.toFixed(2), answer:p, tol:TOL_PCT };
+}
+function genColor(rng){
+  const p = ri(rng, PCT_MIN, PCT_MAX);
+  /* 100 타일 중 p 개가 A(줄무늬) — 자리는 섞는다(Fisher–Yates). */
+  const cells = [];
+  for (let i = 0; i < TILE_N * TILE_N; i++) cells.push(i < p ? 1 : 0);
+  for (let i = cells.length - 1; i > 0; i--){ const j = Math.floor(rng() * (i + 1)); const t = cells[i]; cells[i] = cells[j]; cells[j] = t; }
+  const pal = ri(rng, 0, 2);                   /* 색 쌍 */
+  return { type:'color', p, cells, pal, answer:p, tol:TOL_PCT };
+}
+const GEN = { angle:genAngle, count:genCount, ratio:genRatio, length:genLength, area:genArea, color:genColor };
+/* 한 판 = 여섯 유형 각 1문제 + 나머지 4문제를 추첨 → 전체를 섞은 뒤 순서대로 생성한다.
+   ★이 함수만이 quizRng 를 당긴다. 뽑는 개수·순서가 곧 일일 도전의 계약이다. */
+function makeRound(rng){
+  const list = TYPES.slice();
+  while (list.length < N_Q) list.push(TYPES[Math.floor(rng() * TYPES.length)]);
+  for (let i = list.length - 1; i > 0; i--){ const j = Math.floor(rng() * (i + 1)); const t = list[i]; list[i] = list[j]; list[j] = t; }
+  return list.map(t => GEN[t](rng));
+}
+const qKey = q => `${q.type}|${q.answer}|${hashStr(JSON.stringify(q)).toString(16)}`;
+
+/* ======================= 채점(순수 함수) ======================= */
+/* 정확도 = max(0, 100 − |오차|/허용폭×100), 소수 1자리. 오차 부호는 무관하다. */
+function accuracy(q, g){
+  const err = Math.abs(g - q.answer);
+  return Math.max(0, Math.round((100 - err / q.tol * 100) * 10) / 10);
+}
+const markOf = a => a >= 80 ? '🟩' : (a >= 50 ? '🟨' : '🟥');
+const marksOf = accs => accs.map(markOf).join('');
+const avgOf = accs => accs.length ? Math.round(accs.reduce((s, a) => s + a, 0) / accs.length * 10) / 10 : 0;
+
+/* ======================= HUD ======================= */
+function updateHud(){
+  $('qNo').textContent = (running || over) ? `${Math.min(qi + 1, N_Q)}/${N_Q}` : '–';
+  const accs = results.map(r => r.acc);
+  $('accNow').textContent = accs.length ? avgOf(accs) + '%' : '–';
+  $('modeTag').textContent = (running || over) ? (mode === 'daily' ? T('modeDaily') : T('modeFree')) : '–';
+}
+function updatePrompt(){
+  const q = questions[qi];
+  if (!running || !q){ $('prompt').textContent = ''; $('verdict').textContent = ''; return; }
+  $('prompt').textContent = T('q' + q.type[0].toUpperCase() + q.type.slice(1));
+  const r = results[qi];
+  $('verdict').textContent = (phase === 'reveal' && r) ? T('verdict', q.answer, UNIT[q.type], r.err, r.acc) : '';
+}
+function updateVal(){
+  const q = questions[qi];
+  $('val').innerHTML = q ? `${guess}<small>${UNIT[q.type]}</small>` : '–';
+}
+
+/* ======================= 입력 ======================= */
+function setupInput(q){
+  const [lo, hi] = RANGE[q.type];
+  const s = $('slider'), n = $('numIn');
+  s.min = lo; s.max = hi; s.step = 1;
+  guess = Math.round((lo + hi) / 2);
+  s.value = guess;
+  n.min = lo; n.max = hi; n.value = guess;
+  n.hidden = q.type !== 'count';               /* 개수 문제만 숫자 키패드 입력을 연다 */
+  $('btnOk').disabled = false;
+  updateVal();
+}
+function setGuess(v){
+  const q = questions[qi]; if (!q || phase !== 'ask') return guess;
+  const [lo, hi] = RANGE[q.type];
+  guess = Math.max(lo, Math.min(hi, Math.round(num(v))));
+  $('slider').value = guess; $('numIn').value = guess;
+  updateVal();
+  return guess;
+}
+function confirmGuess(){
+  if (!running || phase !== 'ask') return false;
+  const q = questions[qi];
+  const acc = accuracy(q, guess);
+  const err = Math.round(Math.abs(guess - q.answer) * 10) / 10;
+  results.push({ i:qi, type:q.type, answer:q.answer, guess, err, acc });
+  phase = 'reveal'; revealT = 0; animT = 0;
+  $('btnOk').disabled = true;
+  sLock();
+  const pop = $('pop');
+  if (acc >= 90){ pop.textContent = T('great'); pop.classList.remove('good'); pop.classList.add('show'); sGreat(); }
+  else if (acc >= 50){ pop.textContent = T('good'); pop.classList.add('good'); pop.classList.add('show'); sGood(); }
+  else { pop.textContent = T('miss'); pop.classList.add('good'); pop.classList.add('show'); sMiss(); }
+  updatePrompt(); updateHud();
+  say(T('verdict', q.answer, UNIT[q.type], err, acc));
+  return true;
+}
+function nextQuestion(){
+  $('pop').classList.remove('show');
+  qi++;
+  if (qi >= N_Q){ endRun(); return; }
+  phase = 'ask';
+  setupInput(questions[qi]);
+  updatePrompt(); updateHud();
+  say(T('srQ', qi + 1, N_Q));
+}
+
+/* ======================= 판 진행 ======================= */
+function resetRun(){
+  questions = []; results = []; qi = 0; guess = 0; phase = 'idle';
+  revealT = 0; animT = 0; elapsed = 0;
+  over = false; paused = false;
+  $('pop').classList.remove('show');
+}
+function startRun(m){
+  mode = m;
+  seedKeyNow = (m === 'daily') ? dailySeedKey() : '';
+  /* 자유 모드도 seed 를 거친다(기록·재현용) — seed 자체는 fxRng 에서 뽑는다. */
+  quizRng = (m === 'daily') ? mulberry32(hashStr(seedKeyNow)) : mulberry32(hashStr('free-' + fxRng()));
+  resetRun();
+  questions = makeRound(quizRng);
+  for (let i = 0; i < questions.length; i++){
+    quizLog.push({ i, seedKey: seedKeyNow, key: qKey(questions[i]), type: questions[i].type, answer: questions[i].answer });
+    if (quizLog.length > QUIZ_LOG_MAX) quizLog.splice(0, quizLog.length - QUIZ_LOG_MAX);
+  }
+  running = true; phase = 'ask'; startedAt = Date.now();
+  hide('start'); hide('over');
+  $('subtitle').textContent = (m === 'daily') ? T('daily', dailyNo()) : T('subtitle');
+  setupInput(questions[0]);
+  updatePrompt(); updateHud();
+  say(T('srStart') + ' ' + T('srQ', 1, N_Q));
+  ga('game_start', { game: GA_GAME });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+  try { $('slider').focus({ preventScroll:true }); } catch(e){}
+  prevTs = 0;
+}
+function endRun(){
+  if (!running) return;
+  running = false; over = true; phase = 'idle';
+  const accs = results.map(r => r.acc);
+  const score = avgOf(accs);
+  const durS = Math.max(0, Math.round(elapsed / 1000));
+  const isNew = score > best;
+  if (isNew){ best = score; localStorage.setItem('es.best', best); }
+  let streak = 0;
+  if (mode === 'daily'){
+    /* ★duration 을 함께 남긴다 — 다시 열었을 때 실제 시간으로 보이게 한다. */
+    saveDaily({ score, accs, duration: durS });
+    streak = bumpStreak();
+    ga('daily_complete', { game: GA_GAME, streak });
+  }
+  lastResult = { score, accs, durS, isNew, streak, no: dailyNo(), mode };
+  ga('game_over', { game: GA_GAME, score: Math.round(score * 10), moves: N_Q, duration_s: durS, daily: mode === 'daily' });
+  sOver();
+  renderOver();
+  refreshStart();
+  updateHud();
+  say(T('srOver', score));
+}
+function renderOver(){
+  const r = lastResult; if (!r) return;
+  $('overTitle').textContent = (r.mode === 'daily') ? T('dailyOver', r.no) : T('result');
+  $('finalScore').textContent = r.score + '%';
+  $('marks').textContent = marksOf(r.accs);
+  $('nGreen').textContent  = r.accs.filter(a => a >= 80).length;
+  $('nYellow').textContent = r.accs.filter(a => a >= 50 && a < 80).length;
+  $('nRed').textContent    = r.accs.filter(a => a < 50).length;
+  /* 문제별 칩 — 저장된 옛 기록(유형 없음)은 정확도만 보인다. */
+  const types = (results.length === r.accs.length) ? results.map(x => x.type) : [];
+  $('qgrid').innerHTML = r.accs.map((a, i) => {
+    const cls = a >= 80 ? 'g' : (a >= 50 ? 'y' : 'r');
+    const g = types[i] ? GLYPH[types[i]] + ' ' : '';
+    return `<span class="chip ${cls}">${g}${a}</span>`;
+  }).join('');
+  $('finalSub').textContent   = T('finalSub', best, fmtTime(r.durS));
+  $('newBest').textContent    = r.isNew ? T('newBest') : '';
+  $('streakLine').textContent = (r.mode === 'daily' && r.streak > 1) ? T('streak', r.streak) : '';
+  show('over');
+}
+const fmtTime = s => `${Math.floor(s/60)}:${pad2(s%60)}`;
+
+/* ======================= 한 걸음 ======================= */
+function step(dt){          /* dt = 초 */
+  elapsed += dt * 1000;
+  if (phase === 'reveal'){
+    revealT += dt * 1000; animT += dt * 1000;
+    if (revealT >= REVEAL_MS) nextQuestion();
+  }
+}
+
+/* ======================= 그리기 ======================= */
+function resize(){
+  const r = cv.getBoundingClientRect();
+  dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  cssW = r.width || VW; cssH = r.height || VH;
+  cv.width  = Math.round(cssW * dpr);
+  cv.height = Math.round(cssH * dpr);
+  draw();
+}
+function line(x1, y1, x2, y2){ ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+function dot(x, y, r){ ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+function rrect(x, y, w, h, r){
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+}
+/* 정답 라벨 — 알약 모양 바탕 위 글자. measureText 대신 글자 수로 폭을 잡는다(스텁 환경 호환). */
+function pill(x, y, txt, k){
+  const w = txt.length * 12 + 22, h = 30;
+  ctx.globalAlpha = Math.max(0, Math.min(1, k));
+  ctx.fillStyle = C.sig; rrect(x - w/2, y - h/2, w, h, 15); ctx.fill();
+  ctx.fillStyle = C.onSig; ctx.font = 'bold 17px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(txt, x, y + 1);
+  ctx.globalAlpha = 1;
+}
+function small(x, y, txt, col){
+  ctx.fillStyle = col; ctx.font = 'bold 12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(txt, x, y);
+}
+const DRAW = {
+  angle(q, reveal, k){
+    const cx = 180, cy = 175, L = 125;
+    const a1 = q.rot * Math.PI / 180, a2 = (q.rot + (q.cw ? q.a : -q.a)) * Math.PI / 180;
+    ctx.lineCap = 'round'; ctx.lineWidth = 6; ctx.strokeStyle = C.text;
+    line(cx, cy, cx + Math.cos(a1) * L, cy + Math.sin(a1) * L);
+    line(cx, cy, cx + Math.cos(a2) * L, cy + Math.sin(a2) * L);
+    /* 어느 각을 묻는지 — 작은 호로 표시(두 선은 각을 둘 만든다) */
+    ctx.lineWidth = 2; ctx.strokeStyle = C.muted;
+    ctx.beginPath(); ctx.arc(cx, cy, 22, a1, a2, !q.cw); ctx.stroke();
+    ctx.fillStyle = C.sig; dot(cx, cy, 6);
+    if (reveal){
+      ctx.lineWidth = 5; ctx.strokeStyle = C.sig;
+      ctx.beginPath(); ctx.arc(cx, cy, 52, a1, a1 + (q.cw ? 1 : -1) * q.a * Math.PI / 180 * k, !q.cw); ctx.stroke();
+      const am = (q.rot + (q.cw ? q.a : -q.a) / 2) * Math.PI / 180;
+      pill(cx + Math.cos(am) * 86, cy + Math.sin(am) * 86, q.a + '°', k);
+    }
+  },
+  count(q, reveal, k){
+    ctx.fillStyle = C.sig;
+    for (const p of q.pts) dot(p.x, p.y, DOT_R);
+    if (reveal){
+      ctx.globalAlpha = k;
+      let i = 0;
+      for (const p of q.pts){ i++; small(p.x, p.y - DOT_R - 7, String(i), C.text); }
+      ctx.globalAlpha = 1;
+      pill(VW / 2, VH - 22, String(q.n), k);
+    }
+  },
+  ratio(q, reveal, k){
+    if (q.shape === 'bar'){
+      const x = q.vert ? 140 : 30, y = q.vert ? 30 : 130, w = q.vert ? 80 : 300, h = q.vert ? 260 : 60;
+      ctx.fillStyle = C.panel; rrect(x, y, w, h, 8); ctx.fill();
+      ctx.fillStyle = C.sig;
+      if (q.vert){ const fh = h * q.p / 100; ctx.fillRect(x, y + h - fh, w, fh); }
+      else ctx.fillRect(x, y, w * q.p / 100, h);
+      ctx.lineWidth = 2; ctx.strokeStyle = C.frame; rrect(x, y, w, h, 8); ctx.stroke();
+      if (reveal){
+        /* 정확한 눈금 — 0 에서 정답까지 쓸어 온다(k) · 내 답은 회색 점선 */
+        ctx.lineWidth = 3; ctx.strokeStyle = C.text;
+        if (q.vert){ const yy = y + h - h * q.p / 100 * k; line(x - 10, yy, x + w + 10, yy); }
+        else { const xx = x + w * q.p / 100 * k; line(xx, y - 10, xx, y + h + 10); }
+        ctx.setLineDash([4, 4]); ctx.strokeStyle = C.ghost; ctx.lineWidth = 2;
+        if (q.vert){ const yg = y + h - h * guess / 100; line(x - 10, yg, x + w + 10, yg); }
+        else { const xg = x + w * guess / 100; line(xg, y - 10, xg, y + h + 10); }
+        ctx.setLineDash([]);
+        pill(q.vert ? 260 : 180, q.vert ? 160 : 230, q.p + '%', k);
+      }
+    } else {
+      const cx = 180, cy = 165, r = 110, s = q.start * Math.PI / 180;
+      ctx.fillStyle = C.panel; dot(cx, cy, r);
+      ctx.fillStyle = C.sig;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, s, s + q.p / 100 * Math.PI * 2); ctx.closePath(); ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = C.frame; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+      if (reveal){
+        const e = s + q.p / 100 * Math.PI * 2 * k;
+        ctx.lineWidth = 3; ctx.strokeStyle = C.text; line(cx, cy, cx + Math.cos(e) * (r + 12), cy + Math.sin(e) * (r + 12));
+        const g = s + guess / 100 * Math.PI * 2;
+        ctx.setLineDash([4, 4]); ctx.strokeStyle = C.ghost; ctx.lineWidth = 2;
+        line(cx, cy, cx + Math.cos(g) * (r + 12), cy + Math.sin(g) * (r + 12)); ctx.setLineDash([]);
+        pill(cx, cy, q.p + '%', k);
+      }
+    }
+  },
+  length(q, reveal, k){
+    const x1 = 30 + q.off1, x2 = 30 + q.off2;
+    ctx.fillStyle = C.muted; rrect(x1, 96, q.base, 24, 6); ctx.fill();
+    small(x1 + q.base / 2, 84, '100%', C.text);
+    ctx.fillStyle = C.sig; rrect(x2, 186, q.target, 24, 6); ctx.fill();
+    small(x2 + q.target / 2, 174, '?', C.text);
+    if (reveal){
+      /* 내 답 길이를 점선으로 겹쳐 — 얼마나 벗어났는지 눈으로 */
+      const gw = Math.min(330, q.base * guess / 100);
+      ctx.setLineDash([5, 4]); ctx.lineWidth = 2; ctx.strokeStyle = C.ghost; rrect(x2, 226, gw, 24, 6); ctx.stroke(); ctx.setLineDash([]);
+      small(x2 + gw / 2, 262, guess + '%', C.muted);
+      ctx.globalAlpha = k; ctx.lineWidth = 3; ctx.strokeStyle = C.text; line(x2 + q.target, 180, x2 + q.target, 216); ctx.globalAlpha = 1;
+      pill(x2 + Math.max(50, q.target / 2), 174, q.r + '%', k);
+    }
+  },
+  area(q, reveal, k){
+    const F = AREA_FRAME;
+    ctx.fillStyle = C.panel; ctx.fillRect(F.x, F.y, F.w, F.h);
+    ctx.lineWidth = 2; ctx.strokeStyle = C.frame; ctx.strokeRect(F.x, F.y, F.w, F.h);
+    ctx.fillStyle = C.sig;
+    if (q.shape === 'circle') dot(F.x + q.x + q.w / 2, F.y + q.y + q.h / 2, q.w / 2);
+    else ctx.fillRect(F.x + q.x, F.y + q.y, q.w, q.h);
+    if (reveal) pill(F.x + F.w / 2, F.y + F.h / 2, q.p + '%', k);
+  },
+  color(q, reveal, k){
+    const t = 26, ox = 50, oy = 30;
+    const A = C.ca[q.pal], B = C.cb[q.pal];
+    for (let i = 0; i < q.cells.length; i++){
+      const r = Math.floor(i / TILE_N), c = i % TILE_N, x = ox + c * t, y = oy + r * t;
+      ctx.fillStyle = q.cells[i] ? A : B; ctx.fillRect(x, y, t - 1, t - 1);
+      if (q.cells[i]){
+        /* 줄무늬 — 색만으로 가르지 않는다(색각 이상 배려). 패턴 객체 대신 선으로 그린다. */
+        ctx.save(); ctx.beginPath(); ctx.rect(x, y, t - 1, t - 1); ctx.clip();
+        ctx.strokeStyle = C.board; ctx.lineWidth = 2;
+        for (let d = -t; d < t * 2; d += 7) line(x + d, y, x + d + t, y + t);
+        ctx.restore();
+      }
+    }
+    if (reveal){
+      /* 줄무늬 타일에 번호 대신 테두리 강조 */
+      ctx.globalAlpha = k; ctx.lineWidth = 2; ctx.strokeStyle = C.text;
+      for (let i = 0; i < q.cells.length; i++){
+        if (!q.cells[i]) continue;
+        const r = Math.floor(i / TILE_N), c = i % TILE_N;
+        ctx.strokeRect(ox + c * t + 1, oy + r * t + 1, t - 3, t - 3);
+      }
+      ctx.globalAlpha = 1;
+      pill(VW / 2, VH / 2, q.p + '%', k);
+    }
+  }
+};
+function drawIdle(){
+  ctx.fillStyle = C.sig; ctx.font = 'bold 64px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('👀', VW / 2, VH / 2 - 10);
+}
+function draw(){
+  ctx.setTransform(cv.width / VW, 0, 0, cv.height / VH, 0, 0);
+  ctx.fillStyle = C.board; ctx.fillRect(0, 0, VW, VH);
+  const q = questions[qi];
+  if (!q){ drawIdle(); return; }
+  const reveal = phase === 'reveal';
+  const k = reveal ? (reduceMotion() ? 1 : Math.min(1, animT / ANIM_MS)) : 0;
+  DRAW[q.type](q, reveal, k);
+}
+
+/* ======================= 루프 ======================= */
+function loop(ts){
+  rafId = requestAnimationFrame(loop);
+  if (!prevTs) prevTs = ts;
+  let dt = (ts - prevTs) / 1000; prevTs = ts;
+  if (dt > 0.05) dt = 0.05;
+  if (running && !paused) step(dt);
+  if (!paused) draw();
+}
+
+/* ======================= 조작 배선 ======================= */
+const s = $('slider'), nIn = $('numIn');
+s.oninput = () => setGuess(s.value);
+s.onchange = () => setGuess(s.value);
+nIn.oninput = () => { if (nIn.value !== '') setGuess(nIn.value); };
+nIn.onchange = () => setGuess(nIn.value === '' ? guess : nIn.value);
+$('btnOk').onclick = () => confirmGuess();
+/* 물리 자판은 code 로 본다 — 한글 입력 상태여도 같은 자리를 누르면 같이 움직인다. */
+window.addEventListener('keydown', ev => {
+  if (!running || $('start').classList.contains('show') || $('over').classList.contains('show')) return;
+  if (ev.code === 'ArrowLeft' || ev.code === 'ArrowRight'){
+    if (phase !== 'ask') { ev.preventDefault(); return; }
+    const d = (ev.shiftKey ? 10 : 1) * (ev.code === 'ArrowLeft' ? -1 : 1);
+    setGuess(guess + d); ev.preventDefault();
+  } else if (ev.code === 'Enter' || ev.code === 'NumpadEnter'){
+    if (confirmGuess()) ev.preventDefault();
+  }
+});
+/* 탭을 떠나면 시계를 세운다 — 돌아왔을 때 정답 표시가 이미 지나가 있지 않게. */
+document.addEventListener('visibilitychange', () => {
+  paused = document.hidden;
+  if (!paused) prevTs = 0;
+});
+
+/* ======================= 창(오버레이) ======================= */
+function show(id){
+  const o = $(id); o.classList.add('show');
+  setOutsideInert(true);
+  const f = o.querySelector('button:not([disabled]), a[href]');
+  if (f) try { f.focus({ preventScroll:true }); } catch(e){}
+}
+function hide(id){
+  $(id).classList.remove('show');
+  if (!$('start').classList.contains('show') && !$('over').classList.contains('show')) setOutsideInert(false);
+}
+/* 창이 떠 있는 동안 뒤쪽을 초점에서 통째로 뺀다 — 탭이 창 밖으로 새면 갇힌 것처럼 느껴진다. */
+function setOutsideInert(on){
+  for (const el of document.querySelectorAll('body > header, body > main, body > section, body > footer, body > .ad-slot, body > .scores')){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+  }
+}
+function say(msg){ $('srSummary').textContent = msg; }
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600); }
+
+/* ======================= 시작 화면 ======================= */
+function refreshStart(){
+  const done = dailyDoneToday();
+  const no = dailyNo();
+  $('btnDaily').textContent = done ? T('dailyDone', no) : T('daily', no);
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint');
+  const st = streakNow();
+  $('btnDaily').disabled = false;   /* 끝냈어도 '결과 보기' 로는 눌린다 */
+  $('dailyHint').textContent += (st > 1 ? ' · ' + T('streak', st) : '');
+}
+/* 오늘 이미 끝냈으면 새 판을 열지 않고 저장된 결과를 보여 준다(하루 한 번). */
+function startDaily(){
+  if (dailyDoneToday()){
+    const r = dailyRec();
+    lastResult = { score: r.result.score, accs: (r.result.accs || []).slice(),
+                   /* ★저장된 실제 시간을 쓴다 — 없는 것은 옛 기록뿐이므로 그때만 0 으로 물러선다. */
+                   durS: r.result.duration ?? 0,
+                   isNew:false, streak: streakNow(), no: r.no || dailyNo(), mode:'daily' };
+    /* ★시작 창을 먼저 닫는다 — 닫지 않으면 결과 창 위에 시작 창이 남아 결과를 못 본다. */
+    hide('start');
+    renderOver();
+    return;
+  }
+  startRun('daily');
+}
+
+/* ======================= UI 배선 ======================= */
+$('btnStart').onclick = () => startRun('free');
+$('btnDaily').onclick = () => startDaily();
+$('btnAgain').onclick = () => startRun('free');
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyLang();
+  refreshStart();
+  $('subtitle').textContent = (running && mode === 'daily') ? T('daily', dailyNo()) : T('subtitle');
+  updatePrompt(); updateHud();
+  if (over && lastResult) renderOver();
+  ga('lang_switch', { lang });
+}
+$('btnLang').onclick = toggleLang;
+$('btnLang2').onclick = toggleLang;
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('es.sound', soundOn ? '1' : '0');
+  const face = soundOn ? '🔊' : '🔇';
+  $('btnSound').textContent = face; $('btnSound2').textContent = face;
+  applyA11yLabels();
+  if (soundOn) beep(660, .06, 'sine', .04);
+}
+$('btnSound').onclick = toggleSound;
+$('btnSound2').onclick = toggleSound;
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnSound2').textContent = soundOn ? '🔊' : '🔇';
+
+/* 공유 텍스트 — "눈대중 #N 정확도 87.3% 🟩🟩🟨🟩🟥…" + URL */
+function shareText(r, url){
+  const m = marksOf(r.accs);
+  return ((r.mode === 'daily') ? T('dailyShare', r.no, r.score, m, r.streak) : T('freeShare', r.score, m)) + url;
+}
+async function doShare(){
+  const url = location.href.split('#')[0];
+  const r = lastResult;
+  if (!r) return;
+  const text = shareText(r, url);
+  try{
+    if (navigator.share) await navigator.share({ title: T('docTitle'), text, url });
+    else { await navigator.clipboard.writeText(text); toast(T('copied')); }
+  }catch(_){}
+}
+$('btnShare').onclick = doShare;
+
+/* ======================= 기동 ======================= */
+applyLang();
+refreshStart();
+updateHud();
+resize();
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 150));
+/* 시작 창은 처음부터 열린 채로 그려진다 — show 를 한 번 태워 초점을 첫 버튼으로 옮기고
+   창 밖을 inert 로 막는다. */
+if ($('start').classList.contains('show')) show('start');
+rafId = requestAnimationFrame(loop);
+
+/* ======================= 검증 창구(관측 전용) ======================= */
+/* ★배포되는 이 창구에는 **읽기만 하는 getter 와 순수 함수** 만 둔다. 판을 시작하거나 답을 넣거나
+   시간을 진행시키는 **상태 변경 명령은 여기에 두지 않는다** — 그런 것이 전역에 열려 있으면 콘솔이나
+   외부 스크립트가 관측을 넘어 제품 상태를 바꾸고, newGame 같은 것은 GA game_start·공개 카운터
+   전송·일일 결과 저장까지 실제로 일으킨다(벽돌깨기 R2·슛팅 수정 계약 그대로).
+   검증에 필요한 변경 명령은 연기시험 하네스가 **메모리 위에서만** 이 파일 뒤에 덧붙인다
+   (`evidence-estimate/smoke_estimate.mjs` 의 test bridge — 배포 파일에는 그 코드가 한 줄도 없다).
+   반환값은 전부 사본이다 — 받은 쪽에서 고쳐도 게임 안쪽이 바뀌지 않는다. 외부 전송 0. */
+const copy = o => JSON.parse(JSON.stringify(o));
+window.__es = {
+  const: () => ({ VW, VH, N_Q, TYPES: TYPES.slice(), TOL_ANGLE, TOL_PCT, ANGLE_MIN, ANGLE_MAX, COUNT_MIN, COUNT_MAX,
+                  PCT_MIN, PCT_MAX, LEN_MIN, LEN_MAX, TILE_N, DOT_R, DOT_GAP, REVEAL_MS, ANIM_MS, QUIZ_LOG_MAX,
+                  RANGE: copy(RANGE), UNIT: copy(UNIT) }),
+  seedKey: (d) => dailySeedKey(d ? new Date(d) : new Date()),
+  seedDraws: (key, n) => { const f = mulberry32(hashStr(key)); return Array.from({length:n}, () => +f().toFixed(9)); },
+  state: () => ({ mode, running, over, paused, phase, qi, guess, elapsed, revealT, seedKey: seedKeyNow,
+                  n: questions.length, answered: results.length }),
+  daily: () => ({ done: dailyDoneToday(), rec: dailyRec(), no: dailyNo(), streak: streakNow() }),
+  /* ★'같은 날짜 = 같은 문제' 를 기계가 대조하게 하는 창구 — 원시 난수열이 아니라 실제 문제(유형·파라미터) */
+  questions: () => copy(questions),
+  results: () => copy(results),
+  transcript: () => quizLog.map(o => o.key).join(' '),
+  log: () => copy(quizLog),
+  logMax: () => QUIZ_LOG_MAX,
+  /* 순수 함수 — 전역 상태를 읽지도 쓰지도 않는다(채점 단위시험·생성기 1,000판 시험용) */
+  accuracy: (type, answer, g, n) => accuracy({ answer, tol: type === 'angle' ? TOL_ANGLE : (type === 'count' ? countTol(n === undefined ? answer : n) : TOL_PCT) }, g),
+  marks: (accs) => marksOf(accs.slice()),
+  gen: (type, seed) => (GEN[type] ? copy(GEN[type](mulberry32(hashStr(String(seed))))) : null),
+  round: (seedKey) => copy(makeRound(mulberry32(hashStr(String(seedKey))))),
+  shareText: (r) => shareText(r, 'https://hanpango.com/estimate/'),
+  shown: (id) => $(id).classList.contains('show'),
+  reduceMotion: () => reduceMotion(),
+  sound: () => soundOn
+};
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
