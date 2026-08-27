@@ -198,6 +198,11 @@
             <span class="badges"><span class="badge">한 판 2~5분 / 2–5 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
           <span class="body"><h2>벽돌깨기 / Brick Breaker</h2>
             <p>한 손가락으로 패들을 움직여 공을 튕기고 벽돌을 부수는 아케이드 — 콤보를 채우면 관통·분열 폭발<br>Slide the paddle with one finger, bounce the ball, smash bricks — fill the combo for a piercing multi-ball burst</p></span>
+        <li><a class="card" href="/estimate/">
+          <span class="thumb"><img src="/estimate/thumb.webp" alt="눈대중 / Eyeball" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 1~2분 / 1–2 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>눈대중 / Eyeball</h2>
+            <p>각도·개수·비율을 눈으로 어림잡아 맞히는 10문제 추정 퀴즈 — 정확도 %로 자랑하기<br>Eyeball angles, counts and ratios in a 10-question estimation quiz — brag with your accuracy %</p></span>
         </a></li>
       </ul>
     </noscript>
@@ -311,6 +316,13 @@ const FALLBACK = [{
   thumb:'/brick-breaker/thumb.webp',
   playtime:{ko:'한 판 2~5분',en:'2–5 min a round'},
   daily:true, released:'2026-08-26', tags:['arcade','casual','daily']
+},{
+  id:'estimate', path:'/estimate/',
+  title:{ko:'눈대중',en:'Eyeball'},
+  desc:{ko:'각도·개수·비율을 눈으로 어림잡아 맞히는 10문제 추정 퀴즈 — 정확도 %로 자랑하기',en:'Eyeball angles, counts and ratios in a 10-question estimation quiz — brag with your accuracy %'},
+  thumb:'/estimate/thumb.webp',
+  playtime:{ko:'한 판 1~2분',en:'1–2 min a round'},
+  daily:true, released:'2026-08-27', tags:['quiz','estimation','casual','daily']
 }];
 
 let games = FALLBACK;
