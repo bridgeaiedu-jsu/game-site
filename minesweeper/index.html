@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>지뢰찾기 — 찍기 없이 풀리는 논리 퍼즐 | Minesweeper</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 지뢰찾기. 숫자를 단서로 지뢰를 피해 칸을 엽니다. 모든 판은 찍기 없이 논리만으로 풀리도록 검사해서 냅니다. 깃발 버튼·코드 열기(chord)·난이도 3단계·매일 새로 열리는 오늘의 도전과 공유. Classic logic minesweeper — every daily board is solvable without guessing.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="지뢰찾기 — 찍기 없이 풀리는 논리 퍼즐 | Minesweeper">
+<meta property="og:description" content="숫자를 단서로 지뢰를 피해 칸을 여는 논리 퍼즐 — 찍기 없이 풀리는 판만 냅니다. 설치 없이 바로 플레이.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/minesweeper/">
+<link rel="canonical" href="https://hanpango.com/minesweeper/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"지뢰찾기","alternateName":"Minesweeper","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본. 다크는 아래 @media 에서 ★같은 이름의 값만 바꿔 끼운다 — 마크업은 두 테마가 동일하다.
+     시그니처는 보라(--sig). ★숫자 1~8 색(--n1~--n8)은 닫힘/열림 칸 배경 위에서 4.5:1 이상이다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#7c3aed; --sig-ink:#5b21b6; --sig-soft:#ede9fe; --on-sig:#ffffff;
+    --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
+    --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
+    --cell:#dfe3ea; --cell-2:#cfd5df; --cell-open:#f8f9fb; --cell-line:#c3cad6;
+    --n1:#1d4ed8; --n2:#15803d; --n3:#b91c1c; --n4:#6d28d9; --n5:#9a3412; --n6:#0e7490; --n7:#111827; --n8:#4b5563;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#a78bfa; --sig-ink:#c4b5fd; --sig-soft:#2e2670; --on-sig:#2e1065;
+      --good:#34d399; --good-ink:#bbf7d0; --good-soft:#14532d;
+      --warn:#fbbf24; --bad:#fca5a5; --bad-ink:#fecaca; --bad-soft:#4c1d1d;
+      --cell:#2e2870; --cell-2:#3a3390; --cell-open:#141033; --cell-line:#453da0;
+      --n1:#93c5fd; --n2:#86efac; --n3:#fca5a5; --n4:#d8b4fe; --n5:#fdba74; --n6:#67e8f9; --n7:#e5e7eb; --n8:#a5a1d8;
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em;flex:1 1 auto;min-width:0;line-height:1.2}
+  h1 small{display:block;color:var(--muted);font-weight:400;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-btns{display:flex;gap:6px;flex:0 0 auto}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer;white-space:nowrap}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:6px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .score b{display:block;font-size:1.2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+  .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}
+  .ad-rect{width:300px;height:250px;margin:10px auto}
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  /* ---- 판 ----
+     ★360px 폭에서 어려움(14열)도 가로 스크롤 0: 칸은 1fr 로 나누되 최소 22px 를 넘도록 판 폭을 계산한다.
+     칸 자체는 44px 미만이라 오탭 방지로 ①칸 사이 간격 2px ②깃발 모드에서 판 테두리·색 반전 ③길게 눌러도 선택 안 됨. */
+  .wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:6px}
+  /* ★칸 최소 22px 를 지키려고 간격을 1px 로 둔다 — 360px 폭에서 어려움(14열)이 21.8px 로 미달했다(CDP 실측 · 커밋 전 수정) */
+  .grid{display:grid;gap:1px;background:var(--cell-line);border:2px solid var(--cell-line);border-radius:10px;padding:2px;
+        width:100%;max-width:min(100%, 420px);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  .grid.flagmode{border-color:var(--sig);box-shadow:0 0 0 2px var(--sig-soft)}
+  .cell{appearance:none;border:0;margin:0;padding:0;aspect-ratio:1/1;min-width:0;
+        background:var(--cell);color:var(--text);border-radius:3px;cursor:pointer;
+        font-weight:800;font-variant-numeric:tabular-nums;line-height:1;
+        font-size:clamp(.62rem, calc(3.6vw - .2rem), 1.05rem);display:flex;align-items:center;justify-content:center}
+  .cell:active{transform:scale(.94)}
+  .cell.open{background:var(--cell-open);cursor:default}
+  .cell.open.n0{color:transparent}
+  .cell.n1{color:var(--n1)} .cell.n2{color:var(--n2)} .cell.n3{color:var(--n3)} .cell.n4{color:var(--n4)}
+  .cell.n5{color:var(--n5)} .cell.n6{color:var(--n6)} .cell.n7{color:var(--n7)} .cell.n8{color:var(--n8)}
+  .cell.flag{background:var(--sig-soft)}
+  .cell.mine{background:var(--bad-soft)}
+  .cell.boom{background:var(--bad);color:#fff}
+  .cell.wrong{background:var(--bad-soft);color:var(--bad-ink)}
+  .cell.start{box-shadow:inset 0 0 0 2px var(--sig)}
+  .cell:disabled{cursor:default}
+  .cell:focus-visible{outline:3px solid var(--sig);outline-offset:-3px}
+  /* 연쇄 열림 물결 · 깃발 팝 · 폭발 흔들림 */
+  @keyframes wave{0%{transform:scale(.82);opacity:.35}100%{transform:scale(1);opacity:1}}
+  @keyframes pop{0%{transform:scale(.86)}55%{transform:scale(1.12)}100%{transform:scale(1)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+  .cell.wave{animation:wave .18s ease-out}
+  .cell.popped{animation:pop .2s ease-out}
+  .grid.boom{animation:shake .34s ease-in-out}
+  /* 하단 조작 줄 — 깃발 토글은 ★버튼이 기본이고 롱프레스는 보조다(한 손가락·롱프레스 의존 금지) */
+  .tools{width:100%;max-width:min(100%,420px);display:flex;gap:6px;position:sticky;bottom:calc(6px + var(--safe-b));padding-top:2px}
+  .tool{flex:1;min-height:52px;border:2px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);
+        font-size:1rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+  .tool[aria-pressed="true"]{border-color:var(--sig);background:var(--sig-soft);color:var(--sig-ink)}
+  .tool:active{transform:scale(.98)}
+  .tool small{font-weight:600;font-size:.7rem;color:var(--muted)}
+  .bhead{width:100%;max-width:min(100%,420px);display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .chip{font-size:.72rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--muted-2);font-weight:600}
+  .chip.warnchip{color:var(--warn);border-color:var(--warn);background:transparent}
+  .chip.warnchip[hidden]{display:none}
+  .help{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
+  /* ---- 난이도 선택(시작 카드) ---- */
+  .levels{display:flex;gap:6px;margin:8px 0 2px}
+  .levels button{flex:1;min-height:44px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);font-weight:700;font-size:.95rem;cursor:pointer}
+  .levels button[aria-pressed="true"]{border-color:var(--sig);background:var(--sig-soft);color:var(--sig-ink)}
+  .lvdesc{color:var(--muted);font-size:.78rem;min-height:1.3em;margin:0 0 6px}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card h2{margin:0 0 6px;font-size:1.5rem}
+  .card .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1;font-variant-numeric:tabular-nums}
+  .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card .marks{font-size:1.1rem;letter-spacing:.04em;margin:4px 0;line-height:1.3;word-break:break-all}
+  .card .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .hp-stat[hidden]{display:none!important}
+  .card .hp-stat b{font-weight:600}
+  .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .card .reason{font-size:.95rem;font-weight:600;margin:2px 0 6px;min-height:1.2em}
+  .card .reason.win{color:var(--good-ink)} .card .reason.lose{color:var(--bad-ink)}
+  .card .notice{color:var(--warn);font-size:.8rem;margin:0 0 8px}
+  .card .notice[hidden]{display:none}
+  .card .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[disabled]{opacity:.5;cursor:default}
+  .btn[hidden]{display:none}
+  .stats3{display:flex;gap:6px;margin:10px 0 4px}
+  .stats3 div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .stats3 b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums;word-break:keep-all}
+  .stats3 span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  section.content a{color:var(--muted-2)}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center;max-width:520px}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(84px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  @media (prefers-reduced-motion: reduce){
+    .cell.wave,.cell.popped,.grid.boom{animation:none}
+    .toast{transition:none}
+    .btn:active,.ibtn:active,.cell:active,.tool:active{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">지뢰찾기</span> <small id="subtitle" data-i18n="subtitle">찍기 없이 풀리는 논리 퍼즐</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 다른 게임</a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="mineNow">–</b><span data-i18n="mineLbl">남은 지뢰</span></div>
+  <div class="score"><b id="openNow">–</b><span data-i18n="openLbl">연 칸</span></div>
+  <div class="score"><b id="timeNow">–</b><span data-i18n="timeLbl">경과</span></div>
+</div>
+
+<main>
+  <div class="wrap">
+    <div class="bhead">
+      <span class="chip" id="modeChip">–</span>
+      <span class="chip warnchip" id="guessChip" hidden data-i18n="guessBadge">오늘은 일부 추측 필요</span>
+    </div>
+    <!-- ★data-i18n 을 붙이지 않는다 — 언어를 바꾸면 판이 지워진다(넌센스·끝말잇기에서 배운 결함). 라벨은 renderGrid 가 넣는다. -->
+    <div class="grid" id="grid" role="grid" aria-label="board"></div>
+    <div class="tools">
+      <button class="tool" id="btnFlag" aria-pressed="false"><span aria-hidden="true">🚩</span><span data-i18n="flagMode">깃발</span><small id="flagCount"></small></button>
+      <button class="tool" id="btnRestart"><span aria-hidden="true">↻</span><span data-i18n="restart">새 판</span></button>
+    </div>
+  </div>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="help" data-i18n="hint">탭 = 열기 · 「깃발」을 켜면 탭 = 깃발 · 숫자를 두 번 탭하면 주변 깃발 수가 맞을 때 한꺼번에 열립니다</p>
+</main>
+
+<!-- 결과 -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card">
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <div class="big" id="finalTime">0:00</div>
+    <div class="reason" id="finalReason"></div>
+    <div class="marks" id="marks" aria-hidden="true"></div>
+    <div class="new" id="streakLine" style="color:var(--sig-ink)"></div>
+    <div class="new" id="newBest"></div>
+    <div class="stats3">
+      <div><b id="nOpen">0</b><span data-i18n="openLbl2">연 칸</span></div>
+      <div><b id="nFlag">0</b><span data-i18n="flagLbl2">깃발</span></div>
+      <div><b id="nMine">0</b><span data-i18n="mineLbl2">지뢰</span></div>
+    </div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- 시작 -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card">
+    <h2 id="startTitle" data-i18n="title2">지뢰찾기</h2>
+    <div class="sub" data-i18n="startSub">숫자를 단서로 지뢰를 피해 칸을 여는 논리 퍼즐.<br>★모든 판은 찍기 없이 풀리는지 검사해서 냅니다.</div>
+    <p class="notice" id="koNotice" hidden data-i18n="koNotice"></p>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnResumeDaily" hidden></button>
+    <div class="levels" id="levels" role="group" aria-label="level">
+      <button type="button" data-lv="easy" aria-pressed="false" data-i18n="lvEasy">쉬움</button>
+      <button type="button" data-lv="normal" aria-pressed="true" data-i18n="lvNormal">보통</button>
+      <button type="button" data-lv="hard" aria-pressed="false" data-i18n="lvHard">어려움</button>
+    </div>
+    <p class="lvdesc" id="lvDesc"></p>
+    <button class="btn ghost" id="btnStart" data-i18n="start">▶ 자유 모드</button>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.minesweeper.today">–</b>판 · 누적 <b data-hp="plays.minesweeper.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">칸을 탭하면 열립니다. 열린 칸의 숫자는 그 칸에 맞닿은 여덟 칸에 지뢰가 몇 개 있는지를 뜻합니다. 숫자가 없는(빈) 칸을 열면 주변이 한꺼번에 펼쳐집니다. 지뢰가 있다고 확신하는 칸에는 깃발을 꽂아 두세요 — 화면 아래 「🚩 깃발」 버튼을 켜면 탭이 깃발 꽂기로 바뀝니다(길게 누르기로도 됩니다). 지뢰가 아닌 칸을 모두 열면 이깁니다.</p>
+  <p data-i18n="how2">숫자 칸을 두 번 탭하면 「코드 열기」가 됩니다 — 그 숫자와 주변에 꽂은 깃발 수가 같을 때만 나머지 이웃이 한꺼번에 열립니다. 깃발을 잘못 꽂아 두었다면 이때 지뢰를 밟게 되니 확신이 있을 때만 쓰세요. 키보드로도 됩니다: 방향키로 이동, Space 로 열기, F 로 깃발, Enter 로 코드 열기.</p>
+  <p data-i18n="how3">난이도는 셋입니다 — 쉬움 9×9 에 지뢰 10개, 보통 12×16 에 30개, 어려움 14×20 에 55개. 시간은 첫 탭에 시작하고, 점수는 걸린 시간입니다(짧을수록 좋습니다). 판을 지면 잘못 꽂은 깃발에는 ✗ 가 표시되고 지뢰 위치가 모두 드러납니다.</p>
+  <h2 data-i18n="guessTitle">왜 찍지 않아도 되나요</h2>
+  <p data-i18n="guessDesc">보통의 지뢰찾기는 마지막에 두 칸 중 하나를 찍어야 하는 상황이 생깁니다. 이 게임은 판을 만들 때마다 「숫자만 보고 논리로 끝까지 풀 수 있는가」를 컴퓨터가 먼저 풀어 보고, 풀리는 판만 내보냅니다. 풀리지 않으면 지뢰를 다시 뿌려서 다시 검사합니다. 그래서 남는 칸이 애매해 보이더라도, 어딘가에는 반드시 논리로 확정할 수 있는 칸이 있습니다. 아주 드물게 정해진 횟수 안에 풀리는 판을 찾지 못하면 화면 위에 「오늘은 일부 추측 필요」라고 알려 드립니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 같은 판(난이도 보통)을 받고, 하루에 한 번만 도전할 수 있습니다. ★오늘의 판은 시작 칸까지 미리 정해져 있어 누구나 완전히 같은 판을 풉니다(자유 모드는 처음 탭한 칸이 반드시 안전하도록 지뢰를 다시 배치합니다). 하다가 나가도 이 기기에 진행이 저장되어 시작 화면의 이어하기로 계속할 수 있습니다. 결과를 이모지 한 줄로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다.</p>
+  <h2 data-i18n="tipsTitle">요령</h2>
+  <details><summary data-i18n="tip1q">숫자와 깃발 수를 맞춰 보세요</summary><p data-i18n="tip1a">숫자가 1인데 옆에 깃발이 하나 꽂혀 있다면, 그 숫자에 맞닿은 나머지 칸은 모두 안전합니다. 반대로 닫힌 칸 수가 숫자와 같다면 그 칸은 모두 지뢰입니다. 이 두 규칙만으로 이 게임의 모든 판이 끝까지 풀립니다.</p></details>
+  <details><summary data-i18n="tip2q">모서리와 벽을 먼저</summary><p data-i18n="tip2a">벽이나 모서리에 붙은 숫자는 맞닿은 칸이 적어 확정하기 쉽습니다. 막히면 열린 영역의 가장자리를 따라가며 숫자 하나하나에 위 규칙을 적용해 보세요.</p></details>
+  <details><summary data-i18n="tip3q">코드 열기로 빨라집니다</summary><p data-i18n="tip3a">깃발을 정확히 꽂았다면 숫자 두 번 탭으로 주변을 한꺼번에 열 수 있습니다. 시간을 크게 줄여 주지만, 깃발이 하나라도 틀리면 그대로 지뢰를 밟습니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
+  <details><summary data-i18n="faq2q">기록은 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 보내는 것은 판수 집계뿐이고 판의 내용은 보내지 않습니다. 브라우저 데이터를 지우면 진행과 기록도 함께 지워집니다.</p></details>
+  <details><summary data-i18n="faq3q">첫 탭에서 지뢰를 밟을 수 있나요?</summary><p data-i18n="faq3a">아니요. 자유 모드는 처음 탭한 칸과 그 이웃 여덟 칸에 지뢰를 두지 않도록 배치를 다시 합니다. 오늘의 도전은 시작 칸이 미리 정해져 있고 그 자리는 언제나 안전합니다.</p></details>
+  <details><summary data-i18n="faq4q">소리를 끌 수 있나요?</summary><p data-i18n="faq4a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 효과음은 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 「동작 줄이기」를 켜면 펼침·흔들림 연출도 꺼집니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 지뢰찾기 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·판정에는 관여하지 않는다. 태그가 아직 실리지 않았거나 차단됐으면 조용히 지나간다. */
+const GA_GAME = 'minesweeper';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ======================= i18n(UI) ======================= */
+const I18N = {
+  ko: {
+    docTitle:'지뢰찾기 — 찍기 없이 풀리는 논리 퍼즐 | Minesweeper',
+    title:'지뢰찾기', title2:'지뢰찾기', subtitle:'찍기 없이 풀리는 논리 퍼즐',
+    home:'🏠 다른 게임', langBtn:'EN',
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    mineLbl:'남은 지뢰', openLbl:'연 칸', timeLbl:'경과',
+    mineLbl2:'지뢰', openLbl2:'연 칸', flagLbl2:'깃발',
+    flagMode:'깃발', restart:'새 판', result:'결과', again:'다시 하기', share:'결과 공유',
+    start:'▶ 자유 모드', lvEasy:'쉬움', lvNormal:'보통', lvHard:'어려움',
+    startSub:'숫자를 단서로 지뢰를 피해 칸을 여는 논리 퍼즐.<br>★모든 판은 찍기 없이 풀리는지 검사해서 냅니다.',
+    hint:'탭 = 열기 · 「깃발」을 켜면 탭 = 깃발 · 숫자를 두 번 탭하면 주변 깃발 수가 맞을 때 한꺼번에 열립니다',
+    guessBadge:'오늘은 일부 추측 필요',
+    koNotice:'',
+    lvDesc:{ easy:'쉬움 · 9×9 · 지뢰 10', normal:'보통 · 12×16 · 지뢰 30', hard:'어려움 · 14×20 · 지뢰 55' },
+    lv:{ easy:'쉬움', normal:'보통', hard:'어려움' },
+    daily: n => `오늘의 도전 #${n}`,
+    dailyDone: n => `오늘의 도전 #${n} 결과 보기`,
+    dailyHint:'하루 한 판 · 전원 같은 판(보통)',
+    dailyHintDone:'오늘은 완료했습니다',
+    streak: n => `🔥 ${n}일 연속`,
+    resumeDaily: (n, o, t) => `이어하기 — #${n} · ${o}칸 · ${t}`,
+    modeDaily: n => `오늘의 도전 #${n}`, modeFree:'자유 모드',
+    win:'🎉 모두 찾았습니다', lose:'💥 지뢰를 밟았습니다',
+    finalSub: (lv, c, r, m) => `${lv} · ${c}×${r} · 지뢰 ${m}`,
+    best: t => `🏆 최고 기록 ${t}`,
+    newBest:'🏆 새 최고 기록!',
+    copied:'결과를 복사했습니다',
+    dailyShare: (n, t, f, m, mk, st) => `🔗 지뢰찾기 #${n} ⏱ ${t} · 깃발 ${f}/${m}\n${mk}${st > 1 ? ` 🔥${st}` : ''}\n`,
+    freeShare: (t, f, m, mk, lv) => `🔗 지뢰찾기 ${lv} ⏱ ${t} · 깃발 ${f}/${m}\n${mk}\n`,
+    srStart: (c, r, m) => `${c}×${r} 판 · 지뢰 ${m}개. 방향키로 이동하고 Space 로 엽니다.`,
+    srOpen: (row, col, n) => `행 ${row} 열 ${col} · ${n === 0 ? '빈 칸' : n + '개'}`,
+    srFlag: (row, col, on) => `행 ${row} 열 ${col} · ${on ? '깃발' : '깃발 해제'}`,
+    srOver: win => (win ? '모두 찾았습니다.' : '지뢰를 밟았습니다.'),
+    cellClosed:'닫힘', cellFlag:'깃발', cellMine:'지뢰',
+    cellLabel: (row, col, st) => `행 ${row} 열 ${col} · ${st}`,
+    ariaSoundOn:'소리 끄기', ariaSoundOff:'소리 켜기', ariaLang:'언어 바꾸기', ariaHome:'다른 게임 보기',
+    ariaGrid:'지뢰찾기 판', ariaFlagOn:'깃발 모드 켜기', ariaFlagOff:'깃발 모드 끄기', ariaRestart:'새 판 시작',
+    statPlays:'오늘 <b data-hp="plays.minesweeper.today">–</b>판 · 누적 <b data-hp="plays.minesweeper.total">–</b>판',
+    howTitle:'게임 방법', guessTitle:'왜 찍지 않아도 되나요', dailyTitle:'오늘의 도전', tipsTitle:'요령', faqTitle:'자주 묻는 질문',
+    footer:'© 2026 지뢰찾기 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개'
+  },
+  en: {
+    docTitle:'Minesweeper — logic boards that never need a guess',
+    title:'Minesweeper', title2:'Minesweeper', subtitle:'No-guess logic puzzle',
+    home:'🏠 More games', langBtn:'한국어',
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    mineLbl:'Mines left', openLbl:'Opened', timeLbl:'Time',
+    mineLbl2:'Mines', openLbl2:'Opened', flagLbl2:'Flags',
+    flagMode:'Flag', restart:'New', result:'Result', again:'Play again', share:'Share result',
+    start:'▶ Free play', lvEasy:'Easy', lvNormal:'Normal', lvHard:'Hard',
+    startSub:'Open every safe cell using the numbers as clues.<br>★Every board is checked to be solvable without guessing.',
+    hint:'Tap to open · turn on “Flag” to place flags · double-tap a number to clear its neighbours when the flags match',
+    guessBadge:'Today needs some guessing',
+    koNotice:'',
+    lvDesc:{ easy:'Easy · 9×9 · 10 mines', normal:'Normal · 12×16 · 30 mines', hard:'Hard · 14×20 · 55 mines' },
+    lv:{ easy:'Easy', normal:'Normal', hard:'Hard' },
+    daily: n => `Daily #${n}`,
+    dailyDone: n => `Daily #${n} — see result`,
+    dailyHint:'One board a day · same for everyone (normal)',
+    dailyHintDone:'Finished for today',
+    streak: n => `🔥 ${n}-day streak`,
+    resumeDaily: (n, o, t) => `Resume — #${n} · ${o} cells · ${t}`,
+    modeDaily: n => `Daily #${n}`, modeFree:'Free play',
+    win:'🎉 All clear', lose:'💥 You hit a mine',
+    finalSub: (lv, c, r, m) => `${lv} · ${c}×${r} · ${m} mines`,
+    best: t => `🏆 Best ${t}`,
+    newBest:'🏆 New best!',
+    copied:'Result copied',
+    dailyShare: (n, t, f, m, mk, st) => `🔗 Minesweeper #${n} ⏱ ${t} · flags ${f}/${m}\n${mk}${st > 1 ? ` 🔥${st}` : ''}\n`,
+    freeShare: (t, f, m, mk, lv) => `🔗 Minesweeper ${lv} ⏱ ${t} · flags ${f}/${m}\n${mk}\n`,
+    srStart: (c, r, m) => `${c} by ${r} board with ${m} mines. Move with arrow keys, open with Space.`,
+    srOpen: (row, col, n) => `row ${row} column ${col} · ${n === 0 ? 'empty' : n}`,
+    srFlag: (row, col, on) => `row ${row} column ${col} · ${on ? 'flagged' : 'flag removed'}`,
+    srOver: win => (win ? 'All clear.' : 'You hit a mine.'),
+    cellClosed:'closed', cellFlag:'flag', cellMine:'mine',
+    cellLabel: (row, col, st) => `row ${row} column ${col} · ${st}`,
+    ariaSoundOn:'Mute', ariaSoundOff:'Unmute', ariaLang:'Switch language', ariaHome:'More games',
+    ariaGrid:'Minesweeper board', ariaFlagOn:'Turn flag mode on', ariaFlagOff:'Turn flag mode off', ariaRestart:'Start a new board',
+    statPlays:'Today <b data-hp="plays.minesweeper.today">–</b> · total <b data-hp="plays.minesweeper.total">–</b>',
+    howTitle:'How to play', guessTitle:'Why you never have to guess', dailyTitle:'Daily challenge', tipsTitle:'Tips', faqTitle:'FAQ',
+    footer:'© 2026 Minesweeper · Privacy: progress is stored on this device only; third-party cookies (Google) may be used for ads.',
+    navPrivacy:'Privacy policy', navAbout:'About'
+  }
+};
+/* 언어 키는 사이트 공통(bp.lang) — 포털·다른 게임과 공유한다. */
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } };
+
+/* ======================= 사운드(WebAudio · 파일 없음) ======================= */
+let soundOn = localStorage.getItem('ms.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0, freq2=null){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime + delay;
+    if (freq2 !== null) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq2), t + dur);
+    o.start(t);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sOpen  = () => beep(660, .04, 'square', .028);
+const sWave  = () => { beep(523, .05, 'triangle', .03); beep(784, .06, 'triangle', .028, .05); };
+const sFlag  = () => { beep(880, .05, 'sine', .035); vib(15); };
+const sUnflag= () => beep(440, .05, 'sine', .03);
+const sBoom  = () => { beep(160, .3, 'sawtooth', .05, 0, 60); vib([70,50,70]); };
+const sWin   = () => { beep(523, .1, 'triangle', .05); beep(659, .1, 'triangle', .05, .1); beep(784, .1, 'triangle', .05, .2); beep(1047, .35, 'triangle', .06, .3); vib([30,40,30,40,80]); };
+
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   // 2026-08-23 = #1 (다른 게임과 동일 기준일)
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const dailySeedKey = (d=new Date()) => 'hanpango-daily-minesweeper-' + dayKey(d);
+/* ★판 배치 난수는 판 seed 에서 갈라진 스트림 · 연출 난수(fxRng)와 섞이지 않는다 */
+const boardSeedKey = (seedKey, variant) => seedKey + (variant ? '#' + (variant + 1) : '');
+const startSeedKey = seedKey => seedKey + '#start';
+const fxRng = mulberry32((Math.random() * 4294967296) >>> 0);
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('ms.daily')||'null'); }catch(_){ return null; } };
+function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && r.result); }
+function saveDaily(result){
+  /* ★시작 시 고정한 runDay/runNo 로 저장한다 — 자정을 넘겨 완료해도 시작한 날짜의 기록이다. */
+  localStorage.setItem('ms.daily', JSON.stringify({ date: runDay, no: runNo, result }));
+}
+function bumpStreak(day){
+  let st; try{ st = JSON.parse(localStorage.getItem('ms.streak')||'{}'); }catch(_){ st = {}; }
+  if (st.last === day) return st.n || 1;
+  const n = (st.last === prevDayKey(day)) ? (st.n || 0) + 1 : 1;
+  localStorage.setItem('ms.streak', JSON.stringify({ last: day, n }));
+  return n;
+}
+function prevDayKey(day){ const [y, m, d] = day.split('-').map(Number); const t = new Date(y, m - 1, d); t.setDate(t.getDate() - 1); return dayKey(t); }
+const streakNow = () => { try{ const s = JSON.parse(localStorage.getItem('ms.streak')||'{}'); const today = dayKey();
+  return (s.last === today || s.last === prevDayKey(today)) ? (s.n || 0) : 0; }catch(_){ return 0; } };
+
+/* ======================= 상수 ======================= */
+const LV = {                                     /* 열(C) × 행(R) · 지뢰 M — 세로 화면 기준(오너 확정) */
+  easy:   { C: 9,  R: 9,  M: 10 },
+  normal: { C: 12, R: 16, M: 30 },
+  hard:   { C: 14, R: 20, M: 55 }
+};
+const LEVELS = ['easy', 'normal', 'hard'];
+const DAILY_LEVEL = 'normal';
+const MAX_TRY = 200;          /* 한 seed 안에서 지뢰 재배치 상한 */
+const MAX_VARIANT = 5;        /* seed 변형 상한(원 seed 포함 5개 = 총 1000 시도 · master SEQ 13 Q2 (가)) */
+const SAVE_EVERY_MS = 5000;   /* 시계만 흘러도 이 간격으로 진행 저장 */
+const ZONES = 3;              /* 공유 마크 구역 — 판을 3×3 으로 균등 분할(나머지는 마지막 구역 흡수) */
+const LOG_MAX = 200;
+
+/* ======================= 판 계산(순수 함수) ======================= */
+const idx = (C, x, y) => y * C + x;
+function neighbors(C, R, i){
+  const x = i % C, y = (i / C) | 0, out = [];
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){
+    if (!dx && !dy) continue;
+    const nx = x + dx, ny = y + dy;
+    if (nx >= 0 && nx < C && ny >= 0 && ny < R) out.push(ny * C + nx);
+  }
+  return out;
+}
+/* 안전 구역 = 첫 칸 + 이웃 8 — 여기에 지뢰를 두지 않으므로 첫 칸의 숫자는 언제나 0(반드시 펼쳐진다) */
+const safeZone = (C, R, s) => [s, ...neighbors(C, R, s)];
+function placeMines(C, R, M, safeIdx, rng){
+  const N = C * R, banned = new Set(safeZone(C, R, safeIdx));
+  const pool = [];
+  for (let i = 0; i < N; i++) if (!banned.has(i)) pool.push(i);
+  for (let i = pool.length - 1; i > 0; i--){         /* Fisher–Yates(결정론 rng) */
+    const j = (rng() * (i + 1)) | 0;
+    const t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+  }
+  const mine = new Uint8Array(N);
+  for (let k = 0; k < M && k < pool.length; k++) mine[pool[k]] = 1;
+  return mine;
+}
+function numbersOf(C, R, mine){
+  const N = C * R, num = new Int8Array(N);
+  for (let i = 0; i < N; i++){
+    if (mine[i]) { num[i] = -1; continue; }
+    let n = 0; for (const j of neighbors(C, R, i)) if (mine[j]) n++;
+    num[i] = n;
+  }
+  return num;
+}
+/* 연쇄 열림 — 빈 칸(0)이면 이웃까지 펼친다. 깃발이 꽂힌 칸은 열지 않는다. */
+function floodOpen(C, R, num, open, flag, s){
+  if (open[s] || (flag && flag[s])) return [];
+  const stack = [s], got = [];
+  while (stack.length){
+    const i = stack.pop();
+    if (open[i] || (flag && flag[i])) continue;
+    open[i] = 1; got.push(i);
+    if (num[i] === 0) for (const j of neighbors(C, R, i)) if (!open[j] && !(flag && flag[j])) stack.push(j);
+  }
+  return got;
+}
+/* ★무추측 판정 solver — 사람이 쓰는 단일 규칙 두 가지만 반복한다(추측 0).
+   ① 숫자 = (이미 꽂은 깃발 + 남은 닫힌 칸) → 남은 닫힌 칸은 전부 지뢰
+   ② 숫자 = 이미 꽂은 깃발 → 남은 닫힌 칸은 전부 안전
+   전부 열리면 무추측으로 풀리는 판이다. */
+function solvable(C, R, mine, safeIdx){
+  const N = C * R, num = numbersOf(C, R, mine);
+  const open = new Uint8Array(N), flag = new Uint8Array(N);
+  let opened = floodOpen(C, R, num, open, flag, safeIdx).length;
+  let M = 0; for (let i = 0; i < N; i++) if (mine[i]) M++;
+  let moved = true;
+  while (moved && opened < N - M){
+    moved = false;
+    for (let i = 0; i < N; i++){
+      if (!open[i] || num[i] <= 0) continue;
+      const nb = neighbors(C, R, i);
+      let f = 0; const unknown = [];
+      for (const j of nb){ if (flag[j]) f++; else if (!open[j]) unknown.push(j); }
+      if (!unknown.length) continue;
+      if (num[i] - f === unknown.length){ for (const j of unknown) flag[j] = 1; moved = true; }
+      else if (num[i] === f){ for (const j of unknown) opened += floodOpen(C, R, num, open, flag, j).length; moved = true; }
+    }
+  }
+  return opened === N - M;
+}
+/* 판 생성 — 무추측 판만 낸다. 한 seed 로 MAX_TRY 번 재배치, 안 되면 seed 꼬리(#2…#5)를 늘려 다시(총 1000).
+   상한까지 못 찾으면 마지막 판을 쓰고 guessRequired=true 로 알린다(화면 배지). */
+function genBoard(level, seedKey, safeIdx){
+  const { C, R, M } = LV[level];
+  let attempts = 0, last = null;
+  for (let variant = 0; variant < MAX_VARIANT; variant++){
+    const rng = mulberry32(hashStr(boardSeedKey(seedKey, variant)));
+    for (let k = 0; k < MAX_TRY; k++){
+      attempts++;
+      const cand = placeMines(C, R, M, safeIdx, rng);
+      last = cand;
+      if (solvable(C, R, cand, safeIdx)) return { mine: cand, num: numbersOf(C, R, cand), attempts, variant, guessRequired: false };
+    }
+  }
+  return { mine: last, num: numbersOf(C, R, last), attempts, variant: MAX_VARIANT - 1, guessRequired: true };
+}
+/* ★일일 시작 칸 — seed 로 고정한다(사람마다 첫 탭이 달라 판이 갈리면 그날의 결정론이 깨진다).
+   가장자리를 피해 안쪽에서 고른다(펼쳐지는 면적이 커서 첫 수가 답답하지 않다). */
+function startIdxOf(seedKey, level){
+  const { C, R } = LV[level];
+  const r = mulberry32(hashStr(startSeedKey(seedKey)));
+  const mx = C > 2 ? 1 : 0, my = R > 2 ? 1 : 0;
+  const x = mx + ((r() * (C - 2 * mx)) | 0);
+  const y = my + ((r() * (R - 2 * my)) | 0);
+  return idx(C, Math.min(C - 1, x), Math.min(R - 1, y));
+}
+/* 공유 마크 구역 — 판을 3×3 으로 균등 분할하고 나머지 칸은 마지막 구역이 흡수한다(항상 9구역).
+   ★구역 합 = 전체 칸 인 것을 단위시험으로 잠근다(master SEQ 13 Q3). */
+function zonesOf(C, R){
+  const cut = (n) => {
+    const base = Math.floor(n / ZONES), out = [];
+    let s = 0;
+    for (let z = 0; z < ZONES; z++){ const len = (z === ZONES - 1) ? (n - s) : base; out.push([s, s + len]); s += len; }
+    return out;
+  };
+  const xs = cut(C), ys = cut(R), out = [];
+  for (const [y0, y1] of ys) for (const [x0, x1] of xs) out.push({ x0, x1, y0, y1, n: (x1 - x0) * (y1 - y0) });
+  return out;
+}
+function zoneOfIdx(C, R, i){
+  const zs = zonesOf(C, R), x = i % C, y = (i / C) | 0;
+  for (let z = 0; z < zs.length; z++){ const q = zs[z]; if (x >= q.x0 && x < q.x1 && y >= q.y0 && y < q.y1) return z; }
+  return zs.length - 1;
+}
+
+/* ======================= 상태 ======================= */
+let mode = 'free', level = localStorage.getItem('ms.level') || 'normal';
+if (!LEVELS.includes(level)) level = 'normal';
+let C = 0, R = 0, M = 0;
+let mine = null, num = null, open = null, flag = null;
+let placed = false;                 /* 자유 모드는 첫 탭에 배치한다(첫 칸 안전 재배치) */
+let running = false, over = false, paused = false, win = false;
+let elapsed = 0, sinceSave = 0, timerOn = false;
+let openCount = 0, flagCount = 0, wrongFlagZone = null, boomIdx = -1;
+let seedKeyNow = '', runDay = '', runNo = 0, startIdx = -1;
+let genInfo = { attempts: 0, variant: 0, guessRequired: false, ms: 0 };
+let cursor = 0, flagMode = false, lastTapIdx = -1, lastTapAt = 0, lpTimer = 0, lpFired = false;
+let lastResult = null, rafId = 0, prevTs = 0, lastShownSec = -1;
+let roundLog = [];
+let best = { easy: +localStorage.getItem('ms.best.easy') || 0, normal: +localStorage.getItem('ms.best.normal') || 0, hard: +localStorage.getItem('ms.best.hard') || 0 };
+const DOUBLE_TAP_MS = 320, LONG_PRESS_MS = 420;
+
+/* ======================= 진행 저장(ms.progress · 일일 1슬롯) ======================= */
+const maskOf = arr => { let s = ''; for (let i = 0; i < arr.length; i++) s += arr[i] ? '1' : '0'; return s; };
+function loadProgress(){ try{ const p = JSON.parse(localStorage.getItem('ms.progress')||'null'); return (p && typeof p === 'object') ? p : null; }catch(_){ return null; } }
+function snapshot(){
+  return { v:1, mode, runDay, runNo, seedKey: seedKeyNow, level, start: startIdx,
+           open: maskOf(open), flag: maskOf(flag), elapsed: Math.round(elapsed), savedAt: Date.now() };
+}
+function saveProgress(){
+  if (!running || over || mode !== 'daily') return false;
+  localStorage.setItem('ms.progress', JSON.stringify(snapshot())); sinceSave = 0; return true;
+}
+function clearProgress(){ localStorage.removeItem('ms.progress'); }
+/* 저장본이 온전한가 — 오늘 것(runDay·★runNo)·오늘 seed·같은 난이도·같은 시작 칸 ·
+   판을 seed 로 다시 만들어 「연 칸에 지뢰가 없고 깃발이 열린 칸에 없다」까지 확인한다.
+   ★runNo 가드는 끝말잇기 codex R1 S1 계약의 이식이다 — 저장본 숫자를 믿지 않는다. */
+function validSlot(s){
+  if (!s || typeof s !== 'object' || s.v !== 1 || s.mode !== 'daily' || s.level !== DAILY_LEVEL) return false;
+  if (!(typeof s.runDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.runDay)) || s.runDay !== dayKey()) return false;
+  if (!(Number.isInteger(s.runNo) && s.runNo === dailyNo())) return false;
+  if (typeof s.seedKey !== 'string' || s.seedKey !== dailySeedKey()) return false;
+  const { C: c, R: r, M: m } = LV[DAILY_LEVEL], N = c * r;
+  if (!Number.isInteger(s.start) || s.start !== startIdxOf(s.seedKey, DAILY_LEVEL)) return false;
+  if (typeof s.open !== 'string' || typeof s.flag !== 'string' || s.open.length !== N || s.flag.length !== N) return false;
+  if (!/^[01]+$/.test(s.open) || !/^[01]+$/.test(s.flag)) return false;
+  if (!(typeof s.elapsed === 'number' && s.elapsed >= 0)) return false;
+  if (s.open[s.start] !== '1') return false;
+  const b = genBoard(DAILY_LEVEL, s.seedKey, s.start);
+  let o = 0, f = 0;
+  for (let i = 0; i < N; i++){
+    const oi = s.open[i] === '1', fi = s.flag[i] === '1';
+    if (oi && fi) return false;                       /* 열린 칸에 깃발은 있을 수 없다 */
+    if (oi && b.mine[i]) return false;                /* 지뢰를 열어 둔 저장본 = 이미 끝난 판 */
+    if (oi) o++; if (fi) f++;
+  }
+  if (f > m) return false;
+  if (o >= N - m) return false;                       /* 이미 이긴 판은 이어할 것이 없다 */
+  return true;
+}
+function resumable(){ const s = loadProgress(); return validSlot(s) ? s : null; }
+
+/* ======================= 판 진행 ======================= */
+function resetRun(){
+  running = false; over = false; win = false; paused = false; placed = false; timerOn = false;
+  elapsed = 0; sinceSave = 0; openCount = 0; flagCount = 0; boomIdx = -1; lastShownSec = -1;
+  cursor = 0; lastTapIdx = -1; lastTapAt = 0; clearLongPress();
+  wrongFlagZone = new Uint8Array(ZONES * ZONES);
+}
+function allocBoard(lv){
+  const d = LV[lv]; C = d.C; R = d.R; M = d.M;
+  const N = C * R;
+  mine = new Uint8Array(N); num = new Int8Array(N); open = new Uint8Array(N); flag = new Uint8Array(N);
+}
+function buildBoard(lv, seedKey, safeIdx){
+  const t0 = (performance && performance.now) ? performance.now() : 0;
+  const b = genBoard(lv, seedKey, safeIdx);
+  const t1 = (performance && performance.now) ? performance.now() : 0;
+  mine = b.mine; num = b.num; placed = true;
+  genInfo = { attempts: b.attempts, variant: b.variant, guessRequired: b.guessRequired, ms: +(t1 - t0).toFixed(2) };
+  $('guessChip').hidden = !b.guessRequired;
+  return b;
+}
+function logRound(){
+  roundLog.push({ seedKey: seedKeyNow, mode, level, no: runNo, start: startIdx, guess: genInfo.guessRequired, variant: genInfo.variant });
+  if (roundLog.length > LOG_MAX) roundLog.splice(0, roundLog.length - LOG_MAX);
+}
+/* seedOpt — 자유 모드 seed 를 밖에서 정해 줄 때(연기시험 하네스 전용 · 화면 배선은 넘기지 않는다). */
+function startRun(m, lv, seedOpt){
+  mode = m;
+  if (m === 'daily') level = DAILY_LEVEL; else if (LEVELS.includes(lv)) level = lv;
+  /* ★일일: 날짜·번호·seed 를 이 순간의 시계로 한 번에 고정한다 — 이후 endRun 은 시계를 다시 보지 않는다. */
+  const t0 = new Date();
+  runDay = (m === 'daily') ? dayKey(t0) : ''; runNo = (m === 'daily') ? dailyNo(t0) : 0;
+  seedKeyNow = (m === 'daily') ? dailySeedKey(t0) : (typeof seedOpt === 'string' && seedOpt ? seedOpt : ('free-' + fxRng().toString(36).slice(2, 10)));
+  resetRun();
+  allocBoard(level);
+  $('guessChip').hidden = true;
+  if (m === 'daily'){
+    /* ★오늘의 도전은 시작 칸까지 seed 로 고정하고 미리 열어 둔다 — 전원이 완전히 같은 판을 푼다.
+       "첫 탭 안전 재배치"는 자유 모드 전용이다(첫 탭이 사람마다 달라 배치가 갈리면 결정론이 깨진다). */
+    startIdx = startIdxOf(seedKeyNow, level);
+    buildBoard(level, seedKeyNow, startIdx);
+    openCount += floodOpen(C, R, num, open, flag, startIdx).length;
+  } else {
+    startIdx = -1;                                   /* 자유 모드는 첫 탭에 배치한다 */
+  }
+  cursor = startIdx >= 0 ? startIdx : idx(C, C >> 1, R >> 1);
+  running = true;
+  logRound();
+  hide('start'); hide('over');
+  renderGrid(); updateHud(); updateSubtitle();
+  say(T('srStart', C, R, M));
+  ga('game_start', { game: GA_GAME, level });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+  saveProgress();
+  prevTs = 0;
+}
+/* 저장된 일일 판을 잇는다 — 판을 seed 로 다시 만들고 열림·깃발·경과를 저장 시점으로 되돌린다.
+   새 시작이 아니므로 game_start·판수는 보내지 않는다. */
+function resumeRun(){
+  const s = resumable(); if (!s) return false;
+  mode = 'daily'; level = DAILY_LEVEL; runDay = s.runDay; runNo = s.runNo | 0; seedKeyNow = s.seedKey;
+  resetRun();
+  allocBoard(level);
+  startIdx = s.start;
+  buildBoard(level, seedKeyNow, startIdx);
+  const N = C * R;
+  for (let i = 0; i < N; i++){
+    if (s.open[i] === '1'){ open[i] = 1; openCount++; }
+    if (s.flag[i] === '1'){ flag[i] = 1; flagCount++; }
+  }
+  elapsed = Math.max(0, s.elapsed | 0);
+  timerOn = true;                                   /* 이미 시작한 판이다 — 시계는 곧바로 흐른다 */
+  cursor = startIdx;
+  running = true;
+  logRound();
+  hide('start'); hide('over');
+  renderGrid(); updateHud(); updateSubtitle();
+  say(T('srStart', C, R, M));
+  prevTs = 0;
+  return true;
+}
+/* 칸 열기 — 자유 모드의 첫 탭이면 그 자리를 안전하게 두고 배치한다. */
+function openCell(i){
+  if (!running || over) return { ok:false, why:'phase' };
+  if (!Number.isInteger(i) || i < 0 || i >= C * R) return { ok:false, why:'range' };
+  if (flag[i]) return { ok:false, why:'flag' };
+  if (open[i]) return { ok:false, why:'open' };
+  if (!placed){
+    startIdx = i;
+    buildBoard(level, seedKeyNow, i);
+  }
+  timerOn = true;
+  if (mine[i]){
+    boomIdx = i;
+    endRun(false);
+    return { ok:true, boom:true };
+  }
+  const got = floodOpen(C, R, num, open, flag, i);
+  openCount += got.length;
+  renderCells(got, got.length > 1);
+  if (got.length > 1) sWave(); else sOpen();
+  say(T('srOpen', ((i / C) | 0) + 1, (i % C) + 1, num[i]));
+  updateHud();
+  if (openCount >= C * R - M) endRun(true); else saveProgress();
+  return { ok:true, opened: got.length };
+}
+function toggleFlag(i){
+  if (!running || over) return { ok:false, why:'phase' };
+  if (!Number.isInteger(i) || i < 0 || i >= C * R || open[i]) return { ok:false, why:'open' };
+  timerOn = true;
+  flag[i] = flag[i] ? 0 : 1;
+  flagCount += flag[i] ? 1 : -1;
+  /* ★공유 마크용 — 지뢰가 아닌 칸에 꽂았다 뺀 적이 있으면 그 구역은 '재시도(🟨)'로 남는다.
+     배치 전(자유 모드 첫 수)에는 판정하지 않는다. */
+  if (placed && flag[i] && !mine[i]) wrongFlagZone[zoneOfIdx(C, R, i)] = 1;
+  renderCells([i], false, flag[i] ? 'popped' : '');
+  say(T('srFlag', ((i / C) | 0) + 1, (i % C) + 1, !!flag[i]));
+  if (flag[i]) sFlag(); else sUnflag();
+  updateHud(); saveProgress();
+  return { ok:true, on: !!flag[i] };
+}
+/* 코드 열기(chord) — 숫자와 주변 깃발 수가 같을 때만 나머지 이웃을 한꺼번에 연다.
+   ★깃발이 틀렸으면 그대로 지뢰를 밟는다(안전 조건을 임의로 넓히지 않는다). */
+function chord(i){
+  if (!running || over || !placed) return { ok:false, why:'phase' };
+  if (!open[i] || num[i] <= 0) return { ok:false, why:'notnum' };
+  const nb = neighbors(C, R, i);
+  let f = 0; const closed = [];
+  for (const j of nb){ if (flag[j]) f++; else if (!open[j]) closed.push(j); }
+  if (f !== num[i] || !closed.length) return { ok:false, why:'mismatch' };
+  for (const j of closed){ if (mine[j]){ boomIdx = j; endRun(false); return { ok:true, boom:true }; } }
+  let got = [];
+  for (const j of closed) got = got.concat(floodOpen(C, R, num, open, flag, j));
+  openCount += got.length;
+  renderCells(got, got.length > 1);
+  sWave(); updateHud();
+  if (openCount >= C * R - M) endRun(true); else saveProgress();
+  return { ok:true, opened: got.length };
+}
+function endRun(w){
+  if (!running) return;
+  running = false; over = true; win = !!w; timerOn = false;
+  if (win){
+    /* 이긴 판은 남은 닫힌 칸이 전부 지뢰다 — 자동으로 깃발을 채운다. */
+    for (let i = 0; i < C * R; i++) if (!open[i] && !flag[i]){ flag[i] = 1; flagCount++; }
+  }
+  const durS = Math.max(0, Math.round(elapsed / 1000));
+  const marks = marksOf();
+  let isNew = false;
+  if (win){ const b = best[level] || 0; if (!b || durS < b){ best[level] = durS; localStorage.setItem('ms.best.' + level, durS); isNew = true; } }
+  let streak = 0;
+  if (mode === 'daily'){
+    saveDaily({ win, duration: durS, opened: openCount, flags: flagCount, marks, level });
+    streak = bumpStreak(runDay);
+    ga('daily_complete', { game: GA_GAME, streak });
+    clearProgress();
+  }
+  lastResult = { mode, level, no: (mode === 'daily' ? runNo : dailyNo()), win, durS, opened: openCount, flags: flagCount,
+                 mines: M, C, R, marks, isNew, streak };
+  ga('game_over', { game: GA_GAME, score: durS, moves: openCount, duration_s: durS, daily: mode === 'daily', level, win, mines: M, flags: flagCount });
+  renderGrid();
+  if (win) sWin(); else { sBoom(); if (!reduceMotion()) { const g = $('grid'); g.classList.add('boom'); setTimeout(() => g.classList.remove('boom'), 400); } }
+  updateHud();
+  renderOver();
+  refreshStart();
+  say(T('srOver', win));
+}
+/* 공유 마크 — 구역(3×3)마다 첫 시도 성공 🟩 / 잘못 꽂은 깃발이 있었으면 🟨 / 다 열지 못했으면 🟥 */
+function marksOf(){
+  const zs = zonesOf(C, R), out = [];
+  for (let z = 0; z < zs.length; z++){
+    const q = zs[z];
+    let closedSafe = 0;
+    for (let y = q.y0; y < q.y1; y++) for (let x = q.x0; x < q.x1; x++){
+      const i = idx(C, x, y);
+      if (!mine[i] && !open[i]) closedSafe++;
+    }
+    out.push(closedSafe > 0 ? '🟥' : (wrongFlagZone[z] ? '🟨' : '🟩'));
+  }
+  return out.slice(0, 3).join('') + '\n' + out.slice(3, 6).join('') + '\n' + out.slice(6, 9).join('');
+}
+
+/* ======================= 한 걸음(시계) ======================= */
+function step(dt){
+  if (!running || over || paused || !timerOn) return;
+  elapsed += dt * 1000; sinceSave += dt * 1000;
+  const s = Math.floor(elapsed / 1000);
+  if (s !== lastShownSec){ lastShownSec = s; $('timeNow').textContent = fmtTime(s); }
+  if (sinceSave >= SAVE_EVERY_MS) saveProgress();
+}
+function loop(ts){
+  rafId = requestAnimationFrame(loop);
+  if (!prevTs) prevTs = ts;
+  let dt = (ts - prevTs) / 1000; prevTs = ts;
+  if (dt > 0.5) dt = 0.5;
+  step(dt);
+}
+const fmtTime = s => `${Math.floor(s/60)}:${pad2(s%60)}`;
+
+/* ======================= 그리기(DOM) ======================= */
+function cellState(i){
+  if (over && !open[i] && mine[i] && !flag[i]) return { txt:'💣', cls:'mine', lbl: T('cellMine') };
+  if (over && flag[i] && !mine[i]) return { txt:'✗', cls:'wrong', lbl: T('cellFlag') };
+  if (flag[i]) return { txt:'🚩', cls:'flag', lbl: T('cellFlag') };
+  if (!open[i]) return { txt:'', cls:'', lbl: T('cellClosed') };
+  if (mine[i]) return { txt:'💥', cls:'open boom', lbl: T('cellMine') };
+  return { txt: num[i] ? String(num[i]) : '', cls: 'open n' + num[i], lbl: String(num[i]) };
+}
+function paintCell(el, i, anim){
+  const st = cellState(i);
+  el.textContent = st.txt;
+  el.className = 'cell ' + st.cls + (i === startIdx && mode === 'daily' ? ' start' : '') + (i === boomIdx ? ' boom' : '');
+  if (anim && !reduceMotion()){ el.classList.add(anim); setTimeout(() => el.classList.remove(anim), 240); }
+  el.setAttribute('aria-label', T('cellLabel', ((i / C) | 0) + 1, (i % C) + 1, st.lbl));
+  el.setAttribute('aria-disabled', open[i] ? 'true' : 'false');
+  el.tabIndex = (i === cursor) ? 0 : -1;
+}
+function renderGrid(){
+  const g = $('grid');
+  g.style.gridTemplateColumns = `repeat(${C}, 1fr)`;
+  g.setAttribute('aria-label', T('ariaGrid'));
+  g.setAttribute('aria-rowcount', String(R));
+  g.setAttribute('aria-colcount', String(C));
+  g.classList.toggle('flagmode', flagMode);
+  const N = C * R;
+  if (g.childElementCount !== N){
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < N; i++){
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'cell'; b.dataset.i = String(i); b.setAttribute('role', 'gridcell');
+      frag.appendChild(b);
+    }
+    g.textContent = ''; g.appendChild(frag);
+  }
+  for (let i = 0; i < N; i++) paintCell(g.children[i], i, '');
+}
+function renderCells(list, wave, anim){
+  const g = $('grid');
+  for (const i of list){ const el = g.children[i]; if (el) paintCell(el, i, anim !== undefined ? anim : (wave ? 'wave' : '')); }
+}
+function updateHud(){
+  $('mineNow').textContent = running || over ? String(M - flagCount) : '–';
+  $('openNow').textContent = running || over ? String(openCount) : '–';
+  $('timeNow').textContent = running || over ? fmtTime(Math.round(elapsed / 1000)) : '–';
+  $('flagCount').textContent = running || over ? `${flagCount}/${M}` : '';
+  $('btnFlag').setAttribute('aria-pressed', flagMode ? 'true' : 'false');
+}
+function updateSubtitle(){
+  $('modeChip').textContent = (running || over) ? (mode === 'daily' ? T('modeDaily', runNo) : T('modeFree') + ' · ' + I18N[lang].lv[level]) : '–';
+  $('subtitle').textContent = (running || over) ? I18N[lang].lvDesc[level] : T('subtitle');
+}
+function renderOver(){
+  const r = lastResult; if (!r) return;
+  $('finalTime').textContent = fmtTime(r.durS);
+  const re = $('finalReason');
+  re.textContent = r.win ? T('win') : T('lose');
+  re.className = 'reason ' + (r.win ? 'win' : 'lose');
+  $('marks').textContent = r.marks;
+  $('streakLine').textContent = (r.mode === 'daily' && r.streak > 1) ? T('streak', r.streak) : '';
+  $('newBest').textContent = r.isNew ? T('newBest') : (best[r.level] ? T('best', fmtTime(best[r.level])) : '');
+  $('nOpen').textContent = String(r.opened);
+  $('nFlag').textContent = `${r.flags}/${r.mines}`;
+  $('nMine').textContent = String(r.mines);
+  $('finalSub').textContent = T('finalSub', I18N[lang].lv[r.level], r.C, r.R, r.mines);
+  show('over');
+}
+
+/* ======================= 창(오버레이) ======================= */
+function show(id){
+  const o = $(id); o.classList.add('show');
+  setOutsideInert(true);
+  const f = o.querySelector('button:not([disabled]):not([hidden]), a[href]');
+  if (f) try { f.focus({ preventScroll:true }); } catch(e){}
+}
+function hide(id){
+  $(id).classList.remove('show');
+  if (!$('start').classList.contains('show') && !$('over').classList.contains('show')) setOutsideInert(false);
+}
+function setOutsideInert(on){
+  for (const el of document.querySelectorAll('body > header, body > main, body > section, body > footer, body > .ad-slot, body > .scores')){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+  }
+}
+function say(msg){ $('srSummary').textContent = msg; }
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600); }
+
+/* ======================= 시작 화면 ======================= */
+function setLevel(lv){
+  if (!LEVELS.includes(lv)) return false;
+  level = lv; localStorage.setItem('ms.level', lv);
+  for (const b of $('levels').querySelectorAll('button')) b.setAttribute('aria-pressed', b.dataset.lv === lv ? 'true' : 'false');
+  $('lvDesc').textContent = I18N[lang].lvDesc[lv];
+  return true;
+}
+function refreshStart(){
+  const done = dailyDoneToday();
+  const no = dailyNo();
+  $('btnDaily').textContent = done ? T('dailyDone', no) : T('daily', no);
+  const st = streakNow();
+  $('dailyHint').textContent = (done ? T('dailyHintDone') : T('dailyHint')) + (st > 1 ? ' · ' + T('streak', st) : '');
+  $('btnDaily').disabled = false;
+  const r = done ? null : resumable();
+  const b = $('btnResumeDaily');
+  b.hidden = !r;
+  if (r){
+    let o = 0; for (let i = 0; i < r.open.length; i++) if (r.open[i] === '1') o++;
+    b.textContent = T('resumeDaily', r.runNo || no, o, fmtTime(Math.floor((r.elapsed | 0) / 1000)));
+  }
+  setLevel(level);
+}
+/* 오늘 이미 끝냈으면 새 판을 열지 않고 저장된 결과를 보여 준다(하루 한 번). */
+function startDaily(){
+  if (dailyDoneToday()){
+    const r = dailyRec(), res = r.result || {};
+    const d = LV[DAILY_LEVEL];
+    lastResult = { mode:'daily', level: res.level || DAILY_LEVEL, no: r.no || dailyNo(), win: !!res.win, durS: res.duration ?? 0,
+                   opened: res.opened | 0, flags: res.flags | 0, mines: d.M, C: d.C, R: d.R, marks: res.marks || '', isNew:false, streak: streakNow() };
+    renderOver();
+    return false;
+  }
+  const s = resumable();
+  if (s) return resumeRun();
+  startRun('daily', DAILY_LEVEL);
+  return true;
+}
+
+/* ======================= 입력 배선 ======================= */
+function clearLongPress(){ if (lpTimer){ clearTimeout(lpTimer); lpTimer = 0; } }
+function cellIdxFrom(ev){
+  const el = ev.target && ev.target.closest ? ev.target.closest('.cell') : null;
+  return el ? (+el.dataset.i) : -1;
+}
+/* 탭 = 열기 · 깃발 모드면 탭 = 깃발 · 숫자 칸 두 번 탭 = 코드 열기 · 길게 누르기는 깃발 보조 */
+function onCellActivate(i){
+  if (i < 0 || !running || over) return;
+  cursor = i;
+  const now = Date.now();
+  if (open[i] && num[i] > 0){
+    if (lastTapIdx === i && now - lastTapAt < DOUBLE_TAP_MS){ lastTapIdx = -1; chord(i); return; }
+    lastTapIdx = i; lastTapAt = now; return;
+  }
+  lastTapIdx = i; lastTapAt = now;
+  if (flagMode) toggleFlag(i); else openCell(i);
+}
+$('grid').addEventListener('click', ev => {
+  const i = cellIdxFrom(ev);
+  if (lpFired){ lpFired = false; return; }      /* 길게 눌러 깃발을 꽂았으면 뒤따르는 click 은 무시 */
+  onCellActivate(i);
+});
+$('grid').addEventListener('pointerdown', ev => {
+  const i = cellIdxFrom(ev);
+  if (i < 0 || !running || over) return;
+  clearLongPress(); lpFired = false;
+  lpTimer = setTimeout(() => { lpFired = true; if (!open[i]) toggleFlag(i); }, LONG_PRESS_MS);
+});
+for (const t of ['pointerup','pointercancel','pointerleave']) $('grid').addEventListener(t, clearLongPress);
+$('grid').addEventListener('contextmenu', ev => { const i = cellIdxFrom(ev); if (i >= 0){ ev.preventDefault(); if (!open[i]) toggleFlag(i); } });
+$('grid').addEventListener('keydown', ev => {
+  if (!running || over) return;
+  const k = ev.key;
+  let nx = cursor % C, ny = (cursor / C) | 0, moved = true;
+  if (k === 'ArrowLeft') nx = Math.max(0, nx - 1);
+  else if (k === 'ArrowRight') nx = Math.min(C - 1, nx + 1);
+  else if (k === 'ArrowUp') ny = Math.max(0, ny - 1);
+  else if (k === 'ArrowDown') ny = Math.min(R - 1, ny + 1);
+  else moved = false;
+  if (moved){ ev.preventDefault(); const p = cursor; cursor = idx(C, nx, ny); renderCells([p, cursor]); const el = $('grid').children[cursor]; if (el) el.focus({ preventScroll:true }); return; }
+  if (k === ' ' || k === 'Spacebar'){ ev.preventDefault(); if (flagMode) toggleFlag(cursor); else openCell(cursor); }
+  else if (k === 'f' || k === 'F'){ ev.preventDefault(); toggleFlag(cursor); }
+  else if (k === 'Enter'){ ev.preventDefault(); if (open[cursor] && num[cursor] > 0) chord(cursor); else if (!flagMode) openCell(cursor); }
+});
+function toggleFlagMode(){
+  flagMode = !flagMode;
+  $('grid').classList.toggle('flagmode', flagMode);
+  $('btnFlag').setAttribute('aria-pressed', flagMode ? 'true' : 'false');
+  applyA11yLabels();
+  beep(flagMode ? 720 : 520, .05, 'sine', .03);
+}
+$('btnFlag').onclick = toggleFlagMode;
+$('btnRestart').onclick = () => { if (mode === 'daily' && running && !over){ saveProgress(); } show('start'); refreshStart(); };
+
+/* ======================= UI 배선 ======================= */
+$('btnStart').onclick = () => startRun('free', level);
+$('btnDaily').onclick = () => startDaily();
+$('btnResumeDaily').onclick = () => resumeRun();
+$('btnAgain').onclick = () => { hide('over'); startRun('free', level); };
+for (const b of $('levels').querySelectorAll('button')) b.onclick = () => setLevel(b.dataset.lv);
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  $('btnLang2').textContent = T('langBtn');
+  $('koNotice').hidden = !T('koNotice');
+  $('lvDesc').textContent = I18N[lang].lvDesc[level];
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  if (window.hpStats) window.hpStats();
+}
+function applyA11yLabels(){
+  for (const id of ['btnSound','btnSound2']){
+    const b = $(id); if (!b) continue;
+    b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  }
+  for (const id of ['btnLang','btnLang2']){ const l = $(id); if (l) l.setAttribute('aria-label', T('ariaLang')); }
+  $('btnFlag').setAttribute('aria-label', flagMode ? T('ariaFlagOff') : T('ariaFlagOn'));
+  $('btnRestart').setAttribute('aria-label', T('ariaRestart'));
+  $('grid').setAttribute('aria-label', T('ariaGrid'));
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+}
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyLang();
+  refreshStart();
+  updateSubtitle(); updateHud();
+  /* ★진행 중이면 판은 그대로 두고 라벨만 다시 쓴다(판이 지워지면 안 된다) */
+  if (C && R) renderGrid();
+  if (over && lastResult) renderOver();
+  ga('lang_switch', { lang });
+}
+$('btnLang').onclick = toggleLang;
+$('btnLang2').onclick = toggleLang;
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('ms.sound', soundOn ? '1' : '0');
+  const face = soundOn ? '🔊' : '🔇';
+  $('btnSound').textContent = face; $('btnSound2').textContent = face;
+  applyA11yLabels();
+  if (soundOn) beep(660, .06, 'sine', .04);
+}
+$('btnSound').onclick = toggleSound;
+$('btnSound2').onclick = toggleSound;
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnSound2').textContent = soundOn ? '🔊' : '🔇';
+document.addEventListener('visibilitychange', () => {
+  paused = document.hidden;
+  if (paused) saveProgress(); else prevTs = 0;
+});
+
+/* 공유 텍스트 — "🔗 지뢰찾기 #N ⏱ 2:41 · 깃발 30/30" + 3×3 마크 + URL · 자유 모드엔 #N 없음(난이도 표기) */
+function shareText(r, url){
+  const t = fmtTime(r.durS);
+  return ((r.mode === 'daily') ? T('dailyShare', r.no, t, r.flags, r.mines, r.marks, r.streak)
+                               : T('freeShare', t, r.flags, r.mines, r.marks, I18N[lang].lv[r.level])) + url;
+}
+async function doShare(){
+  const url = location.href.split('#')[0];
+  const r = lastResult;
+  if (!r) return;
+  try{
+    if (navigator.share){
+      /* ★네이티브 공유는 text 와 url 을 분리한다 — text 에 URL 을 또 넣으면 공유 시트가 링크를 두 번 붙인다. */
+      await navigator.share({ title: T('docTitle'), text: shareText(r, '').trimEnd(), url });
+    } else { await navigator.clipboard.writeText(shareText(r, url)); toast(T('copied')); }
+  }catch(_){}
+}
+$('btnShare').onclick = doShare;
+
+/* ======================= 기동 ======================= */
+applyLang();
+refreshStart();
+allocBoard(level);
+renderGrid(); updateHud(); updateSubtitle();
+if ($('start').classList.contains('show')) show('start');
+rafId = requestAnimationFrame(loop);
+
+/* ======================= 검증 창구(관측 전용) ======================= */
+/* ★배포되는 이 창구에는 **읽기만 하는 getter 와 순수 함수** 만 둔다. 판을 시작하거나 칸을 열거나
+   시간을 진행시키는 **상태 변경 명령은 여기에 두지 않는다** — 검증에 필요한 변경 명령은 연기시험
+   하네스가 **메모리 위에서만** 이 파일 뒤에 덧붙인다(evidence-minesweeper/boot_minesweeper.mjs 의 test bridge).
+   반환값은 전부 사본이다. 외부 전송 0. */
+const copy = o => JSON.parse(JSON.stringify(o));
+const arr = a => Array.prototype.slice.call(a);
+window.__ms = {
+  const: () => ({ LV: copy(LV), LEVELS: LEVELS.slice(), DAILY_LEVEL, MAX_TRY, MAX_VARIANT, SAVE_EVERY_MS, ZONES, LOG_MAX,
+                  DOUBLE_TAP_MS, LONG_PRESS_MS, DAILY_EPOCH }),
+  state: () => ({ mode, level, running, over, win, paused, placed, timerOn, C, R, M, elapsed, openCount, flagCount,
+                  seedKey: seedKeyNow, runDay, runNo, startIdx, cursor, flagMode, boomIdx }),
+  board: () => ({ C, R, M, mine: arr(mine), num: arr(num), open: arr(open), flag: arr(flag) }),
+  mines: () => { const out = []; for (let i = 0; i < C * R; i++) if (mine[i]) out.push(i); return out; },
+  numbers: () => arr(num),
+  openMask: () => maskOf(open),
+  flagMask: () => maskOf(flag),
+  gen: () => copy(genInfo),
+  /* 순수 함수 창구 — 하네스는 이것과 별개로 자기 solver 를 들고 재검한다 */
+  genBoard: (lv, seedKey, safeIdx) => { const b = genBoard(String(lv), String(seedKey), safeIdx | 0);
+                                        return { mine: arr(b.mine), num: arr(b.num), attempts: b.attempts, variant: b.variant, guessRequired: b.guessRequired }; },
+  solvable: (c, r, mineArr, safeIdx) => solvable(c | 0, r | 0, Uint8Array.from(mineArr), safeIdx | 0),
+  neighbors: (c, r, i) => neighbors(c | 0, r | 0, i | 0),
+  numbersOf: (c, r, mineArr) => arr(numbersOf(c | 0, r | 0, Uint8Array.from(mineArr))),
+  zones: (c, r) => copy(zonesOf(c | 0, r | 0)),
+  zoneOf: (c, r, i) => zoneOfIdx(c | 0, r | 0, i | 0),
+  startIdxOf: (seedKey, lv) => startIdxOf(String(seedKey), String(lv)),
+  seedKey: (d) => dailySeedKey(d ? new Date(d) : new Date()),
+  boardSeedKey: (k, v) => boardSeedKey(String(k), v | 0),
+  startSeedKey: k => startSeedKey(String(k)),
+  dailyNo: (d) => dailyNo(d ? new Date(d) : new Date()),
+  seedDraws: (key, n) => { const f = mulberry32(hashStr(String(key))); return Array.from({length:n}, () => +f().toFixed(9)); },
+  marks: () => marksOf(),
+  daily: () => ({ done: dailyDoneToday(), rec: dailyRec(), no: dailyNo(), streak: streakNow() }),
+  progress: () => copy(loadProgress()),
+  validSlot: s => validSlot(s),
+  best: () => copy(best),
+  log: () => copy(roundLog),
+  logMax: () => LOG_MAX,
+  transcript: () => roundLog.map(o => `${o.seedKey}|${o.mode}|${o.level}|${o.no}|${o.start}|${o.variant}|${o.guess ? 'G' : '-'}`).join(' '),
+  shareText: (r) => shareText(r, 'https://hanpango.com/minesweeper/'),
+  result: () => copy(lastResult),
+  shown: (id) => $(id).classList.contains('show'),
+  reduceMotion: () => reduceMotion(),
+  sound: () => soundOn,
+  lang: () => lang
+};
+})();
+</script>
+<script>
+  /* 서비스 워커 — 사이트 공통(루트에서 한 번만 등록한다) */
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+</script>
+</body>
+</html>
