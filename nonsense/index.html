@@ -1252,7 +1252,6 @@ const copy = o => JSON.parse(JSON.stringify(o));
 window.__nq = {
   const: () => ({ N_Q, N_OPT, SCORE_PER, NEXT_MS, LOG_MAX, SEEN_MAX, SAVE_EVERY_MS, CATS: CATS.slice(), ORDER_SEED, ORDER_BLOCKS: ORDER_BLOCKS.slice(), CYCLE, BANK_N: BANK.length }),
   schedule: () => copy(SCHEDULE),
-  dailyIds: (no) => dailyIndices(no).map(i => BANK[i].id),   /* 관측 전용 순수 함수 — 날짜 번호→문제 id 10개 */
   bank: () => copy(BANK),
   bankStats: () => { const byC = {}, byL = {}; for (const c of CATS) byC[c] = 0; for (const it of BANK){ byC[it.c] = (byC[it.c] || 0) + 1; byL[it.lv] = (byL[it.lv] || 0) + 1; } return { n: BANK.length, byC, byL }; },
   order: () => ORDER.slice(),
