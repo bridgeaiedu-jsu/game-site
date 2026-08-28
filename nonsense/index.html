@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>넌센스 퀴즈 — 말장난·수수께끼 10문제 | Riddle Quiz</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 넌센스 퀴즈. 말장난·수수께끼·상황 추리·속담 비틀기 300문제 이상, 한 판 10문제 4지선다, 1~2분. 정답마다 한 줄 해설이 따라오고, 매일 새로 열리는 오늘의 넌센스를 풀고 7/10을 자랑하세요. Free Korean wordplay and riddle quiz — 10 questions a round, tap to answer, daily challenge.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#120d2e" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="넌센스 퀴즈 — 말장난·수수께끼 10문제 | Riddle Quiz">
+<meta property="og:description" content="말장난·수수께끼 10문제 4지선다 — 오늘의 넌센스를 풀고 7/10 자랑하기. 설치 없이 바로 플레이.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/nonsense/">
+<link rel="canonical" href="https://hanpango.com/nonsense/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"넌센스 퀴즈","alternateName":"Riddle Quiz","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본이다. 다크는 아래 @media 에서 ★같은 이름의 값만 바꿔 끼운다 —
+     HTML 마크업은 두 테마가 완전히 동일하다. 시그니처는 보라(--sig).
+     ★글자 대비: --text/--muted-2/--sig-ink/--good-ink/--bad-ink 는 --bg·--panel·--panel2·--good-soft·--bad-soft 위에서 4.5:1 이상이다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#7c3aed; --sig-ink:#5b21b6; --sig-soft:#ede9fe; --on-sig:#ffffff;
+    --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
+    --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#a78bfa; --sig-ink:#c4b5fd; --sig-soft:#2e2670; --on-sig:#2e1065;
+      --good:#34d399; --good-ink:#bbf7d0; --good-soft:#14532d;
+      --warn:#fbbf24; --bad:#fca5a5; --bad-ink:#fecaca; --bad-soft:#4c1d1d;
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em}
+  h1 small{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:6px}
+  .hdr-btns{display:flex;gap:6px}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:6px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .score b{display:block;font-size:1.2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+  .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
+  .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 결과 화면 자리 */
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  /* ---- 문제 카드 ----
+     질문은 20px 이상, 보기는 높이 44px 이상(실측 52px+)의 큰 버튼 — 한 손가락으로 탭한다. */
+  .qcard{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 14px 12px;display:flex;flex-direction:column;gap:10px}
+  .qhead{display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .chip{font-size:.72rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--muted-2);font-weight:600}
+  .chip.lv{color:var(--warn);border-color:transparent;background:transparent;letter-spacing:.1em}
+  .q{margin:0;font-size:1.3rem;line-height:1.4;font-weight:700;min-height:2.8em;word-break:keep-all;overflow-wrap:anywhere}
+  .q.idle{color:var(--muted);font-weight:500;font-size:1.05rem}
+  .choices{display:grid;grid-template-columns:1fr;gap:8px;list-style:none;margin:0;padding:0}
+  .choice{display:flex;align-items:center;gap:10px;min-height:52px;width:100%;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);font-size:1.05rem;font-weight:600;text-align:left;padding:8px 12px;cursor:pointer;line-height:1.3;word-break:keep-all;overflow-wrap:anywhere}
+  .choice .k{flex:0 0 26px;height:26px;border-radius:50%;background:var(--panel2);color:var(--muted-2);font-size:.8rem;display:flex;align-items:center;justify-content:center;font-weight:700}
+  .choice:active{transform:scale(.985)}
+  .choice[disabled]{cursor:default}
+  .choice.dim{opacity:.55}
+  .choice.ok{border-color:var(--good);background:var(--good-soft);color:var(--good-ink)}
+  .choice.ok .k{background:var(--good);color:#ffffff}
+  .choice.bad{border-color:var(--bad);background:var(--bad-soft);color:var(--bad-ink)}
+  .choice.bad .k{background:var(--bad);color:#ffffff}
+  .choice:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+  /* 손맛 — 정답 팝 · 오답 흔들림. 움직임 줄이기면 전부 0. */
+  @keyframes pop{0%{transform:scale(.96)}50%{transform:scale(1.03)}100%{transform:scale(1)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+  .choice.pop{animation:pop .22s ease-out}
+  .choice.shake{animation:shake .3s ease-in-out}
+  .explain{min-height:3em;border-radius:12px;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);font-size:.95rem;line-height:1.45;color:var(--text);word-break:keep-all;overflow-wrap:anywhere}
+  .explain[hidden]{display:none}
+  .explain b{color:var(--sig-ink)}
+  .explain .v{font-weight:800;margin-right:6px}
+  .explain .v.ok{color:var(--good-ink)} .explain .v.bad{color:var(--bad-ink)}
+  .nextrow{display:flex;gap:8px;align-items:center}
+  .next{flex:1;min-height:48px;border:0;border-radius:12px;background:var(--sig);color:var(--on-sig);font-size:1.05rem;font-weight:800;cursor:pointer}
+  .next[hidden]{display:none}
+  .next:active{transform:scale(.98)}
+  .help{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card h2{margin:0 0 6px;font-size:1.5rem}
+  .card .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1;font-variant-numeric:tabular-nums}
+  .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card .marks{font-size:1.25rem;letter-spacing:.06em;margin:4px 0;line-height:1.3;word-break:break-all}
+  .card .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .hp-stat[hidden]{display:none!important}
+  .card .hp-stat b{font-weight:600}
+  .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .card .notice{color:var(--warn);font-size:.8rem;margin:0 0 8px;min-height:0}
+  .card .notice[hidden]{display:none}
+  .card .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[disabled]{opacity:.5;cursor:default}
+  .btn[hidden]{display:none}
+  .stats3{display:flex;gap:6px;margin:10px 0 4px}
+  .stats3 div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .stats3 b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums}
+  .stats3 span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* 복습 목록 — 10문제 정오·정답·내 답 */
+  .review{list-style:none;margin:8px 0 2px;padding:0;text-align:left;max-height:34dvh;overflow-y:auto;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+  .review li{display:grid;grid-template-columns:22px 1fr;gap:6px;padding:7px 9px;border-bottom:1px solid var(--line);font-size:.82rem;line-height:1.35}
+  .review li:last-child{border-bottom:0}
+  .review .m{font-weight:800}
+  .review .m.ok{color:var(--good-ink)} .review .m.bad{color:var(--bad-ink)}
+  .review .rq{color:var(--text)}
+  .review .ra{color:var(--muted-2);font-size:.76rem}
+  .review .ra b{color:var(--sig-ink)}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  /* 움직임을 줄여 달라고 한 사람에게는 애니·전환을 전부 끈다 */
+  @media (prefers-reduced-motion: reduce){
+    .choice.pop,.choice.shake{animation:none}
+    .toast{transition:none}
+    .btn:active,.ibtn:active,.choice:active,.next:active{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">넌센스 퀴즈</span> <small id="subtitle" data-i18n="subtitle">말장난·수수께끼</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 다른 게임</a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="qNo">–</b><span data-i18n="qLbl">문제</span></div>
+  <div class="score"><b id="scoreNow">–</b><span data-i18n="scoreLbl">점수</span></div>
+  <div class="score"><b id="timeNow">–</b><span data-i18n="timeLbl">시간</span></div>
+</div>
+
+<main>
+  <section class="qcard" id="qcard" aria-live="polite">
+    <div class="qhead"><span class="chip" id="qcat">–</span><span class="chip lv" id="qlv" aria-hidden="true"></span></div>
+    <!-- ★data-i18n 을 붙이지 않는다 — 언어를 바꾸면 applyLang 이 data-i18n 문안을 통째로 갈아 끼워 진행 중인 문제 본문이 안내 문구로 덮이는 결함이 있었다(CDP 캡처로 발견). 안내 문구는 renderQuestion 이 넣는다. -->
+    <p class="q idle" id="qtext">시작을 누르면 첫 문제가 나옵니다.</p>
+    <ul class="choices" id="choices" role="group" aria-label="choices">
+      <li><button class="choice" type="button" data-i="0" disabled><span class="k">1</span><span class="t">–</span></button></li>
+      <li><button class="choice" type="button" data-i="1" disabled><span class="k">2</span><span class="t">–</span></button></li>
+      <li><button class="choice" type="button" data-i="2" disabled><span class="k">3</span><span class="t">–</span></button></li>
+      <li><button class="choice" type="button" data-i="3" disabled><span class="k">4</span><span class="t">–</span></button></li>
+    </ul>
+    <div class="explain" id="explain" hidden></div>
+    <div class="nextrow"><button class="next" id="btnNext" type="button" hidden data-i18n="next">다음 ▶</button></div>
+  </section>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="help" data-i18n="hint">보기를 누르면 바로 정답과 해설 · 1.2초 뒤 자동으로 다음 문제 · 키보드 1~4 · Enter 다음</p>
+</main>
+
+<!-- 결과 -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card">
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <div class="big" id="finalScore">0/10</div>
+    <div class="marks" id="marks" aria-hidden="true"></div>
+    <div class="new" id="perfectLine"></div>
+    <div class="new" id="streakLine" style="color:var(--sig-ink)"></div>
+    <div class="new" id="newBest"></div>
+    <div class="stats3">
+      <div><b id="nOk">0</b><span data-i18n="okLbl">정답</span></div>
+      <div><b id="nBad">0</b><span data-i18n="badLbl">오답</span></div>
+      <div><b id="nTime">0:00</b><span data-i18n="timeLbl2">시간</span></div>
+    </div>
+    <ul class="review" id="review" aria-label="review"></ul>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- 시작 -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card">
+    <h2 id="startTitle" data-i18n="title2">넌센스 퀴즈</h2>
+    <div class="sub" data-i18n="startSub">말장난·수수께끼·상황 추리·속담 비틀기.<br>10문제 · 4지선다 · 1~2분 · 정답마다 한 줄 해설.</div>
+    <p class="notice" id="koNotice" hidden data-i18n="koNotice"></p>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnResumeDaily" hidden></button>
+    <button class="btn ghost" id="btnStart" data-i18n="start">▶ 자유 모드</button>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.nonsense.today">–</b>판 · 누적 <b data-hp="plays.nonsense.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">문제 하나에 보기 네 개가 나옵니다. 답이라고 생각하는 보기를 손가락으로 한 번 누르세요. 그 자리에서 맞았는지 틀렸는지 색으로 보여 주고, 왜 그게 답인지 한 줄 해설이 따라옵니다. 1.2초 뒤에 다음 문제로 저절로 넘어가고, 기다리기 싫으면 「다음」을 누르거나 아무 데나 탭하면 됩니다. 컴퓨터에서는 숫자 키 1~4로 고르고 Enter 로 넘깁니다.</p>
+  <p data-i18n="how2">문제는 네 갈래입니다. 말장난은 소리가 같거나 비슷한 말로 노는 문제, 수수께끼는 「이것은 무엇일까요」식으로 물건을 맞히는 문제, 상황 추리는 짧은 이야기 속 반전을 찾는 문제, 상식 비틀기는 속담·숫자·글자를 살짝 비튼 문제입니다. 모두 우리말 말맛으로 만든 문제라 한국어로만 나옵니다.</p>
+  <p data-i18n="how3">열 문제가 끝나면 맞힌 개수(예: 7/10)와 걸린 시간, 문제별 🟩🟥 한 줄이 나오고, 열 문제를 다시 훑어보는 복습 목록에서 정답과 내가 고른 답을 함께 볼 수 있습니다. 열 문제 다 맞히면 특별한 축하가 있습니다.</p>
+  <h2 data-i18n="bankTitle">문제는 어디서 왔나요</h2>
+  <p data-i18n="bank1">이 게임의 문제는 전부 이 사이트에서 직접 만든 것입니다. 책이나 다른 사이트의 문제를 옮겨 오지 않았고, 누구나 가족과 함께 풀 수 있도록 어른·아이 모두에게 안전한 내용만 담았습니다. 문제 은행은 300개가 넘고 앞으로도 계속 늘어납니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 열 문제가 열립니다. 전 세계 모든 플레이어가 완전히 같은 문제를 같은 보기 순서로 받고, 하루에 한 번만 도전할 수 있습니다. 문제는 은행을 정해진 순서로 돌기 때문에 같은 문제가 다시 나오기까지 30일이 걸립니다. 풀다가 나가도 이 기기에 진행이 저장되어 시작 화면의 이어하기로 그 자리부터 계속할 수 있습니다. 결과를 이모지 한 줄로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다. 자유 모드는 최근에 풀지 않은 문제 중에서 무작위로 열 개를 뽑아 횟수 제한 없이 할 수 있습니다.</p>
+  <h2 data-i18n="tipsTitle">잘 맞히는 요령</h2>
+  <details><summary data-i18n="tip1q">소리 내어 읽어 보세요</summary><p data-i18n="tip1a">말장난 문제는 눈으로 보면 안 보이고 입으로 읽으면 들립니다. 문제 속 낱말을 한 글자씩 소리 내면 숨은 다른 뜻이 튀어나옵니다.</p></details>
+  <details><summary data-i18n="tip2q">보기 네 개를 먼저 훑으세요</summary><p data-i18n="tip2a">보기는 정답과 비슷한 모양으로 만들어 두었습니다. 넷 중 하나만 문제의 낱말과 연결되는 고리가 있습니다. 그 고리를 찾으면 답입니다.</p></details>
+  <details><summary data-i18n="tip3q">상황 추리는 「당연한 것」을 의심하세요</summary><p data-i18n="tip3a">비가 오면 젖는다, 물에 빠지면 젖는다처럼 당연하게 넘긴 전제 하나가 반전입니다. 어떤 전제가 깨지면 이야기가 말이 되는지 생각해 보세요.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
+  <details><summary data-i18n="faq2q">기록은 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다. 브라우저 데이터를 지우면 진행과 기록도 함께 지워집니다.</p></details>
+  <details><summary data-i18n="faq3q">영어로도 할 수 있나요?</summary><p data-i18n="faq3a">화면 글자는 영어로 바꿀 수 있지만 문제 자체는 한국어 말맛에 기대고 있어 한국어로만 나옵니다. 한국어를 배우는 분에게는 좋은 연습이 됩니다.</p></details>
+  <details><summary data-i18n="faq4q">소리를 끌 수 있나요?</summary><p data-i18n="faq4a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 그대로 유지됩니다. 효과음은 모두 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 「동작 줄이기」를 켜면 흔들림·팝 애니메이션도 꺼집니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 넌센스 퀴즈 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·채점에는 관여하지 않는다. 태그가 아직 실리지 않았거나 차단됐으면
+   조용히 지나간다. 닉네임 같은 개인정보도, 광고 노출·클릭도 보내지 않는다. */
+const GA_GAME = 'nonsense';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ======================= i18n(UI 만 — 문제는 ko 전용) ======================= */
+const I18N = {
+  ko: {
+    title:'넌센스 퀴즈', subtitle:'말장난·수수께끼', title2:'넌센스 퀴즈',
+    qLbl:'문제', scoreLbl:'점수', timeLbl:'시간', okLbl:'정답', badLbl:'오답', timeLbl2:'시간',
+    idleQ:'시작을 누르면 첫 문제가 나옵니다.',
+    next:'다음 ▶',
+    hint:'보기를 누르면 바로 정답과 해설 · 1.2초 뒤 자동으로 다음 문제 · 키보드 1~4 · Enter 다음',
+    result:'결과', again:'다시 하기', share:'결과 공유', start:'▶ 자유 모드',
+    home:'🏠 다른 게임',
+    startSub:'말장난·수수께끼·상황 추리·속담 비틀기.<br>10문제 · 4지선다 · 1~2분 · 정답마다 한 줄 해설.',
+    koNotice:'',
+    cat:{ pun:'말장난', riddle:'수수께끼', situation:'상황 추리', common:'상식 비틀기' },
+    correct:'정답!', wrong:'아쉬워요', answerIs:'정답', perfect:'🎉 10문제 전부 정답! 완벽해요',
+    newBest:'🎉 최고 기록 갱신!',
+    finalSub:(b,t)=>`최고 ${b}/10 · 플레이 ${t}`,
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    copied:'결과가 복사됐어요',
+    freeShare:(n,t,m)=>`🤔 넌센스 ${n}/10 ⏱ ${t} ${m}\n`,
+    dailyShare:(no,n,t,m,r)=>`🤔 넌센스 #${no} ${n}/10 ⏱ ${t} ${m}${r>1?` 🔥${r}일 연속`:''}\n`,
+    daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
+    dailyHint:'매일 새 10문제 · 전 세계 같은 문제 · 하루 한 번',
+    dailyHintDone:'오늘 도전 완료 — 내일 새 문제가 열립니다',
+    dailyOver:(n)=>`오늘의 도전 #${n} 완료`, streak:(n)=>`🔥 ${n}일 연속 도전`,
+    resumeDaily:(n,i,t)=>`▶ 이어하기 · 오늘의 도전 #${n} · ${i}/10 · ${t}`,
+    modeDaily:(n)=>`오늘의 도전 #${n}`, modeFree:'자유 모드',
+    myPick:'내 답', srStart:'퀴즈 시작.', srQ:(i,n,q)=>`${i}번째 문제, ${n}문제 중. ${q}`,
+    srAnswer:(ok,a,e)=>`${ok ? '정답' : '오답'}. 정답은 ${a}. ${e}`, srOver:(n)=>`끝. ${n}문제 중 10문제.`,
+    docTitle:'넌센스 퀴즈 — 말장난·수수께끼 10문제 | Riddle Quiz', langBtn:'EN',
+    ariaChoices:'보기 네 개', ariaChoice:(k,t)=>`${k}번 보기, ${t}`,
+    ariaSoundOn:'소리 끄기 (지금 켜짐)', ariaSoundOff:'소리 켜기 (지금 꺼짐)',
+    ariaLang:'언어 바꾸기 — English 로', ariaHome:'다른 게임 목록으로',
+    statPlays:'오늘 <b data-hp="plays.nonsense.today">–</b>판 · 누적 <b data-hp="plays.nonsense.total">–</b>판',
+    howTitle:'게임 방법',
+    how1:'문제 하나에 보기 네 개가 나옵니다. 답이라고 생각하는 보기를 손가락으로 한 번 누르세요. 그 자리에서 맞았는지 틀렸는지 색으로 보여 주고, 왜 그게 답인지 한 줄 해설이 따라옵니다. 1.2초 뒤에 다음 문제로 저절로 넘어가고, 기다리기 싫으면 「다음」을 누르거나 아무 데나 탭하면 됩니다. 컴퓨터에서는 숫자 키 1~4로 고르고 Enter 로 넘깁니다.',
+    how2:'문제는 네 갈래입니다. 말장난은 소리가 같거나 비슷한 말로 노는 문제, 수수께끼는 「이것은 무엇일까요」식으로 물건을 맞히는 문제, 상황 추리는 짧은 이야기 속 반전을 찾는 문제, 상식 비틀기는 속담·숫자·글자를 살짝 비튼 문제입니다. 모두 우리말 말맛으로 만든 문제라 한국어로만 나옵니다.',
+    how3:'열 문제가 끝나면 맞힌 개수(예: 7/10)와 걸린 시간, 문제별 🟩🟥 한 줄이 나오고, 열 문제를 다시 훑어보는 복습 목록에서 정답과 내가 고른 답을 함께 볼 수 있습니다. 열 문제 다 맞히면 특별한 축하가 있습니다.',
+    bankTitle:'문제는 어디서 왔나요',
+    bank1:'이 게임의 문제는 전부 이 사이트에서 직접 만든 것입니다. 책이나 다른 사이트의 문제를 옮겨 오지 않았고, 누구나 가족과 함께 풀 수 있도록 어른·아이 모두에게 안전한 내용만 담았습니다. 문제 은행은 300개가 넘고 앞으로도 계속 늘어납니다.',
+    dailyTitle:'오늘의 도전',
+    dailyDesc:'매일 자정에 새 열 문제가 열립니다. 전 세계 모든 플레이어가 완전히 같은 문제를 같은 보기 순서로 받고, 하루에 한 번만 도전할 수 있습니다. 문제는 은행을 정해진 순서로 돌기 때문에 같은 문제가 다시 나오기까지 30일이 걸립니다. 풀다가 나가도 이 기기에 진행이 저장되어 시작 화면의 이어하기로 그 자리부터 계속할 수 있습니다. 결과를 이모지 한 줄로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다. 자유 모드는 최근에 풀지 않은 문제 중에서 무작위로 열 개를 뽑아 횟수 제한 없이 할 수 있습니다.',
+    tipsTitle:'잘 맞히는 요령',
+    tip1q:'소리 내어 읽어 보세요',
+    tip1a:'말장난 문제는 눈으로 보면 안 보이고 입으로 읽으면 들립니다. 문제 속 낱말을 한 글자씩 소리 내면 숨은 다른 뜻이 튀어나옵니다.',
+    tip2q:'보기 네 개를 먼저 훑으세요',
+    tip2a:'보기는 정답과 비슷한 모양으로 만들어 두었습니다. 넷 중 하나만 문제의 낱말과 연결되는 고리가 있습니다. 그 고리를 찾으면 답입니다.',
+    tip3q:'상황 추리는 「당연한 것」을 의심하세요',
+    tip3a:'비가 오면 젖는다, 물에 빠지면 젖는다처럼 당연하게 넘긴 전제 하나가 반전입니다. 어떤 전제가 깨지면 이야기가 말이 되는지 생각해 보세요.',
+    faqTitle:'자주 묻는 질문',
+    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'기록은 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다. 브라우저 데이터를 지우면 진행과 기록도 함께 지워집니다.',
+    faq3q:'영어로도 할 수 있나요?', faq3a:'화면 글자는 영어로 바꿀 수 있지만 문제 자체는 한국어 말맛에 기대고 있어 한국어로만 나옵니다. 한국어를 배우는 분에게는 좋은 연습이 됩니다.',
+    faq4q:'소리를 끌 수 있나요?', faq4a:'네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 그대로 유지됩니다. 효과음은 모두 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 「동작 줄이기」를 켜면 흔들림·팝 애니메이션도 꺼집니다.',
+    footer:'© 2026 넌센스 퀴즈 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개'
+  },
+  en: {
+    title:'Riddle Quiz', subtitle:'Korean wordplay', title2:'Riddle Quiz',
+    qLbl:'question', scoreLbl:'score', timeLbl:'time', okLbl:'correct', badLbl:'wrong', timeLbl2:'time',
+    idleQ:'Press start to get the first question.',
+    next:'Next ▶',
+    hint:'Tap an answer for instant result and explanation · next question after 1.2 s · keys 1–4 · Enter next',
+    result:'Result', again:'Play again', share:'Share result', start:'▶ Free mode',
+    home:'🏠 More games',
+    startSub:'Puns, riddles, situation puzzles and twisted proverbs.<br>10 questions · 4 choices · 1–2 min · one-line explanation each.',
+    koNotice:'Questions are Korean wordplay and appear in Korean only — the interface is in English.',
+    cat:{ pun:'pun', riddle:'riddle', situation:'situation', common:'twist' },
+    correct:'Correct!', wrong:'Not quite', answerIs:'Answer', perfect:'🎉 All 10 correct — perfect!',
+    newBest:'🎉 New best!',
+    finalSub:(b,t)=>`Best ${b}/10 · time ${t}`,
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    copied:'Result copied',
+    freeShare:(n,t,m)=>`🤔 Riddle Quiz ${n}/10 ⏱ ${t} ${m}\n`,
+    dailyShare:(no,n,t,m,r)=>`🤔 Riddle Quiz #${no} ${n}/10 ⏱ ${t} ${m}${r>1?` 🔥${r}-day streak`:''}\n`,
+    daily:(n)=>`Daily challenge #${n}`, dailyDone:(n)=>`Daily #${n} · see result`,
+    dailyHint:'10 new questions every day · same for everyone · once a day',
+    dailyHintDone:'Done for today — new questions at midnight',
+    dailyOver:(n)=>`Daily challenge #${n} done`, streak:(n)=>`🔥 ${n}-day streak`,
+    resumeDaily:(n,i,t)=>`▶ Resume · Daily #${n} · ${i}/10 · ${t}`,
+    modeDaily:(n)=>`Daily #${n}`, modeFree:'Free mode',
+    myPick:'your pick', srStart:'Quiz started.', srQ:(i,n,q)=>`Question ${i} of ${n}. ${q}`,
+    srAnswer:(ok,a,e)=>`${ok ? 'Correct' : 'Wrong'}. The answer is ${a}. ${e}`, srOver:(n)=>`Finished. ${n} of 10.`,
+    docTitle:'Riddle Quiz — Korean wordplay, 10 questions | 넌센스 퀴즈', langBtn:'한국어',
+    ariaChoices:'four choices', ariaChoice:(k,t)=>`choice ${k}, ${t}`,
+    ariaSoundOn:'Turn sound off (currently on)', ariaSoundOff:'Turn sound on (currently off)',
+    ariaLang:'Change language — switch to Korean', ariaHome:'Go to the other games',
+    statPlays:'<b data-hp="plays.nonsense.today">–</b> today · <b data-hp="plays.nonsense.total">–</b> all-time',
+    howTitle:'How to play',
+    how1:'Each question comes with four choices. Tap the one you think is right. It turns green or red on the spot and a one-line explanation tells you why. The next question comes after 1.2 seconds; tap Next or anywhere to skip the wait. On a computer, press 1–4 to choose and Enter to move on.',
+    how2:'There are four kinds: puns that play on Korean sounds, riddles that describe an object, situation puzzles with a twist, and twisted common sense — proverbs, numbers and letters bent a little. Every question relies on the flavour of Korean, so questions are shown in Korean only.',
+    how3:'After ten questions you get your score (for example 7/10), your time and a 🟩🟥 line per question, plus a review list showing the right answer and your pick for every question. Get all ten and there is a special cheer.',
+    bankTitle:'Where do the questions come from',
+    bank1:'Every question was written for this site. Nothing was copied from books or other sites, and everything is kept safe for children and adults alike. The bank holds over 300 questions and keeps growing.',
+    dailyTitle:'Daily challenge',
+    dailyDesc:'Ten new questions open every midnight. Everyone in the world gets exactly the same questions in the same choice order, and you get one attempt per day. Questions cycle through the bank in a fixed order, so it takes 30 days before one comes back. If you leave mid-round, your progress is saved on this device and you can resume from the start screen. Share the one-line emoji result and compare with friends. Come back on consecutive days to build a 🔥 streak. Free mode draws ten random questions you have not seen recently, with no limit.',
+    tipsTitle:'Tips',
+    tip1q:'Read it out loud',
+    tip1a:'A pun hides from the eye and shows itself to the ear. Sound out each syllable of the key word and the second meaning pops out.',
+    tip2q:'Scan all four choices first',
+    tip2a:'The wrong choices are shaped like the right one. Only one of the four has a link back to a word in the question — find the link and you have the answer.',
+    tip3q:'For situation puzzles, doubt the obvious',
+    tip3a:'Rain gets you wet, falling in water gets you wet — the twist is one assumption you skipped. Ask which assumption, if broken, makes the story work.',
+    faqTitle:'FAQ',
+    faq1q:'Do I need to install anything?', faq1a:'No. It runs straight in the browser. Add it to your home screen to use it like an app.',
+    faq2q:'Where are my records stored?', faq2a:'Only in the browser on this device. Nothing is sent to a server. Clearing browser data also clears your progress and records.',
+    faq3q:'Can I play in English?', faq3a:'The interface switches to English, but the questions depend on Korean wordplay and are shown in Korean only. It makes a good exercise for Korean learners.',
+    faq4q:'Can I turn the sound off?', faq4a:'Yes — the speaker button at the top right toggles it, and your choice is remembered next time. Every effect is generated by the browser on the spot, so there are no audio files to download. Turning on "reduce motion" on your device also switches off the shake and pop animations.',
+    footer:'© 2026 Riddle Quiz · Privacy: records stay on your device; third-party cookies (Google and others) may be used to serve ads.',
+    navPrivacy:'Privacy policy', navAbout:'About'
+  }
+};
+/* 언어 키는 사이트 공통(bp.lang) — 포털·다른 게임과 공유한다. */
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const CAT = c => I18N[lang].cat[c] || c;
+const $ = id => document.getElementById(id);
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  $('btnLang2').textContent = T('langBtn');
+  /* en 사용자에게 「문제는 한국어」 안내 — ko 에서는 빈 문안이라 숨긴다 */
+  $('koNotice').hidden = !T('koNotice');
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  /* 문안을 innerHTML 로 갈아 끼우면 채운 숫자가 지워진다 — 다시 채운다.
+     hp-stats.js 는 defer 라 없을 수도 있으므로 있는지 보고 부른다. */
+  if (window.hpStats) window.hpStats();
+}
+/* 접근성 이름을 현재 언어로 맞춘다 — 소리 버튼은 켜짐/꺼짐 상태까지 이름과 aria-pressed 에 담는다. */
+function applyA11yLabels(){
+  for (const id of ['btnSound','btnSound2']){
+    const b = $(id); if (!b) continue;
+    b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  }
+  for (const id of ['btnLang','btnLang2']){ const l = $(id); if (l) l.setAttribute('aria-label', T('ariaLang')); }
+  $('choices').setAttribute('aria-label', T('ariaChoices'));
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+}
+
+/* 움직임 줄이기 — 팝·흔들림 애니를 0 으로 만드는 스위치(CSS 와 같은 질의). 값은 그때그때 읽는다. */
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } };
+
+/* ======================= 사운드(WebAudio · 파일 없음) ======================= */
+let soundOn = localStorage.getItem('nq.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0, freq2=null){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();     /* 제스처 뒤에 resume */
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime + delay;
+    if (freq2 !== null) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq2), t + dur);
+    o.start(t);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sTap   = () => beep(520, .04, 'square', .02, 0, 700);
+const sGood  = () => { beep(523, .08, 'triangle', .045); beep(659, .14, 'triangle', .045, .09); vib(20); };
+const sMiss  = () => { beep(220, .16, 'sawtooth', .04, 0, 120); vib(40); };
+const sOver  = () => { beep(523, .12, 'triangle', .05); beep(659, .12, 'triangle', .05, .12); beep(784, .3, 'triangle', .05, .24); };
+const sPerfect = () => { beep(523, .1, 'triangle', .05); beep(659, .1, 'triangle', .05, .1); beep(784, .1, 'triangle', .05, .2); beep(1047, .35, 'triangle', .06, .3); vib([30,40,30,40,80]); };
+
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   // 2026-08-23 = #1 (다른 게임과 동일 기준일)
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const dailySeedKey = (d=new Date()) => 'hanpango-daily-nonsense-' + dayKey(d);
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('nq.daily')||'null'); }catch(_){ return null; } };
+/* 오늘 이미 끝냈는가. 날짜가 바뀌면 없는 것으로 친다 — 자정에 자동으로 새 판이 열린다. */
+function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && r.result); }
+function saveDaily(result){
+  /* ★시작 시 고정한 runDay/runNo 로 저장한다 — 자정을 넘겨 완료해도 시작한 날짜의 기록이다. */
+  localStorage.setItem('nq.daily', JSON.stringify({ date: runDay, no: runNo, result }));
+}
+/* 🔥스트릭 — 어제 했으면 이어지고, 하루라도 건너뛰면 1 부터 다시 센다. */
+function bumpStreak(day){
+  let st; try{ st = JSON.parse(localStorage.getItem('nq.streak')||'{}'); }catch(_){ st = {}; }
+  if (st.last === day) return st.n || 1;
+  const n = (st.last === prevDayKey(day)) ? (st.n || 0) + 1 : 1;
+  localStorage.setItem('nq.streak', JSON.stringify({ last: day, n }));
+  return n;
+}
+/* 'YYYY-MM-DD' 의 전날 키 — 문자열 날짜에서 계산해 시계 의존을 없앤다. */
+function prevDayKey(day){ const [y, m, d] = day.split('-').map(Number); const t = new Date(y, m - 1, d); t.setDate(t.getDate() - 1); return dayKey(t); }
+/* ★신선도: last 가 오늘이나 어제일 때만 살아 있는 스트릭이다. 더 오래된 기록은 이미 끊긴 것이라 0 —
+   그래야 시작 화면이 옛 🔥를 보여 주지 않고, 완료하면 bumpStreak 가 1 부터 다시 센다. */
+const streakNow = () => { try{ const s = JSON.parse(localStorage.getItem('nq.streak')||'{}'); const today = dayKey();
+  return (s.last === today || s.last === prevDayKey(today)) ? (s.n || 0) : 0; }catch(_){ return 0; } };
+
+/* ======================= 상수 ======================= */
+const N_Q = 10;                                  /* 한 판 문제 수 */
+const N_OPT = 4;                                 /* 보기 수 */
+const SCORE_PER = 10;                            /* 정답 1개 = 10점 */
+const NEXT_MS = 1200;                            /* 정오 표시 후 자동 다음까지 */
+const LOG_MAX = 200;                             /* 판 기록 상한(굴러가는 창) */
+const SEEN_MAX = 50;                             /* 자유 모드 최근 회피 id 수 */
+const SAVE_EVERY_MS = 10000;                     /* 시계만 흘러도 이 간격으로 진행을 저장 */
+const CATS = ['pun', 'riddle', 'situation', 'common'];
+/* ★일일 출제 순서의 계약 — 은행을 이 seed 로 1회 셔플한 ORDER 위를 날짜 번호가 10칸씩 걷는다.
+   은행을 늘릴 때는 BANK 끝에 append 하고 ORDER_BLOCKS 에 새 블록 크기를 push 한다 —
+   앞 블록의 순서는 바이트 그대로 보존되어 이미 지난 날짜의 문제가 바뀌지 않는다. */
+const ORDER_SEED = 'hanpango-nonsense-order-v1';
+const ORDER_BLOCKS = [304];
+
+/* ======================= 문제 은행(전부 자체 창작 · 가족 안전 · ko 전용) =======================
+   항목 {id, q(문제 ≤60자), a(정답 ≤16자), d[3](오답 · 같은 범주·비슷한 길이), e(해설 1문장 ≤50자),
+        c(범주 pun|riddle|situation|common), lv(1~3)}.
+   ★은행 안 q 중복 0 · 항목 안 보기 4개 상호 중복 0 · 정답 문자열 은행 전체 중복 0 —
+   evidence-nonsense/bank_check.mjs 가 금칙어 목록과 함께 기계 검사한다(금칙어 목록은 배포 파일에 싣지 않는다). */
+const BANK = [
+  /* ── pun 말장난 ── */
+  {id:'p001',q:'물이 시험에서 떨어지면 뭐라고 할까?',a:'물먹었다',d:['물넘쳤다','물튀었다','물샜다'],e:'시험에 떨어지는 걸 「물먹었다」고 하니까.',c:'pun',lv:1},
+  {id:'p002',q:'빵이 너무 웃기면 어떻게 될까?',a:'빵 터진다',d:['빵 부푼다','빵 굳는다','빵 탄다'],e:'크게 웃음이 나올 때 「빵 터진다」고 하니까.',c:'pun',lv:1},
+  {id:'p003',q:'비 오는 날 제일 바빠지는 나라는?',a:'우산국',d:['장화국','우비국','구름국'],e:'우산이 꼭 필요한 나라라서 우산국.',c:'pun',lv:2},
+  {id:'p004',q:'달이 화가 나면 무엇을 할까?',a:'달달 볶는다',d:['둥둥 뜬다','반짝 빛난다','훌쩍 사라진다'],e:'사람을 괴롭힐 때 「달달 볶는다」고 하니까.',c:'pun',lv:1},
+  {id:'p005',q:'가장 훌륭한 바람은?',a:'바람직',d:['바람결','바람개비','바람막이'],e:'「바람직하다」는 훌륭하다는 뜻이니까.',c:'pun',lv:2},
+  {id:'p006',q:'얼음이 어지러우면?',a:'빙빙 돈다',d:['꽁꽁 언다','살살 녹는다','뚝뚝 떨어진다'],e:'「빙」은 얼음이고, 어지러우면 빙빙 도니까.',c:'pun',lv:1},
+  {id:'p007',q:'말(馬)이 깜짝 놀라 아무 말도 못 하면?',a:'말문이 막혔다',d:['말발굽 떨어졌다','말꼬리 잡혔다','말고삐 풀렸다'],e:'할 말을 잃을 때 「말문이 막혔다」고 하니까.',c:'pun',lv:2},
+  {id:'p008',q:'소금이 죽으면 무엇이 될까?',a:'죽염',d:['천일염','맛소금','암염'],e:'죽(죽다)+염(소금)=죽염이니까.',c:'pun',lv:3},
+  {id:'p009',q:'설탕이 기운이 없으면?',a:'당 떨어졌다',d:['당 올랐다','당 녹았다','당 굳었다'],e:'힘이 빠질 때 「당 떨어졌다」고 하니까.',c:'pun',lv:1},
+  {id:'p010',q:'커피가 「아니요」라고 대답하면?',a:'아메리카노',d:['카페라떼','카푸치노','에스프레소'],e:'아메리카+NO(노)=아메리카노.',c:'pun',lv:2},
+  {id:'p011',q:'사진 찍을 때 치즈가 하는 말은?',a:'김치~',d:['치즈~','우유~','피자~'],e:'사람은 「치즈」, 치즈는 반대로 「김치」.',c:'pun',lv:2},
+  {id:'p012',q:'만두가 시험을 보면 몇 점?',a:'만점',d:['빵점','두점','백점'],e:'「만」두니까 만점.',c:'pun',lv:1},
+  {id:'p013',q:'김이 재미가 없으면?',a:'김이 샌다',d:['김이 난다','김이 탄다','김이 굳는다'],e:'흥이 깨질 때 「김샌다」고 하니까.',c:'pun',lv:1},
+  {id:'p014',q:'오징어가 다리 하나를 잃으면?',a:'사징어',d:['육징어','구징어','십징어'],e:'오(5)에서 하나를 빼면 사(4).',c:'pun',lv:2},
+  {id:'p015',q:'낙지가 시험에 떨어지면 뭐라고 할까?',a:'낙제',d:['낙엽','낙하','낙서'],e:'「낙」지가 시험에 떨어지면 「낙」제니까.',c:'pun',lv:2},
+  {id:'p016',q:'파가 화나서 떨면?',a:'파르르 떤다',d:['푸르르 떤다','부르르 떤다','바르르 떤다'],e:'「파」가 떨면 파르르.',c:'pun',lv:1},
+  {id:'p017',q:'고추가 복수를 하면?',a:'매운맛을 보여준다',d:['단맛을 보여준다','쓴맛을 보여준다','신맛을 보여준다'],e:'혼내줄 때 「매운맛을 보여준다」고 하니까.',c:'pun',lv:1},
+  {id:'p018',q:'눈치가 없는 과일은?',a:'감',d:['배','귤','밤'],e:'「감이 없다」는 눈치가 없다는 뜻이니까.',c:'pun',lv:2},
+  {id:'p019',q:'「감기」의 반대말은?',a:'풀기',d:['더위','건강','기침'],e:'감다의 반대는 풀다니까.',c:'pun',lv:2},
+  {id:'p020',q:'이발을 두 번 하면?',a:'사발',d:['삼발','육발','일발'],e:'이(2)+이(2)=사(4).',c:'pun',lv:2},
+  {id:'p021',q:'구름에서 하나가 빠지면?',a:'팔름',d:['십름','육름','영름'],e:'구(9)-1=팔(8).',c:'pun',lv:1},
+  {id:'p022',q:'팔찌에 하나를 더하면?',a:'구찌',d:['십찌','육찌','칠찌'],e:'팔(8)+1=구(9).',c:'pun',lv:2},
+  {id:'p023',q:'일(1)요일에 1을 더하면?',a:'이요일',d:['월요일','삼요일','영요일'],e:'일(1)+1=이(2).',c:'pun',lv:1},
+  {id:'p024',q:'「다시마」를 거꾸로 읽으면 하게 되는 것은?',a:'마시다',d:['먹다','씹다','삼키다'],e:'다시마 ↔ 마시다.',c:'pun',lv:1},
+  {id:'p025',q:'「수박」을 거꾸로 읽으면 나오는 것은?',a:'박수',d:['수건','박자','손뼉'],e:'수박 ↔ 박수.',c:'pun',lv:1},
+  {id:'p026',q:'당근이 「맞아!」 대신 하는 말은?',a:'당근이지',d:['무지','오이지','배추지'],e:'「당연하지」를 「당근이지」라고 하니까.',c:'pun',lv:1},
+  {id:'p027',q:'카페라떼가 옛날 얘기를 시작하면?',a:'라떼는 말이야',d:['모카는 말이야','콜드는 말이야','라떼는 우유야'],e:'「나 때는 말이야」를 「라떼는 말이야」라고 하니까.',c:'pun',lv:1},
+  {id:'p028',q:'게가 흥분해서 화내면?',a:'게거품을 문다',d:['게딱지를 문다','게살을 문다','게집게를 문다'],e:'「게거품 물고 화낸다」고 하니까.',c:'pun',lv:1},
+  {id:'p029',q:'이름에 「불」이 들어가지만 뜨겁지 않은 것은?',a:'불면증',d:['불고기','불꽃','불판'],e:'불면증의 「불」은 아니 불(不)이니까.',c:'pun',lv:2},
+  {id:'p030',q:'이름에 「눈」이 있는데 보지 못하는 것은?',a:'눈썰매',d:['눈동자','눈빛','눈매'],e:'눈썰매의 눈은 하늘에서 내리는 눈이니까.',c:'pun',lv:2},
+  {id:'p031',q:'이름에 「배」가 있는데 물에 뜨지 않는 것은?',a:'배추',d:['돛단배','나룻배','거룻배'],e:'배추의 배는 타는 배가 아니니까.',c:'pun',lv:1},
+  {id:'p032',q:'「말」이 가장 많은데 시끄럽지 않은 곳은?',a:'사전',d:['시장','교실','방송국'],e:'사전엔 말(단어)이 가득한데 소리는 없으니까.',c:'pun',lv:2},
+  {id:'p033',q:'「인도」 사람들도 걸어 다니는 길은?',a:'인도',d:['차도','국도','고속도로'],e:'사람이 다니는 길이 인도(人道)니까.',c:'pun',lv:1},
+  {id:'p034',q:'삼겹살 세 장을 포개면?',a:'구겹살',d:['육겹살','십겹살','사겹살'],e:'3겹×3장=9겹.',c:'pun',lv:3},
+  {id:'p035',q:'「밤새」에서 새가 날아가면 남는 것은?',a:'밤',d:['새벽','낮','별'],e:'밤새-새=밤.',c:'pun',lv:1},
+  {id:'p036',q:'눈(雪)이 못마땅하면?',a:'눈살을 찌푸린다',d:['눈물을 흘린다','눈꺼풀을 감는다','눈길을 돌린다'],e:'못마땅할 때 「눈살을 찌푸린다」고 하니까.',c:'pun',lv:2},
+  {id:'p037',q:'손이 가장 싫어하는 것은?',a:'손해',d:['손톱','손금','손수건'],e:'손해는 누구나 싫어하니까.',c:'pun',lv:1},
+  {id:'p038',q:'밥이 너무 흥분하면?',a:'밥풀이 튄다',d:['밥통이 된다','밥맛이 난다','밥알이 굳는다'],e:'흥분해서 말하면 밥풀이 튀니까.',c:'pun',lv:2},
+  {id:'p039',q:'귤이 감기에 걸리면?',a:'감귤',d:['금귤','밀감','한라봉'],e:'감기+귤=감귤.',c:'pun',lv:2},
+  {id:'p040',q:'말이 없는 과일은?',a:'무화과',d:['석류','살구','자두'],e:'무화과=無(없을 무)+話(말씀 화)+果(열매 과).',c:'pun',lv:3},
+  {id:'p041',q:'돌이 한 살이 되면 하는 것은?',a:'돌잔치',d:['돌탑','돌담','돌다리'],e:'첫돌엔 돌잔치를 하니까.',c:'pun',lv:1},
+  {id:'p042',q:'문어가 쓰는 글의 문체는?',a:'문어체',d:['구어체','편지체','일기체'],e:'문어+체=문어체.',c:'pun',lv:2},
+  {id:'p043',q:'바다가 사람을 때리면?',a:'파도가 친다',d:['파도가 잔다','파도가 논다','파도가 운다'],e:'때리는 것도 「친다」, 파도도 「친다」니까.',c:'pun',lv:1},
+  {id:'p044',q:'자동차가 가장 좋아하는 음식은?',a:'카레',d:['짜장','김치','라면'],e:'카(car)+레=카레.',c:'pun',lv:2},
+  {id:'p045',q:'버스가 길에서 노래를 부르면?',a:'버스킹',d:['버스킷','버스타임','버스텔'],e:'버스+킹=버스킹(길거리 공연).',c:'pun',lv:2},
+  {id:'p046',q:'지하철이 가장 잘하는 운동은?',a:'역도',d:['철봉','수영','줄넘기'],e:'지하철엔 역(驛)이 많으니까 역도.',c:'pun',lv:3},
+  {id:'p047',q:'배(船)가 시험에서 받는 점수는?',a:'배점',d:['만점','백점','영점'],e:'배+점=배점.',c:'pun',lv:2},
+  {id:'p048',q:'시계가 배고플 때 찾는 간식은?',a:'초콜릿',d:['분말','시럽','초밥'],e:'시계의 초(秒)+콜릿=초콜릿.',c:'pun',lv:3},
+  {id:'p049',q:'종이가 기분이 상하면?',a:'구겨진다',d:['찢어진다','접힌다','젖는다'],e:'기분이 상하면 「구겨진다」고 하니까.',c:'pun',lv:2},
+  {id:'p050',q:'풀(접착제)이 친구를 사귀면?',a:'딱 붙어 다닌다',d:['멀리 떨어진다','자주 싸운다','금방 헤어진다'],e:'친한 친구는 딱 붙어 다니니까.',c:'pun',lv:1},
+  {id:'p051',q:'자석이 첫눈에 반하면?',a:'확 끌린다',d:['확 밀린다','확 식는다','확 돈다'],e:'마음이 갈 때 「끌린다」고 하니까.',c:'pun',lv:1},
+  {id:'p052',q:'전기가 감동하면?',a:'찌릿하다',d:['따끔하다','뜨끈하다','시원하다'],e:'감동도 전기도 찌릿하니까.',c:'pun',lv:1},
+  {id:'p053',q:'학생이 가장 좋아하는 「무」는?',a:'무시험',d:['무생채','무말랭이','무국'],e:'시험이 없는 무(無)시험이니까.',c:'pun',lv:2},
+  {id:'p054',q:'가장 오래 사는 도시는?',a:'장수',d:['단양','고성','영주'],e:'장수(長壽)는 오래 산다는 뜻이니까.',c:'pun',lv:2},
+  {id:'p055',q:'싸움을 부추기는 채소는?',a:'부추',d:['상추','배추','고추'],e:'부추기다에 「부추」가 있으니까.',c:'pun',lv:2},
+  {id:'p056',q:'양이 마음이 착하면?',a:'양심이 있다',d:['양보를 한다','양치를 한다','양말을 신는다'],e:'양+심=양심.',c:'pun',lv:1},
+  {id:'p057',q:'곰이 가장 좋아하는 놀이는?',a:'곰곰이 생각하기',d:['숨바꼭질','술래잡기','공놀이'],e:'곰곰이=곰이 곰이.',c:'pun',lv:1},
+  {id:'p058',q:'국수가 자존심을 지키면?',a:'면이 선다',d:['면이 붇는다','면이 끊긴다','면이 식는다'],e:'체면이 설 때 「면이 선다」고 하니까.',c:'pun',lv:3},
+  {id:'p059',q:'떡이 당당하게 서 있으면?',a:'떡하니 서 있다',d:['척하니 서 있다','쓱하니 서 있다','휙하니 서 있다'],e:'당당하게 있을 때 「떡하니」라고 하니까.',c:'pun',lv:2},
+  {id:'p060',q:'콩이 정신이 딴 데 가 있으면?',a:'콩밭에 가 있다',d:['팥밭에 가 있다','논밭에 가 있다','꽃밭에 가 있다'],e:'딴생각할 때 「마음이 콩밭에」라고 하니까.',c:'pun',lv:2},
+  {id:'p061',q:'인정사정 봐주지 않는 국은?',a:'국물도 없다',d:['국물이 진하다','국물이 싱겁다','국물이 넘친다'],e:'봐주지 않을 때 「국물도 없다」고 하니까.',c:'pun',lv:2},
+  {id:'p062',q:'친구와 죽이 아주 잘 어울리면?',a:'죽이 맞는다',d:['죽이 끓는다','죽이 식는다','죽이 넘친다'],e:'마음이 잘 통할 때 「죽이 맞는다」고 하니까.',c:'pun',lv:2},
+  {id:'p063',q:'결정을 잘 못 하는 우유는?',a:'우유부단',d:['우유단백','우유거품','우유식빵'],e:'망설이는 성격을 「우유부단」이라고 하니까.',c:'pun',lv:2},
+  {id:'p064',q:'가장 용감한 과일은?',a:'배',d:['감','귤','밤'],e:'배짱이 있으니까.',c:'pun',lv:2},
+  {id:'p065',q:'돈이 많이 흐르는 강은?',a:'금강',d:['한강','남강','동강'],e:'금(金)+강=금강.',c:'pun',lv:1},
+  {id:'p066',q:'가장 시끄러운 산은?',a:'화산',d:['설산','민둥산','앞산'],e:'화산은 펑 하고 터지니까.',c:'pun',lv:1},
+  {id:'p067',q:'요리를 잘하는 꽃은?',a:'국화',d:['매화','장미','백합'],e:'국(국물)+화(꽃)=국화.',c:'pun',lv:2},
+  {id:'p068',q:'창문 옆에서 부르는 노래는?',a:'창가',d:['동요','가곡','민요'],e:'창(窓)가에서 부르는 창가(唱歌)니까.',c:'pun',lv:3},
+  {id:'p069',q:'모자가 가장 듣기 싫은 말은?',a:'모자라',d:['넘쳐','딱 맞아','괜찮아'],e:'「모자라다」에 모자가 들어 있으니까.',c:'pun',lv:2},
+  {id:'p070',q:'양말이 짝을 잃으면?',a:'짝짝이',d:['한쌍','외톨이','홀수'],e:'짝이 안 맞으면 짝짝이니까.',c:'pun',lv:1},
+  {id:'p071',q:'자다가 가위가 나타나면?',a:'가위눌린다',d:['가위질한다','가위 접는다','가위 던진다'],e:'자다가 몸이 굳으면 「가위눌린다」고 하니까.',c:'pun',lv:2},
+  {id:'p072',q:'풀(草)이 문제를 푸는 것을 뭐라 할까?',a:'풀이',d:['풀꽃','풀밭','풀잎'],e:'문제를 푸는 게 풀이니까.',c:'pun',lv:1},
+  {id:'p073',q:'나무가 아이를 혼내면?',a:'나무란다',d:['나무 심는다','나무 벤다','나무 탄다'],e:'혼내는 걸 「나무란다」고 하니까.',c:'pun',lv:2},
+  {id:'p074',q:'뿌리가 거절을 하면?',a:'뿌리친다',d:['뿌리내린다','뿌리뽑는다','뿌리찾는다'],e:'거절할 때 「뿌리친다」고 하니까.',c:'pun',lv:2},
+  {id:'p075',q:'별이 어이없어 하는 말은?',a:'별꼴이야',d:['별빛이야','별맛이야','별똥이야'],e:'어이없을 때 「별꼴이야」라고 하니까.',c:'pun',lv:2},
+  {id:'p076',q:'눈(雪) 중에 가장 빠른 눈은?',a:'눈치',d:['눈발','눈꽃','눈송이'],e:'「눈치가 빠르다」고 하니까.',c:'pun',lv:2},
+  {id:'p077',q:'토끼가 사는 요일은?',a:'토요일',d:['일요일','화요일','수요일'],e:'토+요일=토요일.',c:'pun',lv:1},
+  {id:'p078',q:'콜라가 화가 나면?',a:'톡 쏜다',d:['달콤해진다','김이 빠진다','줄줄 흐른다'],e:'화나면 톡 쏘고, 콜라도 톡 쏘니까.',c:'pun',lv:1},
+  {id:'p079',q:'달콤한 말로 꼬드기는 사탕은?',a:'사탕발림',d:['사탕가루','사탕껍질','사탕수수'],e:'듣기 좋은 말로 꼬이는 걸 「사탕발림」이라고 하니까.',c:'pun',lv:2},
+  {id:'p080',q:'꿀이 밤에 하는 것은?',a:'꿀잠',d:['꿀떡','꿀물','꿀단지'],e:'아주 잘 자는 잠이 꿀잠이니까.',c:'pun',lv:1},
+  {id:'p081',q:'이름 끝에 「자」가 있는데 길이는 못 재고 먹을 수 있는 것은?',a:'과자',d:['의자','모자','상자'],e:'과자는 먹는 것이지 재는 자가 아니니까.',c:'pun',lv:2},
+  {id:'p082',q:'이름에 「차」가 있는데 마시지도 타지도 못하는 것은?',a:'차례',d:['녹차','기차','마차'],e:'차례는 순서라는 뜻이니까.',c:'pun',lv:2},
+  {id:'p083',q:'이름에 「새」가 있는데 날지 못하는 것은?',a:'새싹',d:['참새','제비','기러기'],e:'새싹의 새는 「새로」라는 뜻이니까.',c:'pun',lv:1},
+  {id:'p084',q:'이름에 「개」가 있는데 짖지 않는 것은?',a:'개나리',d:['진돗개','풍산개','삽살개'],e:'개나리는 노란 봄꽃이니까.',c:'pun',lv:1},
+  {id:'p085',q:'이름에 「소」가 있는데 음매 하지 않는 것은?',a:'소풍',d:['황소','젖소','물소'],e:'소풍은 나들이니까.',c:'pun',lv:1},
+  {id:'p086',q:'이름에 「말」이 있는데 달리지 못하는 것은?',a:'양말',d:['조랑말','경주마','얼룩말'],e:'양말은 발에 신는 것이니까.',c:'pun',lv:1},
+  {id:'p087',q:'이름에 「나비」가 있는데 날지 못하는 것은?',a:'나비넥타이',d:['호랑나비','흰나비','제비나비'],e:'나비넥타이는 목에 매는 것이니까.',c:'pun',lv:1},
+  {id:'p088',q:'이름에 「벌」이 있는데 쏘지 않는 것은?',a:'벌금',d:['꿀벌','말벌','호박벌'],e:'벌금은 돈으로 내는 벌이니까.',c:'pun',lv:1},
+  {id:'p089',q:'이름에 「별」이 있는데 빛나지 않는 것은?',a:'이별',d:['샛별','북극성','별똥별'],e:'이별은 헤어짐이니까.',c:'pun',lv:2},
+  {id:'p090',q:'이름에 「종」이 있는데 울리지 않는 것은?',a:'종이',d:['범종','풍경','자명종'],e:'종이는 글 쓰는 종이니까.',c:'pun',lv:1},
+  {id:'p091',q:'삼(3)과 삼(3)을 나란히 두면 나오는 맛은?',a:'삼삼한 맛',d:['짭짤한 맛','칼칼한 맛','새콤한 맛'],e:'삼삼하다=싱거운 듯 맛있다.',c:'pun',lv:3},
+  {id:'p092',q:'9를 두 번 이어 말하면 나타나는 새는?',a:'비둘기',d:['까치','참새','닭'],e:'구구(9 9)는 비둘기 울음소리니까.',c:'pun',lv:2},
+  {id:'p093',q:'「십」에서 ㅅ을 빼면 남는 신체 부위는?',a:'입',d:['귀','코','눈'],e:'십-ㅅ=입.',c:'pun',lv:3},
+  {id:'p094',q:'「팔」에서 ㄹ을 빼면 남는 채소는?',a:'파',d:['무','콩','깨'],e:'팔-ㄹ=파.',c:'pun',lv:1},
+  {id:'p095',q:'「오이」에서 「오」를 빼면 남는 숫자는?',a:'이(2)',d:['오(5)','일(1)','삼(3)'],e:'오이-오=이.',c:'pun',lv:1},
+  {id:'p096',q:'거꾸로 읽어도 똑같은 새는?',a:'기러기',d:['까마귀','비둘기','딱따구리'],e:'기러기는 앞뒤가 같으니까.',c:'pun',lv:1},
+
+  /* ── riddle 수수께끼 ── */
+  {id:'r001',q:'매일 아침 사람을 깨우고 자기는 얻어맞는 것은?',a:'알람시계',d:['베개','커튼','수탉'],e:'알람이 울리면 손으로 탁 치니까.',c:'riddle',lv:1},
+  {id:'r002',q:'배가 부를수록 가벼워지는 것은?',a:'풍선',d:['가방','주머니','냄비'],e:'공기가 찰수록 잘 떠오르니까.',c:'riddle',lv:1},
+  {id:'r003',q:'쓸수록 작아지는데 향기는 더 퍼지는 것은?',a:'비누',d:['촛불','지우개','연필'],e:'비누는 쓸수록 닳고 거품 향은 퍼지니까.',c:'riddle',lv:1},
+  {id:'r004',q:'머리는 있는데 생각이 없고, 못을 만나면 때리는 것은?',a:'망치',d:['톱','드라이버','펜치'],e:'망치 머리로 못을 때리니까.',c:'riddle',lv:2},
+  {id:'r005',q:'낮에는 자고 밤에만 켜지는데 살아 있지 않은 것은?',a:'가로등',d:['부엉이','별','달'],e:'가로등은 어두울 때 켜지니까.',c:'riddle',lv:1},
+  {id:'r006',q:'매일 아침 문 앞에 와서 소식을 전하고 말없이 떠나는 것은?',a:'신문',d:['우유','택배','편지'],e:'신문은 매일 아침 배달되니까.',c:'riddle',lv:1},
+  {id:'r007',q:'가득 찼는데도 늘 「먹을 게 없다」는 소리를 듣는 것은?',a:'냉장고',d:['도시락','찬장','식탁'],e:'냉장고 문 열고 먹을 거 없다고 하니까.',c:'riddle',lv:2},
+  {id:'r008',q:'가면 갈수록 뒤가 길어지는 것은?',a:'발자국',d:['그림자','기차','강물'],e:'걸을수록 발자국이 뒤로 쌓이니까.',c:'riddle',lv:2},
+  {id:'r009',q:'꼬리를 잡아야 하늘을 날 수 있는 것은?',a:'연',d:['새','비행기','풍선'],e:'연줄을 잡아야 연이 뜨니까.',c:'riddle',lv:1},
+  {id:'r010',q:'귀에 걸리고 코에 앉아서 눈을 도와주는 것은?',a:'안경',d:['마스크','귀걸이','콧수염'],e:'안경다리는 귀에, 코받침은 코에 있으니까.',c:'riddle',lv:1},
+  {id:'r011',q:'손가락으로 누르면 온 세상이 나오는 작은 창은?',a:'스마트폰',d:['유리창','거울','액자'],e:'화면을 누르면 세상 소식이 다 나오니까.',c:'riddle',lv:1},
+  {id:'r012',q:'이빨도 없이 종이를 물고 놓지 않는 것은?',a:'클립',d:['지우개','자','풀'],e:'클립은 종이를 물고 있으니까.',c:'riddle',lv:1},
+  {id:'r013',q:'몸은 나무인데 머리에 불이 붙는 것은?',a:'성냥',d:['촛불','연필','젓가락'],e:'성냥 머리에 불이 붙으니까.',c:'riddle',lv:1},
+  {id:'r014',q:'동전을 먹을수록 배가 나오는 것은?',a:'돼지저금통',d:['풍선','가방','베개'],e:'동전이 많이 들면 배가 불룩해지니까.',c:'riddle',lv:1},
+  {id:'r015',q:'입은 하나인데 온 집안 식구가 다 먹여 주는 것은?',a:'쓰레기통',d:['냉장고','밥솥','냄비'],e:'쓰레기를 다 넣어 주니까.',c:'riddle',lv:2},
+  {id:'r016',q:'발도 없이 온 집안을 돌아다니다 빗자루에 잡히는 것은?',a:'먼지',d:['고양이','파리','공'],e:'먼지는 바람 따라 돌아다니니까.',c:'riddle',lv:1},
+  {id:'r017',q:'잘라도 아프지 않고 다시 자라는 것은?',a:'손톱',d:['나뭇가지','실','종이'],e:'손톱은 계속 자라니까.',c:'riddle',lv:1},
+  {id:'r018',q:'바늘도 숫자도 없이 하루의 때를 알려주는 것은?',a:'그림자',d:['시계','달력','종'],e:'그림자 길이와 방향으로 시간을 짐작하니까.',c:'riddle',lv:2},
+  {id:'r019',q:'네모난 몸에 숫자를 가득 품고 매일 한 장씩 야위어 가는 것은?',a:'일력',d:['책','공책','신문'],e:'일력은 매일 한 장씩 뜯으니까.',c:'riddle',lv:2},
+  {id:'r020',q:'구멍이 많은데 물을 잘 잡는 것은?',a:'스펀지',d:['그물','체','빨대'],e:'스펀지 구멍에 물이 스며드니까.',c:'riddle',lv:1},
+  {id:'r021',q:'발이 넷인데 신발은 안 신고 앉으라고만 하는 것은?',a:'의자',d:['책상','침대','사다리'],e:'의자 다리는 넷이고 사람을 앉히니까.',c:'riddle',lv:1},
+  {id:'r022',q:'입은 없는데 부는 것은?',a:'바람',d:['파도','천둥','북'],e:'바람은 입도 없이 부니까.',c:'riddle',lv:2},
+  {id:'r023',q:'굴러다닐수록 살이 찌는 것은?',a:'눈덩이',d:['돌멩이','공','바퀴'],e:'눈덩이는 굴릴수록 커지니까.',c:'riddle',lv:1},
+  {id:'r024',q:'물은 있는데 마실 수 없고, 산은 있는데 오를 수 없는 것은?',a:'지도',d:['달력','시계','연필'],e:'지도에는 강과 산이 그려져 있으니까.',c:'riddle',lv:3},
+  {id:'r025',q:'귀 없이 듣고 입 없이 말하는 것은?',a:'전화기',d:['라디오','시계','거울'],e:'전화기는 목소리를 듣고 전해 주니까.',c:'riddle',lv:1},
+  {id:'r026',q:'다리가 셋인데 서 있기만 하는 것은?',a:'삼각대',d:['의자','사다리','책상'],e:'카메라 삼각대는 다리가 셋이니까.',c:'riddle',lv:1},
+  {id:'r027',q:'글자는 없는데 매일 읽히는 것은?',a:'표정',d:['신문','편지','간판'],e:'얼굴 표정을 「읽는다」고 하니까.',c:'riddle',lv:2},
+  {id:'r028',q:'손에 쥐고 있으면서 어디 갔냐고 찾는 것은?',a:'휴대폰',d:['지갑','열쇠','우산'],e:'통화하면서 휴대폰을 찾는 사람이 있으니까.',c:'riddle',lv:1},
+  {id:'r029',q:'하루 종일 두들겨 맞는데 화내지 않는 것은?',a:'키보드',d:['마우스','모니터','스피커'],e:'손가락으로 하루 종일 두드리니까.',c:'riddle',lv:1},
+  {id:'r030',q:'손가락으로 꾹 누르면 노래하는 것은?',a:'피아노',d:['기타','북','바이올린'],e:'건반을 누르면 소리가 나니까.',c:'riddle',lv:1},
+  {id:'r031',q:'입이 없는데 온종일 바람을 부는 것은?',a:'선풍기',d:['풍차','부채','연'],e:'선풍기 날개가 바람을 만드니까.',c:'riddle',lv:1},
+  {id:'r032',q:'발이 넷인데 뛰지 못하고, 낮에는 비고 밤에만 차는 것은?',a:'침대',d:['식탁','의자','책상'],e:'밤에 사람이 눕는 침대니까.',c:'riddle',lv:1},
+  {id:'r033',q:'매일 얼굴을 닦아 주는데 자기는 젖는 것은?',a:'수건',d:['비누','거울','세면대'],e:'수건으로 얼굴을 닦으니까.',c:'riddle',lv:1},
+  {id:'r034',q:'다리 없이 층을 오르내리는 것은?',a:'엘리베이터',d:['계단','사다리','난간'],e:'엘리베이터는 다리 없이 오르내리니까.',c:'riddle',lv:1},
+  {id:'r035',q:'몸속에 물을 가득 담고도 우는 것은?',a:'구름',d:['강','바다','우물'],e:'구름은 물을 품고 비가 되어 우니까.',c:'riddle',lv:2},
+  {id:'r036',q:'불을 켤수록 잘 안 보이는 것은?',a:'별',d:['달','구름','새'],e:'도시 불빛이 밝으면 별이 안 보이니까.',c:'riddle',lv:2},
+  {id:'r037',q:'밟을수록 좋아하는 것은?',a:'페달',d:['잔디','꽃','눈'],e:'페달은 밟아야 굴러가니까.',c:'riddle',lv:1},
+  {id:'r038',q:'돈은 없는데 매일 잔돈을 받는 것은?',a:'자판기',d:['냉장고','전자레인지','텔레비전'],e:'자판기에 동전을 넣으니까.',c:'riddle',lv:1},
+  {id:'r039',q:'몸은 하나 얼굴은 둘, 던지면 어느 쪽인지 모르는 것은?',a:'동전',d:['주사위','카드','공'],e:'동전은 앞면 뒷면이 있으니까.',c:'riddle',lv:1},
+  {id:'r040',q:'얼굴이 여섯인데 한 번에 하나만 보여주는 것은?',a:'주사위',d:['동전','시계','큐브'],e:'주사위는 여섯 면 중 하나가 위로 오니까.',c:'riddle',lv:1},
+  {id:'r041',q:'다리는 둘인데 걷지 못하고, 사람이 입으면 걷는 것은?',a:'바지',d:['양말','신발','장갑'],e:'바짓가랑이가 두 개니까.',c:'riddle',lv:1},
+  {id:'r042',q:'열 형제가 다섯씩 나뉘어 살며 매일 자판을 두드리는 것은?',a:'손가락',d:['발가락','젓가락','연필'],e:'손가락은 양손에 다섯씩이니까.',c:'riddle',lv:1},
+  {id:'r043',q:'매일 물을 마시지만 목이 마르지 않은 것은?',a:'화분',d:['컵','주전자','물병'],e:'화분 흙에 매일 물을 주니까.',c:'riddle',lv:1},
+  {id:'r044',q:'매일 아침 얼굴을 보여주는데 한 번도 말을 안 하는 것은?',a:'거울',d:['시계','창문','사진'],e:'거울은 얼굴을 비추지만 말이 없으니까.',c:'riddle',lv:1},
+  {id:'r045',q:'산에 소리치면 대답하는 것은?',a:'메아리',d:['천둥','바람','새소리'],e:'산에 소리치면 메아리로 돌아오니까.',c:'riddle',lv:1},
+  {id:'r046',q:'발도 없이 길을 안내하는 것은?',a:'이정표',d:['경찰','안내견','택시'],e:'이정표는 서서 길을 가리키니까.',c:'riddle',lv:1},
+  {id:'r047',q:'글은 없는데 편지처럼 마음을 전하는 것은?',a:'꽃다발',d:['엽서','편지','이메일'],e:'꽃다발은 말 없이 마음을 전하니까.',c:'riddle',lv:2},
+  {id:'r048',q:'따끈할 때는 반기고 식으면 아무도 안 보는 것은?',a:'뉴스',d:['신문지','편지','책'],e:'따끈한 소식은 좋아하고 식은 뉴스는 안 보니까.',c:'riddle',lv:2},
+  {id:'r049',q:'쓸수록 커지고 안 쓰면 사라지는 것은?',a:'근육',d:['안경','지우개','연필'],e:'근육은 쓸수록 붙고 안 쓰면 빠지니까.',c:'riddle',lv:2},
+  {id:'r050',q:'추운 날 입에서 나와 금방 사라지는 것은?',a:'입김',d:['한숨','노래','하품'],e:'입김은 찬 공기에 하얗게 보였다 사라지니까.',c:'riddle',lv:1},
+  {id:'r051',q:'돌면 돌수록 앞으로 가는 것은?',a:'바퀴',d:['시계','팽이','선풍기'],e:'바퀴가 돌면 차가 앞으로 가니까.',c:'riddle',lv:1},
+  {id:'r052',q:'온몸이 눈(目)인데 보지 못하는 것은?',a:'감자',d:['고구마','당근','무'],e:'감자의 움푹 파인 곳을 「눈」이라고 하니까.',c:'riddle',lv:3},
+  {id:'r053',q:'비가 올 때만 피고 해가 나면 지는 꽃은?',a:'우산',d:['무궁화','장미','해바라기'],e:'비가 오면 우산이 활짝 펴지니까.',c:'riddle',lv:1},
+  {id:'r054',q:'한 번 넣으면 주인도 못 꺼내는 통은?',a:'우체통',d:['쓰레기통','저금통','물통'],e:'편지는 집배원만 꺼낼 수 있으니까.',c:'riddle',lv:2},
+  {id:'r055',q:'매일 씻는데도 항상 더러워지는 것은?',a:'행주',d:['수건','비누','컵'],e:'행주는 닦을수록 더러워지니까.',c:'riddle',lv:1},
+  {id:'r056',q:'손 없이 글을 쓰고 발 없이 종이 위를 달리는 것은?',a:'프린터',d:['연필','컴퓨터','책'],e:'프린터는 종이에 글을 찍어 내니까.',c:'riddle',lv:2},
+  {id:'r057',q:'매일 밥을 먹여 주는데 자기는 안 먹는 것은?',a:'숟가락',d:['그릇','컵','냄비'],e:'숟가락으로 밥을 떠먹으니까.',c:'riddle',lv:1},
+  {id:'r058',q:'서로 부딪쳐야 소리가 나는데 아프다고 안 하는 것은?',a:'손뼉',d:['목소리','피리','휘파람'],e:'손뼉은 두 손을 부딪쳐야 나니까.',c:'riddle',lv:1},
+  {id:'r059',q:'머리에 뿔이 있는데 소가 아니고, 껍질을 지고 다니는 것은?',a:'달팽이',d:['거북이','소라','굼벵이'],e:'달팽이는 더듬이와 껍데기가 있으니까.',c:'riddle',lv:1},
+  {id:'r060',q:'등에 지붕을 지고 다니는 것은?',a:'거북이',d:['달팽이','개구리','두꺼비'],e:'거북이 등딱지가 지붕 같으니까.',c:'riddle',lv:1},
+  {id:'r061',q:'다리가 여덟인데 신발 가게가 싫어하는 것은?',a:'문어',d:['게','새우','불가사리'],e:'문어 다리 여덟에 신발을 다 신기려면 힘드니까.',c:'riddle',lv:3},
+  {id:'r062',q:'허리가 잘록한데 다이어트를 한 적이 없는 것은?',a:'모래시계',d:['개미','벌','기타'],e:'모래시계는 가운데가 잘록하니까.',c:'riddle',lv:2},
+  {id:'r063',q:'머리가 하얗게 셌는데 바람만 불면 날아가는 것은?',a:'민들레',d:['할머니','눈사람','솜사탕'],e:'민들레 홀씨는 하얗고 바람에 날리니까.',c:'riddle',lv:2},
+  {id:'r064',q:'아침마다 새로 태어나고 해가 뜨면 사라지는 것은?',a:'이슬',d:['별','달','구름'],e:'이슬은 아침에 맺혀 해가 뜨면 마르니까.',c:'riddle',lv:2},
+  {id:'r065',q:'긴 목으로 물을 따르는데 동물이 아닌 것은?',a:'주전자',d:['기린','타조','백조'],e:'주전자 주둥이가 긴 목 같으니까.',c:'riddle',lv:1},
+  {id:'r066',q:'매일 얼굴을 바꾸다 한 달에 한 번 사라지는 것은?',a:'달',d:['해','별','구름'],e:'달은 모양이 바뀌고 그믐엔 안 보이니까.',c:'riddle',lv:2},
+  {id:'r067',q:'빨간 옷을 입고 서 있다가 초록 옷으로 갈아입는 것은?',a:'신호등',d:['소방차','우체통','사과'],e:'신호등은 빨강에서 초록으로 바뀌니까.',c:'riddle',lv:1},
+  {id:'r068',q:'발이 없는데 온 세상을 여행하고 돌아오는 것은?',a:'우표',d:['지도','사진','엽서'],e:'우표는 편지에 붙어 어디든 가니까.',c:'riddle',lv:2},
+  {id:'r069',q:'흔들면 대답하고 가만두면 잠자는 것은?',a:'딸랑이',d:['북','피리','나팔'],e:'딸랑이는 흔들어야 소리가 나니까.',c:'riddle',lv:1},
+  {id:'r070',q:'구멍이 있어야 노래하는 것은?',a:'피리',d:['북','기타','트라이앵글'],e:'피리는 구멍을 막고 열어 소리를 내니까.',c:'riddle',lv:2},
+  {id:'r071',q:'매일 두들겨 맞을수록 뽀송해지는 것은?',a:'이불',d:['베개','커튼','옷'],e:'이불은 두드려 털어야 뽀송해지니까.',c:'riddle',lv:2},
+  {id:'r072',q:'네 다리로 서서 온종일 짐을 지고도 불평하지 않는 것은?',a:'책상',d:['의자','침대','소파'],e:'책상 위에 책과 물건을 올려 두니까.',c:'riddle',lv:1},
+  {id:'r073',q:'머리 없이 목만 있고 물을 담고 있는 것은?',a:'병',d:['컵','접시','냄비'],e:'병에는 병목이 있으니까.',c:'riddle',lv:2},
+  {id:'r074',q:'누르면 열리고 놓으면 닫히는데 문이 아닌 것은?',a:'집게',d:['지퍼','단추','자물쇠'],e:'집게는 누르면 벌어지고 놓으면 닫히니까.',c:'riddle',lv:2},
+  {id:'r075',q:'1+1이 1이 되는 것은?',a:'물방울',d:['사과','연필','동전'],e:'물방울 둘을 합치면 큰 하나가 되니까.',c:'riddle',lv:3},
+  {id:'r076',q:'비 오는 날 우산이 필요 없는 채소는?',a:'버섯',d:['배추','상추','부추'],e:'버섯은 갓을 쓰고 있으니까.',c:'riddle',lv:1},
+  {id:'r077',q:'앞에서는 열리고 뒤에서는 닫히는 것은?',a:'지퍼',d:['단추','끈','고리'],e:'지퍼는 슬라이더가 지나가며 열고 닫으니까.',c:'riddle',lv:2},
+  {id:'r078',q:'누우면 일하고 서면 쉬는 것은?',a:'빗자루',d:['우산','의자','사다리'],e:'빗자루는 눕혀서 쓸고 세워서 보관하니까.',c:'riddle',lv:2},
+  {id:'r079',q:'입으면 안 보이고 벗으면 보이는 것은?',a:'속옷',d:['모자','장갑','목도리'],e:'속옷은 겉옷 안에 입으니까.',c:'riddle',lv:1},
+  {id:'r080',q:'하루에 한 번씩 뜨고 지지만 날개가 없는 것은?',a:'해',d:['새','비행기','연'],e:'해는 아침에 뜨고 저녁에 지니까.',c:'riddle',lv:1},
+
+  /* ── situation 상황 추리 ── */
+  {id:'s001',q:'매일 길을 건너는데 좌우를 안 살펴도 늘 안전한 사람. 왜?',a:'육교로 건너서',d:['차가 없는 시골','눈이 좋아서','운이 좋아서'],e:'육교 위에는 차가 안 다니니까.',c:'situation',lv:2},
+  {id:'s002',q:'비 오는 날 우산도 모자도 없이 10분을 걸었는데 안 젖었다. 왜?',a:'지하상가를 걸어서',d:['빨리 뛰어서','비를 피해 다녀서','바람이 도와서'],e:'지하상가에는 비가 안 오니까.',c:'situation',lv:2},
+  {id:'s003',q:'의사가 「다시는 오지 마세요」라고 했는데 환자가 기뻐했다. 왜?',a:'완치돼서',d:['병원이 싫어서','진료가 무료라서','의사가 웃어서'],e:'다 나았으니 올 일이 없다는 뜻이니까.',c:'situation',lv:1},
+  {id:'s004',q:'수영장 가장 깊은 곳에 있는데 머리카락이 말라 있다. 왜?',a:'수영장에 물이 없어서',d:['수영모를 써서','잠수를 안 해서','머리가 짧아서'],e:'물을 뺀 빈 수영장이니까.',c:'situation',lv:2},
+  {id:'s005',q:'엄마가 매일 같은 책을 읽어 주는데 아이는 매일 다른 이야기를 듣는다. 왜?',a:'그림책이라서',d:['아이가 잠들어서','책이 두꺼워서','엄마가 잊어서'],e:'글자 없는 그림책이라 엄마가 매번 지어내니까.',c:'situation',lv:2},
+  {id:'s006',q:'치과에 간 사람은 이가 하나도 없는데 의사가 반겼다. 왜?',a:'틀니를 맞추러 가서',d:['치료할 게 없어서','진료비를 안 내서','친구라서'],e:'이가 없어도 틀니는 치과에서 만드니까.',c:'situation',lv:2},
+  {id:'s007',q:'어제 만난 사람을 오늘 처음 봤다. 어떻게?',a:'어제는 전화로만 만나서',d:['쌍둥이 형제를 봐서','기억을 잃어버려서','너무 어두운 곳이라서'],e:'전화 통화도 「만났다」고 하니까.',c:'situation',lv:2},
+  {id:'s008',q:'매일 같은 옷을 입는데 아무도 이상하게 보지 않는다. 왜?',a:'제복을 입는 직업이라서',d:['같은 옷이 100벌','집에만 있어서','투명 옷이라서'],e:'경찰·소방관처럼 제복은 매일 같으니까.',c:'situation',lv:1},
+  {id:'s009',q:'물에 빠졌는데 한 방울도 안 젖었다. 왜?',a:'물이 얼어 있어서',d:['잠수복을 입어서','빨리 나와서','비닐을 써서'],e:'얼음 위에 넘어진 거니까.',c:'situation',lv:2},
+  {id:'s010',q:'아무도 없는 집에 불이 켜져 있고 문은 잠겨 있다. 누가 켰을까?',a:'자동 타이머',d:['이웃 사람','바람','달빛'],e:'정해진 시간에 저절로 켜지는 타이머니까.',c:'situation',lv:2},
+  {id:'s011',q:'생일이 1년에 두 번인 사람이 있다. 어떻게?',a:'음력과 양력 생일',d:['쌍둥이라서','윤년생이라서','외국인이라서'],e:'음력 생일과 양력 생일을 따로 챙기니까.',c:'situation',lv:1},
+  {id:'s012',q:'책을 거꾸로 들고 읽는데 아무도 안 웃는다. 왜?',a:'물구나무 선 채 읽어서',d:['책이 뒤집혀 인쇄','거울 앞이라서','모두 자고 있어서'],e:'몸이 거꾸로면 책도 거꾸로 들어야 바로 보이니까.',c:'situation',lv:2},
+  {id:'s013',q:'시험지에 이름만 쓰고 100점을 받았다. 어떻게?',a:'이름 쓰기 시험이라서',d:['선생님이 부모라서','시험이 취소돼서','백지가 정답이라서'],e:'이름을 바르게 쓰는 시험이었으니까.',c:'situation',lv:1},
+  {id:'s014',q:'요리사가 소금을 안 넣는데 국이 짜다. 왜?',a:'바닷물로 끓여서',d:['간장을 넣어서','손이 짜서','설탕 대신 넣어서'],e:'바닷물엔 소금이 이미 들어 있으니까.',c:'situation',lv:2},
+  {id:'s015',q:'새 신발을 신고 하루 종일 걸었는데 발이 하나도 안 아프다. 비결은?',a:'손에 들고 다녀서',d:['사이즈가 커서','양말이 두꺼워서','천 신발이라서'],e:'신지 않고 들고 다녔으니까.',c:'situation',lv:2},
+  {id:'s016',q:'물구나무를 선 채로도 물을 마셨다. 어떻게?',a:'빨대로',d:['컵을 거꾸로','입을 크게 벌려서','물이 얼어서'],e:'빨대는 어떤 자세로도 빨 수 있으니까.',c:'situation',lv:1},
+  {id:'s017',q:'바다에서 먼 산속 오두막에 살면서 매일 신선한 생선을 먹는다. 어떻게?',a:'호수에서 잡아서',d:['택배로 받아서','통조림이라서','말려서 먹어서'],e:'산속 호수에도 물고기가 사니까.',c:'situation',lv:1},
+  {id:'s018',q:'농부가 씨를 뿌리지 않았는데 밭에 꽃이 가득 피었다. 왜?',a:'바람이 씨를 옮겨서',d:['이웃이 심어서','그림 밭이라서','조화라서'],e:'바람과 새가 씨앗을 옮기니까.',c:'situation',lv:1},
+  {id:'s019',q:'어부가 그물도 낚싯대도 없이 물고기를 잔뜩 얻었다. 어떻게?',a:'시장에서 사 와서',d:['맨손으로 잡아서','물을 퍼내서','물고기가 튀어서'],e:'어부도 시장에서 살 수 있으니까.',c:'situation',lv:1},
+  {id:'s020',q:'우산을 거꾸로 들고 다니는데 하나도 안 젖는다. 왜?',a:'비가 안 오는 날이라서',d:['거꾸로도 막혀서','모자를 써서','우산이 커서'],e:'비가 안 오면 우산이 어떻든 상관없으니까.',c:'situation',lv:2},
+  {id:'s021',q:'요리사가 매일 같은 요리만 만드는데 손님들은 늘 처음이라고 한다. 왜?',a:'손님이 매일 바뀌어서',d:['요리 이름을 바꿔서','접시를 바꿔서','조명을 바꿔서'],e:'요리는 같아도 손님은 매일 새로 오니까.',c:'situation',lv:1},
+  {id:'s022',q:'매일 남의 집에 들어가는데 환영받는 사람은?',a:'집배원',d:['도둑','이웃','친구'],e:'집배원은 편지를 가져다주니까.',c:'situation',lv:1},
+  {id:'s023',q:'매일 0점을 받고도 기뻐하는 사람은?',a:'골키퍼',d:['수학 선생님','심판','관중'],e:'골키퍼는 0점(무실점)이 최고니까.',c:'situation',lv:2},
+  {id:'s024',q:'경찰이 도망가는 사람을 잡고도 웃으며 놓아 줬다. 왜?',a:'술래잡기 놀이라서',d:['증거가 없어서','친구라서','퇴근 시간이라서'],e:'놀이에서는 잡으면 끝이니까.',c:'situation',lv:2},
+  {id:'s025',q:'「은행」 앞에 매일 서 있는데 돈을 못 찾는다. 왜?',a:'은행나무라서',d:['휴일이라서','돈이 없어서','줄이 길어서'],e:'은행나무 은행은 돈이 없으니까.',c:'situation',lv:3},
+  {id:'s026',q:'매일 바지 다리를 자르는데 손님이 고마워한다. 누구?',a:'옷 수선사',d:['의사','이발사','목수'],e:'긴 바지 밑단을 잘라 주니까.',c:'situation',lv:1},
+  {id:'s027',q:'매일 사람들 머리를 자르는데 경찰이 안 잡는다. 누구?',a:'미용사',d:['경찰','의사','요리사'],e:'머리카락을 자르는 미용사니까.',c:'situation',lv:1},
+  {id:'s028',q:'하루에 100번씩 넘어지는데 다치지 않는 사람은?',a:'유도 선수',d:['곡예사','아기','축구 선수'],e:'낙법 연습으로 안전하게 넘어지니까.',c:'situation',lv:2},
+  {id:'s029',q:'한밤중 불이 다 꺼졌는데 아이는 책을 계속 읽었다. 어떻게?',a:'점자책이라서',d:['눈이 좋아서','외워서','달빛으로'],e:'점자는 손으로 읽으니까.',c:'situation',lv:2},
+  {id:'s030',q:'달리기에서 꼴찌를 했는데 1등 상을 받았다. 왜?',a:'느리게 달리기 대회',d:['심판이 실수해서','1등이 실격돼서','참가상이라서'],e:'가장 느린 사람이 이기는 대회니까.',c:'situation',lv:1},
+  {id:'s031',q:'창문이 하나도 없는데 낮이면 늘 밝은 집은?',a:'천장이 유리인 집',d:['전등을 켜서','벽이 흰색이라서','촛불이 많아서'],e:'천장으로 햇빛이 들어오니까.',c:'situation',lv:2},
+  {id:'s032',q:'물건을 사지도 팔지도 않는데 매일 「시장」에 가는 사람은?',a:'시장(市長)',d:['손님','상인','경비원'],e:'시청에서 일하는 시장(市長)도 시장이니까.',c:'situation',lv:3},
+  {id:'s033',q:'택배 기사가 상자를 열지도 않고 안에 뭐가 있는지 안다. 어떻게?',a:'송장에 적혀 있어서',d:['흔들어 봐서','냄새를 맡아서','무게로 알아서'],e:'상자 겉 송장에 품목이 적혀 있으니까.',c:'situation',lv:1},
+  {id:'s034',q:'엘리베이터에 층 버튼이 하나뿐이다. 왜?',a:'2층 건물이라서',d:['고장 나서','1층만 있어서','비밀 엘리베이터'],e:'1층과 2층뿐이면 버튼 하나로 오르내리니까.',c:'situation',lv:2},
+  {id:'s035',q:'기차를 탔는데 창밖 풍경이 안 움직인다. 왜?',a:'기차 카페라서',d:['밤이라서','창문이 그림이라서','너무 빨라서'],e:'멈춘 기차를 카페로 꾸민 곳이니까.',c:'situation',lv:2},
+  {id:'s036',q:'매일 학교에 가는데 학생도 선생님도 아닌 사람은?',a:'학교 경비원',d:['학부모','졸업생','동창'],e:'경비원도 매일 학교에 출근하니까.',c:'situation',lv:1},
+  {id:'s037',q:'차가 고장 나서 걸어왔는데 차보다 먼저 집에 도착했다. 왜?',a:'집이 바로 옆이라서',d:['전속력으로 뛰어서','택시가 밀려서','지름길로 가서'],e:'집이 코앞이면 걷는 게 더 빠르니까.',c:'situation',lv:1},
+  {id:'s038',q:'공원에 벤치가 100개인데 앉을 곳이 없다. 왜?',a:'페인트가 안 말라서',d:['사람이 많아서','벤치가 작아서','공원이 닫혀서'],e:'갓 칠한 벤치엔 앉을 수 없으니까.',c:'situation',lv:2},
+  {id:'s039',q:'매일 수영장에 가는데 수영을 못 하는 사람은?',a:'수영장 청소부',d:['구경꾼','코치','선수'],e:'청소부는 수영 대신 청소를 하니까.',c:'situation',lv:1},
+  {id:'s040',q:'빵집 주인이 빵을 하나도 안 파는데 장사가 잘된다. 왜?',a:'빵 만들기 교실이라서',d:['커피만 팔아서','세일을 해서','위치가 좋아서'],e:'빵 대신 빵 만드는 법을 파니까.',c:'situation',lv:2},
+  {id:'s041',q:'새 신발을 사서 바로 버렸다. 왜?',a:'양쪽 다 왼쪽이라서',d:['색이 마음에 안 들어서','너무 커서','값이 너무 비싸서'],e:'왼쪽 신발 두 짝은 신을 수 없으니까.',c:'situation',lv:1},
+  {id:'s042',q:'책을 100권 읽었는데 글자를 하나도 안 봤다. 어떻게?',a:'오디오북으로 들어서',d:['빨리 읽어서','외국어라서','도서관에서'],e:'귀로 듣는 책이니까.',c:'situation',lv:2},
+  {id:'s043',q:'시험지를 받자마자 학생들이 모두 웃었다. 왜?',a:'넌센스 퀴즈라서',d:['문제가 없어서','선생님 그림 때문에','시험이 취소돼서'],e:'넌센스 문제는 읽기만 해도 웃기니까.',c:'situation',lv:1},
+  {id:'s044',q:'어른 생일 케이크에 촛불이 하나뿐이다. 왜?',a:'숫자 모양 초라서',d:['초를 아껴서','한 살 생일이라서','촛불이 커서'],e:'「40」처럼 숫자 초는 하나로 나이를 보여 주니까.',c:'situation',lv:2},
+  {id:'s045',q:'한 번도 결석을 안 했는데 개근상을 못 받았다. 왜?',a:'지각을 많이 해서',d:['상장이 떨어져서','전학을 가서','선생님이 잊어서'],e:'개근상은 지각·조퇴도 없어야 받으니까.',c:'situation',lv:1},
+  {id:'s046',q:'겨울인데 반팔을 입고 땀을 흘린다. 어디?',a:'남반구 나라',d:['눈 오는 산','얼음 위','북극'],e:'남반구는 우리와 계절이 반대니까.',c:'situation',lv:2},
+  {id:'s047',q:'집배원이 주소를 안 보고도 편지를 정확히 배달했다. 어떻게?',a:'집이 한 채뿐인 섬',d:['글을 몰라서','너무 급해서','봉투가 젖어서'],e:'집이 하나면 볼 필요가 없으니까.',c:'situation',lv:2},
+  {id:'s048',q:'교실에서 모두 손을 들었는데 질문은 하나도 없다. 왜?',a:'체조 시간이라서',d:['정답을 알아서','화장실 가려고','선생님이 무서워서'],e:'팔 올리기 체조를 하고 있으니까.',c:'situation',lv:1},
+  {id:'s049',q:'매일 신문 100부를 손에 쥐고도 한 줄도 안 읽는 사람은?',a:'신문 배달원',d:['기자','편집장','독자'],e:'배달원은 나눠 주기 바쁘니까.',c:'situation',lv:1},
+  {id:'s050',q:'배 없이 바다 한가운데서 낚시를 한다. 어떻게?',a:'바다 위 다리에서',d:['헤엄치면서','잠수해서','꿈에서'],e:'바다를 가로지르는 다리 위에서 낚시하니까.',c:'situation',lv:2},
+  {id:'s051',q:'매일 남의 차를 타고 다니는데 요금을 안 내는 사람은?',a:'택시 기사',d:['손님','경찰','정비사'],e:'회사 택시를 몰지만 요금은 손님이 내니까.',c:'situation',lv:2},
+  {id:'s052',q:'동물원에 갔는데 동물이 한 마리도 없다. 그런데 모두 만족했다. 왜?',a:'식물원이었다',d:['동물이 자고 있어서','야간 개장이라서','입장료가 무료라서'],e:'식물원에는 원래 동물이 없으니까.',c:'situation',lv:1},
+  {id:'s053',q:'시계를 보지 않고도 점심시간을 정확히 아는 아이. 비결은?',a:'배꼽시계',d:['해를 보고','친구에게 물어서','그림자로'],e:'배가 고프면 점심시간이니까.',c:'situation',lv:1},
+  {id:'s054',q:'농부가 밭에 물을 안 주는데 채소가 잘 자란다. 왜?',a:'비가 자주 와서',d:['채소가 조화라서','땅이 좋아서','밤에 몰래 줘서'],e:'비가 물을 대신 주니까.',c:'situation',lv:1},
+  {id:'s055',q:'매일 20층까지 올라가는데 하나도 힘들지 않다. 왜?',a:'에스컬레이터를 타서',d:['다리가 튼튼해서','천천히 가서','짐이 없어서'],e:'서 있기만 하면 올라가니까.',c:'situation',lv:1},
+  {id:'s056',q:'선생님이 칠판에 아무것도 안 썼는데 학생들이 열심히 적는다. 왜?',a:'받아쓰기 시간이라서',d:['그림 그리기라서','자습 시간이라서','시험 시간이라서'],e:'선생님이 불러 주는 말을 받아 적으니까.',c:'situation',lv:1},
+  {id:'s057',q:'친구와 매일 만나는데 한 번도 얼굴을 못 봤다. 왜?',a:'온라인 친구라서',d:['안경을 안 써서','밤에만 만나서','마스크 때문에'],e:'게임이나 채팅으로만 만나니까.',c:'situation',lv:1},
+  {id:'s058',q:'매일 물고기를 잡아서 다시 놓아주는 사람은?',a:'수족관 관리사',d:['요리사','어부','생선 장수'],e:'수족관 청소 때 물고기를 옮겼다 다시 넣으니까.',c:'situation',lv:2},
+  {id:'s059',q:'글씨를 거꾸로 새겨야 제대로 읽히게 만드는 사람은?',a:'도장 만드는 사람',d:['시를 쓰는 사람','기사를 쓰는 사람','붓글씨 쓰는 사람'],e:'도장은 찍으면 좌우가 뒤집히니까.',c:'situation',lv:2},
+  {id:'s060',q:'매일 남의 집 벽을 뚫는데 아무도 신고하지 않는 사람은?',a:'인테리어 기사',d:['도둑','마술사','화가'],e:'공사를 하려면 벽을 뚫어야 하니까.',c:'situation',lv:1},
+  {id:'s061',q:'어린이가 버스를 탔는데 요금을 안 냈다. 왜?',a:'만 6세 미만이라서',d:['몰래 타서','기사가 아빠라서','카드가 없어서'],e:'만 6세 미만 어린이는 버스가 무료니까.',c:'situation',lv:1},
+  {id:'s062',q:'달력을 봤더니 오늘이 어제였다. 왜?',a:'달력을 안 넘겨서',d:['시차 때문에','꿈이라서','달력이 고장 나서'],e:'날짜를 안 넘기면 어제 날짜가 보이니까.',c:'situation',lv:1},
+  {id:'s063',q:'약속 시간에 정확히 왔는데 상대가 30분 기다렸다고 한다. 왜?',a:'상대가 일찍 와서',d:['시계가 늦어서','길이 막혀서','시차 때문에'],e:'상대가 30분 먼저 도착했으니까.',c:'situation',lv:1},
+  {id:'s064',q:'자기 나이를 절대 말하지 않는데 모두가 안다. 왜?',a:'쌍둥이 동생이 말해서',d:['이마에 적어서','목소리로 알아서','키로 알아서'],e:'쌍둥이는 나이가 같으니까.',c:'situation',lv:2},
+  {id:'s065',q:'비행기 창밖으로 손을 흔들었는데 밖의 친구가 봤다. 어떻게?',a:'땅에 서 있는 비행기',d:['망원경으로','하늘이 맑아서','친구도 비행기에'],e:'아직 이륙 전이면 밖에서 보이니까.',c:'situation',lv:1},
+  {id:'s066',q:'종을 100번 쳤는데 소리가 한 번도 안 났다. 왜?',a:'종이(紙)로 만든 종',d:['귀를 막아서','종이 커서','한밤중이라서'],e:'종이 종은 소리가 안 나니까.',c:'situation',lv:3},
+
+  /* ── common 상식 비틀기·속담 ── */
+  {id:'c001',q:'닭과 달걀 중 국어사전에서 먼저 나오는 것은?',a:'달걀',d:['닭','둘 다 같이','사전에 없다'],e:'받침 ㄹ(달)이 ㄺ(닭)보다 앞이라 달걀이 먼저.',c:'common',lv:3},
+  {id:'c002',q:'ㄱ으로 시작하는 요일은?',a:'금요일',d:['목요일','토요일','일요일'],e:'월화수목금토일 중 ㄱ은 금요일뿐이니까.',c:'common',lv:1},
+  {id:'c003',q:'이름에 물이 들어 있는 요일은?',a:'수요일',d:['월요일','목요일','화요일'],e:'수요일의 수는 물 수(水)니까.',c:'common',lv:1},
+  {id:'c004',q:'달력에 없는 날은?',a:'2월 30일',d:['1월 31일','4월 30일','12월 31일'],e:'2월은 29일까지만 있으니까.',c:'common',lv:1},
+  {id:'c005',q:'물구나무를 서도 똑같이 보이는 자음은?',a:'ㅍ',d:['ㄱ','ㄴ','ㅎ'],e:'ㅍ은 뒤집어도 같은 모양이니까.',c:'common',lv:3},
+  {id:'c006',q:'「어제」엔 없고 「오늘」엔 하나, 「내일 모레」엔 둘 있는 것은?',a:'자음 ㄹ',d:['자음 ㄴ','자음 ㅇ','모음 ㅗ'],e:'오늘(ㄹ 1개), 내일+모레(ㄹ 2개), 어제(0개).',c:'common',lv:3},
+  {id:'c007',q:'양파를 썰면 누가 울까?',a:'써는 사람',d:['양파','도마','칼'],e:'양파는 울지 않고 써는 사람이 눈물 흘리니까.',c:'common',lv:1},
+  {id:'c008',q:'가위가 절대 이길 수 없는 상대는?',a:'바위',d:['보','종이','풀'],e:'가위바위보에서 바위가 가위를 이기니까.',c:'common',lv:1},
+  {id:'c009',q:'고래가 싸우면 다치는 것은?',a:'새우 등',d:['고래 등','상어 등','오징어 등'],e:'「고래 싸움에 새우 등 터진다」니까.',c:'common',lv:1},
+  {id:'c010',q:'시험에 떨어진 날 먹는 국은?',a:'미역국',d:['된장국','콩나물국','북엇국'],e:'시험에 떨어지는 걸 「미역국 먹었다」고 하니까.',c:'common',lv:1},
+  {id:'c011',q:'먹으면 나이를 한 살 먹는 국은?',a:'떡국',d:['미역국','김칫국','만둣국'],e:'설날 떡국 한 그릇에 한 살 먹는다고 하니까.',c:'common',lv:1},
+  {id:'c012',q:'티끌을 모으면 되는 것은?',a:'태산',d:['먼지','언덕','구름'],e:'「티끌 모아 태산」이니까.',c:'common',lv:1},
+  {id:'c013',q:'오리알이 유명한 강은?',a:'낙동강',d:['한강','금강','섬진강'],e:'「낙동강 오리알」이라는 말이 있으니까.',c:'common',lv:2},
+  {id:'c014',q:'발도 없이 천 리를 가는 것은?',a:'말(소문)',d:['편지','바람','새'],e:'「발 없는 말이 천 리 간다」니까.',c:'common',lv:1},
+  {id:'c015',q:'「국수 언제 먹여 줄래?」는 무슨 뜻?',a:'결혼 언제 해?',d:['밥 언제 사?','잔치 언제 가?','생일 언제야?'],e:'결혼식에 국수를 대접해서 생긴 말이니까.',c:'common',lv:2},
+  {id:'c016',q:'시험 보는 날 교문에 붙이는 것은?',a:'엿',d:['떡','밥','죽'],e:'시험에 「붙으라」고 엿을 붙이니까.',c:'common',lv:1},
+  {id:'c017',q:'신나서 펄펄 뛰는 물고기는?',a:'물 만난 고기',d:['물 빠진 고기','물 끓인 고기','물 튀긴 고기'],e:'신났을 때 「물 만난 고기」라고 하니까.',c:'common',lv:2},
+  {id:'c018',q:'숫자 8을 가로로 반 자르면?',a:'0 두 개',d:['3 두 개','4 두 개','1 두 개'],e:'8을 가로로 자르면 동그라미 둘이니까.',c:'common',lv:2},
+  {id:'c019',q:'월요일에 태어난 아기의 첫돌은 보통 무슨 요일?',a:'화요일',d:['월요일','일요일','수요일'],e:'1년은 52주+1일이라 하루 밀리니까(윤년 제외).',c:'common',lv:3},
+  {id:'c020',q:'세 살 버릇은 몇 살까지 갈까?',a:'여든',d:['서른','예순','백'],e:'「세 살 버릇 여든까지 간다」니까.',c:'common',lv:1},
+  {id:'c021',q:'열 번 찍으면 넘어가는 것은?',a:'나무',d:['바위','산','벽'],e:'「열 번 찍어 안 넘어가는 나무 없다」니까.',c:'common',lv:1},
+  {id:'c022',q:'등잔 밑은 어떨까?',a:'어둡다',d:['밝다','뜨겁다','환하다'],e:'「등잔 밑이 어둡다」니까.',c:'common',lv:1},
+  {id:'c023',q:'우물 안에 사는 동물은?',a:'개구리',d:['두꺼비','올챙이','붕어'],e:'「우물 안 개구리」니까.',c:'common',lv:1},
+  {id:'c024',q:'「식은 죽 먹기」는 무슨 뜻?',a:'아주 쉬운 일',d:['아주 어려운 일','맛없는 일','급한 일'],e:'식은 죽은 후후 불 것도 없이 쉬우니까.',c:'common',lv:1},
+  {id:'c025',q:'하늘의 별은 무엇이 어렵다고 할까?',a:'따기',d:['세기','보기','그리기'],e:'「하늘의 별 따기」니까.',c:'common',lv:1},
+  {id:'c026',q:'개천에서 나는 것은?',a:'용',d:['뱀','붕어','미꾸라지'],e:'「개천에서 용 난다」니까.',c:'common',lv:1},
+  {id:'c027',q:'서당 개 삼 년이면 무엇을 읊을까?',a:'풍월',d:['시조','천자문','구구단'],e:'「서당 개 삼 년에 풍월을 읊는다」니까.',c:'common',lv:2},
+  {id:'c028',q:'원숭이도 나무에서 어떻게 될까?',a:'떨어진다',d:['미끄러진다','잠든다','논다'],e:'「원숭이도 나무에서 떨어진다」니까.',c:'common',lv:1},
+  {id:'c029',q:'돌다리도 어떻게 하고 건널까?',a:'두들겨 보고',d:['뛰어 보고','재어 보고','닦아 보고'],e:'「돌다리도 두들겨 보고 건너라」니까.',c:'common',lv:1},
+  {id:'c030',q:'가는 말이 고와야 오는 말은?',a:'곱다',d:['빠르다','많다','길다'],e:'「가는 말이 고와야 오는 말이 곱다」니까.',c:'common',lv:1},
+  {id:'c031',q:'낮말은 새가 듣고 밤말은 누가 들을까?',a:'쥐',d:['고양이','개','박쥐'],e:'「낮말은 새가 듣고 밤말은 쥐가 듣는다」니까.',c:'common',lv:1},
+  {id:'c032',q:'소를 잃고 고치는 것은?',a:'외양간',d:['대문','울타리','지붕'],e:'「소 잃고 외양간 고친다」니까.',c:'common',lv:1},
+  {id:'c033',q:'금강산도 무엇 다음에 볼까?',a:'식후경',d:['취침 후','등산 후','세수 후'],e:'「금강산도 식후경」이니까.',c:'common',lv:1},
+  {id:'c034',q:'배보다 큰 것은?',a:'배꼽',d:['등','가슴','허리'],e:'「배보다 배꼽이 크다」니까.',c:'common',lv:1},
+  {id:'c035',q:'누워서 먹는 것은?',a:'떡',d:['죽','밥','국'],e:'「누워서 떡 먹기」니까.',c:'common',lv:1},
+  {id:'c036',q:'꿩 대신 무엇?',a:'닭',d:['오리','거위','참새'],e:'「꿩 대신 닭」이니까.',c:'common',lv:1},
+  {id:'c037',q:'호랑이도 제 말 하면 어떻게 될까?',a:'온다',d:['운다','간다','웃는다'],e:'「호랑이도 제 말 하면 온다」니까.',c:'common',lv:1},
+  {id:'c038',q:'말 한마디에 갚는 빚은?',a:'천 냥 빚',d:['백 냥 빚','만 냥 빚','열 냥 빚'],e:'「말 한마디에 천 냥 빚 갚는다」니까.',c:'common',lv:1},
+  {id:'c039',q:'사공이 많으면 배가 어디로 갈까?',a:'산으로',d:['바다로','강으로','하늘로'],e:'「사공이 많으면 배가 산으로 간다」니까.',c:'common',lv:1},
+  {id:'c040',q:'싼 게 무엇?',a:'비지떡',d:['꿀떡','인절미','시루떡'],e:'「싼 게 비지떡」이니까.',c:'common',lv:1},
+  {id:'c041',q:'번갯불에 무엇을 볶아 먹을까?',a:'콩',d:['팥','깨','쌀'],e:'「번갯불에 콩 볶아 먹는다」니까.',c:'common',lv:1},
+  {id:'c042',q:'구슬이 서 말이라도 무엇을 해야 보배일까?',a:'꿰어야',d:['닦아야','세어야','숨겨야'],e:'「구슬이 서 말이라도 꿰어야 보배」니까.',c:'common',lv:1},
+  {id:'c043',q:'고양이 목에 무엇을 달까?',a:'방울',d:['리본','목걸이','종이'],e:'「고양이 목에 방울 달기」니까.',c:'common',lv:1},
+  {id:'c044',q:'바늘 도둑이 자라면 무슨 도둑?',a:'소도둑',d:['말도둑','돈도둑','책도둑'],e:'「바늘 도둑이 소도둑 된다」니까.',c:'common',lv:1},
+  {id:'c045',q:'하룻강아지는 무엇 무서운 줄 모를까?',a:'범',d:['사자','곰','늑대'],e:'「하룻강아지 범 무서운 줄 모른다」니까.',c:'common',lv:1},
+  {id:'c046',q:'벼는 익을수록 어떻게 될까?',a:'고개를 숙인다',d:['키가 자란다','색이 변한다','살이 찐다'],e:'「벼는 익을수록 고개를 숙인다」니까.',c:'common',lv:1},
+  {id:'c047',q:'180도 돌려도 똑같이 보이는 글자는?',a:'응',d:['옹','웅','앙'],e:'ㅇ+ㅡ+ㅇ은 위아래가 대칭이니까.',c:'common',lv:3},
+  {id:'c048',q:'뒤집으면 더 커지는 숫자는?',a:'6',d:['8','0','3'],e:'6을 뒤집으면 9가 되니까.',c:'common',lv:1},
+  {id:'c049',q:'한 시간이 60분보다 짧게 느껴질 때는?',a:'재미있게 놀 때',d:['잠잘 때','줄 설 때','기다릴 때'],e:'즐거우면 시간이 빨리 가니까.',c:'common',lv:2},
+  {id:'c050',q:'동전을 던져 앞면이 세 번 나왔다. 다음은?',a:'반반',d:['앞면이 유리','뒷면이 유리','앞면 확정'],e:'동전은 지난 결과를 기억하지 못하니까.',c:'common',lv:2},
+  {id:'c051',q:'1년 중 낮이 가장 긴 날은?',a:'하지',d:['동지','추석','설날'],e:'하지는 낮이 가장 긴 날이니까.',c:'common',lv:1},
+  {id:'c052',q:'12시가 하루에 몇 번 있을까?',a:'두 번',d:['한 번','세 번','네 번'],e:'낮 12시와 밤 12시가 있으니까.',c:'common',lv:1},
+  {id:'c053',q:'솜 1kg과 쇠 1kg 중 무거운 것은?',a:'같다',d:['솜','쇠','재 봐야 안다'],e:'둘 다 1kg이니까.',c:'common',lv:1},
+  {id:'c054',q:'1년 중 28일이 있는 달은 몇 개?',a:'12개',d:['1개','2개','4개'],e:'모든 달에 28일은 있으니까.',c:'common',lv:2},
+  {id:'c055',q:'하루에 세 번 먹는데 살이 안 찌는 것은?',a:'약',d:['밥','빵','떡볶이'],e:'약은 하루 세 번 먹어도 살이 안 찌니까.',c:'common',lv:2},
+  {id:'c056',q:'세상에서 가장 빠른 새는?',a:'눈 깜짝할 새',d:['제비','매','참새'],e:'「눈 깜짝할 새」가 가장 빠르니까.',c:'common',lv:2},
+  {id:'c057',q:'아무리 배불러도 또 먹을 수 있는 것은?',a:'나이',d:['밥','빵','떡'],e:'나이는 배불러도 한 살씩 먹으니까.',c:'common',lv:1},
+  {id:'c058',q:'문제를 가장 잘 푸는 사람은?',a:'문제아',d:['모범생','선생님','학생'],e:'「문제」아니까 문제를 잘 풀겠지.',c:'common',lv:2},
+  {id:'c059',q:'「하나」에 「하나」를 더하면 몇 글자?',a:'네 글자',d:['두 글자','한 글자','세 글자'],e:'하나+하나=하나하나, 네 글자니까.',c:'common',lv:2},
+  {id:'c060',q:'개는 몇 마리 모여야 짖을까?',a:'한 마리',d:['두 마리','세 마리','열 마리'],e:'개는 혼자서도 짖으니까.',c:'common',lv:1},
+  {id:'c061',q:'하루 종일 걸어도 다리가 안 아픈 것은?',a:'시곗바늘',d:['사람','강아지','로봇'],e:'시곗바늘은 하루 종일 걸어도 안 아프니까.',c:'common',lv:2},
+  {id:'c062',q:'물에 넣으면 사라지는 것은?',a:'소금',d:['돌','모래','구슬'],e:'소금은 물에 녹아 사라지니까.',c:'common',lv:1},
+];
+
+/* ======================= 은행 색인 · 출제(순수 함수) ======================= */
+const BANK_BY_ID = new Map(BANK.map((it, i) => [it.id, i]));
+function shuffle(arr, rng){ for (let i = arr.length - 1; i > 0; i--){ const j = Math.floor(rng() * (i + 1)); const t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
+/* ORDER — 블록마다 고정 seed 로 셔플한 BANK 인덱스 배열. 블록 경계가 곧 「신규 append」 규칙이다. */
+function buildOrder(){
+  const out = []; let start = 0;
+  for (let b = 0; b < ORDER_BLOCKS.length; b++){
+    const end = Math.min(BANK.length, start + ORDER_BLOCKS[b]);
+    const idx = []; for (let i = start; i < end; i++) idx.push(i);
+    shuffle(idx, mulberry32(hashStr(ORDER_SEED + '#' + b)));
+    for (const i of idx) out.push(i);
+    start = end;
+  }
+  for (let i = start; i < BANK.length; i++) out.push(i);   /* 블록에 안 적힌 꼬리는 원순서로(적는 것을 잊었어도 결정론) */
+  return out;
+}
+const ORDER = buildOrder();
+const CYCLE = Math.floor(ORDER.length / N_Q) * N_Q;        /* 비반복 창 = CYCLE/10 일 */
+/* 일일 문제 10개 — dayNo*10 부터 ORDER 위 연속 10칸(CYCLE 로 순환). 순수 함수. */
+function dailyIndices(no){ const s = ((no * N_Q) % CYCLE + CYCLE) % CYCLE; return ORDER.slice(s, s + N_Q); }
+/* 자유 모드 10개 — 최근 본 id(seen)를 뺀 풀에서 rng 로 뽑는다. 풀이 모자라면 전체에서. 순수 함수. */
+function freeIndices(rng, seen){
+  const avoid = new Set(seen || []);
+  let pool = []; for (let i = 0; i < BANK.length; i++) if (!avoid.has(BANK[i].id)) pool.push(i);
+  if (pool.length < N_Q){ pool = []; for (let i = 0; i < BANK.length; i++) pool.push(i); }
+  shuffle(pool, rng);
+  return pool.slice(0, N_Q);
+}
+/* 보기 순서 — 정답 1 + 오답 3 을 rng 로 섞는다. perm[k] = 원래 자리(0=정답, 1..3=오답). 순수 함수. */
+function makePerm(rng){ return shuffle([0, 1, 2, 3], rng); }
+function buildQuestion(idx, perm){
+  const it = BANK[idx];
+  const src = [it.a, it.d[0], it.d[1], it.d[2]];
+  return { id: it.id, q: it.q, e: it.e, c: it.c, lv: it.lv, a: it.a, perm: perm.slice(),
+           opts: perm.map(p => ({ t: src[p], ok: p === 0 })), ansIdx: perm.indexOf(0) };
+}
+/* ★이 함수만이 quizRng 를 당긴다 — 뽑는 개수·순서가 곧 일일 도전의 계약이다.
+   일일: 문제는 ORDER 로 정해지고 rng 는 보기 순서 10번만 · 자유: 문제 추첨 + 보기 순서. */
+function makeRound(mode, rng, no, seen){
+  const idxs = (mode === 'daily') ? dailyIndices(no) : freeIndices(rng, seen);
+  return idxs.map(i => buildQuestion(i, makePerm(rng)));
+}
+const roundKey = qs => qs.map(q => q.id + ':' + q.perm.join('')).join(',');
+const marksOf = oks => oks.map(o => o ? '🟩' : '🟥').join('');
+const fmtTime = s => `${Math.floor(s/60)}:${pad2(s%60)}`;
+
+/* ======================= 상태 ======================= */
+let mode = 'free', running = false, over = false, paused = false;
+/* ★난수는 두 갈래로 완전히 갈라 둔다. ①quizRng — 문제 추첨·보기 순서(makeRound 안에서만). 일일은 날짜 seed 고정.
+   ②fxRng — 연출·자유 모드 seed 추첨. 항상 Math.random. 연출에서 quizRng 를 당기면 '같은 날짜 = 같은 문제' 가 무너진다. */
+const fxRng = Math.random;
+let seedKeyNow = '', runDay = '', runNo = 0;
+let questions = [], results = [], qi = 0, phase = 'idle';   /* idle | ask | reveal */
+let revealT = 0, elapsed = 0, sinceSave = 0, lastShownSec = -1;
+let best = +localStorage.getItem('nq.best') || 0;
+let lastResult = null;
+/* 판 기록 — '같은 날짜면 같은 문제·같은 보기 순서' 를 기계가 대조하게 남긴다(연출은 안 남긴다). 상한 LOG_MAX. */
+const roundLog = [];
+let rafId = 0, prevTs = 0;
+let timers = [];
+
+/* ======================= 최근 본 문제(nq.seen · 자유 모드 회피) ======================= */
+function loadSeen(){ try{ const s = JSON.parse(localStorage.getItem('nq.seen')||'[]'); return Array.isArray(s) ? s.filter(x => typeof x === 'string') : []; }catch(_){ return []; } }
+function pushSeen(ids){ const s = loadSeen().filter(x => !ids.includes(x)).concat(ids); localStorage.setItem('nq.seen', JSON.stringify(s.slice(-SEEN_MAX))); }
+
+/* ======================= 진행 저장(nq.progress · 일일 1슬롯) ======================= */
+function loadProgress(){ try{ const p = JSON.parse(localStorage.getItem('nq.progress')||'null'); return (p && typeof p === 'object') ? p : null; }catch(_){ return null; } }
+function snapshot(){
+  return { v:1, mode, runDay, runNo, seedKey: seedKeyNow, ids: questions.map(q => q.id), perms: questions.map(q => q.perm.join('')),
+           results: results.map(r => ({ id: r.id, pick: r.pick, ok: r.ok })), elapsed: Math.round(elapsed), savedAt: Date.now() };
+}
+function saveProgress(){
+  if (!running || mode !== 'daily') return false;
+  localStorage.setItem('nq.progress', JSON.stringify(snapshot())); sinceSave = 0; return true;
+}
+function clearProgress(){ localStorage.removeItem('nq.progress'); }
+/* 저장본이 온전한가 — 형식·id 실재·보기 순서·정오 정합이 어긋나면 버린다(손상 저장본으로 판을 열지 않는다).
+   ★오늘 것만 잇는다: 날짜가 지난 저장본은 그날 문제가 이미 닫혔으므로 버린다. */
+function validSlot(s){
+  if (!s || typeof s !== 'object' || s.v !== 1 || s.mode !== 'daily') return false;
+  if (!(typeof s.runDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.runDay)) || s.runDay !== dayKey()) return false;
+  if (!Array.isArray(s.ids) || s.ids.length !== N_Q || !s.ids.every(id => BANK_BY_ID.has(id))) return false;
+  if (!Array.isArray(s.perms) || s.perms.length !== N_Q || !s.perms.every(p => /^[0-3]{4}$/.test(p) && new Set(p).size === 4)) return false;
+  if (!Array.isArray(s.results) || s.results.length > N_Q) return false;
+  for (let i = 0; i < s.results.length; i++){
+    const r = s.results[i];
+    if (!r || r.id !== s.ids[i] || !(r.pick >= 0 && r.pick < N_OPT) || typeof r.ok !== 'boolean') return false;
+    if (r.ok !== (s.perms[i][r.pick] === '0')) return false;    /* 정오는 보기 순서에서 다시 셈해 맞아야 한다 */
+  }
+  if (typeof s.seedKey !== 'string' || s.seedKey !== dailySeedKey()) return false;
+  return true;
+}
+function resumable(){ const s = loadProgress(); return validSlot(s) ? s : null; }
+
+/* ======================= 판 진행 ======================= */
+function resetRun(){
+  questions = []; results = []; qi = 0; phase = 'idle';
+  revealT = 0; elapsed = 0; sinceSave = 0; lastShownSec = -1;
+  over = false; paused = false;
+  for (const t of timers) clearTimeout(t); timers = [];
+}
+function logRound(){
+  roundLog.push({ seedKey: seedKeyNow, mode, no: runNo, key: roundKey(questions) });
+  if (roundLog.length > LOG_MAX) roundLog.splice(0, roundLog.length - LOG_MAX);
+}
+function startRun(m){
+  mode = m;
+  /* ★일일: 날짜·번호·seed 를 이 순간의 시계로 한 번에 고정한다 — 이후 endRun 은 시계를 다시 보지 않는다. */
+  const t0 = new Date();
+  runDay = (m === 'daily') ? dayKey(t0) : ''; runNo = (m === 'daily') ? dailyNo(t0) : 0;
+  seedKeyNow = (m === 'daily') ? dailySeedKey(t0) : ('free-' + fxRng().toString(36).slice(2, 10));   /* 자유 seed 는 fxRng 에서 */
+  const rng = mulberry32(hashStr(seedKeyNow));
+  resetRun();
+  questions = makeRound(m, rng, runNo, (m === 'daily') ? [] : loadSeen());
+  logRound();
+  running = true; phase = 'ask';
+  hide('start'); hide('over');
+  renderQuestion(); updateHud(); updateSubtitle();
+  say(T('srStart') + ' ' + T('srQ', 1, N_Q, questions[0].q));
+  ga('game_start', { game: GA_GAME });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+  saveProgress();
+  focusFirstChoice();
+  prevTs = 0;
+}
+/* 저장된 일일 판을 그대로 잇는다 — 문제·보기 순서·정오·시간 전부 저장 시점으로. 새 시작이 아니므로 game_start·판수는 보내지 않는다. */
+function resumeRun(){
+  const s = resumable(); if (!s) return false;
+  mode = 'daily'; runDay = s.runDay; runNo = s.runNo | 0; seedKeyNow = s.seedKey;
+  resetRun();
+  questions = s.ids.map((id, i) => buildQuestion(BANK_BY_ID.get(id), s.perms[i].split('').map(Number)));
+  results = s.results.map(r => ({ id: r.id, pick: r.pick, ok: r.ok }));
+  qi = results.length; elapsed = Math.max(0, s.elapsed | 0);
+  logRound();
+  running = true;
+  hide('start'); hide('over');
+  if (qi >= N_Q){ phase = 'reveal'; endRun(); return true; }
+  phase = 'ask';
+  renderQuestion(); updateHud(); updateSubtitle();
+  say(T('srStart') + ' ' + T('srQ', qi + 1, N_Q, questions[qi].q));
+  focusFirstChoice();
+  prevTs = 0;
+  return true;
+}
+/* 보기 탭 — 즉시 정오 판정 + 해설. 한 문제에 한 번만 받는다. */
+function answer(i){
+  if (!running || phase !== 'ask') return false;
+  if (!(i >= 0 && i < N_OPT)) return false;
+  const q = questions[qi];
+  const ok = !!q.opts[i].ok;
+  results.push({ id: q.id, pick: i, ok });
+  phase = 'reveal'; revealT = 0;
+  renderReveal(i);
+  if (ok) sGood(); else sMiss();
+  updateHud();
+  say(T('srAnswer', ok, q.a, q.e));
+  saveProgress();
+  return true;
+}
+/* 다음 문제 — 자동(1.2초) 또는 탭. */
+function next(){
+  if (!running || phase !== 'reveal') return false;
+  qi++;
+  if (qi >= N_Q){ endRun(); return true; }
+  phase = 'ask'; revealT = 0;
+  renderQuestion(); updateHud();
+  say(T('srQ', qi + 1, N_Q, questions[qi].q));
+  focusFirstChoice();
+  return true;
+}
+function endRun(){
+  if (!running) return;
+  running = false; over = true; phase = 'idle';
+  const oks = results.map(r => r.ok);
+  const correct = oks.filter(Boolean).length;
+  const durS = Math.max(0, Math.round(elapsed / 1000));
+  const isNew = correct > best;
+  if (isNew){ best = correct; localStorage.setItem('nq.best', best); }
+  let streak = 0;
+  if (mode === 'daily'){
+    saveDaily({ correct, oks, duration: durS, ids: questions.map(q => q.id), picks: results.map(r => r.pick) });
+    streak = bumpStreak(runDay);
+    ga('daily_complete', { game: GA_GAME, streak });
+    clearProgress();                                     /* 완료한 판의 진행은 지운다 */
+  } else {
+    pushSeen(questions.map(q => q.id));                  /* 자유 모드: 최근 본 문제로 기록 */
+  }
+  lastResult = { mode, no: (mode === 'daily' ? runNo : dailyNo()), correct, oks, durS, isNew, streak,
+                 review: questions.map((q, i) => ({ q: q.q, a: q.a, pick: results[i] ? q.opts[results[i].pick].t : '', ok: !!(results[i] && results[i].ok) })) };
+  ga('game_over', { game: GA_GAME, score: correct * SCORE_PER, moves: N_Q, duration_s: durS, daily: mode === 'daily' });
+  if (correct === N_Q) sPerfect(); else sOver();
+  renderOver();
+  refreshStart();
+  updateHud();
+  say(T('srOver', correct));
+}
+
+/* ======================= 한 걸음(시계 · 자동 다음) ======================= */
+function step(dt){          /* dt = 초 */
+  if (!running || paused) return;
+  elapsed += dt * 1000; sinceSave += dt * 1000;
+  const s = Math.floor(elapsed / 1000);
+  if (s !== lastShownSec){ lastShownSec = s; $('timeNow').textContent = fmtTime(s); }
+  if (phase === 'reveal'){ revealT += dt * 1000; if (revealT >= NEXT_MS) next(); }
+  else if (sinceSave >= SAVE_EVERY_MS) saveProgress();
+}
+function loop(ts){
+  rafId = requestAnimationFrame(loop);
+  if (!prevTs) prevTs = ts;
+  let dt = (ts - prevTs) / 1000; prevTs = ts;
+  if (dt > 0.5) dt = 0.5;
+  step(dt);
+}
+
+/* ======================= 그리기(DOM) ======================= */
+const choiceEls = () => [...$('choices').querySelectorAll('.choice')];
+function renderQuestion(){
+  const q = running ? questions[qi] : null;   /* 판이 돌지 않으면(시작 전·결과 뒤) 안내 문구 */
+  const qt = $('qtext');
+  if (!q){ qt.textContent = T('idleQ'); qt.classList.add('idle'); $('qcat').textContent = '–'; $('qlv').textContent = '';
+           for (const el of choiceEls()){ el.disabled = true; el.className = 'choice'; el.querySelector('.t').textContent = '–'; el.removeAttribute('aria-label'); }
+           $('explain').hidden = true; $('explain').innerHTML = ''; $('btnNext').hidden = true; return; }
+  qt.textContent = q.q; qt.classList.remove('idle');
+  $('qcat').textContent = CAT(q.c);
+  $('qlv').textContent = '★'.repeat(q.lv);
+  choiceEls().forEach((el, k) => {
+    el.disabled = false; el.className = 'choice';
+    el.querySelector('.t').textContent = q.opts[k].t;
+    el.setAttribute('aria-label', T('ariaChoice', k + 1, q.opts[k].t));
+  });
+  $('explain').hidden = true; $('explain').innerHTML = '';
+  $('btnNext').hidden = true;
+}
+function renderReveal(picked){
+  const q = questions[qi];
+  const ok = q.opts[picked].ok;
+  choiceEls().forEach((el, k) => {
+    el.disabled = true;
+    el.classList.toggle('ok', k === q.ansIdx);
+    el.classList.toggle('bad', k === picked && !ok);
+    el.classList.toggle('dim', k !== q.ansIdx && k !== picked);
+    if (!reduceMotion()){
+      if (k === picked && ok) el.classList.add('pop');
+      if (k === picked && !ok) el.classList.add('shake');
+    }
+  });
+  const ex = $('explain');
+  ex.innerHTML = `<span class="v ${ok ? 'ok' : 'bad'}">${ok ? T('correct') : T('wrong')}</span>` +
+                 `<b>${T('answerIs')}: ${esc(q.a)}</b> — ${esc(q.e)}`;
+  ex.hidden = false;
+  $('btnNext').hidden = false;
+  timers.push(setTimeout(() => { for (const el of choiceEls()) el.classList.remove('pop', 'shake'); }, 400));
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function updateHud(){
+  const on = running || over;
+  $('qNo').textContent = on ? `${Math.min(qi + 1, N_Q)}/${N_Q}` : '–';
+  $('scoreNow').textContent = on ? String(results.filter(r => r.ok).length * SCORE_PER) : '–';
+  $('timeNow').textContent = on ? fmtTime(Math.floor(elapsed / 1000)) : '–';
+}
+function updateSubtitle(){
+  $('subtitle').textContent = !running && !over ? T('subtitle') : (mode === 'daily' ? T('modeDaily', runNo) : T('modeFree'));
+}
+function focusFirstChoice(){ try { const f = choiceEls()[0]; if (f) f.focus({ preventScroll:true }); } catch(e){} }
+
+/* ======================= 조작 배선 ======================= */
+for (const el of choiceEls()) el.onclick = () => { if (phase === 'ask'){ sTap(); answer(Number(el.dataset.i)); } };
+$('btnNext').onclick = () => next();
+/* 카드 아무 데나 탭해도 다음으로(정오 표시 중일 때만) */
+$('qcard').addEventListener('click', ev => { if (phase === 'reveal' && !(ev.target.closest && ev.target.closest('.choice'))) next(); });
+/* 물리 자판은 code 로 본다 — 한글 입력 상태여도 같은 자리를 누르면 같이 움직인다. */
+window.addEventListener('keydown', ev => {
+  if (!running || $('start').classList.contains('show') || $('over').classList.contains('show')) return;
+  const code = ev.code || '';
+  let handled = true;
+  if (/^(Digit|Numpad)[1-4]$/.test(code)){ if (phase === 'ask') answer(Number(code.slice(-1)) - 1); }
+  else if (code === 'Enter' || code === 'NumpadEnter' || code === 'Space'){ if (phase === 'reveal') next(); else handled = false; }
+  else handled = false;
+  if (handled) ev.preventDefault();
+});
+/* 탭을 떠나면 시계를 세우고 진행을 저장한다 — 돌아왔을 때 시간이 흘러 있지 않게. */
+document.addEventListener('visibilitychange', () => {
+  paused = document.hidden;
+  if (paused) saveProgress(); else prevTs = 0;
+});
+window.addEventListener('pagehide', () => { saveProgress(); });
+
+/* ======================= 창(오버레이) ======================= */
+function show(id){
+  const o = $(id); o.classList.add('show');
+  setOutsideInert(true);
+  const f = o.querySelector('button:not([disabled]):not([hidden]), a[href]');
+  if (f) try { f.focus({ preventScroll:true }); } catch(e){}
+}
+function hide(id){
+  $(id).classList.remove('show');
+  if (!$('start').classList.contains('show') && !$('over').classList.contains('show')) setOutsideInert(false);
+}
+/* 창이 떠 있는 동안 뒤쪽을 초점에서 통째로 뺀다 — 탭이 창 밖으로 새면 갇힌 것처럼 느껴진다. */
+function setOutsideInert(on){
+  for (const el of document.querySelectorAll('body > header, body > main, body > section, body > footer, body > .ad-slot, body > .scores')){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+  }
+}
+function say(msg){ $('srSummary').textContent = msg; }
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600); }
+
+/* ======================= 시작 화면 ======================= */
+function refreshStart(){
+  const done = dailyDoneToday();
+  const no = dailyNo();
+  $('btnDaily').textContent = done ? T('dailyDone', no) : T('daily', no);
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint');
+  const st = streakNow();
+  $('btnDaily').disabled = false;   /* 끝냈어도 '결과 보기' 로는 눌린다 */
+  $('dailyHint').textContent += (st > 1 ? ' · ' + T('streak', st) : '');
+  /* 이어하기 카드 — 오늘 일일 판 저장본이 있을 때만. 완료한 판은 저장이 지워지므로 안 나온다. */
+  const r = done ? null : resumable();
+  const b = $('btnResumeDaily');
+  b.hidden = !r; if (r) b.textContent = T('resumeDaily', r.runNo || no, r.results.length, fmtTime(Math.floor((r.elapsed | 0) / 1000)));
+}
+/* 오늘 이미 끝냈으면 새 판을 열지 않고 저장된 결과를 보여 준다(하루 한 번). 저장본이 있으면 잇는다. */
+function startDaily(){
+  if (dailyDoneToday()){
+    const r = dailyRec(), res = r.result || {};
+    const oks = Array.isArray(res.oks) ? res.oks.map(Boolean) : [];
+    const ids = Array.isArray(res.ids) ? res.ids : [], picks = Array.isArray(res.picks) ? res.picks : [];
+    lastResult = { mode:'daily', no: r.no || dailyNo(), correct: res.correct | 0, oks, durS: res.duration ?? 0, isNew:false, streak: streakNow(),
+                   /* 복습은 저장된 id 로 은행에서 다시 찾는다(은행이 바뀌어 없으면 그 줄만 비운다) */
+                   review: ids.map((id, i) => { const k = BANK_BY_ID.get(id); const it = k === undefined ? null : BANK[k];
+                     return { q: it ? it.q : '', a: it ? it.a : '', pick: '', ok: !!oks[i] }; }) };
+    /* ★시작 창을 먼저 닫는다 — 닫지 않으면 결과 창 위에 시작 창이 남아 결과를 못 본다. */
+    hide('start');
+    renderOver();
+    return;
+  }
+  if (resumable()){ resumeRun(); return; }
+  startRun('daily');
+}
+function renderOver(){
+  const r = lastResult; if (!r) return;
+  $('overTitle').textContent = (r.mode === 'daily') ? T('dailyOver', r.no) : T('result');
+  $('finalScore').textContent = `${r.correct}/${N_Q}`;
+  $('marks').textContent = marksOf(r.oks);
+  $('nOk').textContent = String(r.correct);
+  $('nBad').textContent = String(N_Q - r.correct);
+  $('nTime').textContent = fmtTime(r.durS);
+  $('perfectLine').textContent = r.correct === N_Q ? T('perfect') : '';
+  $('newBest').textContent = r.isNew ? T('newBest') : '';
+  $('streakLine').textContent = (r.mode === 'daily' && r.streak > 1) ? T('streak', r.streak) : '';
+  $('review').innerHTML = r.review.map((x, i) =>
+    `<li><span class="m ${x.ok ? 'ok' : 'bad'}">${x.ok ? '✓' : '✗'}</span><span><span class="rq">${i + 1}. ${esc(x.q)}</span><br>` +
+    `<span class="ra"><b>${esc(x.a)}</b>${(!x.ok && x.pick) ? ` · ${T('myPick')}: ${esc(x.pick)}` : ''}</span></span></li>`).join('');
+  $('finalSub').textContent = T('finalSub', best, fmtTime(r.durS));
+  show('over');
+}
+
+/* ======================= UI 배선 ======================= */
+$('btnStart').onclick = () => startRun('free');
+$('btnDaily').onclick = () => startDaily();
+$('btnResumeDaily').onclick = () => resumeRun();
+$('btnAgain').onclick = () => startRun('free');
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyLang();
+  refreshStart();
+  updateSubtitle(); updateHud();
+  /* 진행 중이면 문제 본문은 그대로 두고 범주 칩·해설 문안만 다시 쓴다 · 아니면 안내 문구를 새 언어로 */
+  if (running && questions[qi]){ $('qcat').textContent = CAT(questions[qi].c); if (phase === 'reveal') renderReveal(results[qi].pick); }
+  else renderQuestion();
+  if (over && lastResult) renderOver();
+  ga('lang_switch', { lang });
+}
+$('btnLang').onclick = toggleLang;
+$('btnLang2').onclick = toggleLang;
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('nq.sound', soundOn ? '1' : '0');
+  const face = soundOn ? '🔊' : '🔇';
+  $('btnSound').textContent = face; $('btnSound2').textContent = face;
+  applyA11yLabels();
+  if (soundOn) beep(660, .06, 'sine', .04);
+}
+$('btnSound').onclick = toggleSound;
+$('btnSound2').onclick = toggleSound;
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnSound2').textContent = soundOn ? '🔊' : '🔇';
+
+/* 공유 텍스트 — "🤔 넌센스 #N 7/10 ⏱ 1:12 🟩🟩🟥…" + URL · 자유 모드엔 #N 없음 */
+function shareText(r, url){
+  const m = marksOf(r.oks || []);
+  const t = fmtTime(r.durS);
+  return ((r.mode === 'daily') ? T('dailyShare', r.no, r.correct, t, m, r.streak) : T('freeShare', r.correct, t, m)) + url;
+}
+async function doShare(){
+  const url = location.href.split('#')[0];
+  const r = lastResult;
+  if (!r) return;
+  try{
+    if (navigator.share){
+      /* ★네이티브 공유는 text 와 url 을 분리한다 — text 에 URL 을 또 넣으면 공유 시트가 링크를 두 번 붙인다. */
+      await navigator.share({ title: T('docTitle'), text: shareText(r, '').trimEnd(), url });
+    } else { await navigator.clipboard.writeText(shareText(r, url)); toast(T('copied')); }   /* 폴백은 완성 문자열 */
+  }catch(_){}
+}
+$('btnShare').onclick = doShare;
+
+/* ======================= 기동 ======================= */
+applyLang();
+refreshStart();
+renderQuestion(); updateHud(); updateSubtitle();
+if ($('start').classList.contains('show')) show('start');
+rafId = requestAnimationFrame(loop);
+
+/* ======================= 검증 창구(관측 전용) ======================= */
+/* ★배포되는 이 창구에는 **읽기만 하는 getter 와 순수 함수** 만 둔다. 판을 시작하거나 답을 넣거나
+   시간을 진행시키는 **상태 변경 명령은 여기에 두지 않는다** — 그런 것이 전역에 열려 있으면 콘솔이나
+   외부 스크립트가 관측을 넘어 제품 상태를 바꾸고, startRun 같은 것은 GA game_start·공개 카운터
+   전송·일일 결과 저장까지 실제로 일으킨다(estimate·sudoku 계약 그대로).
+   검증에 필요한 변경 명령은 연기시험 하네스가 **메모리 위에서만** 이 파일 뒤에 덧붙인다
+   (`evidence-nonsense/smoke_nonsense.mjs` 의 test bridge — 배포 파일에는 그 코드가 한 줄도 없다).
+   반환값은 전부 사본이다 — 받은 쪽에서 고쳐도 게임 안쪽이 바뀌지 않는다. 외부 전송 0. */
+const copy = o => JSON.parse(JSON.stringify(o));
+window.__nq = {
+  const: () => ({ N_Q, N_OPT, SCORE_PER, NEXT_MS, LOG_MAX, SEEN_MAX, SAVE_EVERY_MS, CATS: CATS.slice(), ORDER_SEED, ORDER_BLOCKS: ORDER_BLOCKS.slice(), CYCLE, BANK_N: BANK.length }),
+  bank: () => copy(BANK),
+  bankStats: () => { const byC = {}, byL = {}; for (const c of CATS) byC[c] = 0; for (const it of BANK){ byC[it.c] = (byC[it.c] || 0) + 1; byL[it.lv] = (byL[it.lv] || 0) + 1; } return { n: BANK.length, byC, byL }; },
+  order: () => ORDER.slice(),
+  seedKey: (d) => dailySeedKey(d ? new Date(d) : new Date()),
+  dailyNo: (d) => dailyNo(d ? new Date(d) : new Date()),
+  seedDraws: (key, n) => { const f = mulberry32(hashStr(key)); return Array.from({length:n}, () => +f().toFixed(9)); },
+  state: () => ({ mode, running, over, paused, phase, qi, seedKey: seedKeyNow, runDay, runNo, elapsed, revealT,
+                  n: questions.length, answered: results.length, correct: results.filter(r => r.ok).length }),
+  daily: () => ({ done: dailyDoneToday(), rec: dailyRec(), no: dailyNo(), streak: streakNow() }),
+  /* ★'같은 날짜 = 같은 문제·같은 보기 순서' 를 기계가 대조하게 하는 창구 — 실제 문제(id·보기·정답 자리) */
+  questions: () => copy(questions),
+  results: () => copy(results),
+  transcript: () => roundLog.map(o => `${o.seedKey}|${o.mode}|${o.no}|${o.key}`).join(' '),
+  log: () => copy(roundLog),
+  logMax: () => LOG_MAX,
+  progress: () => copy(loadProgress()),
+  seen: () => loadSeen(),
+  best: () => best,
+  /* 순수 함수 — 전역 상태를 읽지도 쓰지도 않는다(출제 결정론·비반복·자유 회피 시험용) */
+  dailyIds: (no) => dailyIndices(Number(no)).map(i => BANK[i].id),
+  round: (m, seedKey, no, seen) => copy(makeRound(m, mulberry32(hashStr(String(seedKey))), Number(no) || 0, seen || [])),
+  marks: (oks) => marksOf(oks.slice()),
+  shareText: (r) => shareText(r, 'https://hanpango.com/nonsense/'),
+  shown: (id) => $(id).classList.contains('show'),
+  reduceMotion: () => reduceMotion(),
+  sound: () => soundOn,
+  lang: () => lang
+};
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
