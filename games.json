@@ -247,5 +247,30 @@
       "quiz",
       "daily"
     ]
+  },
+  {
+    "id": "minesweeper",
+    "path": "/minesweeper/",
+    "title": {
+      "ko": "지뢰찾기",
+      "en": "Minesweeper"
+    },
+    "desc": {
+      "ko": "숫자를 단서로 지뢰를 피해 칸을 여는 논리 퍼즐 — 찍기 없이 풀리는 판만 냅니다",
+      "en": "Classic logic minesweeper — every daily board is solvable without guessing"
+    },
+    "thumb": "/minesweeper/thumb.webp",
+    "playtime": {
+      "ko": "한 판 2~10분",
+      "en": "2–10 min a round"
+    },
+    "daily": true,
+    "released": "2026-08-28",
+    "tags": [
+      "puzzle",
+      "logic",
+      "classic",
+      "daily"
+    ]
   }
 ]

@@ -223,6 +223,12 @@
           <span class="body"><h2>끝말잇기 / Word Chain</h2>
             <p>AI 와 번갈아 단어를 잇는 한국어 끝말잇기 — 10초 안에 다음 말을 찾아라<br>Korean word-chain duel against the AI — find the next word in 10 seconds</p></span>
         </a></li>
+        <li><a class="card" href="/minesweeper/">
+          <span class="thumb"><img src="/minesweeper/thumb.webp" alt="지뢰찾기 / Minesweeper" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 2~10분 / 2–10 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>지뢰찾기 / Minesweeper</h2>
+            <p>숫자를 단서로 지뢰를 피해 칸을 여는 논리 퍼즐 — 찍기 없이 풀리는 판만 냅니다<br>Classic logic minesweeper — every daily board is solvable without guessing</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -363,6 +369,13 @@ const FALLBACK = [{
   thumb:'/wordchain/thumb.webp',
   playtime:{ko:'한 판 1~3분',en:'1–3 min a round'},
   daily:true, released:'2026-08-28', tags:['word','korean','quiz','daily']
+},{
+  id:'minesweeper', path:'/minesweeper/',
+  title:{ko:'지뢰찾기',en:'Minesweeper'},
+  desc:{ko:'숫자를 단서로 지뢰를 피해 칸을 여는 논리 퍼즐 — 찍기 없이 풀리는 판만 냅니다',en:'Classic logic minesweeper — every daily board is solvable without guessing'},
+  thumb:'/minesweeper/thumb.webp',
+  playtime:{ko:'한 판 2~10분',en:'2–10 min a round'},
+  daily:true, released:'2026-08-28', tags:['puzzle','logic','classic','daily']
 }];
 
 let games = FALLBACK;
