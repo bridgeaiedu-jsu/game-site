@@ -171,5 +171,30 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "sudoku",
+    "path": "/sudoku/",
+    "title": {
+      "ko": "스도쿠",
+      "en": "Sudoku"
+    },
+    "desc": {
+      "ko": "6×6 미니부터 9×9 클래식까지 — 오늘의 스도쿠를 풀고 시간·실수로 자랑하기",
+      "en": "From 6×6 mini to classic 9×9 — solve today's Sudoku and brag with your time"
+    },
+    "thumb": "/sudoku/thumb.webp",
+    "playtime": {
+      "ko": "한 판 3~15분",
+      "en": "3–15 min a round"
+    },
+    "daily": true,
+    "released": "2026-08-28",
+    "tags": [
+      "puzzle",
+      "logic",
+      "numbers",
+      "daily"
+    ]
   }
 ]
