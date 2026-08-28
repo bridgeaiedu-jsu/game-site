@@ -1010,9 +1010,8 @@ function endRun(){
     streak = bumpStreak(runDay);
     ga('daily_complete', { game: GA_GAME, streak });
     clearProgress();                                     /* 완료한 판의 진행은 지운다 */
-  } else {
-    pushSeen(questions.map(q => q.id));                  /* 자유 모드: 최근 본 문제로 기록 */
   }
+  pushSeen(questions.map(q => q.id));                    /* 자유·일일 모두 최근 본 문제로 기록 — 일일 직후 자유 판이 같은 문제를 안 내도록(커밋 9) */
   lastResult = { mode, no: (mode === 'daily' ? runNo : dailyNo()), correct, oks, durS, isNew, streak,
                  review: questions.map((q, i) => ({ q: q.q, a: q.a, pick: results[i] ? q.opts[results[i].pick].t : '', ok: !!(results[i] && results[i].ok) })) };
   ga('game_over', { game: GA_GAME, score: correct * SCORE_PER, moves: N_Q, duration_s: durS, daily: mode === 'daily' });
