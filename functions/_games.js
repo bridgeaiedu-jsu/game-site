@@ -17,4 +17,4 @@
  * 번들된다(Pages 는 핸들러와 가져온 모듈을 하나의 ES module Worker 로 묶는다).
  */
 
-export const GAMES = ['block-puzzle', '2048', 'block-drop', 'word', 'shooting', 'brick-breaker', 'estimate', 'sudoku', 'nonsense'];
+export const GAMES = ['block-puzzle', '2048', 'block-drop', 'word', 'shooting', 'brick-breaker', 'estimate', 'sudoku', 'nonsense', 'wordchain'];

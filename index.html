@@ -217,6 +217,12 @@
           <span class="body"><h2>넌센스 퀴즈 / Riddle Quiz</h2>
             <p>말장난·수수께끼 10문제 4지선다 — 오늘의 넌센스를 풀고 7/10 자랑하기<br>Korean wordplay & riddle quiz, 10 questions, tap to answer — share your daily score</p></span>
         </a></li>
+        <li><a class="card" href="/wordchain/">
+          <span class="thumb"><img src="/wordchain/thumb.webp" alt="끝말잇기 / Word Chain" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 1~3분 / 1–3 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>끝말잇기 / Word Chain</h2>
+            <p>AI 와 번갈아 단어를 잇는 한국어 끝말잇기 — 10초 안에 다음 말을 찾아라<br>Korean word-chain duel against the AI — find the next word in 10 seconds</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -350,6 +356,13 @@ const FALLBACK = [{
   thumb:'/nonsense/thumb.webp',
   playtime:{ko:'한 판 1~2분',en:'1–2 min a round'},
   daily:true, released:'2026-08-28', tags:['quiz','trivia','korean','casual','daily']
+},{
+  id:'wordchain', path:'/wordchain/',
+  title:{ko:'끝말잇기',en:'Word Chain'},
+  desc:{ko:'AI 와 번갈아 단어를 잇는 한국어 끝말잇기 — 10초 안에 다음 말을 찾아라',en:'Korean word-chain duel against the AI — find the next word in 10 seconds'},
+  thumb:'/wordchain/thumb.webp',
+  playtime:{ko:'한 판 1~3분',en:'1–3 min a round'},
+  daily:true, released:'2026-08-28', tags:['word','korean','quiz','daily']
 }];
 
 let games = FALLBACK;

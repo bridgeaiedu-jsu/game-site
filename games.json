@@ -222,5 +222,30 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "wordchain",
+    "path": "/wordchain/",
+    "title": {
+      "ko": "끝말잇기",
+      "en": "Word Chain"
+    },
+    "desc": {
+      "ko": "AI 와 번갈아 단어를 잇는 한국어 끝말잇기 — 10초 안에 다음 말을 찾아라",
+      "en": "Korean word-chain duel against the AI — find the next word in 10 seconds"
+    },
+    "thumb": "/wordchain/thumb.webp",
+    "playtime": {
+      "ko": "한 판 1~3분",
+      "en": "1–3 min a round"
+    },
+    "daily": true,
+    "released": "2026-08-28",
+    "tags": [
+      "word",
+      "korean",
+      "quiz",
+      "daily"
+    ]
   }
 ]
