@@ -499,6 +499,11 @@ const CATS = ['pun', 'riddle', 'situation', 'common'];
    앞 블록의 순서는 바이트 그대로 보존되어 이미 지난 날짜의 문제가 바뀌지 않는다. */
 const ORDER_SEED = 'hanpango-nonsense-order-v1';
 const ORDER_BLOCKS = [304];
+/* ★스케줄 에폭 — dayNo 의 슬라이스 위치는 그 dayNo 가 속한 에폭의 cycle 로만 계산한다(과거 날짜 매핑 동결).
+   은행을 늘려 CYCLE 이 바뀌면 지난 날짜(특히 첫 wrap 이후)의 10문제가 달라지는 것을 막는 장치다(codex R1).
+   확장 배포 시 규칙: BANK append · ORDER_BLOCKS push 와 함께 SCHEDULE 에 {fromDay:<배포일의 dayNo>, cycle:<floor(N/10)*10>} 를
+   push 한다. fromDay 는 오름차순 · 첫 항목은 {fromDay:0} · 마지막 cycle 은 현재 CYCLE 과 같아야 한다(bank_check 가 검사). */
+const SCHEDULE = [{fromDay:0, cycle:300}];
 
 /* ======================= 문제 은행(전부 자체 창작 · 가족 안전 · ko 전용) =======================
    항목 {id, q(문제 ≤60자), a(정답 ≤16자), d[3](오답 · 같은 범주·비슷한 길이), e(해설 1문장 ≤50자),
@@ -836,9 +841,11 @@ function buildOrder(){
   return out;
 }
 const ORDER = buildOrder();
-const CYCLE = Math.floor(ORDER.length / N_Q) * N_Q;        /* 비반복 창 = CYCLE/10 일 */
-/* 일일 문제 10개 — dayNo*10 부터 ORDER 위 연속 10칸(CYCLE 로 순환). 순수 함수. */
-function dailyIndices(no){ const s = ((no * N_Q) % CYCLE + CYCLE) % CYCLE; return ORDER.slice(s, s + N_Q); }
+const CYCLE = Math.floor(ORDER.length / N_Q) * N_Q;        /* 현재 에폭의 비반복 창 = CYCLE/10 일 */
+/* dayNo 가 속한 에폭 — fromDay ≤ no 인 마지막 항목(없으면 첫 항목). 순수 함수. */
+function epochOf(no){ let e = SCHEDULE[0]; for (const s of SCHEDULE){ if (no >= s.fromDay) e = s; } return e; }
+/* 일일 문제 10개 — dayNo*10 부터 ORDER 위 연속 10칸(그 dayNo 의 에폭 cycle 로 순환). 순수 함수. */
+function dailyIndices(no){ const cy = epochOf(no).cycle; const s = ((no * N_Q) % cy + cy) % cy; return ORDER.slice(s, s + N_Q); }
 /* 자유 모드 10개 — 최근 본 id(seen)를 뺀 풀에서 rng 로 뽑는다. 풀이 모자라면 전체에서. 순수 함수. */
 function freeIndices(rng, seen){
   const avoid = new Set(seen || []);
@@ -1244,6 +1251,8 @@ rafId = requestAnimationFrame(loop);
 const copy = o => JSON.parse(JSON.stringify(o));
 window.__nq = {
   const: () => ({ N_Q, N_OPT, SCORE_PER, NEXT_MS, LOG_MAX, SEEN_MAX, SAVE_EVERY_MS, CATS: CATS.slice(), ORDER_SEED, ORDER_BLOCKS: ORDER_BLOCKS.slice(), CYCLE, BANK_N: BANK.length }),
+  schedule: () => copy(SCHEDULE),
+  dailyIds: (no) => dailyIndices(no).map(i => BANK[i].id),   /* 관측 전용 순수 함수 — 날짜 번호→문제 id 10개 */
   bank: () => copy(BANK),
   bankStats: () => { const byC = {}, byL = {}; for (const c of CATS) byC[c] = 0; for (const it of BANK){ byC[it.c] = (byC[it.c] || 0) + 1; byL[it.lv] = (byL[it.lv] || 0) + 1; } return { n: BANK.length, byC, byL }; },
   order: () => ORDER.slice(),
