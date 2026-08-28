@@ -196,5 +196,31 @@
       "numbers",
       "daily"
     ]
+  },
+  {
+    "id": "nonsense",
+    "path": "/nonsense/",
+    "title": {
+      "ko": "넌센스 퀴즈",
+      "en": "Riddle Quiz"
+    },
+    "desc": {
+      "ko": "말장난·수수께끼 10문제 4지선다 — 오늘의 넌센스를 풀고 7/10 자랑하기",
+      "en": "Korean wordplay & riddle quiz, 10 questions, tap to answer — share your daily score"
+    },
+    "thumb": "/nonsense/thumb.webp",
+    "playtime": {
+      "ko": "한 판 1~2분",
+      "en": "1–2 min a round"
+    },
+    "daily": true,
+    "released": "2026-08-28",
+    "tags": [
+      "quiz",
+      "trivia",
+      "korean",
+      "casual",
+      "daily"
+    ]
   }
 ]

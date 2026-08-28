@@ -211,6 +211,12 @@
           <span class="body"><h2>스도쿠 / Sudoku</h2>
             <p>6×6 미니부터 9×9 클래식까지 — 오늘의 스도쿠를 풀고 시간·실수로 자랑하기<br>From 6×6 mini to classic 9×9 — solve today's Sudoku and brag with your time</p></span>
         </a></li>
+        <li><a class="card" href="/nonsense/">
+          <span class="thumb"><img src="/nonsense/thumb.webp" alt="넌센스 퀴즈 / Riddle Quiz" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 1~2분 / 1–2 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>넌센스 퀴즈 / Riddle Quiz</h2>
+            <p>말장난·수수께끼 10문제 4지선다 — 오늘의 넌센스를 풀고 7/10 자랑하기<br>Korean wordplay & riddle quiz, 10 questions, tap to answer — share your daily score</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -337,6 +343,13 @@ const FALLBACK = [{
   thumb:'/sudoku/thumb.webp',
   playtime:{ko:'한 판 3~15분',en:'3–15 min a round'},
   daily:true, released:'2026-08-28', tags:['puzzle','logic','numbers','daily']
+},{
+  id:'nonsense', path:'/nonsense/',
+  title:{ko:'넌센스 퀴즈',en:'Riddle Quiz'},
+  desc:{ko:'말장난·수수께끼 10문제 4지선다 — 오늘의 넌센스를 풀고 7/10 자랑하기',en:'Korean wordplay & riddle quiz, 10 questions, tap to answer — share your daily score'},
+  thumb:'/nonsense/thumb.webp',
+  playtime:{ko:'한 판 1~2분',en:'1–2 min a round'},
+  daily:true, released:'2026-08-28', tags:['quiz','trivia','korean','casual','daily']
 }];
 
 let games = FALLBACK;
