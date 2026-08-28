@@ -695,6 +695,7 @@ function clearProgress(){ localStorage.removeItem('wc.progress'); }
 function validSlot(s){
   if (!s || typeof s !== 'object' || s.v !== 1 || s.mode !== 'daily' || s.level !== DAILY_LEVEL) return false;
   if (!(typeof s.runDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.runDay)) || s.runDay !== dayKey()) return false;
+  if (!(Number.isInteger(s.runNo) && s.runNo === dailyNo())) return false;   /* ★runNo 도 오늘 계산값과 일치해야 한다 — 저장본을 신뢰하지 않는다(codex R1 S1) · 불일치면 슬롯 폐기(조용히 새 판) */
   if (typeof s.seedKey !== 'string' || s.seedKey !== dailySeedKey()) return false;
   if (!Array.isArray(s.chain) || s.chain.length < 1 || s.chain.length % 2 !== 1) return false;   /* sys + (me, ai)* */
   if (s.chain[0].by !== 'sys' || s.chain[0].w !== startWordOf(s.seedKey)) return false;
