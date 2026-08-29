@@ -26,7 +26,11 @@
      시점에는 주소에 이미 판 정의(#p=…)가 없다 — 경합이 아니라 순서 계약이다.
      걷어낸 값은 window.__ldPayload 에만 남고, 본문 스크립트가 그 값으로 판을 만든다.
      ★이 블록은 아래 ADSENSE·GA4 태그보다 반드시 위에 있어야 한다(자리를 옮기면 유출이 되살아난다). -->
-<script>
+<!-- data-cfasync="false" — Cloudflare Rocket Loader 가 켜지면 일반 script 실행을 window.onload 로
+     미루는데, 그러면 이 인라인이 광고 스크립트보다 먼저 돈다는 순서 계약 자체가 무너진다.
+     (2026-08-29 실측: 현재 hanpango.com 응답에 rocket-loader 흔적 0 — 지금 터지는 결함이 아니라
+      켜지는 순간을 막는 예방이다. 비용 0 이므로 미리 박아 둔다.) -->
+<script data-cfasync="false">
   window.__ldPayload = null;
   /* ★제거는 한 곳에서만 한다 — 최초 파싱 때도, 이미 열린 탭에서 주소만 #p=… 로 바뀔 때도 이 함수가 돈다.
      인라인이 파싱 때 한 번만 도는 구조였을 때는, 같은 탭에서 주소만 바꾸면 판 정의가 주소에 남았다
@@ -77,14 +81,16 @@
 <style>
   /* ── 색 토큰 ─────────────────────────────────────────────────────────────
      라이트(흰 바탕)가 기본. 다크는 아래 @media 에서 ★같은 이름의 값만 바꿔 끼운다 — 마크업은 두 테마가 동일하다.
-     시그니처는 보라(--sig). 사다리 선(--rail)·가로줄(--rung)·따라가는 경로(--trace)는 두 테마 모두 배경 대비 3:1 이상이다. */
+     시그니처는 보라(--sig). 사다리 선(--rail)·가로줄(--rung)·따라가는 경로(--trace)는 두 테마 모두 배경 대비 3:1 이상이다.
+     (실측 6조합 — 라이트: rail #848e9f 3.31 · rung #4b5563 7.56 · trace #7c3aed 5.70 /
+      다크: rail #6f68b8 4.01 · rung #c9c6ec 11.78 · trace #c4b5fd 10.49 · 계산·대조는 claim_check.py 가 한다) */
   :root{
     --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
     --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
     --sig:#7c3aed; --sig-ink:#5b21b6; --sig-soft:#ede9fe; --on-sig:#ffffff;
     --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
     --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
-    --rail:#9aa3b2; --rung:#4b5563; --trace:#7c3aed; --seal:#cbd5e1;
+    --rail:#848e9f; --rung:#4b5563; --trace:#7c3aed; --seal:#cbd5e1;
     --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
     --safe-b:env(safe-area-inset-bottom,0px);
   }
@@ -259,7 +265,7 @@
 <div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
   <div class="card">
     <h2 id="startTitle" data-i18n="title2">사다리타기</h2>
-    <div class="sub" data-i18n="startSub">이름과 결과만 넣으면 끝.<br>★링크를 나누면 모두가 같은 판·같은 결과를 봅니다.</div>
+    <div class="sub" data-i18n="startSub">이름과 결과만 넣으면 끝.<br>링크를 나누면 모두가 같은 판·같은 결과를 봅니다.</div>
     <p class="notice" id="koNotice" hidden data-i18n="koNotice"></p>
     <div class="modes" id="modes" role="group" aria-label="mode">
       <button type="button" data-mode="instant" aria-pressed="true" data-i18n="modeInstant">즉석</button>
@@ -313,7 +319,7 @@
   <p data-i18n="fairDesc">사다리는 판이 정해지는 순간 결과도 함께 정해집니다. 이 게임은 그 판을 만들 때 쓴 씨앗값(seed)과 참가자·결과 목록을 링크 주소 안에 그대로 담습니다. 그래서 링크를 연 사람은 누구나 같은 판을 만들어 보게 되고, 기기가 달라도·나중에 열어도 결과가 똑같습니다. 서버에 저장하는 것이 없으니 누군가 몰래 결과를 바꿀 서버도 없습니다. 같은 링크를 열면 같은 판입니다 — 판을 정하는 것은 씨앗값 하나가 아니라 링크에 담긴 전체(씨앗값·참가자·결과)이므로, 만든 사람이 결과를 보고 다시 만들면 링크가 통째로 달라져 곧바로 드러납니다. 화면의 씨앗값은 그 링크를 눈으로 견줘 보기 쉽게 함께 보여 주는 표시입니다.</p>
   <p data-i18n="fairDesc2">가로줄은 판을 만드는 순간 전부 정해집니다. 누가 먼저 누르든, 몇 번을 다시 보든, 애니메이션을 끄든 결과는 달라지지 않습니다 — 사람의 행동이 판에 끼어들 자리가 없도록 만들었습니다.</p>
   <h2 data-i18n="privTitle">이름은 어디에 저장되나요</h2>
-  <p data-i18n="privDesc">입력한 이름과 결과는 링크(#뒤 부분) 안에 담겨 링크와 함께 전달됩니다. 서버로 보내 저장하지 않습니다. 다만 새로고침해도 판이 그대로 있도록 ★판 링크와 화면 종류(즉석/공유·만든 사람인지)를 이 탭에 임시로 둡니다 — 링크를 받아 연 판뿐 아니라 직접 만든 판도 같습니다. 탭을 닫으면 사라지고, 누가 자기 결과를 이미 봤는지 같은 진행 상태는 저장하지 않습니다(그래서 새로고침하면 결과가 다시 가려지고, 만든 사람은 링크를 다시 복사해야 전체 결과가 열립니다). 링크를 열면 그 부분을 주소창에서 곧바로 지웁니다. 그래서 이 페이지에서 나가는 광고 요청에 링크 내용이 실려 나가지 않는 것을 실제 브라우저로 확인했습니다. 다만 이 페이지 안에서 함께 도는 제3자 스크립트가 페이지 안의 값을 읽는 것까지 기술적으로 막을 수 있는 것은 아닙니다. 링크를 받은 사람은 그 링크에 담긴 이름을 보게 되니, 실명을 쓰고 싶지 않다면 별명을 넣으세요. 자세한 내용은 개인정보처리방침을 확인해 주세요.</p>
+  <p data-i18n="privDesc">입력한 이름과 결과는 링크(#뒤 부분) 안에 담겨 링크와 함께 전달됩니다. 서버로 보내 저장하지 않습니다. 다만 새로고침해도 판이 그대로 있도록 판 링크와 화면 종류(즉석/공유·만든 사람인지)를 이 탭에 임시로 둡니다 — 링크를 받아 연 판뿐 아니라 직접 만든 판도 같습니다. 탭을 닫으면 사라지고, 누가 자기 결과를 이미 봤는지 같은 진행 상태는 저장하지 않습니다(그래서 새로고침하면 결과가 다시 가려지고, 만든 사람은 링크를 다시 복사해야 전체 결과가 열립니다). 링크를 열면 그 부분을 주소창에서 곧바로 지웁니다. 그래서 이 페이지에서 나가는 광고 요청에 링크 내용이 실려 나가지 않는 것을 실제 브라우저로 확인했습니다. 다만 이 페이지 안에서 함께 도는 제3자 스크립트가 페이지 안의 값을 읽는 것까지 기술적으로 막을 수 있는 것은 아닙니다. 링크를 받은 사람은 그 링크에 담긴 이름을 보게 되니, 실명을 쓰고 싶지 않다면 별명을 넣으세요. 자세한 내용은 개인정보처리방침을 확인해 주세요.</p>
   <h2 data-i18n="tipsTitle">요령</h2>
   <details><summary data-i18n="tip1q">결과 칸을 재미있게 채워 보세요</summary><p data-i18n="tip1a">「커피 사기」처럼 한 명만 걸리는 방식으로 하려면 한 칸에만 벌칙을 적고 나머지는 「통과」로 두면 됩니다. 순서를 정할 때는 1번, 2번… 처럼 숫자를 넣으세요.</p></details>
   <details><summary data-i18n="tip2q">단체 대화방에서 쓰는 법</summary><p data-i18n="tip2a">공유 모드로 판을 만들고 링크를 복사해 대화방에 붙여 넣으세요. 각자 링크를 열어 자기 이름을 누르면 자기 결과만 먼저 보게 되고, 다 확인한 뒤 누구든 「전체 공개」를 누르면 전원 결과가 나옵니다.</p></details>
@@ -322,7 +328,7 @@
   <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
   <details><summary data-i18n="faq2q">링크를 받은 사람도 같은 결과를 보나요?</summary><p data-i18n="faq2a">네. 판을 만드는 데 필요한 것이 전부 링크 안에 들어 있어, 기기·브라우저·시간이 달라도 같은 판과 같은 결과가 나옵니다. 이 성질은 자동 시험으로 확인하고 있습니다.</p></details>
   <details><summary data-i18n="faq3q">먼저 눌러 보면 결과가 바뀌나요?</summary><p data-i18n="faq3a">바뀌지 않습니다. 가로줄은 판을 만들 때 이미 전부 정해져 있고, 누르는 행동은 이미 정해진 줄을 따라 보여 줄 뿐입니다.</p></details>
-  <details><summary data-i18n="faq4q">기록이 남나요?</summary><p data-i18n="faq4a">새로고침해도 판이 사라지지 않도록 ★판 링크와 화면 종류를 이 탭에 임시로 둡니다 — 그 링크 안에 이름·결과가 담겨 있고, 탭을 닫으면 함께 사라집니다. 서버에는 저장하지 않습니다. 누가 이미 봤는지 같은 진행 상태는 저장하지 않아서, 새로고침하면 결과가 다시 가려집니다. 기기에 계속 남는 것은 소리·언어 설정뿐입니다.</p></details>
+  <details><summary data-i18n="faq4q">기록이 남나요?</summary><p data-i18n="faq4a">새로고침해도 판이 사라지지 않도록 판 링크와 화면 종류를 이 탭에 임시로 둡니다 — 그 링크 안에 이름·결과가 담겨 있고, 탭을 닫으면 함께 사라집니다. 서버에는 저장하지 않습니다. 누가 이미 봤는지 같은 진행 상태는 저장하지 않아서, 새로고침하면 결과가 다시 가려집니다. 기기에 계속 남는 것은 소리·언어 설정뿐입니다.</p></details>
   <details><summary data-i18n="faq5q">소리를 끌 수 있나요?</summary><p data-i18n="faq5a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 기기의 「동작 줄이기」를 켜면 줄을 따라가는 연출 없이 결과가 바로 표시됩니다.</p></details>
 </section>
 
@@ -346,11 +352,11 @@ const I18N = {
     docTitle:'사다리타기 — 링크 하나면 모두 같은 판 | Ladder',
     title:'사다리타기', title2:'사다리타기', subtitle:'링크 하나면 모두 같은 판',
     home:'🏠 다른 게임', langBtn:'EN',
-    startSub:'이름과 결과만 넣으면 끝.<br>★링크를 나누면 모두가 같은 판·같은 결과를 봅니다.',
+    startSub:'이름과 결과만 넣으면 끝.<br>링크를 나누면 모두가 같은 판·같은 결과를 봅니다.',
     koNotice:'',
     modeInstant:'즉석', modeShare:'공유',
     modeDescInstant:'한 화면에서 그 자리에 모여 봅니다. 링크 없이 바로 공개할 수 있습니다.',
-    modeDescShare:'링크를 나눠 각자 자기 기기에서 봅니다. ★링크를 복사한 뒤에야 전체 결과가 열립니다.',
+    modeDescShare:'링크를 나눠 각자 자기 기기에서 봅니다. 링크를 복사한 뒤에야 전체 결과가 열립니다.',
     peopleUnit:'명',
     presetCoffee:'커피 사기', presetClean:'청소 당번', presetOrder:'순서 정하기',
     fieldNote:'이름 최대 8자 · 결과 최대 12자 · 비워 두면 기본값이 들어갑니다',
@@ -358,10 +364,10 @@ const I18N = {
     make:'사다리 만들기',
     namePh:n => '이름 ' + n, resultPh:n => '결과 ' + n,
     defName:n => '참가자' + n, defResult:n => '결과' + n,
-    copyLink:'🔗 링크 복사', copied:'링크를 복사했습니다 — 나눠 주세요', copyFail:'복사에 실패했습니다 · 주소창의 링크를 직접 복사해 주세요',
+    copyLink:'🔗 링크 복사', copied:'링크를 복사했습니다 — 나눠 주세요', copyFail:'복사에 실패했습니다 · 아래 링크를 직접 복사해 주세요',
     revealAll:'전체 공개', newBoard:'↻ 새로 만들기',
     hintVisitor:'자기 이름을 누르면 그 줄만 따라갑니다 · 「전체 공개」를 누르면 모두의 결과가 나옵니다',
-    hintSealed:'★링크를 복사해 나눈 뒤에 결과가 열립니다 — 만든 사람도 먼저 볼 수 없습니다',
+    hintSealed:'링크를 복사해 나눈 뒤에 결과가 열립니다 — 만든 사람도 먼저 볼 수 없습니다',
     hintInstant:'이름을 눌러 한 명씩 따라가거나, 「전체 공개」로 한 번에 볼 수 있습니다',
     lenWarn:'링크가 깁니다(500자 초과) — 메신저에서 잘릴 수 있으니 이름·결과를 줄여 보세요',
     modeChipInstant:'즉석 모드', modeChipShare:'공유 모드', modeChipVisitor:'공유 링크',
@@ -388,7 +394,7 @@ const I18N = {
     how2:'모드는 둘입니다. 「즉석」은 한 화면에서 그 자리에 모여 보는 방식이고, 「공유」는 링크를 나눠 각자 자기 기기에서 확인하는 방식입니다. 공유 모드에서는 링크를 복사해 나눈 뒤에야 만든 사람도 전체 결과를 볼 수 있습니다 — 만든 사람이 먼저 결과를 보고 판을 다시 만드는 일을 막기 위한 규칙입니다.',
     fairDesc:'사다리는 판이 정해지는 순간 결과도 함께 정해집니다. 이 게임은 그 판을 만들 때 쓴 씨앗값(seed)과 참가자·결과 목록을 링크 주소 안에 그대로 담습니다. 그래서 링크를 연 사람은 누구나 같은 판을 만들어 보게 되고, 기기가 달라도·나중에 열어도 결과가 똑같습니다. 서버에 저장하는 것이 없으니 누군가 몰래 결과를 바꿀 서버도 없습니다. 같은 링크를 열면 같은 판입니다 — 판을 정하는 것은 씨앗값 하나가 아니라 링크에 담긴 전체(씨앗값·참가자·결과)이므로, 만든 사람이 결과를 보고 다시 만들면 링크가 통째로 달라져 곧바로 드러납니다. 화면의 씨앗값은 그 링크를 눈으로 견줘 보기 쉽게 함께 보여 주는 표시입니다.',
     fairDesc2:'가로줄은 판을 만드는 순간 전부 정해집니다. 누가 먼저 누르든, 몇 번을 다시 보든, 애니메이션을 끄든 결과는 달라지지 않습니다 — 사람의 행동이 판에 끼어들 자리가 없도록 만들었습니다.',
-    privDesc:'입력한 이름과 결과는 링크(#뒤 부분) 안에 담겨 링크와 함께 전달됩니다. 서버로 보내 저장하지 않습니다. 다만 새로고침해도 판이 그대로 있도록 ★판 링크와 화면 종류(즉석/공유·만든 사람인지)를 이 탭에 임시로 둡니다 — 링크를 받아 연 판뿐 아니라 직접 만든 판도 같습니다. 탭을 닫으면 사라지고, 누가 자기 결과를 이미 봤는지 같은 진행 상태는 저장하지 않습니다(그래서 새로고침하면 결과가 다시 가려지고, 만든 사람은 링크를 다시 복사해야 전체 결과가 열립니다). 링크를 열면 그 부분을 주소창에서 곧바로 지웁니다. 그래서 이 페이지에서 나가는 광고 요청에 링크 내용이 실려 나가지 않는 것을 실제 브라우저로 확인했습니다. 다만 이 페이지 안에서 함께 도는 제3자 스크립트가 페이지 안의 값을 읽는 것까지 기술적으로 막을 수 있는 것은 아닙니다. 링크를 받은 사람은 그 링크에 담긴 이름을 보게 되니, 실명을 쓰고 싶지 않다면 별명을 넣으세요. 자세한 내용은 개인정보처리방침을 확인해 주세요.',
+    privDesc:'입력한 이름과 결과는 링크(#뒤 부분) 안에 담겨 링크와 함께 전달됩니다. 서버로 보내 저장하지 않습니다. 다만 새로고침해도 판이 그대로 있도록 판 링크와 화면 종류(즉석/공유·만든 사람인지)를 이 탭에 임시로 둡니다 — 링크를 받아 연 판뿐 아니라 직접 만든 판도 같습니다. 탭을 닫으면 사라지고, 누가 자기 결과를 이미 봤는지 같은 진행 상태는 저장하지 않습니다(그래서 새로고침하면 결과가 다시 가려지고, 만든 사람은 링크를 다시 복사해야 전체 결과가 열립니다). 링크를 열면 그 부분을 주소창에서 곧바로 지웁니다. 그래서 이 페이지에서 나가는 광고 요청에 링크 내용이 실려 나가지 않는 것을 실제 브라우저로 확인했습니다. 다만 이 페이지 안에서 함께 도는 제3자 스크립트가 페이지 안의 값을 읽는 것까지 기술적으로 막을 수 있는 것은 아닙니다. 링크를 받은 사람은 그 링크에 담긴 이름을 보게 되니, 실명을 쓰고 싶지 않다면 별명을 넣으세요. 자세한 내용은 개인정보처리방침을 확인해 주세요.',
     tip1q:'결과 칸을 재미있게 채워 보세요',
     tip1a:'「커피 사기」처럼 한 명만 걸리는 방식으로 하려면 한 칸에만 벌칙을 적고 나머지는 「통과」로 두면 됩니다. 순서를 정할 때는 1번, 2번… 처럼 숫자를 넣으세요.',
     tip2q:'단체 대화방에서 쓰는 법',
@@ -402,7 +408,7 @@ const I18N = {
     faq3q:'먼저 눌러 보면 결과가 바뀌나요?',
     faq3a:'바뀌지 않습니다. 가로줄은 판을 만들 때 이미 전부 정해져 있고, 누르는 행동은 이미 정해진 줄을 따라 보여 줄 뿐입니다.',
     faq4q:'기록이 남나요?',
-    faq4a:'새로고침해도 판이 사라지지 않도록 ★판 링크와 화면 종류를 이 탭에 임시로 둡니다 — 그 링크 안에 이름·결과가 담겨 있고, 탭을 닫으면 함께 사라집니다. 서버에는 저장하지 않습니다. 누가 이미 봤는지 같은 진행 상태는 저장하지 않아서, 새로고침하면 결과가 다시 가려집니다. 기기에 계속 남는 것은 소리·언어 설정뿐입니다.',
+    faq4a:'새로고침해도 판이 사라지지 않도록 판 링크와 화면 종류를 이 탭에 임시로 둡니다 — 그 링크 안에 이름·결과가 담겨 있고, 탭을 닫으면 함께 사라집니다. 서버에는 저장하지 않습니다. 누가 이미 봤는지 같은 진행 상태는 저장하지 않아서, 새로고침하면 결과가 다시 가려집니다. 기기에 계속 남는 것은 소리·언어 설정뿐입니다.',
     faq5q:'소리를 끌 수 있나요?',
     faq5a:'네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 기기의 「동작 줄이기」를 켜면 줄을 따라가는 연출 없이 결과가 바로 표시됩니다.',
     copyFbNote:'복사가 막혀 있습니다 — 아래 링크를 길게 눌러(또는 Ctrl+C 로) 직접 복사한 뒤 「복사했어요」를 눌러 주세요',
@@ -414,11 +420,11 @@ const I18N = {
     docTitle:'Ladder — share one link, same board for everyone | 사다리타기',
     title:'Ladder', title2:'Ladder', subtitle:'One link, the same board for everyone',
     home:'🏠 More games', langBtn:'한국어',
-    startSub:'Just add names and outcomes.<br>★Share the link and everyone sees the same board.',
+    startSub:'Just add names and outcomes.<br>Share the link and everyone sees the same board.',
     koNotice:'',
     modeInstant:'On the spot', modeShare:'Share',
     modeDescInstant:'Everyone looks at one screen together. No link needed.',
-    modeDescShare:'Share a link so each person checks on their own phone. ★The full result unlocks only after you copy the link.',
+    modeDescShare:'Share a link so each person checks on their own phone. The full result unlocks only after you copy the link.',
     peopleUnit:'players',
     presetCoffee:'Who buys coffee', presetClean:'Cleaning duty', presetOrder:'Pick an order',
     fieldNote:'Name up to 8 characters · outcome up to 12 · blanks are filled with defaults',
@@ -426,10 +432,10 @@ const I18N = {
     make:'Build the ladder',
     namePh:n => 'Name ' + n, resultPh:n => 'Outcome ' + n,
     defName:n => 'Player ' + n, defResult:n => 'Outcome ' + n,
-    copyLink:'🔗 Copy link', copied:'Link copied — share it', copyFail:'Copy failed · please copy the address bar link',
+    copyLink:'🔗 Copy link', copied:'Link copied — share it', copyFail:'Copy failed · please copy the link below',
     revealAll:'Reveal all', newBoard:'↻ Build another',
     hintVisitor:'Tap your name to follow just your line · “Reveal all” shows everyone',
-    hintSealed:'★Results unlock after you copy and share the link — not even you can peek first',
+    hintSealed:'Results unlock after you copy and share the link — not even you can peek first',
     hintInstant:'Tap a name to follow one line, or “Reveal all” to see them at once',
     lenWarn:'This link is long (over 500 characters) — messengers may cut it, try shorter names',
     modeChipInstant:'On the spot', modeChipShare:'Share mode', modeChipVisitor:'Shared link',
