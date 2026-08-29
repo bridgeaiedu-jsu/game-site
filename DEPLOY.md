@@ -103,6 +103,9 @@ Sitemap: https://hanpango.com/sitemap.xml
    영영 안 나타났다(stats). 지금은 두 파일이 `_games.js` 를 들여오므로 손댈 곳은 여기뿐이다.
    빠뜨리면 `node tools/counter/test_functions.mjs .` 이 `games.json` 과 어긋났다며 FAIL 한다.
 5. `sitemap.xml` 에 `<url><loc>https://hanpango.com/<게임id>/</loc>…</url>` 을 추가한다.
+   ★`<lastmod>` 를 함께 넣는다 — 게임 주소는 `games.json` 의 `released` 날짜, 루트·about·privacy 는 그 파일의
+   마지막 수정일(YYYY-MM-DD)이다. 게임을 추가하면 루트(`/`)도 함께 바뀌므로 루트 `<lastmod>` 도 그날로 올린다
+   (검색엔진이 새 글·바뀐 글을 알아보는 단서다 · 2026-08-29 사다리타기 추가 때 전 URL 에 도입).
 6. ★루트 `index.html` 도 반드시 함께 고친다 — 게임 정보가 **3곳**에 중복되어 있고 셋의 내용이 같아야 한다.
    - [ ] `games.json` (평소 화면에 쓰이는 원본 데이터)
    - [ ] `index.html` 의 `FALLBACK` 배열 (games.json 을 못 읽을 때 쓰는 대비책)
