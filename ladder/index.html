@@ -28,10 +28,35 @@
      ★이 블록은 아래 ADSENSE·GA4 태그보다 반드시 위에 있어야 한다(자리를 옮기면 유출이 되살아난다). -->
 <script>
   window.__ldPayload = null;
-  try {
-    var m = /(?:^|[#&])p=([A-Za-z0-9_-]+)/.exec(location.hash || '');
-    if (m) { window.__ldPayload = m[1]; history.replaceState(null, '', location.pathname + location.search); }
-  } catch (e) {}
+  /* ★제거는 한 곳에서만 한다 — 최초 파싱 때도, 이미 열린 탭에서 주소만 #p=… 로 바뀔 때도 이 함수가 돈다.
+     인라인이 파싱 때 한 번만 도는 구조였을 때는, 같은 탭에서 주소만 바꾸면 판 정의가 주소에 남았다
+     (codex R1 major ① · 광고 요청이 그 주소를 실어 나르는 경로가 되살아난다). */
+  window.__ldTakeHash = function(){
+    try {
+      var m = /(?:^|[#&])p=([A-Za-z0-9_-]+)/.exec(location.hash || '');
+      if (!m) return null;
+      history.replaceState(null, '', location.pathname + location.search);
+      window.__ldPayload = m[1];
+      return m[1];
+    } catch (e) { return null; }
+  };
+  window.__ldTakeHash();
+  /* hashchange = 같은 문서에서 주소의 # 뒤가 바뀐 경우 · popstate = 뒤로/앞으로 이동으로 옛 주소가 되살아난 경우.
+     둘 다 새 Document 파싱이 아니므로 위 인라인이 다시 돌지 않는다 — 그래서 여기서 같은 함수를 부른다.
+     본문 스크립트는 'ld:payload' 를 받아 새 판으로 갈아탄다(화면이 옛 판에 머무르지 않도록). */
+  (function(){
+    var relay = function(){
+      var p = window.__ldTakeHash();
+      if (!p) return;
+      try { window.dispatchEvent(new CustomEvent('ld:payload', { detail: p })); }
+      catch (e) {
+        var ev = document.createEvent('Event'); ev.initEvent('ld:payload', false, false);
+        window.dispatchEvent(ev);
+      }
+    };
+    window.addEventListener('hashchange', relay);
+    window.addEventListener('popstate', relay);
+  })();
 </script>
 
 <!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
@@ -117,6 +142,12 @@
   .help{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
   .help.warnline{color:var(--warn)}
   .help[hidden]{display:none}
+  /* 복사가 막힌 브라우저용 대비 칸 — 두 복사 방식이 모두 실패했을 때만 열린다 */
+  .copyfb{width:100%;display:flex;flex-direction:column;gap:6px;margin-top:6px;padding:8px;
+          border:2px dashed var(--seal);border-radius:12px;background:var(--panel2)}
+  .copyfb[hidden]{display:none}
+  .copyfb input{width:100%;min-width:0;min-height:44px;border:1px solid var(--line);border-radius:10px;
+                background:var(--bg);color:var(--text);font-size:.85rem;padding:0 8px}
   /* ---- 시작 카드(입력) ---- */
   .modes{display:flex;gap:6px;margin:6px 0 2px}
   .modes button{flex:1;min-height:44px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);font-weight:700;font-size:.95rem;cursor:pointer}
@@ -211,6 +242,13 @@
     <div class="actions">
       <button class="btn ghost" id="btnNew" data-i18n="newBoard">↻ 새로 만들기</button>
     </div>
+    <!-- ★복사가 막혔을 때만 열리는 칸 — 링크를 화면에 직접 내놓아 손으로 복사할 수 있게 한 뒤에 봉인을 푼다.
+         (전에는 복사가 둘 다 실패해도 봉인을 열어, 링크를 어디에서도 얻지 못한 채 결과만 보게 됐다 — codex R1 major ②) -->
+    <div class="copyfb" id="copyFb" hidden>
+      <p class="help" data-i18n="copyFbNote">복사가 막혀 있습니다 — 아래 링크를 길게 눌러(또는 Ctrl+C 로) 직접 복사한 뒤 「복사했어요」를 눌러 주세요</p>
+      <input id="copyFbUrl" readonly spellcheck="false" aria-label="share link">
+      <button class="btn ghost" id="btnCopyDone" data-i18n="copyDone">복사했어요</button>
+    </div>
   </div>
   <p id="srSummary" class="sr-only" aria-live="polite"></p>
   <p class="help" id="hintLine" data-i18n="hintVisitor">자기 이름을 누르면 그 줄만 따라갑니다 · 「전체 공개」를 누르면 모두의 결과가 나옵니다</p>
@@ -272,10 +310,10 @@
   <p data-i18n="how1">참가할 사람의 이름과, 걸리면 하게 될 결과(벌칙이나 상품)를 넣고 「사다리 만들기」를 누르세요. 사다리가 그려지면 자기 이름을 눌러 줄을 따라 내려가 보고, 「전체 공개」로 모두의 결과를 한 번에 볼 수 있습니다. 2명부터 10명까지 됩니다.</p>
   <p data-i18n="how2">모드는 둘입니다. 「즉석」은 한 화면에서 그 자리에 모여 보는 방식이고, 「공유」는 링크를 나눠 각자 자기 기기에서 확인하는 방식입니다. 공유 모드에서는 링크를 복사해 나눈 뒤에야 만든 사람도 전체 결과를 볼 수 있습니다 — 만든 사람이 먼저 결과를 보고 판을 다시 만드는 일을 막기 위한 규칙입니다.</p>
   <h2 data-i18n="fairTitle">왜 링크만으로 공정한가요</h2>
-  <p data-i18n="fairDesc">사다리는 판이 정해지는 순간 결과도 함께 정해집니다. 이 게임은 그 판을 만들 때 쓴 씨앗값(seed)과 참가자·결과 목록을 링크 주소 안에 그대로 담습니다. 그래서 링크를 연 사람은 누구나 같은 판을 만들어 보게 되고, 기기가 달라도·나중에 열어도 결과가 똑같습니다. 서버에 저장하는 것이 없으니 누군가 몰래 결과를 바꿀 서버도 없습니다. 화면에 표시되는 씨앗값이 같다면 같은 판입니다 — 만든 사람이 결과를 보고 다시 만들면 씨앗값과 링크가 함께 바뀌므로 곧바로 드러납니다.</p>
+  <p data-i18n="fairDesc">사다리는 판이 정해지는 순간 결과도 함께 정해집니다. 이 게임은 그 판을 만들 때 쓴 씨앗값(seed)과 참가자·결과 목록을 링크 주소 안에 그대로 담습니다. 그래서 링크를 연 사람은 누구나 같은 판을 만들어 보게 되고, 기기가 달라도·나중에 열어도 결과가 똑같습니다. 서버에 저장하는 것이 없으니 누군가 몰래 결과를 바꿀 서버도 없습니다. 같은 링크를 열면 같은 판입니다 — 판을 정하는 것은 씨앗값 하나가 아니라 링크에 담긴 전체(씨앗값·참가자·결과)이므로, 만든 사람이 결과를 보고 다시 만들면 링크가 통째로 달라져 곧바로 드러납니다. 화면의 씨앗값은 그 링크를 눈으로 견줘 보기 쉽게 함께 보여 주는 표시입니다.</p>
   <p data-i18n="fairDesc2">가로줄은 판을 만드는 순간 전부 정해집니다. 누가 먼저 누르든, 몇 번을 다시 보든, 애니메이션을 끄든 결과는 달라지지 않습니다 — 사람의 행동이 판에 끼어들 자리가 없도록 만들었습니다.</p>
   <h2 data-i18n="privTitle">이름은 어디에 저장되나요</h2>
-  <p data-i18n="privDesc">입력한 이름과 결과는 링크(#뒤 부분) 안에 담겨 링크와 함께 전달됩니다. 서버로 보내 저장하지 않습니다. 다만 새로고침해도 판이 그대로 있도록 ★판 링크만 이 탭에 임시로 둡니다 — 탭을 닫으면 사라지고, 누가 자기 결과를 이미 봤는지 같은 진행 상태는 저장하지 않습니다(그래서 새로고침하면 결과가 다시 가려집니다). 링크를 열면 그 부분을 주소창에서 곧바로 지웁니다. 그래서 이 페이지에서 나가는 광고 요청에 링크 내용이 실려 나가지 않는 것을 실제 브라우저로 확인했습니다. 다만 이 페이지 안에서 함께 도는 제3자 스크립트가 페이지 안의 값을 읽는 것까지 기술적으로 막을 수 있는 것은 아닙니다. 링크를 받은 사람은 그 링크에 담긴 이름을 보게 되니, 실명을 쓰고 싶지 않다면 별명을 넣으세요. 자세한 내용은 개인정보처리방침을 확인해 주세요.</p>
+  <p data-i18n="privDesc">입력한 이름과 결과는 링크(#뒤 부분) 안에 담겨 링크와 함께 전달됩니다. 서버로 보내 저장하지 않습니다. 다만 새로고침해도 판이 그대로 있도록 ★판 링크와 화면 종류(즉석/공유·만든 사람인지)를 이 탭에 임시로 둡니다 — 링크를 받아 연 판뿐 아니라 직접 만든 판도 같습니다. 탭을 닫으면 사라지고, 누가 자기 결과를 이미 봤는지 같은 진행 상태는 저장하지 않습니다(그래서 새로고침하면 결과가 다시 가려지고, 만든 사람은 링크를 다시 복사해야 전체 결과가 열립니다). 링크를 열면 그 부분을 주소창에서 곧바로 지웁니다. 그래서 이 페이지에서 나가는 광고 요청에 링크 내용이 실려 나가지 않는 것을 실제 브라우저로 확인했습니다. 다만 이 페이지 안에서 함께 도는 제3자 스크립트가 페이지 안의 값을 읽는 것까지 기술적으로 막을 수 있는 것은 아닙니다. 링크를 받은 사람은 그 링크에 담긴 이름을 보게 되니, 실명을 쓰고 싶지 않다면 별명을 넣으세요. 자세한 내용은 개인정보처리방침을 확인해 주세요.</p>
   <h2 data-i18n="tipsTitle">요령</h2>
   <details><summary data-i18n="tip1q">결과 칸을 재미있게 채워 보세요</summary><p data-i18n="tip1a">「커피 사기」처럼 한 명만 걸리는 방식으로 하려면 한 칸에만 벌칙을 적고 나머지는 「통과」로 두면 됩니다. 순서를 정할 때는 1번, 2번… 처럼 숫자를 넣으세요.</p></details>
   <details><summary data-i18n="tip2q">단체 대화방에서 쓰는 법</summary><p data-i18n="tip2a">공유 모드로 판을 만들고 링크를 복사해 대화방에 붙여 넣으세요. 각자 링크를 열어 자기 이름을 누르면 자기 결과만 먼저 보게 되고, 다 확인한 뒤 누구든 「전체 공개」를 누르면 전원 결과가 나옵니다.</p></details>
@@ -284,7 +322,7 @@
   <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
   <details><summary data-i18n="faq2q">링크를 받은 사람도 같은 결과를 보나요?</summary><p data-i18n="faq2a">네. 판을 만드는 데 필요한 것이 전부 링크 안에 들어 있어, 기기·브라우저·시간이 달라도 같은 판과 같은 결과가 나옵니다. 이 성질은 자동 시험으로 확인하고 있습니다.</p></details>
   <details><summary data-i18n="faq3q">먼저 눌러 보면 결과가 바뀌나요?</summary><p data-i18n="faq3a">바뀌지 않습니다. 가로줄은 판을 만들 때 이미 전부 정해져 있고, 누르는 행동은 이미 정해진 줄을 따라 보여 줄 뿐입니다.</p></details>
-  <details><summary data-i18n="faq4q">기록이 남나요?</summary><p data-i18n="faq4a">새로고침해도 판이 사라지지 않도록 ★판 링크만 이 탭에 임시로 둡니다 — 그 링크 안에 이름·결과가 담겨 있고, 탭을 닫으면 함께 사라집니다. 서버에는 저장하지 않습니다. 누가 이미 봤는지 같은 진행 상태는 저장하지 않아서, 새로고침하면 결과가 다시 가려집니다. 기기에 계속 남는 것은 소리·언어 설정뿐입니다.</p></details>
+  <details><summary data-i18n="faq4q">기록이 남나요?</summary><p data-i18n="faq4a">새로고침해도 판이 사라지지 않도록 ★판 링크와 화면 종류를 이 탭에 임시로 둡니다 — 그 링크 안에 이름·결과가 담겨 있고, 탭을 닫으면 함께 사라집니다. 서버에는 저장하지 않습니다. 누가 이미 봤는지 같은 진행 상태는 저장하지 않아서, 새로고침하면 결과가 다시 가려집니다. 기기에 계속 남는 것은 소리·언어 설정뿐입니다.</p></details>
   <details><summary data-i18n="faq5q">소리를 끌 수 있나요?</summary><p data-i18n="faq5a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 기기의 「동작 줄이기」를 켜면 줄을 따라가는 연출 없이 결과가 바로 표시됩니다.</p></details>
 </section>
 
@@ -344,6 +382,31 @@ const I18N = {
     srReveal:(a,b) => a + ' → ' + b, srAll:'전체 결과를 공개했습니다',
     howTitle:'게임 방법', fairTitle:'왜 링크만으로 공정한가요', privTitle:'이름은 어디에 저장되나요',
     tipsTitle:'요령', faqTitle:'자주 묻는 질문',
+    /* ★본문·FAQ 문단 — 전에는 사전에 없어 EN 으로 바꿔도 한국어가 그대로 남았다(codex R1 major ⑤).
+       ko 값은 HTML 기본 텍스트에서 그대로 뽑아 넣었다(두 곳이 어긋나지 않도록). */
+    how1:'참가할 사람의 이름과, 걸리면 하게 될 결과(벌칙이나 상품)를 넣고 「사다리 만들기」를 누르세요. 사다리가 그려지면 자기 이름을 눌러 줄을 따라 내려가 보고, 「전체 공개」로 모두의 결과를 한 번에 볼 수 있습니다. 2명부터 10명까지 됩니다.',
+    how2:'모드는 둘입니다. 「즉석」은 한 화면에서 그 자리에 모여 보는 방식이고, 「공유」는 링크를 나눠 각자 자기 기기에서 확인하는 방식입니다. 공유 모드에서는 링크를 복사해 나눈 뒤에야 만든 사람도 전체 결과를 볼 수 있습니다 — 만든 사람이 먼저 결과를 보고 판을 다시 만드는 일을 막기 위한 규칙입니다.',
+    fairDesc:'사다리는 판이 정해지는 순간 결과도 함께 정해집니다. 이 게임은 그 판을 만들 때 쓴 씨앗값(seed)과 참가자·결과 목록을 링크 주소 안에 그대로 담습니다. 그래서 링크를 연 사람은 누구나 같은 판을 만들어 보게 되고, 기기가 달라도·나중에 열어도 결과가 똑같습니다. 서버에 저장하는 것이 없으니 누군가 몰래 결과를 바꿀 서버도 없습니다. 같은 링크를 열면 같은 판입니다 — 판을 정하는 것은 씨앗값 하나가 아니라 링크에 담긴 전체(씨앗값·참가자·결과)이므로, 만든 사람이 결과를 보고 다시 만들면 링크가 통째로 달라져 곧바로 드러납니다. 화면의 씨앗값은 그 링크를 눈으로 견줘 보기 쉽게 함께 보여 주는 표시입니다.',
+    fairDesc2:'가로줄은 판을 만드는 순간 전부 정해집니다. 누가 먼저 누르든, 몇 번을 다시 보든, 애니메이션을 끄든 결과는 달라지지 않습니다 — 사람의 행동이 판에 끼어들 자리가 없도록 만들었습니다.',
+    privDesc:'입력한 이름과 결과는 링크(#뒤 부분) 안에 담겨 링크와 함께 전달됩니다. 서버로 보내 저장하지 않습니다. 다만 새로고침해도 판이 그대로 있도록 ★판 링크와 화면 종류(즉석/공유·만든 사람인지)를 이 탭에 임시로 둡니다 — 링크를 받아 연 판뿐 아니라 직접 만든 판도 같습니다. 탭을 닫으면 사라지고, 누가 자기 결과를 이미 봤는지 같은 진행 상태는 저장하지 않습니다(그래서 새로고침하면 결과가 다시 가려지고, 만든 사람은 링크를 다시 복사해야 전체 결과가 열립니다). 링크를 열면 그 부분을 주소창에서 곧바로 지웁니다. 그래서 이 페이지에서 나가는 광고 요청에 링크 내용이 실려 나가지 않는 것을 실제 브라우저로 확인했습니다. 다만 이 페이지 안에서 함께 도는 제3자 스크립트가 페이지 안의 값을 읽는 것까지 기술적으로 막을 수 있는 것은 아닙니다. 링크를 받은 사람은 그 링크에 담긴 이름을 보게 되니, 실명을 쓰고 싶지 않다면 별명을 넣으세요. 자세한 내용은 개인정보처리방침을 확인해 주세요.',
+    tip1q:'결과 칸을 재미있게 채워 보세요',
+    tip1a:'「커피 사기」처럼 한 명만 걸리는 방식으로 하려면 한 칸에만 벌칙을 적고 나머지는 「통과」로 두면 됩니다. 순서를 정할 때는 1번, 2번… 처럼 숫자를 넣으세요.',
+    tip2q:'단체 대화방에서 쓰는 법',
+    tip2a:'공유 모드로 판을 만들고 링크를 복사해 대화방에 붙여 넣으세요. 각자 링크를 열어 자기 이름을 누르면 자기 결과만 먼저 보게 되고, 다 확인한 뒤 누구든 「전체 공개」를 누르면 전원 결과가 나옵니다.',
+    tip3q:'이름이 잘려 보일 때',
+    tip3a:'사람이 많으면 판 위쪽의 이름 칸이 좁아 말줄임(…)으로 보일 수 있습니다. 전체 이름은 결과 목록에서 그대로 볼 수 있고, 이름을 짧게 넣으면 판에서도 잘 보입니다.',
+    faq1q:'설치가 필요한가요?',
+    faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'링크를 받은 사람도 같은 결과를 보나요?',
+    faq2a:'네. 판을 만드는 데 필요한 것이 전부 링크 안에 들어 있어, 기기·브라우저·시간이 달라도 같은 판과 같은 결과가 나옵니다. 이 성질은 자동 시험으로 확인하고 있습니다.',
+    faq3q:'먼저 눌러 보면 결과가 바뀌나요?',
+    faq3a:'바뀌지 않습니다. 가로줄은 판을 만들 때 이미 전부 정해져 있고, 누르는 행동은 이미 정해진 줄을 따라 보여 줄 뿐입니다.',
+    faq4q:'기록이 남나요?',
+    faq4a:'새로고침해도 판이 사라지지 않도록 ★판 링크와 화면 종류를 이 탭에 임시로 둡니다 — 그 링크 안에 이름·결과가 담겨 있고, 탭을 닫으면 함께 사라집니다. 서버에는 저장하지 않습니다. 누가 이미 봤는지 같은 진행 상태는 저장하지 않아서, 새로고침하면 결과가 다시 가려집니다. 기기에 계속 남는 것은 소리·언어 설정뿐입니다.',
+    faq5q:'소리를 끌 수 있나요?',
+    faq5a:'네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 기기의 「동작 줄이기」를 켜면 줄을 따라가는 연출 없이 결과가 바로 표시됩니다.',
+    copyFbNote:'복사가 막혀 있습니다 — 아래 링크를 길게 눌러(또는 Ctrl+C 로) 직접 복사한 뒤 「복사했어요」를 눌러 주세요',
+    copyDone:'복사했어요',
     footer:'© 2026 사다리타기 · 개인정보: 입력한 이름·결과는 링크에만 담기며 서버에 저장하지 않습니다. 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
     navPrivacy:'개인정보처리방침', navAbout:'소개'
   },
@@ -386,6 +449,30 @@ const I18N = {
     ariaResult:(n,r) => n + ' result ' + r,
     srReveal:(a,b) => a + ' goes to ' + b, srAll:'All results revealed',
     howTitle:'How to play', fairTitle:'Why a link alone is fair', privTitle:'Where do the names go',
+    /* 본문·FAQ 문단(ko 와 짝) — 영어 사용자도 같은 안내·같은 개인정보 고지를 받는다 */
+    how1:'Type in the names of everyone playing and the outcomes they might land on (a forfeit or a prize), then press “Build the ladder”. Once the ladder is drawn, tap your own name to follow your line down, or press “Reveal all” to see everyone’s outcome at once. It works for 2 to 10 players.',
+    how2:'There are two modes. “On the spot” is for everyone gathered around one screen; “Share” hands out a link so each person checks on their own device. In share mode the person who built the board can see the full result only after copying the link — that rule stops the host from peeking and rebuilding the board.',
+    fairDesc:'On a ladder, the moment the board is fixed the outcome is fixed with it. This game puts the seed used to build the board, plus the list of players and outcomes, straight into the link. So anyone who opens the link rebuilds the very same board, and the result is identical on a different device or days later. Nothing is stored on a server, so there is no server where anyone could quietly change the result. Open the same link and you get the same board — what decides it is not the seed alone but everything the link carries (seed, players, outcomes), so if the host peeked and rebuilt, the whole link would be different and you would see it at once. The seed shown on screen is there to make those links easy to compare by eye.',
+    fairDesc2:'Every rung is fixed the moment the board is built. It does not matter who taps first, how many times you look again, or whether animations are turned off — the outcome does not move. There is simply no seam where a person’s actions could reach into the board.',
+    privDesc:'The names and outcomes you type ride inside the link (the part after the #) and travel with it. They are not sent to a server or stored there. To keep the board alive across a refresh, this tab does temporarily hold the board link and which screen it was (on the spot / share, and whether you were the host) — that applies to a board you built yourself as well as one you opened from a link. It disappears when you close the tab, and progress (such as who has already looked at their own outcome) is not stored, so a refresh hides the outcomes again and the host has to copy the link once more before the full result unlocks. When a link is opened, that part is removed from the address bar right away, and we checked in a real browser that the ad requests leaving this page do not carry the link. What we cannot technically prevent is a third-party script running on the page reading values inside the page. Anyone you send the link to will see the names in it, so use nicknames if you would rather not use real ones. See the privacy policy for details.',
+    tip1q:'Make the outcome column fun',
+    tip1a:'For a “one person buys the coffee” style game, write the forfeit in a single box and leave the rest as “Pass”. To decide an order, put numbers in — 1st, 2nd and so on.',
+    tip2q:'How to use it in a group chat',
+    tip2a:'Build the board in share mode, copy the link and paste it into the chat. Each person opens the link and taps their own name to see just their own outcome; once everyone has looked, anyone can press “Reveal all” to show the whole board.',
+    tip3q:'When names look cut off',
+    tip3a:'With many players the name boxes above the board get narrow and may show an ellipsis (…). The full names are always there in the result list, and short names stay readable on the board itself.',
+    faq1q:'Do I need to install anything?',
+    faq1a:'No. It runs straight in the browser. Add it to your home screen and it behaves like an app.',
+    faq2q:'Does someone who opens the link see the same result?',
+    faq2a:'Yes. Everything needed to rebuild the board is inside the link, so the same board and the same result come out on any device, any browser, at any time. We check this property with automated tests.',
+    faq3q:'Does tapping first change the result?',
+    faq3a:'It does not. The rungs are all fixed when the board is built, and tapping only walks a line that was already decided.',
+    faq4q:'Is anything recorded?',
+    faq4a:'So that a refresh does not lose the board, this tab temporarily holds the board link and which screen it was — the names and outcomes are inside that link, and it disappears when you close the tab. Nothing is stored on a server. Progress, such as who has already looked, is not stored, so a refresh hides the outcomes again. The only things that stay on your device are the sound and language settings.',
+    faq5q:'Can I turn the sound off?',
+    faq5a:'Yes. The speaker button at the top right turns it off and on, and that choice is remembered for your next visit. If your device has “Reduce motion” switched on, the result appears immediately without the line-tracing animation.',
+    copyFbNote:'Copying is blocked here — select the link below and copy it by hand (long-press, or Ctrl+C), then press “I copied it”.',
+    copyDone:'I copied it',
     tipsTitle:'Tips', faqTitle:'FAQ',
     footer:'© 2026 Ladder · Privacy: names and outcomes live in the link only and are never stored on a server; third-party cookies (Google) may be used for ads.',
     navPrivacy:'Privacy policy', navAbout:'About'
@@ -772,6 +859,10 @@ function startBoard(seed, nm, rs, m, r){
   /* ★주소창에는 판 정의를 넣지 않는다 — 넣는 순간 이 페이지의 광고·분석 스크립트가 그 주소를 읽어
      자기 요청에 실어 보내는 길이 열린다(실측으로 확인한 뒤 없앤 경로다). 링크 전달은 [링크 복사] 버튼 하나다. */
   $('start').classList.remove('show');
+  if (typeof hideCopyFallback === 'function') hideCopyFallback();
+  /* ★만든 판도 이 탭에 둔다 — 전에는 링크로 들어온 판만 저장돼, 만든 사람이 새로고침하면 판이 사라지는데
+     고지문은 사라지지 않는다고 말하고 있었다(codex R1 major ③a). 저장하는 것은 판 링크와 화면 종류뿐이다. */
+  rememberBoard(payload, mode, role);
   renderLadder(); renderLanes(); refreshChrome();
   ga('game_start', { game: GA_GAME, players: board.n, mode });
   if (window.hpHit) window.hpHit('play', GA_GAME);
@@ -840,11 +931,26 @@ async function copyLink(){
       ta.remove();
     }catch(e){ ok = false; }
   }
-  /* ★복사에 실패해도 링크는 주소창에 이미 들어가 있다 — 봉인은 "링크를 나눌 수 있는 상태"가 되면 푼다. */
-  linkCopied = true;
-  refreshChrome(); renderLanes();
-  toast(ok ? T('copied') : T('copyFail'));
+  /* ★봉인은 링크가 실제로 사용자 손에 들어갔을 때만 푼다.
+     전에는 실패해도 무조건 열었고, 그 근거는 "복사에 실패해도 링크는 주소창에 있다" 였다 —
+     그 전제는 제작자 주소에 링크를 넣지 않기로 한 패치3 으로 이미 무효가 됐다(codex R1 major ②).
+     그래서 실패하면 링크를 화면에 내놓고, 사용자가 직접 복사했다고 확인해야 열린다. */
+  if (ok){
+    hideCopyFallback();
+    linkCopied = true;
+    refreshChrome(); renderLanes();
+    toast(T('copied'));
+  } else {
+    showCopyFallback();
+    toast(T('copyFail'));
+  }
 }
+function showCopyFallback(){
+  const box = $('copyFb'), f = $('copyFbUrl');
+  f.value = shareUrl; box.hidden = false;
+  try { f.focus(); f.setSelectionRange(0, f.value.length); } catch (e) {}
+}
+function hideCopyFallback(){ $('copyFb').hidden = true; }
 function shareTextOf(){
   const ends = endsOf(board);
   const lines = [];
@@ -968,10 +1074,16 @@ $('btnMinus').onclick = () => setCount(inputCount - 1);
 $('btnPlus').onclick = () => setCount(inputCount + 1);
 $('btnMake').onclick = () => { const { nm, rs } = readInputs(); startBoard(newSeed(), nm, rs, mode, 'creator'); };
 $('btnCopy').onclick = copyLink;
+/* 복사가 막힌 브라우저에서만 쓰인다 — 링크가 화면에 나와 있는 상태에서 사용자가 확인하면 봉인을 푼다 */
+$('btnCopyDone').onclick = () => {
+  linkCopied = true; hideCopyFallback();
+  refreshChrome(); renderLanes(); toast(T('copied'));
+};
 $('btnRevealAll').onclick = revealAll;
 $('btnNew').onclick = () => {
   board = null; revealed = new Set(); revealedAll = false; linkCopied = false;
   forgetBoard();               /* 판을 버렸으면 저장본도 버린다 — 새로고침에 옛 판이 되살아나지 않도록 */
+  hideCopyFallback();
   history.replaceState(null, '', location.pathname);
   $('over').classList.remove('show');
   $('ladder').textContent = ''; $('names').textContent = ''; $('results').textContent = '';
@@ -995,30 +1107,67 @@ $('btnSound2').textContent = soundOn ? '🔊' : '🔇';
    저장하지 않는다**(A3⑤ 무상태의 취지 — 새로고침은 링크를 다시 연 것과 똑같아야 한다).
    탭 한정 sessionStorage 만 쓴다(탭을 닫으면 사라진다 · localStorage 로 올리지 않는다).
    ★주소창에는 되돌려 넣지 않는다 — 넣는 순간 광고 요청이 그 주소를 실어 나르던 경로가 되살아난다(§9). */
-const STORE_KEY = 'ld.p';
-function rememberBoard(p){ try { sessionStorage.setItem(STORE_KEY, String(p)); } catch (e) {} }
-function forgetBoard(){ try { sessionStorage.removeItem(STORE_KEY); } catch (e) {} }
+const STORE_KEY = 'ld.p';    /* 판 링크(payload) 그대로 */
+const STORE_CTX = 'ld.m';    /* 어떤 화면으로 열려 있던 판인가 — 'instant:creator' 'share:creator' 'share:visitor' */
+/* ★두 번째 키가 필요한 이유: 제작 판을 복원하면서 화면 종류를 잊으면, 만든 사람의 공유 판이 방문자 화면으로
+   되살아나 봉인이 저절로 풀린다(공정성 계약이 새로고침 한 번에 무너진다). 그래서 '만든 사람이었다'는 사실만
+   함께 둔다 — 누가 봤는지·전체 공개를 했는지·링크를 복사했는지 같은 **진행 상태는 여전히 저장하지 않는다**. */
+const CTX_RE = /^(instant|share):(creator|visitor)$/;
+function rememberBoard(p, m, r){
+  try { sessionStorage.setItem(STORE_KEY, String(p)); sessionStorage.setItem(STORE_CTX, m + ':' + r); } catch (e) {}
+}
+function forgetBoard(){
+  try { sessionStorage.removeItem(STORE_KEY); sessionStorage.removeItem(STORE_CTX); } catch (e) {}
+}
 function bootFromStore(){
-  let p = null;
-  try { p = sessionStorage.getItem(STORE_KEY); } catch (e) { return false; }
+  let p = null, ctx = null;
+  try { p = sessionStorage.getItem(STORE_KEY); ctx = sessionStorage.getItem(STORE_CTX); } catch (e) { return false; }
   if (!p) return false;
   const got = decodePayload(p);
-  if (!got){ forgetBoard(); return false; }
-  /* 복원은 '링크를 다시 연 것' 과 같다 — 방문자 화면으로, 진행 상태 없이 처음부터 연다. */
+  const okCtx = CTX_RE.test(String(ctx || ''));
+  if (!got || !okCtx){ forgetBoard(); return false; }
+  const [m, r] = String(ctx).split(':');
+  /* 복원은 '판을 다시 연 것' 과 같다 — 진행 상태 없이 처음부터, 열려 있던 화면 그대로 연다.
+     제작자의 공유 판이면 봉인도 그대로 다시 걸린다(linkCopied 는 startBoard 가 false 로 되돌린다). */
+  startBoard(got.seed, got.names, got.results, m, r);
+  return true;
+}
+/* 들어온 링크 하나를 판으로 바꾼다 — 최초 로드와 fragment 재진입이 같은 경로를 쓴다.
+   ★decode 에 실패하면 옛 저장본으로 되돌아가지 않는다. 사용자는 방금 받은 링크를 열었는데
+   엉뚱한 옛 판이 나오면 그것을 그 링크의 결과로 믿게 된다(codex R1 major ③b). */
+function adoptPayload(p){
+  const got = decodePayload(p);
+  if (!got){ badLinkStop(); return false; }
+  /* 저장은 startBoard 한 곳에서만 한다 — 쓰는 자리가 둘이면 계약이 갈라진다 */
   startBoard(got.seed, got.names, got.results, 'share', 'visitor');
   return true;
+}
+function badLinkStop(){
+  forgetBoard();                       /* 옛 판으로 폴백하지 않는다 — 저장본도 함께 버린다 */
+  board = null; revealed = new Set(); revealedAll = false; linkCopied = false;
+  $('over').classList.remove('show');
+  $('ladder').textContent = ''; $('names').textContent = ''; $('results').textContent = '';
+  role = 'creator';
+  buildInputs(); refreshChrome();
+  $('start').classList.add('show');
+  toast(T('badLink'));
 }
 function bootFromHash(){
   /* 판 정의는 head 의 인라인이 주소에서 이미 걷어내 window.__ldPayload 에 옮겨 두었다.
      뒤의 정규식은 그 인라인이 돌지 않은 예외 상황(스크립트 차단 등)을 위한 보조 경로다. */
   const p = window.__ldPayload || (/(?:^|[#&])p=([A-Za-z0-9_-]+)/.exec(location.hash || '') || [])[1];
   if (!p) return false;
-  const got = decodePayload(p);
-  if (!got){ toast(T('badLink')); return false; }
-  startBoard(got.seed, got.names, got.results, 'share', 'visitor');
-  rememberBoard(p);            /* 새로고침해도 같은 판을 다시 열 수 있게 링크만 남긴다 */
-  return true;
+  /* ★방어는 한 지점이다 — 링크 해독에 실패하면 badLinkStop 이 저장본을 버리므로, 아래 저장본 폴백은
+     되살아날 판이 없어 자동으로 막힌다. 방어를 두 겹으로 두면 한 겹만 지운 주입이 통과해
+     '검출력 없는 검사' 가 된다(앞 라운드에서 배운 함정). */
+  return adoptPayload(p);
 }
+/* 이미 열려 있는 탭의 주소가 다른 판 링크로 바뀐 경우 — head 인라인이 주소에서 걷어낸 뒤 알려 준다.
+   화면이 옛 판에 머무르지 않도록 새 판으로 갈아탄다(codex R1 major ①). */
+window.addEventListener('ld:payload', e => {
+  const p = (e && e.detail) ? String(e.detail) : (window.__ldPayload || '');
+  if (p) adoptPayload(p);
+});
 applyLang();
 setMode('instant');
 setCount(4);

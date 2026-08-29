@@ -78,12 +78,12 @@
 
 <main>
   <div class="langbar"><a href="#en">English ↓</a><a href="/about/">소개</a></div>
-  <p class="updated">시행일: 2026년 8월 23일 · 최종 개정일: 2026년 8월 25일 · 적용 대상: hanpango.com 및 그 하위 모든 페이지</p>
+  <p class="updated">시행일: 2026년 8월 23일 · 최종 개정일: 2026년 8월 29일 · 적용 대상: hanpango.com 및 그 하위 모든 페이지</p>
 
   <section>
     <h2>사다리타기의 이름·결과</h2>
-    <p>사다리타기에서 입력한 이름과 결과는 <strong>링크 주소 안에만</strong> 담깁니다. 서버로 보내 저장하지 않고, 이 사이트의 서버 기록(로그)에도 남기지 않습니다. 새로고침해도 판이 유지되도록 <strong>판 링크(링크의 <code>#</code> 뒤 부분)만</strong> 브라우저의 탭 저장소(sessionStorage)에 임시로 보관하며, <strong>탭을 닫으면 사라집니다</strong> — 열람 여부나 진행 상태는 저장하지 않습니다. 링크를 받은 사람은 그 링크에 담긴 이름을 보게 되므로, 실명을 남기고 싶지 않다면 별명을 사용해 주세요. 링크에서 판을 담고 있는 <code>#</code> 뒤 부분은 브라우저가 서버로 보내지 않으며, 페이지가 열리는 즉시 주소창에서도 지워집니다 — 그래서 이 페이지에서 나가는 광고 요청에 그 내용이 실려 나가지 않는 것을 실제 브라우저 관측으로 확인했습니다. 다만 이 페이지에서 함께 실행되는 제3자 스크립트가 페이지 안의 값을 읽는 것까지 기술적으로 차단하지는 못합니다.</p>
-    <p>Names and outcomes entered in Ladder are encoded in the link only. They are never stored on a server and never kept in our server logs. So that a refresh does not lose the board, the page keeps <strong>only the board link</strong> in the browser’s per-tab storage (sessionStorage); it disappears when you close the tab, and no viewing or progress state is stored. The page also strips that part out of the address as soon as it loads — we verified in a real browser that the ad requests leaving this page do not carry the link. That does not mean third-party scripts running on the page are technically unable to read values held by the page. Anyone you send the link to will see the names, so use nicknames if you prefer.</p>
+    <p>사다리타기에서 입력한 이름과 결과는 <strong>링크 주소 안에만</strong> 담깁니다. 서버로 보내 저장하지 않고, 이 사이트의 서버 기록(로그)에도 남기지 않습니다. 새로고침해도 판이 유지되도록 <strong>판 링크(링크의 <code>#</code> 뒤 부분 · <code>ld.p</code>)</strong>와 <strong>그 판이 열려 있던 화면 종류(즉석/공유 · 만든 사람인지 · <code>ld.m</code>)</strong>를 브라우저의 탭 저장소(sessionStorage)에 임시로 보관하며, <strong>탭을 닫으면 사라집니다</strong> — 직접 만든 판도 같습니다. 열람 여부나 진행 상태는 저장하지 않습니다. 링크를 받은 사람은 그 링크에 담긴 이름을 보게 되므로, 실명을 남기고 싶지 않다면 별명을 사용해 주세요. 링크에서 판을 담고 있는 <code>#</code> 뒤 부분은 브라우저가 서버로 보내지 않으며, 페이지가 열리는 즉시 주소창에서도 지워집니다 — 그래서 이 페이지에서 나가는 광고 요청에 그 내용이 실려 나가지 않는 것을 실제 브라우저 관측으로 확인했습니다. 다만 이 페이지에서 함께 실행되는 제3자 스크립트가 페이지 안의 값을 읽는 것까지 기술적으로 차단하지는 못합니다.</p>
+    <p>Names and outcomes entered in Ladder are encoded in the link only. They are never stored on a server and never kept in our server logs. So that a refresh does not lose the board, the page keeps the <strong>board link</strong> (<code>ld.p</code>) and <strong>which screen that board was open in</strong> (on the spot / share, and whether you were the host — <code>ld.m</code>) in the browser’s per-tab storage (sessionStorage); a board you built yourself is kept the same way; it disappears when you close the tab, and no viewing or progress state is stored. The page also strips that part out of the address as soon as it loads — we verified in a real browser that the ad requests leaving this page do not carry the link. That does not mean third-party scripts running on the page are technically unable to read values held by the page. Anyone you send the link to will see the names, so use nicknames if you prefer.</p>
     <h2>1. 운영자 및 연락처</h2>
     <p>이 사이트(한판고, hanpango.com)는 개인이 혼자 운영하는 1인 운영 사이트입니다. 개인정보 처리방침에 관한 문의는 아래 이메일로 보내주시면 됩니다.</p>
     <p>개인정보 보호책임자: 운영자(개인) · 문의: <code>bridgeaiedu@gmail.com</code></p>
@@ -91,7 +91,7 @@
 
   <section>
     <h2>2. 수집하는 개인정보 — 직접 수집하지 않습니다</h2>
-    <p>이 사이트는 이름, 이메일, 전화번호, 생년월일 같은 개인정보를 <strong>직접 수집하지 않습니다.</strong> 회원가입 절차가 없고, 로그인 기능이 없으며, 입력 폼도 없습니다. 게임의 상세 기록(판의 내용·최고 점수·소리 설정)은 서버로 전송하지 않고 기기에만 저장합니다. 다만 한 판이 끝나면 <strong>요약 결과</strong>(어느 게임인지·점수·수·소요 시간·일일 도전 여부·연속 성공 일수)가, 표시 언어를 바꾸면 <strong>바꾼 언어(ko/en)</strong>가 4항의 분석 도구로 통계용으로 전송되며, 이 값만으로는 개인을 알아볼 수 없습니다. 또한 화면에 보이는 공개 카운터(방문 수·판 수)를 위해 <strong>방문 1회·판 시작 1회라는 횟수만</strong>이 이 사이트 서버(Cloudflare D1)에 더해지며, 여기에는 개인을 식별할 수 있는 정보가 들어 있지 않습니다.</p>
+    <p>이 사이트는 이름, 이메일, 전화번호, 생년월일 같은 개인정보를 <strong>직접 수집하지 않습니다.</strong> 회원가입 절차가 없고, 로그인 기능이 없으며, <strong>운영자에게 전송되는 입력 폼이 없습니다</strong> — 사다리타기처럼 이름·결과를 적는 칸이 있는 게임이 있지만, 그 값은 서버로 보내지 않고 링크 안에만 담깁니다. 게임의 상세 기록(판의 내용·최고 점수·소리 설정)은 서버로 전송하지 않고 기기에만 저장합니다. 다만 한 판이 끝나면 <strong>요약 결과</strong>(어느 게임인지·점수·수·소요 시간·일일 도전 여부·연속 성공 일수)가, 표시 언어를 바꾸면 <strong>바꾼 언어(ko/en)</strong>가 4항의 분석 도구로 통계용으로 전송되며, 이 값만으로는 개인을 알아볼 수 없습니다. 또한 화면에 보이는 공개 카운터(방문 수·판 수)를 위해 <strong>방문 1회·판 시작 1회라는 횟수만</strong>이 이 사이트 서버(Cloudflare D1)에 더해지며, 여기에는 개인을 식별할 수 있는 정보가 들어 있지 않습니다.</p>
     <h3>기기에만 저장되는 정보 (localStorage)</h3>
     <p>기록·설정을 유지하기 위해 필요한 값은 방문하신 <strong>기기의 브라우저 안(localStorage)에만</strong> 저장됩니다. 이 값들은 운영자에게 전송되지 않으며 운영자가 열람할 수 없습니다. 현재 저장되는 항목은 다음이 전부입니다.</p>
     <ul>
@@ -113,6 +113,7 @@
       <li><code>wd.daily</code> — 오늘의 낱말 오늘 도전의 진행 상태(시도할 때마다 저장)와 완료 결과</li>
       <li><code>wd.streak</code> — 오늘의 낱말 연속 성공 일수(스트릭)</li>
       <li><code>wd.sound</code> — 오늘의 낱말 효과음 켜짐/꺼짐 설정</li>
+      <li><code>ld.sound</code> — 사다리타기 효과음 켜짐/꺼짐 설정</li>
     </ul>
     <p>이 값들은 브라우저의 사이트 데이터 삭제 기능으로 언제든지 직접 지우실 수 있습니다. 삭제하시면 최고 점수와 스트릭 기록도 함께 사라집니다.</p>
   </section>
@@ -132,7 +133,7 @@
 
   <section>
     <h2>4. 분석 도구 — Google Analytics 4 를 씁니다</h2>
-    <p>이 사이트는 방문 통계를 보기 위해 <strong>Google Analytics 4</strong>(측정 ID <code>G-40KLN4QMCD</code> · IP 익명화 적용)를 사용합니다. 이 도구는 Google이 제공하는 표준 방식으로 동작합니다. 브라우저에 <code>_ga</code> 쿠키를 두어 <strong>가명 식별자(클라이언트 ID)</strong>로 방문자와 세션을 구분하고, 방문한 페이지 주소·이전 페이지(리퍼러)·페이지 제목·언어·화면 해상도·브라우저와 기기 종류·대략적인 지역(IP 주소는 익명화) 같은 항목을 <strong>자동으로 수집</strong>합니다. 여기에 이 사이트가 추가로 보내는 것은 게임 이벤트(게임 열기·시작·종료·일일 도전 완료·언어 전환)와 그 <strong>값</strong> — 게임 식별자(어느 게임인지), 점수·수·소요 시간·일일 도전 여부·연속 성공 일수, 전환 후 표시 언어(ko/en) — 뿐입니다. 닉네임·연락처처럼 개인을 직접 알아볼 수 있는 정보는 어떤 항목으로도 보내지 않으며, 광고 노출·클릭도 이 도구로는 재지 않습니다. 수집을 원치 않으시면 <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google 애널리틱스 차단 브라우저 부가기능</a>을 쓰시거나 브라우저에서 쿠키를 차단하실 수 있습니다. 수집하는 항목을 바꾸게 되면 이 방침을 먼저 고쳐 알려드리겠습니다.</p>
+    <p>이 사이트는 방문 통계를 보기 위해 <strong>Google Analytics 4</strong>(측정 ID <code>G-40KLN4QMCD</code> · IP 익명화 적용)를 사용합니다. 이 도구는 Google이 제공하는 표준 방식으로 동작합니다. 브라우저에 <code>_ga</code> 쿠키를 두어 <strong>가명 식별자(클라이언트 ID)</strong>로 방문자와 세션을 구분하고, 방문한 페이지 주소·이전 페이지(리퍼러)·페이지 제목·언어·화면 해상도·브라우저와 기기 종류·대략적인 지역(IP 주소는 익명화) 같은 항목을 <strong>자동으로 수집</strong>합니다. 여기에 이 사이트가 추가로 보내는 것은 게임 이벤트(게임 열기·시작·종료·일일 도전 완료·언어 전환)와 그 <strong>값</strong> — 게임 식별자(어느 게임인지), 점수·수·소요 시간·일일 도전 여부·연속 성공 일수, 참가자 수(players)와 놀이 방식(mode · 즉석/공유), 전환 후 표시 언어(ko/en) — 뿐입니다. 닉네임·연락처처럼 개인을 직접 알아볼 수 있는 정보는 어떤 항목으로도 보내지 않으며, 광고 노출·클릭도 이 도구로는 재지 않습니다. 수집을 원치 않으시면 <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google 애널리틱스 차단 브라우저 부가기능</a>을 쓰시거나 브라우저에서 쿠키를 차단하실 수 있습니다. 수집하는 항목을 바꾸게 되면 이 방침을 먼저 고쳐 알려드리겠습니다.</p>
     <p><strong>광고 쪽 측정은 이와 별개로 이루어집니다.</strong> 광고가 게재되면 Google의 광고 스크립트가 <strong>광고 노출과 클릭을 측정</strong>하고, 그 과정에서 Google 및 광고 파트너의 서버에 <strong>IP 주소·브라우저 정보·쿠키</strong> 같은 접속 기록이 남을 수 있습니다. 이 측정과 기록은 위 3항에서 설명한 Google의 처리에 해당하며, <strong>운영자가 아니라 Google이 수행합니다.</strong></p>
   </section>
 
@@ -167,7 +168,7 @@
 
   <div lang="en">
   <h2 id="en" style="font-size:1.25rem;margin:0 0 10px;color:var(--text)">Privacy Policy</h2>
-  <p class="updated">Effective date: 23 August 2026 · Last updated: 25 August 2026 · Applies to hanpango.com and all pages under it</p>
+  <p class="updated">Effective date: 23 August 2026 · Last updated: 29 August 2026 · Applies to hanpango.com and all pages under it</p>
 
   <section>
     <h2>1. Operator and contact</h2>
@@ -177,7 +178,7 @@
 
   <section>
     <h2>2. Personal data — none is collected directly</h2>
-    <p>This site does <strong>not collect personal data</strong> such as your name, email address, phone number or date of birth. There is no sign-up, no login and no input form. Detailed game data (board contents, best scores, sound setting) is never sent to a server and stays on your device. When a round ends, a <strong>summary</strong> (which game, score, moves, duration, whether it was the daily challenge, and streak length) is sent to the analytics tool described in section 4 for statistics only, and when you switch the display language the <strong>chosen language (ko/en)</strong> is sent as well; those values cannot identify you. In addition, for the public counters shown on the site (visits and plays), <strong>only the counts — one visit, one round started —</strong> are added on this site's own server (Cloudflare D1); nothing that could identify a person is included.</p>
+    <p>This site does <strong>not collect personal data</strong> such as your name, email address, phone number or date of birth. There is no sign-up and no login, and <strong>no input form that sends anything to the operator</strong> — some games, such as Ladder, do have boxes for names and outcomes, but those values are never sent to a server; they stay inside the link. Detailed game data (board contents, best scores, sound setting) is never sent to a server and stays on your device. When a round ends, a <strong>summary</strong> (which game, score, moves, duration, whether it was the daily challenge, and streak length) is sent to the analytics tool described in section 4 for statistics only, and when you switch the display language the <strong>chosen language (ko/en)</strong> is sent as well; those values cannot identify you. In addition, for the public counters shown on the site (visits and plays), <strong>only the counts — one visit, one round started —</strong> are added on this site's own server (Cloudflare D1); nothing that could identify a person is included.</p>
     <h3>Data kept on your device only (localStorage)</h3>
     <p>Values needed to keep your records and settings are stored <strong>only in your own browser (localStorage)</strong>. They are never transmitted to the operator and the operator cannot read them. The complete list is:</p>
     <ul>
@@ -199,6 +200,7 @@
       <li><code>wd.daily</code> — your Daily Word daily-challenge progress (saved after each guess) and its final result</li>
       <li><code>wd.streak</code> — consecutive-day streak count in Daily Word</li>
       <li><code>wd.sound</code> — Daily Word sound on/off setting</li>
+      <li><code>ld.sound</code> — Ladder sound on/off setting</li>
     </ul>
     <p>You can erase these at any time by clearing site data in your browser. Doing so also erases your best score and streak.</p>
   </section>
@@ -218,7 +220,7 @@
 
   <section>
     <h2>4. Analytics — Google Analytics 4</h2>
-    <p>This site uses <strong>Google Analytics 4</strong> (measurement ID <code>G-40KLN4QMCD</code>, with IP anonymisation) to see visit statistics. It works the standard way Google provides it: a <code>_ga</code> cookie holds a <strong>pseudonymous identifier (client ID)</strong> used to tell visitors and sessions apart, and fields such as the page address, the previous page (referrer), page title, language, screen resolution, browser and device type and approximate region (IP address anonymised) are <strong>collected automatically</strong>. On top of that, this site sends only game events (open, start, end, daily-challenge complete, language switch) and their <strong>values</strong> — the game identifier (which game), score, moves, duration, daily-challenge flag, streak length, and the display language chosen after a switch (ko/en). Nothing that directly identifies a person, such as a nickname or contact detail, is sent in any parameter, and ad impressions and clicks are not measured with this tool. If you prefer not to be measured, use the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics opt-out browser add-on</a> or block cookies in your browser. If what is collected changes, this policy will be updated first.</p>
+    <p>This site uses <strong>Google Analytics 4</strong> (measurement ID <code>G-40KLN4QMCD</code>, with IP anonymisation) to see visit statistics. It works the standard way Google provides it: a <code>_ga</code> cookie holds a <strong>pseudonymous identifier (client ID)</strong> used to tell visitors and sessions apart, and fields such as the page address, the previous page (referrer), page title, language, screen resolution, browser and device type and approximate region (IP address anonymised) are <strong>collected automatically</strong>. On top of that, this site sends only game events (open, start, end, daily-challenge complete, language switch) and their <strong>values</strong> — the game identifier (which game), score, moves, duration, daily-challenge flag, streak length, the number of players (players) and the play mode (mode — on the spot / share), and the display language chosen after a switch (ko/en). Nothing that directly identifies a person, such as a nickname or contact detail, is sent in any parameter, and ad impressions and clicks are not measured with this tool. If you prefer not to be measured, use the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics opt-out browser add-on</a> or block cookies in your browser. If what is collected changes, this policy will be updated first.</p>
     <p><strong>Ad-side measurement is separate from this.</strong> When ads are served, Google advertising scripts <strong>measure ad impressions and clicks</strong>, and in doing so records such as <strong>IP address, browser information and cookies</strong> may be written to servers operated by Google and its advertising partners. That measurement and logging is part of the Google processing described in section 3, and is carried out <strong>by Google, not by the operator.</strong></p>
   </section>
 
