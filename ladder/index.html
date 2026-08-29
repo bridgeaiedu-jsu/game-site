@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>사다리타기 — 링크 하나면 모두 같은 판 | Ladder</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 사다리타기. 이름과 결과만 넣으면 끝이고, 링크를 나누면 참여자 모두가 같은 판·같은 결과를 봅니다. 서버도 로그인도 없습니다 — 판은 링크 안에 들어 있습니다. 2~10명 · 커피 사기 · 청소 당번 · 순서 정하기. Share one link, everyone sees the same ladder.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="사다리타기 — 링크 하나면 모두 같은 판 | Ladder">
+<meta property="og:description" content="이름과 결과만 넣으면 끝 — 링크를 나누면 모두 같은 판을 봅니다. 설치 없이 바로 플레이.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/ladder/">
+<link rel="canonical" href="https://hanpango.com/ladder/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ★링크에 담긴 판 정의를 주소에서 즉시 걷어낸다(광고·분석 스크립트보다 먼저 실행되는 자리다).
+     HTML 파서는 문서에 적힌 순서대로 스크립트를 실행하므로, 아래 광고 스크립트가 location.href 를 읽는
+     시점에는 주소에 이미 판 정의(#p=…)가 없다 — 경합이 아니라 순서 계약이다.
+     걷어낸 값은 window.__ldPayload 에만 남고, 본문 스크립트가 그 값으로 판을 만든다.
+     ★이 블록은 아래 ADSENSE·GA4 태그보다 반드시 위에 있어야 한다(자리를 옮기면 유출이 되살아난다). -->
+<script>
+  window.__ldPayload = null;
+  try {
+    var m = /(?:^|[#&])p=([A-Za-z0-9_-]+)/.exec(location.hash || '');
+    if (m) { window.__ldPayload = m[1]; history.replaceState(null, '', location.pathname + location.search); }
+  } catch (e) {}
+</script>
+
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"사다리타기","alternateName":"Ladder","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본. 다크는 아래 @media 에서 ★같은 이름의 값만 바꿔 끼운다 — 마크업은 두 테마가 동일하다.
+     시그니처는 보라(--sig). 사다리 선(--rail)·가로줄(--rung)·따라가는 경로(--trace)는 두 테마 모두 배경 대비 3:1 이상이다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#7c3aed; --sig-ink:#5b21b6; --sig-soft:#ede9fe; --on-sig:#ffffff;
+    --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
+    --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
+    --rail:#9aa3b2; --rung:#4b5563; --trace:#7c3aed; --seal:#cbd5e1;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#a78bfa; --sig-ink:#c4b5fd; --sig-soft:#2e2670; --on-sig:#2e1065;
+      --good:#34d399; --good-ink:#bbf7d0; --good-soft:#14532d;
+      --warn:#fbbf24; --bad:#fca5a5; --bad-ink:#fecaca; --bad-soft:#4c1d1d;
+      --rail:#6f68b8; --rung:#c9c6ec; --trace:#c4b5fd; --seal:#443c9a;
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em;flex:1 1 auto;min-width:0;line-height:1.2}
+  h1 small{display:block;color:var(--muted);font-weight:400;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-btns{display:flex;gap:6px;flex:0 0 auto}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer;white-space:nowrap}
+  .ibtn:active{transform:scale(.96)}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}
+  .ad-rect{width:300px;height:250px;margin:10px auto}
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  /* ---- 사다리 ----
+     ★360px 폭에서 10명도 가로 스크롤 0: 판은 언제나 폭 100% 로 그리고, 열 간격은 SVG 안에서 나눈다.
+     이름·결과 줄은 같은 n등분 그리드라 열 위치가 판과 정확히 맞는다(사람 이름은 말줄임 · 세로쓰기 없음). */
+  .wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .bhead{width:100%;display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}
+  .chip{font-size:.72rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--muted-2);font-weight:600}
+  .chip.seed{font-variant-numeric:tabular-nums;letter-spacing:.04em}
+  .lane{width:100%;display:grid;gap:0}
+  .lane .cellbtn,.lane .cellout{min-width:0;text-align:center;padding:4px 1px;font-size:.72rem;line-height:1.2;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lane .cellbtn{appearance:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--text);
+        font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;margin:0 1px}
+  .lane .cellbtn[disabled]{cursor:default;opacity:.85}
+  .lane .cellbtn.on{border-color:var(--sig);background:var(--sig-soft);color:var(--sig-ink)}
+  .lane .cellbtn:focus-visible{outline:3px solid var(--sig);outline-offset:2px}
+  .lane .cellout{border:1px dashed var(--line);border-radius:8px;margin:0 1px;min-height:36px;display:flex;align-items:center;justify-content:center;
+        font-weight:700;color:var(--text);background:var(--panel2)}
+  .lane .cellout.sealed{color:var(--muted);background:transparent;border-style:dashed;border-color:var(--seal)}
+  .lane .cellout.hit{border-style:solid;border-color:var(--sig);background:var(--sig-soft);color:var(--sig-ink)}
+  svg#ladder{width:100%;height:auto;max-height:50vh;display:block;touch-action:manipulation}
+  svg#ladder .rail{stroke:var(--rail);stroke-width:2;stroke-linecap:round}
+  svg#ladder .rung{stroke:var(--rung);stroke-width:3;stroke-linecap:round}
+  svg#ladder .trace{stroke:var(--trace);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;fill:none}
+  .actions{width:100%;display:flex;gap:6px;margin-top:2px}
+  .actions .btn{margin-top:0}
+  .help{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
+  .help.warnline{color:var(--warn)}
+  .help[hidden]{display:none}
+  /* ---- 시작 카드(입력) ---- */
+  .modes{display:flex;gap:6px;margin:6px 0 2px}
+  .modes button{flex:1;min-height:44px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);font-weight:700;font-size:.95rem;cursor:pointer}
+  .modes button[aria-pressed="true"]{border-color:var(--sig);background:var(--sig-soft);color:var(--sig-ink)}
+  .modedesc{color:var(--muted);font-size:.78rem;min-height:2.4em;margin:0 0 6px;text-align:left}
+  .counter{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin:4px 0}
+  .counter b{font-size:1.2rem;font-variant-numeric:tabular-nums}
+  .counter button{min-width:44px;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:1.2rem;font-weight:800;cursor:pointer}
+  .counter button[disabled]{opacity:.4;cursor:default}
+  .presets{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px}
+  .presets button{flex:1 1 auto;min-height:40px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--text);font-size:.82rem;font-weight:600;cursor:pointer;padding:4px 8px}
+  .rows{display:flex;flex-direction:column;gap:6px;margin:4px 0 8px;text-align:left}
+  .row2{display:flex;gap:6px;align-items:center}
+  .row2 span{width:1.4em;color:var(--muted);font-size:.78rem;flex:0 0 auto;font-variant-numeric:tabular-nums}
+  .row2 input{flex:1 1 0;min-width:0;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);
+        padding:6px 10px;font-size:.95rem;font-family:inherit}
+  .row2 input:focus-visible{outline:3px solid var(--sig);outline-offset:1px}
+  .privnote{color:var(--muted);font-size:.75rem;text-align:left;margin:0 0 8px;line-height:1.45}
+  .fieldnote{color:var(--muted);font-size:.72rem;text-align:left;margin:-4px 0 6px}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card h2{margin:0 0 6px;font-size:1.5rem}
+  .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .hp-stat[hidden]{display:none!important}
+  .card .hp-stat b{font-weight:600}
+  .card .notice{color:var(--warn);font-size:.8rem;margin:0 0 8px}
+  .card .notice[hidden]{display:none}
+  .card .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[disabled]{opacity:.5;cursor:default}
+  .btn[hidden]{display:none}
+  .rlist{list-style:none;margin:6px 0 4px;padding:0;text-align:left}
+  .rlist li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:6px 2px;font-size:.92rem}
+  .rlist li:last-child{border-bottom:0}
+  .rlist .who{font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rlist .what{color:var(--sig-ink);font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  section.content a{color:var(--muted-2)}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center;max-width:520px}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(84px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  @media (prefers-reduced-motion: reduce){
+    .toast{transition:none}
+    .btn:active,.ibtn:active{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">사다리타기</span> <small id="subtitle" data-i18n="subtitle">링크 하나면 모두 같은 판</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 다른 게임</a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<main>
+  <div class="wrap">
+    <div class="bhead">
+      <span class="chip" id="modeChip">–</span>
+      <span class="chip seed" id="seedChip">–</span>
+    </div>
+    <!-- ★이름·결과 줄에는 data-i18n 을 붙이지 않는다 — 언어를 바꾸면 참가자 이름이 안내 문구로 덮인다
+         (끝말잇기에서 잡았던 결함 · 라벨은 render 가 넣는다). -->
+    <div class="lane" id="names" role="group" aria-label="players"></div>
+    <svg id="ladder" role="img" aria-labelledby="ladderTitle" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+      <title id="ladderTitle">ladder</title>
+    </svg>
+    <div class="lane" id="results" aria-live="polite"></div>
+    <div class="actions">
+      <button class="btn primary" id="btnCopy" data-i18n="copyLink">🔗 링크 복사</button>
+      <button class="btn ghost" id="btnRevealAll" data-i18n="revealAll">전체 공개</button>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="btnNew" data-i18n="newBoard">↻ 새로 만들기</button>
+    </div>
+  </div>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="help" id="hintLine" data-i18n="hintVisitor">자기 이름을 누르면 그 줄만 따라갑니다 · 「전체 공개」를 누르면 모두의 결과가 나옵니다</p>
+  <p class="help warnline" id="lenWarn" hidden data-i18n="lenWarn">링크가 깁니다(500자 초과) — 메신저에서 잘릴 수 있으니 이름·결과를 줄여 보세요</p>
+</main>
+
+<!-- 시작(입력) -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card">
+    <h2 id="startTitle" data-i18n="title2">사다리타기</h2>
+    <div class="sub" data-i18n="startSub">이름과 결과만 넣으면 끝.<br>★링크를 나누면 모두가 같은 판·같은 결과를 봅니다.</div>
+    <p class="notice" id="koNotice" hidden data-i18n="koNotice"></p>
+    <div class="modes" id="modes" role="group" aria-label="mode">
+      <button type="button" data-mode="instant" aria-pressed="true" data-i18n="modeInstant">즉석</button>
+      <button type="button" data-mode="share" aria-pressed="false" data-i18n="modeShare">공유</button>
+    </div>
+    <p class="modedesc" id="modeDesc"></p>
+    <div class="counter">
+      <button type="button" id="btnMinus" aria-label="minus">−</button>
+      <span><b id="pCount">4</b> <span data-i18n="peopleUnit">명</span></span>
+      <button type="button" id="btnPlus" aria-label="plus">+</button>
+    </div>
+    <div class="presets" id="presets" role="group" aria-label="presets">
+      <button type="button" data-preset="coffee" data-i18n="presetCoffee">커피 사기</button>
+      <button type="button" data-preset="clean" data-i18n="presetClean">청소 당번</button>
+      <button type="button" data-preset="order" data-i18n="presetOrder">순서 정하기</button>
+    </div>
+    <div class="rows" id="inputs"></div>
+    <p class="fieldnote" id="fieldNote" data-i18n="fieldNote">이름 최대 8자 · 결과 최대 12자 · 비워 두면 기본값이 들어갑니다</p>
+    <p class="privnote" id="privNote" data-i18n="privNote">입력한 이름·결과는 링크 주소에만 담깁니다 · 서버에 저장하지 않으며 광고·분석 스크립트에도 전달되지 않습니다</p>
+    <button class="btn primary" id="btnMake" data-i18n="make">사다리 만들기</button>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.ladder.today">–</b>판 · 누적 <b data-hp="plays.ladder.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 결과 -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card">
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <div class="sub" id="overSub"></div>
+    <ol class="rlist" id="rlist"></ol>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnShare" data-i18n="shareResult">결과 공유</button>
+    <button class="btn ghost" id="btnImage" data-i18n="saveImage">결과 이미지 저장</button>
+    <button class="btn ghost" id="btnClose" data-i18n="closeCard">판으로 돌아가기</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">참가할 사람의 이름과, 걸리면 하게 될 결과(벌칙이나 상품)를 넣고 「사다리 만들기」를 누르세요. 사다리가 그려지면 자기 이름을 눌러 줄을 따라 내려가 보고, 「전체 공개」로 모두의 결과를 한 번에 볼 수 있습니다. 2명부터 10명까지 됩니다.</p>
+  <p data-i18n="how2">모드는 둘입니다. 「즉석」은 한 화면에서 그 자리에 모여 보는 방식이고, 「공유」는 링크를 나눠 각자 자기 기기에서 확인하는 방식입니다. 공유 모드에서는 링크를 복사해 나눈 뒤에야 만든 사람도 전체 결과를 볼 수 있습니다 — 만든 사람이 먼저 결과를 보고 판을 다시 만드는 일을 막기 위한 규칙입니다.</p>
+  <h2 data-i18n="fairTitle">왜 링크만으로 공정한가요</h2>
+  <p data-i18n="fairDesc">사다리는 판이 정해지는 순간 결과도 함께 정해집니다. 이 게임은 그 판을 만들 때 쓴 씨앗값(seed)과 참가자·결과 목록을 링크 주소 안에 그대로 담습니다. 그래서 링크를 연 사람은 누구나 같은 판을 만들어 보게 되고, 기기가 달라도·나중에 열어도 결과가 똑같습니다. 서버에 저장하는 것이 없으니 누군가 몰래 결과를 바꿀 서버도 없습니다. 화면에 표시되는 씨앗값이 같다면 같은 판입니다 — 만든 사람이 결과를 보고 다시 만들면 씨앗값과 링크가 함께 바뀌므로 곧바로 드러납니다.</p>
+  <p data-i18n="fairDesc2">가로줄은 판을 만드는 순간 전부 정해집니다. 누가 먼저 누르든, 몇 번을 다시 보든, 애니메이션을 끄든 결과는 달라지지 않습니다 — 사람의 행동이 판에 끼어들 자리가 없도록 만들었습니다.</p>
+  <h2 data-i18n="privTitle">이름은 어디에 저장되나요</h2>
+  <p data-i18n="privDesc">입력한 이름과 결과는 링크(#뒤 부분) 안에 담겨 링크와 함께 전달됩니다. 서버로 보내 저장하지 않고, 이 기기에도 남기지 않습니다. 링크를 열면 그 부분을 주소창에서 곧바로 지우기 때문에, 이 페이지에 실리는 광고·분석 스크립트에도 이름·결과가 전달되지 않습니다. 링크를 받은 사람은 그 링크에 담긴 이름을 보게 되니, 실명을 쓰고 싶지 않다면 별명을 넣으세요. 자세한 내용은 개인정보처리방침을 확인해 주세요.</p>
+  <h2 data-i18n="tipsTitle">요령</h2>
+  <details><summary data-i18n="tip1q">결과 칸을 재미있게 채워 보세요</summary><p data-i18n="tip1a">「커피 사기」처럼 한 명만 걸리는 방식으로 하려면 한 칸에만 벌칙을 적고 나머지는 「통과」로 두면 됩니다. 순서를 정할 때는 1번, 2번… 처럼 숫자를 넣으세요.</p></details>
+  <details><summary data-i18n="tip2q">단체 대화방에서 쓰는 법</summary><p data-i18n="tip2a">공유 모드로 판을 만들고 링크를 복사해 대화방에 붙여 넣으세요. 각자 링크를 열어 자기 이름을 누르면 자기 결과만 먼저 보게 되고, 다 확인한 뒤 누구든 「전체 공개」를 누르면 전원 결과가 나옵니다.</p></details>
+  <details><summary data-i18n="tip3q">이름이 잘려 보일 때</summary><p data-i18n="tip3a">사람이 많으면 판 위쪽의 이름 칸이 좁아 말줄임(…)으로 보일 수 있습니다. 전체 이름은 결과 목록에서 그대로 볼 수 있고, 이름을 짧게 넣으면 판에서도 잘 보입니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
+  <details><summary data-i18n="faq2q">링크를 받은 사람도 같은 결과를 보나요?</summary><p data-i18n="faq2a">네. 판을 만드는 데 필요한 것이 전부 링크 안에 들어 있어, 기기·브라우저·시간이 달라도 같은 판과 같은 결과가 나옵니다. 이 성질은 자동 시험으로 확인하고 있습니다.</p></details>
+  <details><summary data-i18n="faq3q">먼저 눌러 보면 결과가 바뀌나요?</summary><p data-i18n="faq3a">바뀌지 않습니다. 가로줄은 판을 만들 때 이미 전부 정해져 있고, 누르는 행동은 이미 정해진 줄을 따라 보여 줄 뿐입니다.</p></details>
+  <details><summary data-i18n="faq4q">기록이 남나요?</summary><p data-i18n="faq4a">이 게임은 결과를 이 기기에도 저장하지 않습니다. 같은 링크를 다시 열면 언제든 같은 결과를 다시 볼 수 있으니 저장할 이유가 없습니다. 소리·언어 설정만 기기에 남습니다.</p></details>
+  <details><summary data-i18n="faq5q">소리를 끌 수 있나요?</summary><p data-i18n="faq5a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 기기의 「동작 줄이기」를 켜면 줄을 따라가는 연출 없이 결과가 바로 표시됩니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 사다리타기 · 개인정보: 입력한 이름·결과는 링크에만 담기며 서버에 저장하지 않습니다. 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 판 생성·결과 판정에는 관여하지 않는다. 태그가 아직 실리지 않았거나 차단됐으면 조용히 지나간다.
+   ★보내는 값에 이름·결과 문자열은 들어가지 않는다(인원 수·모드·소요 시간뿐). */
+const GA_GAME = 'ladder';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ======================= i18n(UI) ======================= */
+const I18N = {
+  ko: {
+    docTitle:'사다리타기 — 링크 하나면 모두 같은 판 | Ladder',
+    title:'사다리타기', title2:'사다리타기', subtitle:'링크 하나면 모두 같은 판',
+    home:'🏠 다른 게임', langBtn:'EN',
+    startSub:'이름과 결과만 넣으면 끝.<br>★링크를 나누면 모두가 같은 판·같은 결과를 봅니다.',
+    koNotice:'',
+    modeInstant:'즉석', modeShare:'공유',
+    modeDescInstant:'한 화면에서 그 자리에 모여 봅니다. 링크 없이 바로 공개할 수 있습니다.',
+    modeDescShare:'링크를 나눠 각자 자기 기기에서 봅니다. ★링크를 복사한 뒤에야 전체 결과가 열립니다.',
+    peopleUnit:'명',
+    presetCoffee:'커피 사기', presetClean:'청소 당번', presetOrder:'순서 정하기',
+    fieldNote:'이름 최대 8자 · 결과 최대 12자 · 비워 두면 기본값이 들어갑니다',
+    privNote:'입력한 이름·결과는 링크 주소에만 담깁니다 · 서버에 저장하지 않으며 광고·분석 스크립트에도 전달되지 않습니다',
+    make:'사다리 만들기',
+    namePh:n => '이름 ' + n, resultPh:n => '결과 ' + n,
+    defName:n => '참가자' + n, defResult:n => '결과' + n,
+    copyLink:'🔗 링크 복사', copied:'링크를 복사했습니다 — 나눠 주세요', copyFail:'복사에 실패했습니다 · 주소창의 링크를 직접 복사해 주세요',
+    revealAll:'전체 공개', newBoard:'↻ 새로 만들기',
+    hintVisitor:'자기 이름을 누르면 그 줄만 따라갑니다 · 「전체 공개」를 누르면 모두의 결과가 나옵니다',
+    hintSealed:'★링크를 복사해 나눈 뒤에 결과가 열립니다 — 만든 사람도 먼저 볼 수 없습니다',
+    hintInstant:'이름을 눌러 한 명씩 따라가거나, 「전체 공개」로 한 번에 볼 수 있습니다',
+    lenWarn:'링크가 깁니다(500자 초과) — 메신저에서 잘릴 수 있으니 이름·결과를 줄여 보세요',
+    modeChipInstant:'즉석 모드', modeChipShare:'공유 모드', modeChipVisitor:'공유 링크',
+    seedLbl:s => 'seed ' + s,
+    sealedMark:'?',
+    result:'결과', shareResult:'결과 공유', saveImage:'결과 이미지 저장', closeCard:'판으로 돌아가기',
+    overSub:n => n + '명의 결과입니다 · 이 링크는 결과가 이미 정해져 있습니다',
+    shareLine:(a,b) => a + ' → ' + b,
+    shareHead:'🪜 사다리타기 결과\n',
+    imgSaved:'이미지를 저장했습니다', imgFail:'이미지를 만들지 못해 글자로 공유합니다',
+    badLink:'링크를 읽지 못했습니다 — 새로 만들어 주세요',
+    needCopy:'먼저 링크를 복사해 나눠 주세요',
+    statPlays:'오늘 <b data-hp="plays.ladder.today">–</b>판 · 누적 <b data-hp="plays.ladder.total">–</b>판',
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    ariaSoundOn:'소리 끄기', ariaSoundOff:'소리 켜기', ariaLang:'언어 바꾸기', ariaHome:'다른 게임 보기',
+    ariaLadder:'사다리 판', ariaName:(n,i) => n + ' — ' + i + '번째 줄', ariaResultSealed:'결과 잠김',
+    ariaResult:(n,r) => n + ' 결과 ' + r,
+    srReveal:(a,b) => a + ' → ' + b, srAll:'전체 결과를 공개했습니다',
+    howTitle:'게임 방법', fairTitle:'왜 링크만으로 공정한가요', privTitle:'이름은 어디에 저장되나요',
+    tipsTitle:'요령', faqTitle:'자주 묻는 질문',
+    footer:'© 2026 사다리타기 · 개인정보: 입력한 이름·결과는 링크에만 담기며 서버에 저장하지 않습니다. 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개'
+  },
+  en: {
+    docTitle:'Ladder — share one link, same board for everyone | 사다리타기',
+    title:'Ladder', title2:'Ladder', subtitle:'One link, the same board for everyone',
+    home:'🏠 More games', langBtn:'한국어',
+    startSub:'Just add names and outcomes.<br>★Share the link and everyone sees the same board.',
+    koNotice:'',
+    modeInstant:'On the spot', modeShare:'Share',
+    modeDescInstant:'Everyone looks at one screen together. No link needed.',
+    modeDescShare:'Share a link so each person checks on their own phone. ★The full result unlocks only after you copy the link.',
+    peopleUnit:'players',
+    presetCoffee:'Who buys coffee', presetClean:'Cleaning duty', presetOrder:'Pick an order',
+    fieldNote:'Name up to 8 characters · outcome up to 12 · blanks are filled with defaults',
+    privNote:'Names and outcomes live only in the link you share — nothing is stored on a server, and they are not passed to the ad or analytics scripts either.',
+    make:'Build the ladder',
+    namePh:n => 'Name ' + n, resultPh:n => 'Outcome ' + n,
+    defName:n => 'Player ' + n, defResult:n => 'Outcome ' + n,
+    copyLink:'🔗 Copy link', copied:'Link copied — share it', copyFail:'Copy failed · please copy the address bar link',
+    revealAll:'Reveal all', newBoard:'↻ Build another',
+    hintVisitor:'Tap your name to follow just your line · “Reveal all” shows everyone',
+    hintSealed:'★Results unlock after you copy and share the link — not even you can peek first',
+    hintInstant:'Tap a name to follow one line, or “Reveal all” to see them at once',
+    lenWarn:'This link is long (over 500 characters) — messengers may cut it, try shorter names',
+    modeChipInstant:'On the spot', modeChipShare:'Share mode', modeChipVisitor:'Shared link',
+    seedLbl:s => 'seed ' + s,
+    sealedMark:'?',
+    result:'Results', shareResult:'Share results', saveImage:'Save result image', closeCard:'Back to the board',
+    overSub:n => 'Results for ' + n + ' players · this link was decided in advance',
+    shareLine:(a,b) => a + ' → ' + b,
+    shareHead:'🪜 Ladder results\n',
+    imgSaved:'Image saved', imgFail:'Could not make an image — sharing as text',
+    badLink:'Could not read this link — please build a new one',
+    needCopy:'Copy and share the link first',
+    statPlays:'Today <b data-hp="plays.ladder.today">–</b> · total <b data-hp="plays.ladder.total">–</b>',
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    ariaSoundOn:'Turn sound off', ariaSoundOff:'Turn sound on', ariaLang:'Change language', ariaHome:'See other games',
+    ariaLadder:'Ladder board', ariaName:(n,i) => n + ' — lane ' + i, ariaResultSealed:'Result locked',
+    ariaResult:(n,r) => n + ' result ' + r,
+    srReveal:(a,b) => a + ' goes to ' + b, srAll:'All results revealed',
+    howTitle:'How to play', fairTitle:'Why a link alone is fair', privTitle:'Where do the names go',
+    tipsTitle:'Tips', faqTitle:'FAQ',
+    footer:'© 2026 Ladder · Privacy: names and outcomes live in the link only and are never stored on a server; third-party cookies (Google) may be used for ads.',
+    navPrivacy:'Privacy policy', navAbout:'About'
+  }
+};
+/* 언어 키는 사이트 공통(bp.lang) — 포털·다른 게임과 공유한다. */
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } };
+
+/* ======================= 사운드(WebAudio · 파일 없음) ======================= */
+let soundOn = localStorage.getItem('ld.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0, freq2=null){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime + delay;
+    if (freq2 !== null) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq2), t + dur);
+    o.start(t);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sStep = () => beep(620, .035, 'triangle', .022);
+const sHit  = () => { beep(784, .09, 'triangle', .04); beep(1047, .12, 'triangle', .04, .09); vib(18); };
+const sAll  = () => { beep(523, .1, 'triangle', .045); beep(659, .1, 'triangle', .045, .1); beep(880, .3, 'triangle', .05, .2); vib([25,35,25]); };
+
+/* ======================= 난수 · 씨앗 ======================= */
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+/* 판 씨앗은 8자리 16진수 문자열 하나다 — 링크에 그대로 실린다. */
+function newSeed(){
+  let v;
+  try{
+    if (window.crypto && crypto.getRandomValues){ const b = new Uint32Array(1); crypto.getRandomValues(b); v = b[0] >>> 0; }
+    else v = (Math.random() * 4294967296) >>> 0;
+  }catch(e){ v = (Math.random() * 4294967296) >>> 0; }
+  return v.toString(16).padStart(8, '0');
+}
+const boardSeedKey = (seed, n) => 'hanpango-ladder-' + seed + '-' + n;
+
+/* ======================= 상수 ======================= */
+const MIN_P = 2, MAX_P = 10;
+const NAME_MAX = 8, RESULT_MAX = 12;   /* master SEQ68 A2b — 상한을 줄이지 않고, 넘치면 길이 경고를 띄운다 */
+const URL_WARN = 500;                  /* 10명 기준 계약값(실측은 REPORT 에 기록) */
+const MIN_ROWS = 8;                    /* 가로줄이 적어도 판이 허전하지 않도록 두는 최소 줄 수 */
+const ROW_GAP_P = 0.45;                /* 자연스러운 간격 — ★판 생성 난수다(플레이 중에는 난수를 쓰지 않는다) */
+const PAY_VER = 1;
+
+/* ======================= 판 만들기(순수 함수 · seed 만 있으면 재현된다) =======================
+   ★계약 1: 가로줄은 판을 만들 때 **전부** 확정한다. 플레이(이름 누르기·애니메이션·전체 공개)는 난수를 한 번도 쓰지 않는다.
+   ★계약 2: 최종 순열은 seed 균등 무작위(Fisher–Yates)다 — 2명 판에서 자리를 강제로 바꾸지 않는다(항등 순열도 나온다).
+   ★계약 3: 모든 세로줄은 가로줄 하나 이상에 닿는다. 닿지 않는 줄이 남으면 **서로 상쇄되는 가로줄 한 쌍**을 끼워 넣는다
+            — 인접한 두 줄에 같은 짝으로 놓으면 갔다가 되돌아오므로 순열이 바뀌지 않는다. */
+function drawPerm(rng, n){
+  const a = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--){ const j = Math.floor(rng() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;                       /* perm[출발 열] = 도착 열 */
+}
+/* 목표 순열을 인접 교환(가로줄)의 나열로 분해한다 — 위에서부터 이 순서대로 놓으면 그 순열이 된다. */
+function realize(perm, n){
+  const tgt = new Array(n);
+  for (let i = 0; i < n; i++) tgt[perm[i]] = i;      /* 맨 아래 c 번 줄에 도착해 있어야 하는 출발 번호 */
+  const cur = Array.from({ length: n }, (_, i) => i);
+  const out = [];
+  for (let c = 0; c < n; c++){
+    let k = c; while (cur[k] !== tgt[c]) k++;
+    while (k > c){ const t = cur[k-1]; cur[k-1] = cur[k]; cur[k] = t; out.push(k - 1); k--; }
+  }
+  return out;
+}
+const emptyRow = n => new Uint8Array(Math.max(1, n - 1));
+function rowFree(rows, r, c, n){
+  const row = rows[r]; if (!row) return true;
+  return !row[c] && !(c > 0 && row[c-1]) && !(c < n - 2 && row[c+1]);
+}
+function place(swaps, n, rng){
+  const rows = [];
+  const lastLane = new Array(n).fill(-1);
+  const ensure = r => { while (rows.length <= r) rows.push(emptyRow(n)); return rows[r]; };
+  for (const c of swaps){
+    let r = Math.max(lastLane[c], lastLane[c+1]) + 1;
+    if (rng() < ROW_GAP_P) r += 1;
+    while (!rowFree(rows, r, c, n)) r++;
+    ensure(r)[c] = 1;
+    lastLane[c] = r; lastLane[c+1] = r;
+  }
+  /* ★가로줄이 위쪽에만 몰리면 아래 절반이 텅 빈 사다리가 된다(실캡처로 확인).
+     놓은 순서를 그대로 둔 채 줄 번호만 비례로 늘려 판 전체에 고르게 편다 — 늘리는 방향이라
+     서로 다른 줄이 같은 줄로 합쳐지지 않으므로 순서·인접 규칙이 그대로 유지된다. */
+  const used = rows.length;
+  const H = Math.max(MIN_ROWS, used);
+  if (used > 1 && H > used){
+    const spread = [];
+    for (let r = 0; r < H; r++) spread.push(emptyRow(n));
+    for (let r = 0; r < used; r++){
+      const to = Math.round(r * (H - 1) / (used - 1));
+      for (let c = 0; c < n - 1; c++) if (rows[r][c]) spread[to][c] = 1;
+    }
+    rows.length = 0;
+    for (const row of spread) rows.push(row);
+  }
+  while (rows.length < MIN_ROWS) rows.push(emptyRow(n));
+  rows.push(emptyRow(n));                 /* 아래 여백 한 줄 */
+  return rows;
+}
+function touchedLanes(rows, n){
+  const t = new Array(n).fill(false);
+  for (const row of rows) for (let c = 0; c < n - 1; c++) if (row[c]){ t[c] = true; t[c+1] = true; }
+  return t;
+}
+function ensureTouch(rows, n, rng){
+  let t = touchedLanes(rows, n), added = 0;
+  for (let lane = 0; lane < n; lane++){
+    if (t[lane]) continue;
+    const p = lane < n - 1 ? lane : lane - 1;        /* 이 줄이 닿을 가로줄 짝 */
+    const cand = [];
+    for (let r = 0; r + 1 < rows.length; r++){
+      if (rowFree(rows, r, p, n) && rowFree(rows, r+1, p, n)) cand.push(r);
+    }
+    let r1;
+    if (cand.length) r1 = cand[Math.floor(rng() * cand.length)];
+    else { r1 = rows.length; rows.push(emptyRow(n)); rows.push(emptyRow(n)); }
+    rows[r1][p] = 1; rows[r1+1][p] = 1; added += 2;
+    t = touchedLanes(rows, n);
+  }
+  return added;
+}
+function makeBoard(seed, n){
+  const rng = mulberry32(hashStr(boardSeedKey(seed, n)));
+  const perm = drawPerm(rng, n);
+  const swaps = realize(perm, n);
+  const rows = place(swaps, n, rng);
+  const pairs = ensureTouch(rows, n, rng);
+  return { seed, n, rows, perm, swaps: swaps.length, pairs };
+}
+/* 한 줄 따라가기 — 판만 읽는다(난수 0 · 상태 변경 0). */
+function walk(board, start){
+  const { n, rows } = board;
+  let c = start | 0;
+  const pts = [{ r: -1, c }];
+  for (let r = 0; r < rows.length; r++){
+    const row = rows[r];
+    if (c < n - 1 && row[c]){ pts.push({ r, c }); c = c + 1; pts.push({ r, c }); }
+    else if (c > 0 && row[c-1]){ pts.push({ r, c }); c = c - 1; pts.push({ r, c }); }
+  }
+  pts.push({ r: rows.length, c });
+  return { end: c, pts };
+}
+const endsOf = board => Array.from({ length: board.n }, (_, i) => walk(board, i).end);
+
+/* ======================= 링크(판 정의 → base64url 한 덩어리) =======================
+   ★seed 를 따로 떼지 않는다 — 둘로 나누면 서로 어긋난 링크가 만들어질 수 있다(master SEQ68 A2a).
+   담기는 것: 판본(v) · 씨앗(s) · 이름들(n) · 결과들(r). 인원 수는 목록 길이로 정해진다. */
+function b64urlEncode(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin = ''; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function b64urlDecode(s){
+  const t = String(s).replace(/-/g, '+').replace(/_/g, '/');
+  const pad = t.length % 4 ? '='.repeat(4 - (t.length % 4)) : '';
+  const bin = atob(t + pad);
+  const bytes = Uint8Array.from(bin, ch => ch.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+const clean = (s, max) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, max);
+function encodePayload(seed, names, results){
+  return b64urlEncode(JSON.stringify({ v: PAY_VER, s: String(seed), n: names, r: results }));
+}
+function decodePayload(payload){
+  try{
+    const o = JSON.parse(b64urlDecode(payload));
+    if (!o || o.v !== PAY_VER) return null;
+    if (typeof o.s !== 'string' || !/^[0-9a-f]{1,16}$/i.test(o.s)) return null;
+    if (!Array.isArray(o.n) || !Array.isArray(o.r)) return null;
+    if (o.n.length !== o.r.length) return null;
+    if (o.n.length < MIN_P || o.n.length > MAX_P) return null;
+    const names = o.n.map(v => clean(v, NAME_MAX));
+    const results = o.r.map(v => clean(v, RESULT_MAX));
+    if (names.some(v => !v) || results.some(v => !v)) return null;
+    return { seed: o.s.toLowerCase(), names, results };
+  }catch(e){ return null; }
+}
+const linkOf = payload => location.origin + location.pathname + '#p=' + payload;
+
+/* ======================= 상태 =======================
+   ★기기에 남기는 것은 소리·언어뿐이다. 판·결과·"이미 봤음" 표시는 저장하지 않는다(master SEQ69 A3 ⑤ 무상태). */
+let board = null;            /* 지금 판 */
+let names = [], results = [];
+let payload = '', shareUrl = '';
+let mode = 'instant';        /* instant | share */
+let role = 'creator';        /* creator | visitor */
+let linkCopied = false;      /* 공유 모드에서 링크를 복사했는가 — 결과 봉인을 여는 유일한 열쇠 */
+let revealed = new Set();    /* 공개된 참가자 번호 */
+let revealedAll = false;
+let animating = false;
+let startedAt = 0, overSent = false;
+let inputCount = 4;
+
+const canReveal = () => (mode === 'instant') || (role === 'visitor') || linkCopied;
+
+/* ======================= 화면 만들기 ======================= */
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1800); }
+function say(msg){ $('srSummary').textContent = msg; }
+
+function buildInputs(){
+  const box = $('inputs');
+  const prev = Array.from(box.querySelectorAll('input')).map(el => el.value);
+  box.textContent = '';
+  for (let i = 0; i < inputCount; i++){
+    const row = document.createElement('div'); row.className = 'row2';
+    const idx = document.createElement('span'); idx.textContent = String(i + 1);
+    const nm = document.createElement('input');
+    nm.type = 'text'; nm.maxLength = NAME_MAX; nm.id = 'nm' + i; nm.value = prev[i*2] || '';
+    nm.placeholder = T('namePh', i + 1); nm.setAttribute('aria-label', T('namePh', i + 1));
+    nm.autocomplete = 'off'; nm.enterKeyHint = 'next';
+    const rs = document.createElement('input');
+    rs.type = 'text'; rs.maxLength = RESULT_MAX; rs.id = 'rs' + i; rs.value = prev[i*2+1] || '';
+    rs.placeholder = T('resultPh', i + 1); rs.setAttribute('aria-label', T('resultPh', i + 1));
+    rs.autocomplete = 'off'; rs.enterKeyHint = i === inputCount - 1 ? 'done' : 'next';
+    row.append(idx, nm, rs); box.appendChild(row);
+  }
+}
+function readInputs(){
+  const nm = [], rs = [];
+  for (let i = 0; i < inputCount; i++){
+    nm.push(clean($('nm' + i).value, NAME_MAX) || T('defName', i + 1));
+    rs.push(clean($('rs' + i).value, RESULT_MAX) || T('defResult', i + 1));
+  }
+  return { nm, rs };
+}
+function applyPreset(kind){
+  const K = {
+    ko: { coffee:['커피 사기'], clean:['청소 당번'], order:null },
+    en: { coffee:['Buys coffee'], clean:['Cleaning'], order:null }
+  }[lang];
+  for (let i = 0; i < inputCount; i++){
+    const el = $('rs' + i);
+    if (kind === 'order') el.value = clean((lang === 'ko' ? (i + 1) + '번' : '#' + (i + 1)), RESULT_MAX);
+    else if (i === 0) el.value = clean(K[kind][0], RESULT_MAX);
+    else el.value = lang === 'ko' ? '통과' : 'Pass';
+  }
+}
+function setMode(m){
+  mode = m;
+  document.querySelectorAll('#modes button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m ? 'true' : 'false'));
+  $('modeDesc').textContent = m === 'share' ? T('modeDescShare') : T('modeDescInstant');
+}
+function setCount(n){
+  inputCount = Math.max(MIN_P, Math.min(MAX_P, n));
+  $('pCount').textContent = String(inputCount);
+  $('btnMinus').disabled = inputCount <= MIN_P;
+  $('btnPlus').disabled = inputCount >= MAX_P;
+  buildInputs();
+}
+
+/* ======================= 판 그리기(SVG) ======================= */
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const COL = 40, ROW = 26;
+const xOf = c => COL * (c + 0.5);
+const yTop = ROW * 0.5;
+const yOf = r => ROW * (1.5 + r);
+
+function el(name, attrs){
+  const e = document.createElementNS(SVG_NS, name);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function renderLadder(){
+  const svg = $('ladder');
+  svg.textContent = '';
+  const title = el('title', { id: 'ladderTitle' }); title.textContent = T('ariaLadder'); svg.appendChild(title);
+  if (!board) return;
+  const n = board.n, R = board.rows.length;
+  const W = COL * n, H = ROW * (R + 2);
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.setAttribute('aria-label', T('ariaLadder'));
+  const bot = ROW * (R + 1.5);
+  for (let c = 0; c < n; c++) svg.appendChild(el('line', { class:'rail', x1:xOf(c), y1:yTop, x2:xOf(c), y2:bot }));
+  for (let r = 0; r < R; r++){
+    const row = board.rows[r];
+    for (let c = 0; c < n - 1; c++) if (row[c])
+      svg.appendChild(el('line', { class:'rung', x1:xOf(c), y1:yOf(r), x2:xOf(c+1), y2:yOf(r) }));
+  }
+}
+function pathFor(i){
+  const R = board.rows.length, bot = ROW * (R + 1.5);
+  const { pts } = walk(board, i);
+  const d = pts.map((p, k) => {
+    const x = xOf(p.c);
+    const y = p.r < 0 ? yTop : (p.r >= R ? bot : yOf(p.r));
+    return (k === 0 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2);
+  }).join(' ');
+  return d;
+}
+function clearTrace(){ $('ladder').querySelectorAll('path.trace').forEach(p => p.remove()); }
+function drawTrace(i, animate){
+  const svg = $('ladder');
+  const p = el('path', { class:'trace', d: pathFor(i) });
+  svg.appendChild(p);
+  if (!animate) return Promise.resolve();
+  let len = 0;
+  try{ len = p.getTotalLength(); }catch(e){ len = 0; }
+  if (!len) return Promise.resolve();
+  p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
+  const dur = Math.min(1400, Math.max(500, len * 1.6));
+  return new Promise(res => {
+    const t0 = performance.now();
+    const tick = now => {
+      const k = Math.min(1, (now - t0) / dur);
+      p.style.strokeDashoffset = String(len * (1 - k));
+      if (k < 1) requestAnimationFrame(tick); else res();
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+/* ======================= 이름·결과 줄 ======================= */
+function renderLanes(){
+  const nameBox = $('names'), resBox = $('results');
+  nameBox.textContent = ''; resBox.textContent = '';
+  if (!board) return;
+  const n = board.n;
+  nameBox.style.gridTemplateColumns = 'repeat(' + n + ', 1fr)';
+  resBox.style.gridTemplateColumns = 'repeat(' + n + ', 1fr)';
+  for (let i = 0; i < n; i++){
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'cellbtn'; b.textContent = names[i];
+    b.title = names[i];
+    b.setAttribute('aria-label', T('ariaName', names[i], i + 1));
+    b.dataset.i = String(i);
+    b.disabled = !canReveal() || animating;
+    if (revealed.has(i)) b.classList.add('on');
+    b.onclick = () => onPick(i);
+    nameBox.appendChild(b);
+  }
+  /* 결과 줄은 도착 열 순서다 — 공개 전에는 무엇도 싣지 않는다(?만 보인다). */
+  const ends = revealedAll || revealed.size ? endsOf(board) : null;
+  const atCol = new Array(n).fill(null);
+  if (ends) for (let i = 0; i < n; i++) if (revealedAll || revealed.has(i)) atCol[ends[i]] = i;
+  for (let c = 0; c < n; c++){
+    const d = document.createElement('div');
+    d.className = 'cellout';
+    const who = atCol[c];
+    if (who === null || who === undefined){
+      d.classList.add('sealed'); d.textContent = T('sealedMark');
+      d.setAttribute('aria-label', T('ariaResultSealed'));
+    } else {
+      d.textContent = results[c]; d.title = results[c];
+      d.classList.add('hit');
+      d.setAttribute('aria-label', T('ariaResult', names[who], results[c]));
+    }
+    resBox.appendChild(d);
+  }
+}
+function refreshChrome(){
+  $('modeChip').textContent = role === 'visitor' ? T('modeChipVisitor') : (mode === 'share' ? T('modeChipShare') : T('modeChipInstant'));
+  $('seedChip').textContent = board ? T('seedLbl', board.seed) : '–';
+  const sealed = (mode === 'share' && role === 'creator' && !linkCopied);
+  $('btnCopy').hidden = !(mode === 'share');
+  $('btnRevealAll').disabled = !canReveal() || animating || revealedAll || !board;
+  $('hintLine').textContent = sealed ? T('hintSealed') : (role === 'visitor' ? T('hintVisitor') : T('hintInstant'));
+  $('lenWarn').hidden = !(mode === 'share' && role === 'creator' && shareUrl.length > URL_WARN);
+}
+
+/* ======================= 판 시작·공개 ======================= */
+function startBoard(seed, nm, rs, m, r){
+  names = nm.slice(); results = rs.slice();
+  mode = m; role = r;
+  board = makeBoard(seed, names.length);
+  payload = encodePayload(seed, names, results);
+  shareUrl = linkOf(payload);
+  linkCopied = false; revealed = new Set(); revealedAll = false; animating = false;
+  startedAt = Date.now(); overSent = false;
+  /* ★주소창에는 판 정의를 넣지 않는다 — 넣는 순간 이 페이지의 광고·분석 스크립트가 그 주소를 읽어
+     자기 요청에 실어 보내는 길이 열린다(실측으로 확인한 뒤 없앤 경로다). 링크 전달은 [링크 복사] 버튼 하나다. */
+  $('start').classList.remove('show');
+  renderLadder(); renderLanes(); refreshChrome();
+  ga('game_start', { game: GA_GAME, players: board.n, mode });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+}
+async function onPick(i){
+  if (!board || animating) return;
+  if (!canReveal()){ toast(T('needCopy')); return; }
+  if (revealed.has(i)){ clearTrace(); drawTrace(i, false); return; }
+  animating = true; renderLanes(); refreshChrome();
+  clearTrace();
+  sStep();
+  await drawTrace(i, !reduceMotion());
+  revealed.add(i);
+  animating = false;
+  renderLanes(); refreshChrome();
+  const e = walk(board, i).end;
+  sHit();
+  say(T('srReveal', names[i], results[e]));
+  if (revealed.size === board.n) finish();
+}
+async function revealAll(){
+  if (!board || animating) return;
+  if (!canReveal()){ toast(T('needCopy')); return; }
+  animating = true; renderLanes(); refreshChrome();
+  const rm = reduceMotion();
+  for (let i = 0; i < board.n; i++){
+    if (!rm){ clearTrace(); sStep(); await drawTrace(i, true); }
+    revealed.add(i);
+    if (!rm) renderLanes();
+  }
+  clearTrace();
+  revealedAll = true; animating = false;
+  renderLanes(); refreshChrome();
+  sAll(); say(T('srAll'));
+  finish();
+}
+function finish(){
+  revealedAll = true;
+  renderLanes(); refreshChrome();
+  const durS = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
+  if (!overSent){ ga('game_over', { game: GA_GAME, players: board.n, mode, duration_s: durS }); overSent = true; }
+  const ends = endsOf(board);
+  const list = $('rlist'); list.textContent = '';
+  for (let i = 0; i < board.n; i++){
+    const li = document.createElement('li');
+    const a = document.createElement('span'); a.className = 'who'; a.textContent = names[i];
+    const b = document.createElement('span'); b.className = 'what'; b.textContent = results[ends[i]];
+    li.append(a, b); list.appendChild(li);
+  }
+  $('overSub').textContent = T('overSub', board.n);
+  $('over').classList.add('show');
+}
+
+/* ======================= 공유 ======================= */
+async function copyLink(){
+  let ok = false;
+  try{
+    if (navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(shareUrl); ok = true; }
+  }catch(e){ ok = false; }
+  if (!ok){
+    try{
+      const ta = document.createElement('textarea');
+      ta.value = shareUrl; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      ok = document.execCommand && document.execCommand('copy');
+      ta.remove();
+    }catch(e){ ok = false; }
+  }
+  /* ★복사에 실패해도 링크는 주소창에 이미 들어가 있다 — 봉인은 "링크를 나눌 수 있는 상태"가 되면 푼다. */
+  linkCopied = true;
+  refreshChrome(); renderLanes();
+  toast(ok ? T('copied') : T('copyFail'));
+}
+function shareTextOf(){
+  const ends = endsOf(board);
+  const lines = [];
+  for (let i = 0; i < board.n; i++) lines.push(T('shareLine', names[i], results[ends[i]]));
+  return T('shareHead') + lines.join('\n') + '\n';
+}
+async function doShare(){
+  const text = shareTextOf();
+  try{
+    if (navigator.share){ await navigator.share({ title: T('docTitle'), text: text.trimEnd(), url: shareUrl }); return; }
+    await navigator.clipboard.writeText(text + shareUrl);
+    toast(T('copied'));
+  }catch(e){}
+}
+/* 결과 이미지 — 캔버스로 표를 그린다. 실패하면 글자 공유로 물러선다. */
+function resultCanvas(){
+  const ends = endsOf(board);
+  const W = 720, head = 120, rowH = 64, pad = 40;
+  const H = head + rowH * board.n + pad;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d');
+  if (!g) return null;
+  const dark = (() => { try{ return matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){ return false; } })();
+  const bg = dark ? '#0c0a24' : '#ffffff', fg = dark ? '#f1f0ff' : '#111827',
+        sub = dark ? '#a5a1d8' : '#6b7280', sig = dark ? '#c4b5fd' : '#5b21b6', line = dark ? '#332c78' : '#e5e7eb';
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  g.fillStyle = fg; g.font = '700 40px system-ui, sans-serif'; g.textBaseline = 'middle';
+  g.fillText(lang === 'ko' ? '사다리타기 결과' : 'Ladder results', pad, 56);
+  g.fillStyle = sub; g.font = '400 24px system-ui, sans-serif';
+  g.fillText('hanpango.com/ladder · seed ' + board.seed, pad, 96);
+  for (let i = 0; i < board.n; i++){
+    const y = head + rowH * i + rowH / 2;
+    g.strokeStyle = line; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(pad, head + rowH * i); g.lineTo(W - pad, head + rowH * i); g.stroke();
+    g.fillStyle = fg; g.font = '700 28px system-ui, sans-serif'; g.textAlign = 'left';
+    g.fillText(names[i], pad, y);
+    g.fillStyle = sig; g.textAlign = 'right';
+    g.fillText(results[ends[i]], W - pad, y);
+    g.textAlign = 'left';
+  }
+  return cv;
+}
+async function saveImage(){
+  const cv = resultCanvas();
+  if (!cv){ toast(T('imgFail')); return doShare(); }
+  const blob = await new Promise(res => { try{ cv.toBlob(res, 'image/png'); }catch(e){ res(null); } });
+  if (!blob){ toast(T('imgFail')); return doShare(); }
+  const file = (() => { try{ return new File([blob], 'ladder.png', { type: 'image/png' }); }catch(e){ return null; } })();
+  try{
+    if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share){
+      await navigator.share({ files: [file], title: T('docTitle') });
+      return;
+    }
+  }catch(e){}
+  try{
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'ladder-' + board.seed + '.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast(T('imgSaved'));
+  }catch(e){ toast(T('imgFail')); doShare(); }
+}
+
+/* ======================= 언어·소리 ======================= */
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(e => {
+    const k = e.dataset.i18n; if (I18N[lang][k] !== undefined) e.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  $('btnLang2').textContent = T('langBtn');
+  $('koNotice').hidden = !T('koNotice');
+  $('modeDesc').textContent = mode === 'share' ? T('modeDescShare') : T('modeDescInstant');
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  if (window.hpStats) window.hpStats();
+}
+function applyA11yLabels(){
+  for (const id of ['btnSound','btnSound2']){
+    const b = $(id); if (!b) continue;
+    b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  }
+  for (const id of ['btnLang','btnLang2']){ const l = $(id); if (l) l.setAttribute('aria-label', T('ariaLang')); }
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+}
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyLang();
+  /* ★판이 떠 있으면 판·이름·결과는 그대로 두고 라벨만 다시 쓴다(참가자 이름이 안내 문구로 덮이면 안 된다). */
+  if (board){ renderLadder(); renderLanes(); refreshChrome(); if (revealedAll) finishLabelsOnly(); }
+  else buildInputs();
+  ga('lang_switch', { lang });
+}
+function finishLabelsOnly(){
+  const ends = endsOf(board);
+  const list = $('rlist'); list.textContent = '';
+  for (let i = 0; i < board.n; i++){
+    const li = document.createElement('li');
+    const a = document.createElement('span'); a.className = 'who'; a.textContent = names[i];
+    const b = document.createElement('span'); b.className = 'what'; b.textContent = results[ends[i]];
+    li.append(a, b); list.appendChild(li);
+  }
+  $('overSub').textContent = T('overSub', board.n);
+}
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('ld.sound', soundOn ? '1' : '0');
+  const face = soundOn ? '🔊' : '🔇';
+  $('btnSound').textContent = face; $('btnSound2').textContent = face;
+  applyA11yLabels();
+  if (soundOn) beep(660, .06, 'sine', .04);
+}
+
+/* ======================= 버튼 배선 ======================= */
+document.querySelectorAll('#modes button').forEach(b => { b.onclick = () => setMode(b.dataset.mode); });
+document.querySelectorAll('#presets button').forEach(b => { b.onclick = () => applyPreset(b.dataset.preset); });
+$('btnMinus').onclick = () => setCount(inputCount - 1);
+$('btnPlus').onclick = () => setCount(inputCount + 1);
+$('btnMake').onclick = () => { const { nm, rs } = readInputs(); startBoard(newSeed(), nm, rs, mode, 'creator'); };
+$('btnCopy').onclick = copyLink;
+$('btnRevealAll').onclick = revealAll;
+$('btnNew').onclick = () => {
+  board = null; revealed = new Set(); revealedAll = false; linkCopied = false;
+  history.replaceState(null, '', location.pathname);
+  $('over').classList.remove('show');
+  $('ladder').textContent = ''; $('names').textContent = ''; $('results').textContent = '';
+  role = 'creator';
+  buildInputs(); refreshChrome();
+  $('start').classList.add('show');
+};
+$('btnShare').onclick = doShare;
+$('btnImage').onclick = saveImage;
+$('btnClose').onclick = () => $('over').classList.remove('show');
+$('btnLang').onclick = toggleLang;
+$('btnLang2').onclick = toggleLang;
+$('btnSound').onclick = toggleSound;
+$('btnSound2').onclick = toggleSound;
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnSound2').textContent = soundOn ? '🔊' : '🔇';
+
+/* ======================= 기동 ======================= */
+function bootFromHash(){
+  /* 판 정의는 head 의 인라인이 주소에서 이미 걷어내 window.__ldPayload 에 옮겨 두었다.
+     뒤의 정규식은 그 인라인이 돌지 않은 예외 상황(스크립트 차단 등)을 위한 보조 경로다. */
+  const p = window.__ldPayload || (/(?:^|[#&])p=([A-Za-z0-9_-]+)/.exec(location.hash || '') || [])[1];
+  if (!p) return false;
+  const got = decodePayload(p);
+  if (!got){ toast(T('badLink')); return false; }
+  startBoard(got.seed, got.names, got.results, 'share', 'visitor');
+  return true;
+}
+applyLang();
+setMode('instant');
+setCount(4);
+refreshChrome();
+if (!bootFromHash()) $('start').classList.add('show');
+
+/* ======================= 검증 창구(관측 전용) =======================
+   ★배포되는 이 창구에는 **읽기만 하는 getter 와 순수 함수** 만 둔다. 판을 시작하거나 결과를 공개하거나
+   봉인을 푸는 **상태 변경 명령은 여기에 두지 않는다** — 검증에 필요한 변경 명령은 하네스가 **메모리 위에서만**
+   덧붙인다. ★공개 전에는 결과 매핑을 싣지 않는다(master SEQ69 A3 ④): results() 는 공개된 자리만 채워 준다. */
+const copy = o => JSON.parse(JSON.stringify(o));
+window.__ld = {
+  const: () => ({ MIN_P, MAX_P, NAME_MAX, RESULT_MAX, URL_WARN, MIN_ROWS, ROW_GAP_P, PAY_VER, COL, ROW }),
+  state: () => ({ mode, role, linkCopied, revealedAll, animating,
+                  n: board ? board.n : 0, seed: board ? board.seed : null,
+                  revealedCount: revealed.size, canReveal: canReveal(), urlLen: shareUrl.length }),
+  names: () => names.slice(),
+  outcomes: () => results.slice(),
+  seed: () => (board ? board.seed : null),
+  rows: () => (board ? board.rows.map(r => Array.from(r)) : null),
+  boardInfo: () => (board ? { n: board.n, rows: board.rows.length, swaps: board.swaps, pairs: board.pairs } : null),
+  /* ★공개된 자리만 실린다 — 봉인 중에는 전부 null 이다(공개 전 매핑 노출 0). */
+  results: () => {
+    if (!board) return null;
+    const ends = endsOf(board);
+    return Array.from({ length: board.n }, (_, i) =>
+      (revealedAll || revealed.has(i)) ? { name: names[i], result: results[ends[i]], col: ends[i] } : null);
+  },
+  revealed: () => Array.from(revealed).sort((a, b) => a - b),
+  payload: () => payload,
+  url: () => shareUrl,
+  urlLen: () => shareUrl.length,
+  overLimit: () => shareUrl.length > URL_WARN,
+  /* 순수 함수 창구 — 하네스는 이것과 별개로 자기 구현을 들고 재검한다 */
+  makeBoard: (seed, n) => { const b = makeBoard(String(seed), n | 0);
+                            return { seed: b.seed, n: b.n, rows: b.rows.map(r => Array.from(r)), perm: b.perm.slice(), swaps: b.swaps, pairs: b.pairs }; },
+  ends: (seed, n) => endsOf(makeBoard(String(seed), n | 0)),
+  walk: (seed, n, i) => copy(walk(makeBoard(String(seed), n | 0), i | 0)),
+  perm: (seed, n) => makeBoard(String(seed), n | 0).perm.slice(),
+  touched: (seed, n) => { const b = makeBoard(String(seed), n | 0); return touchedLanes(b.rows, b.n); },
+  encode: (seed, nm, rs) => encodePayload(String(seed), nm.map(v => clean(v, NAME_MAX)), rs.map(v => clean(v, RESULT_MAX))),
+  decode: p => decodePayload(String(p)),
+  link: p => linkOf(String(p)),
+  seedDraws: (seed, n, k) => { const f = mulberry32(hashStr(boardSeedKey(String(seed), n | 0)));
+                               return Array.from({ length: k }, () => +f().toFixed(9)); },
+  shown: id => $(id).classList.contains('show'),
+  reduceMotion: () => reduceMotion(),
+  sound: () => soundOn,
+  lang: () => lang
+};
+})();
+</script>
+<script>
+  /* 서비스 워커 — 사이트 공통(루트에서 한 번만 등록한다) */
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+</script>
+</body>
+</html>
