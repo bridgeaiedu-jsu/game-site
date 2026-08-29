@@ -229,6 +229,12 @@
           <span class="body"><h2>지뢰찾기 / Minesweeper</h2>
             <p>숫자를 단서로 지뢰를 피해 칸을 여는 논리 퍼즐 — 찍기 없이 풀리는 판만 냅니다<br>Classic logic minesweeper — every daily board is solvable without guessing</p></span>
         </a></li>
+        <li><a class="card" href="/ladder/">
+          <span class="thumb"><img src="/ladder/thumb.webp" alt="사다리타기 / Ladder" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 1~2분 / 1–2 min a round</span></span></span>
+          <span class="body"><h2>사다리타기 / Ladder</h2>
+            <p>이름과 결과만 넣으면 끝 — 링크를 나누면 모두 같은 판을 봅니다<br>Share one link, everyone sees the same ladder</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -376,6 +382,13 @@ const FALLBACK = [{
   thumb:'/minesweeper/thumb.webp',
   playtime:{ko:'한 판 2~10분',en:'2–10 min a round'},
   daily:true, released:'2026-08-28', tags:['puzzle','logic','classic','daily']
+},{
+  id:'ladder', path:'/ladder/',
+  title:{ko:'사다리타기',en:'Ladder'},
+  desc:{ko:'이름과 결과만 넣으면 끝 — 링크를 나누면 모두 같은 판을 봅니다',en:'Share one link, everyone sees the same ladder'},
+  thumb:'/ladder/thumb.webp',
+  playtime:{ko:'한 판 1~2분',en:'1–2 min a round'},
+  daily:false, released:'2026-08-29', tags:['party','random','group','share']
 }];
 
 let games = FALLBACK;

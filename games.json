@@ -272,5 +272,30 @@
       "classic",
       "daily"
     ]
+  },
+  {
+    "id": "ladder",
+    "path": "/ladder/",
+    "title": {
+      "ko": "사다리타기",
+      "en": "Ladder"
+    },
+    "desc": {
+      "ko": "이름과 결과만 넣으면 끝 — 링크를 나누면 모두 같은 판을 봅니다",
+      "en": "Share one link, everyone sees the same ladder"
+    },
+    "thumb": "/ladder/thumb.webp",
+    "playtime": {
+      "ko": "한 판 1~2분",
+      "en": "1–2 min a round"
+    },
+    "daily": false,
+    "released": "2026-08-29",
+    "tags": [
+      "party",
+      "random",
+      "group",
+      "share"
+    ]
   }
 ]
