@@ -969,6 +969,7 @@ $('btnCopy').onclick = copyLink;
 $('btnRevealAll').onclick = revealAll;
 $('btnNew').onclick = () => {
   board = null; revealed = new Set(); revealedAll = false; linkCopied = false;
+  forgetBoard();               /* 판을 버렸으면 저장본도 버린다 — 새로고침에 옛 판이 되살아나지 않도록 */
   history.replaceState(null, '', location.pathname);
   $('over').classList.remove('show');
   $('ladder').textContent = ''; $('names').textContent = ''; $('results').textContent = '';
@@ -987,6 +988,24 @@ $('btnSound').textContent = soundOn ? '🔊' : '🔇';
 $('btnSound2').textContent = soundOn ? '🔊' : '🔇';
 
 /* ======================= 기동 ======================= */
+/* 새로고침 복원(오너 승인 · master R2 보충2) — ★저장하는 것은 **판 링크(payload) 하나뿐**이다.
+   누가 자기 결과를 이미 봤는지(revealed) · 전체 공개를 했는지 · 링크를 복사했는지 같은 **진행 상태는
+   저장하지 않는다**(A3⑤ 무상태의 취지 — 새로고침은 링크를 다시 연 것과 똑같아야 한다).
+   탭 한정 sessionStorage 만 쓴다(탭을 닫으면 사라진다 · localStorage 로 올리지 않는다).
+   ★주소창에는 되돌려 넣지 않는다 — 넣는 순간 광고 요청이 그 주소를 실어 나르던 경로가 되살아난다(§9). */
+const STORE_KEY = 'ld.p';
+function rememberBoard(p){ try { sessionStorage.setItem(STORE_KEY, String(p)); } catch (e) {} }
+function forgetBoard(){ try { sessionStorage.removeItem(STORE_KEY); } catch (e) {} }
+function bootFromStore(){
+  let p = null;
+  try { p = sessionStorage.getItem(STORE_KEY); } catch (e) { return false; }
+  if (!p) return false;
+  const got = decodePayload(p);
+  if (!got){ forgetBoard(); return false; }
+  /* 복원은 '링크를 다시 연 것' 과 같다 — 방문자 화면으로, 진행 상태 없이 처음부터 연다. */
+  startBoard(got.seed, got.names, got.results, 'share', 'visitor');
+  return true;
+}
 function bootFromHash(){
   /* 판 정의는 head 의 인라인이 주소에서 이미 걷어내 window.__ldPayload 에 옮겨 두었다.
      뒤의 정규식은 그 인라인이 돌지 않은 예외 상황(스크립트 차단 등)을 위한 보조 경로다. */
@@ -995,13 +1014,14 @@ function bootFromHash(){
   const got = decodePayload(p);
   if (!got){ toast(T('badLink')); return false; }
   startBoard(got.seed, got.names, got.results, 'share', 'visitor');
+  rememberBoard(p);            /* 새로고침해도 같은 판을 다시 열 수 있게 링크만 남긴다 */
   return true;
 }
 applyLang();
 setMode('instant');
 setCount(4);
 refreshChrome();
-if (!bootFromHash()) $('start').classList.add('show');
+if (!bootFromHash() && !bootFromStore()) $('start').classList.add('show');
 
 /* ======================= 검증 창구(관측 전용) =======================
    ★배포되는 이 창구에는 **읽기만 하는 getter 와 순수 함수** 만 둔다. 판을 시작하거나 결과를 공개하거나
