@@ -1,4 +1,4 @@
-/* 공개 카운터 — 페이지 붙임새 단위 시험 (포털 · 게임 4종 · 인라인 스크립트 문법)
+/* 공개 카운터 — 페이지 붙임새 단위 시험 (포털 · games.json 의 게임 전종 · 인라인 스크립트 문법)
  *
  * 페이지가 카운터를 제대로 물고 있는지 본다: 클라이언트를 싣는가, 숫자 자리(data-hp)가
  * 제자리에 있고 처음엔 감춰져 있는가, ko·en 문안이 둘 다 있는가, 발화가 시작 지점마다
@@ -84,14 +84,37 @@ for (const KEY of PLAYABLE){
   ok('두 문안 모두 이 게임의 today·total 을 가리킨다',
      st.every(t => t.includes(`data-hp="plays.${KEY}.today"`) && t.includes(`data-hp="plays.${KEY}.total"`)),
      JSON.stringify(st));
-  ok('한국어 문안 (오늘 N판 · 누적 N판)', /오늘 .*판 · 누적 .*판/.test(st[0]), st[0]);
-  ok('영어 문안 (N today · N all-time)', /today · .*all-time/.test(st[1]), st[1]);
+  /* ★문안은 '어느 낱말이 들어 있나' 가 아니라 **숫자 자리와 낱말 차례** 까지가 계약이다.
+     게임 13종 전수 대조 결과 ko 는 13/13, en 은 10/13 이 아래 한 가지 꼴을 쓰고, 포털이
+     타일과 방문 줄에 찍는 문안도 같은 꼴이다(`${today} today · ${total} all-time`).
+     예전 규칙은 `today · … all-time` 이라는 **부분 문자열**만 봤다. 소수파 문안
+     (`Today <b>N</b> · total <b>N</b>`)은 그 규칙으로도 걸렸지만, 그것은 우연히 낱말이
+     안 맞았을 뿐이다 — 낱말만 어딘가에 있으면 숫자가 <b> 밖에 있든 두 숫자가 붙어 있든
+     그대로 통과한다(자기시험 en-copy-loose-order 가 그 꼴을 실제로 만들어 보여 준다).
+     대리물이 아니라 계약을 재도록 <b> 자리와 낱말 차례까지 함께 못박는다. */
+  const koCopy = new RegExp(`^오늘 <b data-hp="plays\\.${KEY}\\.today">[^<]*</b>판 · 누적 <b data-hp="plays\\.${KEY}\\.total">[^<]*</b>판$`);
+  const enCopy = new RegExp(`^<b data-hp="plays\\.${KEY}\\.today">[^<]*</b> today · <b data-hp="plays\\.${KEY}\\.total">[^<]*</b> all-time$`);
+  ok('한국어 문안 (오늘 N판 · 누적 N판)', koCopy.test(st[0] || ''), st[0]);
+  ok('영어 문안 (N today · N all-time)', enCopy.test(st[1] || ''), st[1]);
   ok('언어를 바꾼 뒤 숫자를 다시 채운다',
      /localStorage\.setItem\('bp\.lang', lang\);[\s\S]{0,240}if \(window\.hpStats\) window\.hpStats\(\)/.test(html));
   const gaStarts = [...html.matchAll(/ga\('game_start'/g)].length;
-  const paired = [...html.matchAll(/ga\('game_start', \{ game: GA_GAME \}\);(\s*\/\*[^*]*\*\/)?\s*\n\s*if \(window\.hpHit\) window\.hpHit\('play', GA_GAME\);/g)].length;
+  /* ★GA 이벤트에 게임마다 다른 추가 인자(level·size·players 등)를 붙이는 것은 정상이다 —
+     예전 정규식은 `{ game: GA_GAME }` 딱 그 모양만 인정해서, 추가 인자를 넘기는 페이지
+     (sudoku·wordchain·minesweeper·ladder·memory)를 '짝이 없다'고 잘못 잡았다(도구 노후).
+     그래서 인자 목록은 열어 주되 **느슨해지지 않도록** 두 가지를 그대로 요구한다:
+       · 첫 항목이 반드시 `game: GA_GAME` 상수일 것 — 뒤에 식별자 글자가 이어지면 다른 상수다
+       · `[^;\n]*` 로 **같은 줄·같은 문장 안**에서만 인자를 허용할 것(다른 문장을 삼키지 못한다)
+     그 다음 줄에 가드가 붙은 hpHit('play', GA_GAME) 이 와야 한다는 조건은 그대로다. */
+  const paired = [...html.matchAll(/ga\('game_start', \{ game: GA_GAME(?![A-Za-z0-9_$])[^;\n]*\);(\s*\/\*[^*]*\*\/)?\s*\n\s*if \(window\.hpHit\) window\.hpHit\('play', GA_GAME\);/g)].length;
   ok(`hpHit('play') 가 시작 지점 ${gaStarts}곳 전부에 짝지어 있다`, paired === gaStarts && gaStarts > 0,
      `짝 ${paired} / 시작 ${gaStarts}`);
+  /* ★짝 검사는 '시작 지점 옆에 붙은 호출' 만 센다 — 엉뚱한 자리에 하나 더 있는 호출은
+     짝 수와 시작 수가 같아도 통과한다. 총량을 함께 못박아 판수가 부풀려 세어지는 경로를
+     막는다. 전 13종 실측에서 시작 수와 호출 수가 모두 같다(1:1 · block-drop·word 는 2:2). */
+  const playHits = [...html.matchAll(/window\.hpHit\('play', GA_GAME\)/g)].length;
+  ok(`hpHit('play') 호출이 시작 지점 수와 같다(떠도는 호출 0)`, playHits === gaStarts,
+     `호출 ${playHits} / 시작 ${gaStarts}`);
   ok('hpHit 은 있는지 보고 부른다(없어도 게임이 안 깨진다)',
      !/[^)]\s*window\.hpHit\('play'/.test(html.replace(/if \(window\.hpHit\) window\.hpHit\('play'/g, '')));
 }
