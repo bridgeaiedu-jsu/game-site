@@ -98,6 +98,24 @@ const UNPARSEABLE = new Set(['.ts', '.mts', '.cts', '.tsx', '.jsx']);
 const DATA = new Set(['.wasm', '.html', '.htm', '.txt', '.bin']);
 const RESOLVE_EXT = ['.js', '.mjs', '.cjs', '.ts', '.mts', '.tsx', '.jsx'];
 const BUILTIN_PREFIX = ['node:', 'cloudflare:'];
+/* 런타임 모듈(node:·cloudflare:)이 무슨 이름을 내보내는지는 이 도구가 알 길이 없다 —
+   그것은 workerd 의 버전에 매인 사실이지 이 저장소의 사실이 아니다. 저장소가 버전 결박
+   manifest 를 두면 그것으로 대조하고, 없으면 named binding 검사를 판정 불가로 올린다.
+   ★'런타임 모듈을 허용한다' 와 '그 모듈이 요구된 모든 이름을 내보낸다고 가정한다' 는
+     완전히 다른 이야기다(codex R7). 형식: { "node:crypto": ["randomUUID", …] } */
+const RUNTIME_EXPORTS_FILE = path.join(ROOT, 'tools', 'runtime-module-exports.json');
+let _runtimeExports = null;
+function runtimeExports() {
+  if (_runtimeExports) return _runtimeExports;
+  _runtimeExports = { map: {}, src: '없음' };
+  try {
+    if (fs.existsSync(RUNTIME_EXPORTS_FILE)) {
+      const j = JSON.parse(fs.readFileSync(RUNTIME_EXPORTS_FILE, 'utf8'));
+      if (j && typeof j === 'object') _runtimeExports = { map: j, src: rel(RUNTIME_EXPORTS_FILE) };
+    }
+  } catch (e) { _runtimeExports = { map: {}, src: '읽지 못함(' + e.message + ')' }; }
+  return _runtimeExports;
+}
 const ROUTE_NAMES = ['onRequest', 'onRequestGet', 'onRequestPost', 'onRequestPut',
                      'onRequestPatch', 'onRequestDelete', 'onRequestHead', 'onRequestOptions'];
 
@@ -331,6 +349,22 @@ async function run(scanRoot) {
      합성 모듈로 세운다. 내보내는 이름은 링커가 스스로 알려 준다 — 'does not provide an export
      named X' 오류를 받아 그 이름을 더하고 다시 건다(파서가 진실을 말하게 하고, 내가 정규식으로
      import 절을 짐작하지 않는다). */
+  /* ★여기가 R7 이 뚫은 자리다. 예전에는 importer 가 달라는 이름을 링커에게 그대로
+     만들어 주었다(최대 64회 재시도) — 그것은 권위 모듈의 export 를 **확인**하는 것이
+     아니라 **발명**하는 것이다. 그래서 node:crypto 의 없는 이름도 통과했다.
+     이제 종류별로 갈라 판정한다. 각 분기는 자기시험의 meta 변이체가 홀로 지워 본다. */
+  function synVerdict(spec, name) {
+    const ext = path.extname(spec).toLowerCase();
+    /* 방어A — Cloudflare Pages 의 text/binary/wasm 모듈은 **default 만** 내보낸다
+       (https://developers.cloudflare.com/pages/functions/module-support/). */
+    if (DATA.has(ext)) return { kind: 'data-named' };
+    if (!BUILTIN_PREFIX.some(p => spec.startsWith(p))) return { kind: 'foreign' };
+    const man = runtimeExports().map[spec];
+    /* 방어B — 버전 결박 manifest 가 없으면 '내보낸다/안 내보낸다' 를 말할 수 없다. */
+    if (!Array.isArray(man)) return { kind: 'builtin-unverified' };
+    if (!man.includes(name)) return { kind: 'builtin-missing' };
+    return { kind: 'ok' };
+  }
   const MAX_PROBE = 64;
   function makeHelpers(syn) {
     const fresh = new Map();
@@ -380,9 +414,17 @@ async function run(scanRoot) {
       const r = await tryLink(entryMaker, syn);
       if (r.ok) return { ok: true };
       const miss = r.missing;
-      const synthetic = miss && (BUILTIN_PREFIX.some(p => miss.spec.startsWith(p))
-                                 || DATA.has(path.extname(miss.spec).toLowerCase()));
-      if (!synthetic) return r;
+      if (!miss) return r;
+      const v = synVerdict(miss.spec, miss.name);
+      if (v.kind === 'foreign') return r;
+      if (v.kind !== 'ok') {
+        const why = v.kind === 'data-named'
+          ? `데이터 모듈 ${miss.spec} 에서 named import '${miss.name}' 를 가져온다 — Pages 의 text/binary/wasm 모듈은 default 만 내보낸다`
+          : v.kind === 'builtin-missing'
+            ? `런타임 모듈 ${miss.spec} 의 export 목록(${runtimeExports().src})에 '${miss.name}' 가 없다`
+            : `런타임 모듈 ${miss.spec} 이 '${miss.name}' 를 내보내는지 대조할 수단이 없다 — tools/runtime-module-exports.json 에 버전 결박 목록을 두면 판정할 수 있다`;
+        return { ok: false, kind: v.kind, spec: miss.spec, name: miss.name, error: new Error(why) };
+      }
       if (!syn.has(miss.spec)) syn.set(miss.spec, new Set(['default']));
       syn.get(miss.spec).add(miss.name);
     }
@@ -402,7 +444,8 @@ async function run(scanRoot) {
     const r = await linkResolving(H => H.makeFile(f));
     if (r.ok) P('link', nm);
     else if (String(r.error.message).startsWith('UNPARSEABLE:')) { INDET('link', nm, `${rel(f)} · 이 도구가 파싱할 수 없는 모듈을 들인다`); linkBad.add(f); }
-    else { FAIL('link', nm, r.error.message); linkBad.add(f); }
+    else if (r.kind === 'builtin-unverified') { INDET('link', nm, `${rel(f)} · ${r.error.message}`); linkBad.add(f); }
+    else { FAIL('link', nm, `${rel(f)} · ${r.error.message}`); linkBad.add(f); }
   }
 
   /* ⑤ route-export ------------------------------------------------------
@@ -484,10 +527,26 @@ const FIXTURES = {
             writeF(st, 'functions/route-b.js', "export function onRequest(){ return new Response('b'); }\n");
             writeF(st, 'functions/ambiguous.js', "export * from './route-a.js';\nexport * from './route-b.js';\n"); },
     2, ['route-export']],
-  'node-builtin': ['node: 런타임 모듈 import 를 막지 않는다(R1 오탐)',
-    st => prependF(st, 'functions/api/hit.js', "import { randomUUID as zzR } from 'node:crypto';\n"), 0, []],
-  'cloudflare-builtin': ['cloudflare: 런타임 모듈 import 를 막지 않는다(R1 오탐)',
-    st => prependF(st, 'functions/api/hit.js', "import { DurableObject as zzD } from 'cloudflare:workers';\n"), 0, []],
+  /* ★R7 계약 변경 — 예전 기대는 rc=0 이었다. 런타임 모듈 import 를 '막지 않는다' 는 것과
+     '그 모듈이 요구된 이름을 내보낸다고 가정한다' 는 다른 이야기다. 대조할 manifest 가
+     없으면 named binding 은 판정 불가다(부수효과·default import 는 그대로 통과한다). */
+  'node-builtin-named': ['node: 런타임 모듈의 named import — 대조 수단이 없어 판정 불가',
+    st => prependF(st, 'functions/api/hit.js', "import { randomUUID as zzR } from 'node:crypto';\n"), 2, ['link']],
+  'cloudflare-builtin-named': ['cloudflare: 런타임 모듈의 named import — 대조 수단이 없어 판정 불가',
+    st => prependF(st, 'functions/api/hit.js', "import { DurableObject as zzD } from 'cloudflare:workers';\n"), 2, ['link']],
+  'node-builtin-sideeffect': ['부수효과만 들이는 런타임 모듈 import 는 막지 않는다',
+    st => prependF(st, 'functions/api/hit.js', "import 'node:crypto';\n"), 0, []],
+  'node-builtin-default': ['런타임 모듈의 default import 는 막지 않는다',
+    st => prependF(st, 'functions/api/hit.js', "import zzC from 'node:crypto';\n"), 0, []],
+  /* ★R7 fail-open 3종 — 합성 링커가 '달라는 이름' 을 만들어 주어 전부 rc=0 이었다. */
+  'node-unknown-export': ['node: 의 없는 named export — R7 은 rc=0 이었다',
+    st => prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from 'node:crypto';\n"), 2, ['link']],
+  'cloudflare-unknown-export': ['cloudflare: 의 없는 named export — R7 은 rc=0 이었다',
+    st => prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from 'cloudflare:workers';\n"), 2, ['link']],
+  'pages-text-named-export': ['데이터 모듈의 named import — Pages 는 default 만 준다. R7 은 rc=0 이었다',
+    st => { writeF(st, 'functions/message.html', '<strong>hello</strong>\n');
+            prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from '../message.html';\n"); },
+    2, ['link']],
   'pages-text-module': ['Pages 가 지원하는 text 모듈 import 를 막지 않는다(R1 오탐)',
     st => { writeF(st, 'functions/message.html', '<strong>hello</strong>\n');
             prependF(st, 'functions/api/hit.js', "import zzHtml from '../message.html';\n"); }, 0, []],
@@ -508,12 +567,23 @@ function selftest() {
   const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'hp-fngate-selftest-'));
   const rows = [];
   let bad = 0;
+  /* ★하네스 오류(주입 실패)와 결함 탐지를 같은 칸에 뭉치지 않는다 — 주입도 안 된 케이스를
+     '탐지됨' 으로 세면 검출력이 부풀려진다(2026-08-31 교훈). */
+  let setupFail = 0;
   try {
     for (const [name, spec] of Object.entries(FIXTURES)) {
       const [, mutate, wantRc, wantRules] = spec;
       const work = path.join(stage, name);
       copyTree(path.join(ROOT, 'functions'), path.join(work, 'functions'));
-      if (mutate) mutate(work);
+      if (mutate) {
+        try { mutate(work); }
+        catch (e) {
+          setupFail++;
+          rows.push({ name, wantRc, rc: '주입실패', wantRules, seen: [], miss: [], noise: [],
+                      ok: false, why: e.message });
+          continue;
+        }
+      }
       const r = runChild(SELF, work);
       const miss = wantRules.filter(x => !r.seen.has(x));
       /* 기대 규칙이 없는 케이스(정상이어야 하는 것)는 어떤 지적도 나오면 안 된다 */
@@ -522,22 +592,39 @@ function selftest() {
       if (!ok) bad++;
       rows.push({ name, wantRc, rc: r.rc, wantRules, seen: [...r.seen].sort(), miss, noise, ok });
     }
-    /* ★방어를 지운 변이체 — 판정 불가를 통과로 세던 R1 의 계산식을 되살린다. */
-    const mutatedTool = path.join(stage, 'check_functions_nogate.mjs');
+    /* ★방어를 **하나씩 홀로** 지운 변이체 — 그 방어가 없으면 해당 표본이 다시 rc=0 으로
+       새는가를 본다. 새지 않으면 지금의 rc 는 그 방어의 산물이 아니라는 뜻이므로 공허한
+       통과다. 앵커를 통짜 문자열로 적으면 이 줄 자신이 두 번째 일치가 되어 죽으니
+       조각으로 이어 붙인다(2026-08-31 실측). */
     const toolSrc = fs.readFileSync(SELF, 'utf8');
-    /* ★앵커를 통짜 문자열로 적으면 이 줄 자신이 두 번째 일치가 되어 '유일하지 않다' 로 죽는다
-       (2026-08-31 실측). 조각으로 이어 붙여 파일 안에 완성형이 한 번만 있게 한다. */
-    const anchor = '  if (indets.' + 'length) {';
-    if (toolSrc.split(anchor).length - 1 !== 1) throw new Error('방어 앵커가 유일하지 않다 — 자기시험을 세울 수 없다');
-    fs.writeFileSync(mutatedTool, toolSrc.replace(anchor, '  if (false) {'));
-    const work = path.join(stage, 'meta');
-    copyTree(path.join(ROOT, 'functions'), path.join(work, 'functions'));
-    FIXTURES['star-conflict-route'][1](work);
-    const mr = runChild(mutatedTool, work);
-    const metaOk = mr.rc === 0;    /* 방어를 지우면 통과로 새야 한다 = 그 방어가 일하고 있었다 */
-    if (!metaOk) bad++;
-    rows.push({ name: 'meta:판정불가→rc2 방어 제거', wantRc: 0, rc: mr.rc, wantRules: [],
-                seen: [], miss: [], noise: [], ok: metaOk, meta: true });
+    const METAS = [
+      ['meta:판정불가→rc2 방어 제거', 'star-conflict-route',
+       '  if (indets.' + 'length) {', '  if (false) {'],
+      ['meta:데이터 모듈 default-only 방어 제거', 'pages-text-named-export',
+       "    if (DATA.has(ext)) return { kind: " + "'data-named' };",
+       "    if (DATA.has(ext)) return { kind: 'ok' };"],
+      ['meta:런타임 모듈 manifest 방어 제거', 'node-unknown-export',
+       "    if (!Array.isArray(man)) return { kind: " + "'builtin-unverified' };",
+       "    if (!Array.isArray(man)) return { kind: 'ok' };"],
+    ];
+    for (const [mname, fixture, anchor, replaced] of METAS) {
+      const n = toolSrc.split(anchor).length - 1;
+      if (n !== 1) { setupFail++; rows.push({ name: mname, wantRc: 0, rc: '주입실패',
+        wantRules: [], seen: [], miss: [], noise: [], ok: false, meta: true,
+        why: `방어 앵커가 ${n} 곳이다(1곳이어야 한다) — 자기시험을 세울 수 없다` }); continue; }
+      const mutatedTool = path.join(stage, 'nogate_' + fixture + '.mjs');
+      fs.writeFileSync(mutatedTool, toolSrc.replace(anchor, replaced));
+      const work = path.join(stage, 'meta_' + fixture);
+      copyTree(path.join(ROOT, 'functions'), path.join(work, 'functions'));
+      try { FIXTURES[fixture][1](work); }
+      catch (e) { setupFail++; rows.push({ name: mname, wantRc: 0, rc: '주입실패', wantRules: [],
+        seen: [], miss: [], noise: [], ok: false, meta: true, why: e.message }); continue; }
+      const mr = runChild(mutatedTool, work);
+      const metaOk = mr.rc === 0;   /* 방어를 지우면 통과로 새야 한다 = 그 방어가 일하고 있었다 */
+      if (!metaOk) bad++;
+      rows.push({ name: mname, wantRc: 0, rc: mr.rc, wantRules: [], seen: [], miss: [],
+                  noise: [], ok: metaOk, meta: true });
+    }
   } finally {
     fs.rmSync(stage, { recursive: true, force: true });
   }
@@ -551,10 +638,12 @@ function selftest() {
       + ' · 실제 ' + (r.seen.length ? r.seen.join(',') : '없음')
       + (r.miss.length ? '  ← 안 잡힌 규칙 ' + r.miss.join(',') : '')
       + (r.noise.length ? '  ← 나오면 안 되는 지적 ' + r.noise.join(',') : ''));
-    if (r.meta && !r.ok) console.log('        ← 방어를 지웠는데도 rc 가 그대로다. 지금의 rc=2 는 이 방어의 산물이 아니다(공허한 통과).');
+    if (r.why) console.log('        ← 주입 실패(탐지 실패가 아니다): ' + r.why);
+    if (r.meta && !r.ok && !r.why) console.log('        ← 방어를 지웠는데도 rc 가 그대로다. 지금의 rc 는 이 방어의 산물이 아니다(공허한 통과).');
   }
-  console.log('자기시험 결과: rc=%d (항목 %d · 어긋남 %d)', bad ? 1 : 0, rows.length, bad);
-  return bad ? 1 : 0;
+  console.log('자기시험 결과: rc=%d (항목 %d · 어긋남 %d · 주입실패 %d)',
+              (bad || setupFail) ? 1 : 0, rows.length, bad, setupFail);
+  return (bad || setupFail) ? 1 : 0;
 }
 
 /* ── 진입 ────────────────────────────────────────────────────────────────── */
@@ -576,6 +665,8 @@ if (MUTATE) {
   console.log('  검출력 판정: 지정 규칙 [%s] · 미달 규칙 [%s] · 판정 불가 규칙 [%s] → %s',
     wantRule, [...failedRules].sort().join(',') || '없음', [...indetRules].sort().join(',') || '없음',
     okOnly ? 'OK(지정 규칙이 잡았고 다른 규칙은 미달로 울지 않았다)' : '어긋남');
-  process.exit(okOnly ? 1 : 2);
+  /* ★종료코드 3분할: 1=지정 규칙이 잡았다 · 3=귀속이 어긋났다 · 2=주입 실패(하네스 오류).
+     주입 실패는 stageMutation 이 이미 2 로 끝낸다 — 여기서 어긋남을 3 으로 밀어 둘을 가른다. */
+  process.exit(okOnly ? 1 : 3);
 }
 process.exit(rc);
