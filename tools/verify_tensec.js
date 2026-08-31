@@ -292,6 +292,19 @@ const IDS = ['pad','padMark','padMain','padSub','bestNow','targetNow','streakNow
              'tgDesc','dailyHint','btnSound','btnSound2','btnLang','btnLang2','subtitle','adTop','adOver',
              'startTitle','overTitle','help'];
 
+/* ★샌드박스로 들어가는 난수는 주변 환경의 진짜 Math.random 이 아니라 우리가 쥔 결정론 수열이다(T0901).
+   예전에는 진짜 난수를 그대로 넘겨, 난수를 심는 뮤테이션(m-seed-random)의 판정이 실행마다 흔들렸다.
+   ★함정 — 값을 하나로 '고정' 하면 모든 뽑기가 같아져 '같은 seed 는 같은 목표' 가 100% 통과해 버린다
+   (실측으로 확인했다). 그래서 호출마다 값이 달라야 하고, boot 사이에도 이어지는 하나의 수열이어야
+   한다 — 세션마다 처음으로 되감기면 '다른 세션에서도 같은 목표' 가 같은 방식으로 공허해진다. */
+let __randState = 0x9E3779B9;
+const seededRandom = () => {
+  __randState = (__randState + 0x6D2B79F5) | 0;
+  let t = Math.imul(__randState ^ __randState >>> 15, 1 | __randState);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296;
+};
+
 /* 스텁 위에 세운 한 판(세션). 시계·타이머·난수를 전부 우리가 쥔다. */
 function boot(opts){
   opts = opts || {};
@@ -342,9 +355,8 @@ function boot(opts){
   els.set('home', makeEl('home', doc, 'a'));
 
   let randCalls = 0;
-  const realRandom = Math.random;
   const MathStub = Object.create(Math);
-  MathStub.random = () => { randCalls++; return realRandom(); };
+  MathStub.random = () => { randCalls++; return seededRandom(); };
 
   const nav = { language: opts.lang === 'en' ? 'en-US' : 'ko-KR' };
   function PointerEventStub(){}
@@ -692,12 +704,24 @@ section('5. 오늘의 도전은 날짜만으로 정해진다');
   const k2 = g.ts.seedKey('2026-09-01T23:59:00');
   eq('같은 날이면 같은 seed', k1, k2);
   eq('seed 는 날짜만 담는다', k1, 'hanpango-daily-tensec-2026-09-01');
-  const t1 = g.ts.dailyTargets(k1), t2 = g.ts.dailyTargets(k1);
-  eq('같은 seed 는 같은 목표를 낸다', t1, t2);
+  /* ★한 번만 대조하면 결함이 있어도 우연히 통과한다(T0901). 목표 세 개를 순서 있게 뽑는
+     표본 공간은 4·3·2 = 24가지뿐이라, seed 가 난수로 바뀐 결함 상태에서도 두 뽑기가 같을
+     확률이 1/24 = 4.167% 다(실측 600회 중 28회 = 4.667%). 그래서 여러 번 뽑아 전부 같은지
+     본다 — 우연 통과 확률은 (1/24)^(DRAWS-1) 로 떨어진다. DRAWS=8 이면 2.2e-10 이라,
+     하루 100회를 돌려도 한 번 겪기까지 2.7e5 년이 걸린다(비용은 뽑기 여덟 번뿐이다). */
+  const DRAWS = 8;
+  const draws = [];
+  for (let i = 0; i < DRAWS; i++) draws.push(g.ts.dailyTargets(k1));
+  const t1 = draws[0];
+  eq('같은 seed 는 같은 목표를 낸다', new Set(draws.map(d => JSON.stringify(d))).size, 1);
+  note('같은 seed 로 ' + DRAWS + '번 뽑아 전부 같은지 본다 — 우연 통과 확률 (1/24)^' + (DRAWS - 1));
 
-  /* 다른 세션(다른 사람)에서도 같은가 */
-  const g2 = boot({ t0: 555555 });
-  eq('다른 세션에서도 같은 목표', g2.ts.dailyTargets(k1), t1);
+  /* 다른 세션(다른 사람)에서도 같은가 — 이 검사도 세션 하나만 보면 같은 1/24 취약성을 갖는다 */
+  const SESSIONS = 6;
+  const sess = [];
+  for (let i = 0; i < SESSIONS; i++) sess.push(boot({ t0: 555555 + i * 1000 }).ts.dailyTargets(k1));
+  eq('다른 세션에서도 같은 목표', new Set(sess.concat([t1]).map(d => JSON.stringify(d))).size, 1);
+  note('서로 다른 세션 ' + SESSIONS + '개와 대조한다 — 우연 통과 확률 (1/24)^' + SESSIONS);
 
   const TARGETS = g.ts.const().TARGETS;
   let bad = 0, dup = 0, allSeen = new Set(), days = 0;
