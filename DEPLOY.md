@@ -121,7 +121,10 @@ Sitemap: https://hanpango.com/sitemap.xml
    버전을 올리지 않으면 이미 방문한 사람의 브라우저가 **옛 캐시를 계속 쓴다** — 새 게임이 안 보인다.
    버전을 올리면 서비스워커가 활성화될 때 구버전 캐시를 스스로 지운다.
 8. ★**병합한 나무에서 게이트를 다시 돌린 뒤 push 한다.**
-   - [ ] `node tools/check_functions.mjs .` → rc=0
+   - [ ] `node tools/check_functions.mjs .` → **rc=0 일 때만** 통과다.
+         `rc=1` 은 미달, `rc=2` 는 **판정 불가**(검사할 수 없었던 자리가 있다)다 — 둘 다 배포하지
+         않는다. rc=2 는 도구가 못 본 자리를 사유와 함께 적어 주니 그 자리를 사람이 보고
+         해소하거나, 못 볼 수밖에 없는 것(예: `.ts` 도입)이면 wrangler 빌드를 관문으로 더해라.
    - [ ] `node tools/counter/test_functions.mjs .` · `node tools/counter/test_pages.mjs .`
    각 레인(브랜치)에서 초록이었다는 것은 **병합 결과가 초록이라는 뜻이 아니다**. 2026-08-31 에
    노노그램 병합이 `functions/_games.js` 의 `export const GAMES` 를 두 줄로 만들어 Cloudflare

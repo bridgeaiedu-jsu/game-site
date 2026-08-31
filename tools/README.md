@@ -81,38 +81,59 @@ node tools/verify_nonogram.js --html nonogram/index.html --mutate no-unique-gate
 `no-clue-cap`(단서 개수 상한 제거) 셋이며, 셋 다 rc=1(FAIL)이 나와야 정상이다.
 앵커가 나와야 할 곳 수와 다르면 rc=2 로 멈춘다(앵커 노후화를 통과로 접지 않는다).
 
-## check_functions.mjs — functions/ 배포 게이트 (wrangler 가 거부하는 것을 먼저 거부한다)
+## check_functions.mjs — functions/ 배포 게이트 (SKIP 은 통과가 아니다)
 
 2026-08-31 배포 실패에서 나왔다. 병합이 `functions/_games.js` 에 `export const GAMES` 를 두 줄로
 만들었고 Cloudflare Pages 의 wrangler 빌드가 'Multiple exports with the same name GAMES' 로
 거부해 배포가 통째로 실패했다(새 경로 `/nonogram/` 만 404 · 라이브는 이전 성공분 유지).
 
-`functions/` **아래 모든 모듈**을 대상으로, 모듈을 **평가하지 않고 파싱·링크만** 한다
-(wrangler 의 번들러가 하는 일과 같은 층 · 외부 의존 0 · Node 내장 `vm.SourceTextModule` 만 쓴다).
-지적마다 규칙 id 가 붙는다 — `[parse]` 중복 export·중복 선언·문법 손상, `[import-path]` 상대
-import 대상 실재, `[bare-import]` 외부 패키지 금지(`node:`·`cloudflare:` 는 허용),
-`[link]` import 하는 이름이 대상에 실재, `[route-export]` `_` 로 시작하지 않는 파일은
-`onRequest*` 를 내보내고 `_` 로 시작하는 보조 파일은 내보내지 않는다.
+`functions/` **아래 모든 스크립트**를 대상으로, 모듈을 **평가하지 않고 파싱·링크만** 한다
+(외부 의존 0 · Node 내장 `vm.SourceTextModule`/`vm.SyntheticModule` 만 쓴다).
 
-앞 단계가 막힌 파일의 뒷 단계는 SKIP 한다 — 한 원인을 두 규칙이 겹쳐 지적하면 '어느 규칙이
-잡았는가' 가 흐려진다.
+### ★R2 (codex R6 지적 반영) — 판정 불가는 rc=2 다
+R1 은 앞 단계가 막힌 검사를 SKIP 으로 흘리고 종료코드는 미달 개수만 셌다. 그래서 ①문자열 동적
+import 의 대상이 없어도 ②깨진 `.ts` 파일이 있어도 ③route 검사가 예상 밖 오류로 건너뛰어져도
+rc=0 이었다 — 배포 관문에서 가장 나쁜 형태(게이트가 있다는 믿음만 주고 실제로는 안 본다)다.
+지금은 **검사할 수 없었던 자리를 판정 불가(`‽`)로 올리고 rc=2 로 멈춘다.** 사유는 파일:라인과
+함께 남긴다. `check_privacy_storage.py` 와 같은 규약이다:
+`rc=0` 미달 0 · `rc=1` 미달 발견 · `rc=2` 판정 불가(하나라도 있으면 통과로 세지 않는다).
+
+### 규칙 — 두 종류를 섞어 설명하지 않는다
+`[wrangler]` Pages/Wrangler 가 실제로 거부하거나 못 싣는 것(배포 적합성):
+`parse`(중복 export·중복 선언·문법) · `dynamic-import`(동적 import 대상) ·
+`import-path`(상대 import 대상 실재) · `module-type`(비JS 모듈 종류) · `link`(가져오는 이름 실재).
+`[정책]` 이 저장소가 Wrangler 보다 엄격하게 정한 것: `route-export`(`_` 접두 규약) ·
+`bare-import`(외부 패키지 금지 — Wrangler 는 허용한다).
+
+근거로 삼은 공식 문서: Pages 의 `.ts` 지원(pages/functions/typescript/) · 비JS 모듈
+(pages/functions/module-support/ — text/binary 는 카테고리로만 적혀 있고 확장자 목록이 닫혀
+있지 않다) · Wrangler 번들링(workers/wrangler/bundling/ — 변수형 동적 import 는 기본 설정에서
+번들에 못 들어간다).
+
+### 이 도구가 못 보는 것(정직한 한계)
+· TypeScript/JSX 를 파싱하지 못한다. Pages 는 지원하므로 `.ts` 가 하나라도 생기면 이 게이트는
+  rc=2 로 멈춘다 — 그때는 **wrangler 빌드(dry-run)를 별도 관문으로 세워야 한다.**
+· Wrangler 와 '같은 층'(파싱·결합)에서 볼 뿐 같은 해석기가 아니다.
 
 ```sh
 node tools/check_functions.mjs .                          # 대조군은 rc=0
+node tools/check_functions.mjs . --selftest               # 내장 검출력 자기시험(13항목)
 node tools/check_functions.mjs . --list-mutations
 node tools/check_functions.mjs . --mutate dup-export       # 2026-08-31 실패를 그대로 재현
 ```
-뮤테이션은 임시 폴더 사본에만 주입한다(원본 불변). 뮤테이션을 걸면 **'지정 규칙만 FAIL 인가'**
-까지 도구가 스스로 판정한다 — 의도대로 잡으면 rc=1, 못 잡거나 엉뚱한 규칙이 함께 울리면 rc=2다
-(다른 검사가 우연히 깨져 나온 실패를 검출력으로 세지 않는다).
+뮤테이션·자기시험은 임시 폴더 사본에만 주입한다(원본 불변). 뮤테이션을 걸면 **'지정 규칙이
+잡았고 다른 규칙이 미달로 울지 않았는가'** 까지 도구가 스스로 판정한다 — 의도대로면 rc=1,
+못 잡거나 엉뚱한 규칙이 미달로 울면 rc=2 다(무임승차 차단).
+자기시험에는 **방어를 지운 변이체**가 들어 있다: 판정 불가를 통과로 세던 R1 의 계산식을 되살린
+사본이 rc=0 을 내는지 확인한다. 그 사본이 그대로 rc=2 를 내면 지금의 rc=2 가 이 방어의 산물이
+아니라는 뜻이므로 자기시험이 FAIL 한다(공허한 통과 차단).
 
 ### 기존 counter/test_functions.mjs 와 무엇이 다른가
 그 시험은 이 손상을 **못 보는 것이 아니라 '이름 없이' 본다.** 대상 모듈을 진짜 `import()` 하므로
 Node 가 파싱 단계에서 SyntaxError 를 던지고 프로세스가 그 자리에서 죽는다(rc=1). 판정이 아니라
 추락이라 `PASS n · FAIL m` 요약 줄이 아예 안 찍히고, 하네스 오류와 구별되지 않으며, FAIL 줄을
 세는 쪽에는 '실패 0' 으로 보인다. 또 그 시험이 실제로 여는 모듈은 `hit.js`·`stats.js`·`_games.js`
-셋뿐이라 functions/ 에 파일이 늘면 범위 밖으로 샌다. 이 게이트는 셋을 바꾼다 — 대상이
-functions/ 전부이고, 실패가 이름 붙은 FAIL 이며, 코드를 실행시키지 않는다.
+셋뿐이라 functions/ 에 파일이 늘면 범위 밖으로 샌다.
 
 ## run_mutations.py — 위 검증기의 검출력 검산
 
