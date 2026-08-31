@@ -490,7 +490,35 @@ PROSE_ACCESS_BEFORE = '.[='
 # 문자열 어딘가에 이 모양이 있으면 그 문자열은 산문이 아니라 **코드**다.
 #   `localStorage, sessionStorage 를 씁니다` 와 `(function(s){s.setItem(…)})(localStorage, 0)`
 #   는 이름 옆 글자가 똑같이 ',' 다 — 글자로는 못 가른다. 문자열 전체를 봐야 갈린다.
+class _TaggedTemplateShape:
+    """태그드 템플릿 호출(``tag`…` ``)을 찾는다 — 이름 뒤의 백틱은 문자열이 아니라 **호출**이다.
+
+    ★백틱이 든 문안을 함께 막으면 안 된다(master 조건 ⓐ). 마크다운식 인용
+      ``"use `localStorage` for saving"`` 도 '이름+백틱' 모양이라 정규식만으로는 같다.
+      그래서 둘을 가르는 데 두 가지를 더 본다:
+        · 여는 백틱 앞의 백틱 개수가 홀수면 이미 템플릿 **안**이다 → 인용이다
+        · 닫는 백틱 **뒤에 글이 이어지면** 문안이다. 아무것도 없거나 코드 구두점이면 호출이다
+      실측으로 갈랐다 — ``"zzTag`localStorage`"`` 는 Node 에서 저장 1건이고,
+      ``"저장은 `localStorage` 를 씁니다"`` · ``"use `localStorage` for saving"`` 은 0건이다."""
+
+    rx = re.compile(r'[A-Za-z_$][\w$]*[ \t]*`')
+    TAIL_CODE = ';,)].'
+
+    def search(self, body):
+        for m in self.rx.finditer(body):
+            if body.count('`', 0, m.end() - 1) % 2:
+                continue                              # 이미 템플릿 안 = 인용이다
+            close = body.find('`', m.end())
+            if close < 0:
+                return m                              # 안 닫힌 백틱 — 단정하지 않고 코드로 본다
+            rest = body[close + 1:].strip()
+            if rest == '' or rest[0] in self.TAIL_CODE:
+                return m
+        return None
+
+
 PROSE_CODE_SHAPES = (
+    ('태그드 템플릿 호출', _TaggedTemplateShape()),
     ('호출 모양', re.compile(r'[A-Za-z_$][\w$]*\s*\(')),
     ('점 접근',   re.compile(r'\.\s*[A-Za-z_$]')),
     ('문자열 첨자', re.compile(r'\[\s*[\'"`]')),
@@ -582,7 +610,7 @@ BRACKET_ARRAY_CHARS = set('=(,:;}[+-*/%<>!&|^~?')
 # 이 **키워드** 뒤도 표현식이 새로 시작하는 자리다(단 점 뒤에 오면 속성 이름이라 예외).
 BRACKET_KEYWORDS = {'return', 'yield', 'case', 'throw', 'typeof', 'in', 'of', 'new',
                     'delete', 'await', 'void', 'instanceof', 'do', 'else',
-                    'default', 'export', 'extends', 'as', 'from'}
+                    'default', 'export', 'extends', 'as', 'from', 'static'}
 SUBSCRIPT = re.compile(r'\[([^\[\]]{1,160})\]')
 # ★위 정규식은 대괄호 안에 대괄호가 없을 때만 맞는다 — `window[zzA[0]]` 는 통째로 안 보인다.
 #   전역 객체를 첨자로 여는 자리는 **괄호를 세어** 따로 훑는다(중첩이 있어도 끝을 찾는다).
@@ -635,7 +663,64 @@ def _is_control_head_paren(text, close, start=0, spans=None):
     return word in CONTROL_HEAD_KEYWORDS
 
 
-def classify_bracket(text, r, start=0, spans=None):
+def _matching_close_bracket(text, open_at, spans=None):
+    """open_at 의 '[' 와 짝이 되는 ']' 를 앞으로 찾는다(못 찾으면 -1).
+
+    문자열·주석 구간(spans)은 통째로 건너뛴다 — 그 안의 대괄호는 코드가 아니다."""
+    if open_at is None or open_at < 0 or text[open_at:open_at + 1] != '[':
+        return -1
+    depth = 0
+    i = open_at
+    while i < len(text):
+        if spans:
+            sp = _span_at(spans, i)
+            if sp and sp[1] > i:
+                i = sp[1]
+                continue
+        c = text[i]
+        if c == '[':
+            depth += 1
+        elif c == ']':
+            depth -= 1
+            if depth == 0:
+                return i
+        i += 1
+    return -1
+
+
+def _brace_bracket_kind(text, open_at, start=0, spans=None):
+    """'{' 바로 뒤의 대괄호가 **데이터임이 확인되는가** — 확인되면 ('array', 사유), 아니면 None.
+
+    ★2026-08-31(R9)에는 '{' 를 통째로 '분류 불가' 로 떨어뜨렸다. `{[k]: st}` 가 계산형 속성
+      키이고, 그것이 구조분해면 `const {['localStorage']: st} = window` 로 **실제로 저장소를
+      꺼내기** 때문이다(실측). 그 결정은 옳았지만 대가로 저장하지 않는 세 자리까지 멈췄다:
+        · 계산형 객체키   ({['localStorage']: 'Browser storage'})
+        · 클래스 정적 키  class L { static ['localStorage'] = '…' }   ← 키워드 표로 처리한다
+        · 블록 안 배열    if (true) { ['localStorage']; }
+    ★그래서 앞 글자만 보지 않고 **닫는 대괄호 뒤**를 본다. 가르는 것은 ':' 과 그 값이다:
+        ']' 뒤가 ':' 이 아니다        → 계산형 키가 아니다 = 블록 안의 배열 리터럴(데이터)
+        ']:' 뒤가 문자열·숫자 리터럴  → 값이 리터럴인 객체 항목(데이터)
+        ']:' 뒤가 식별자             → **구조분해일 수 있다**(저장소를 꺼내는 길) → 열지 않는다
+      마지막 줄이 이 함수의 안전핀이다 — 구조분해와 값이 식별자인 객체 항목은 소스에서
+      구별되지 않으므로 둘 다 닫아 둔다."""
+    close = _matching_close_bracket(text, open_at, spans)
+    if close < 0:
+        return None                                   # 짝을 못 찾았다 = 단정하지 않는다
+    a = _skip_gap(text, close + 1, len(text))
+    if a < 0 or a >= len(text):
+        return None
+    if text[a] != ':':
+        return ('array', "'{' 뒤이고 ']' 뒤가 ':' 이 아니다 — 계산형 키가 아니라 배열 리터럴이다")
+    b = _skip_gap(text, a + 1, len(text))
+    if b < 0 or b >= len(text):
+        return None
+    v = text[b]
+    if v in '\'"`' or v.isdigit():
+        return ('array', '계산형 키의 값이 리터럴이다 — 저장소를 꺼내는 자리가 아니다')
+    return None                                       # 값이 식별자 = 구조분해와 구별할 수 없다
+
+
+def classify_bracket(text, r, start=0, spans=None, open_at=None):
     """r 위치에서 열리는 대괄호가 무엇인가 — **셋 중 하나**로 답한다.
 
     ('subscript', 근거) — 멤버 첨자다(앞이 수신자 표현의 끝)
@@ -676,6 +761,11 @@ def classify_bracket(text, r, start=0, spans=None):
         return ('array', "키워드 '%s' 뒤라 표현식이 새로 시작한다" % word)
     if prev in BRACKET_ARRAY_CHARS:
         return ('array', '%r 뒤라 표현식이 새로 시작한다' % prev)
+    if prev == '{':
+        kind = _brace_bracket_kind(text, open_at, start, spans)
+        if kind:
+            return kind
+        return ('unknown', "'{' 뒤인데 계산형 속성 키인지(구조분해일 수 있다) 가릴 수 없다")
     return ('unknown', '앞 토큰(%r)을 분류할 수 없다' % prev)
 
 
@@ -741,7 +831,7 @@ def string_is_member_name(text, s0, s1, spans=None):
     if b <= 0 or text[b - 1] != '[':
         return -1
     r = _skip_gap_back(text, b - 1, 0, spans)       # 여는 대괄호 앞을 본다
-    kind, _why = classify_bracket(text, r, 0, spans)
+    kind, _why = classify_bracket(text, r, 0, spans, b - 1)
     if kind == 'array':
         return -3                                   # 배열 리터럴 원소임이 확인됐다 — 데이터다
     a = _skip_gap(text, s1, len(text))
@@ -774,7 +864,7 @@ def _enclosing_array_literal(text, pos, start=0, spans=None):
             if c != '[':
                 return False                       # 감싸는 것이 배열이 아니다
             r = _skip_gap_back(text, i, start, spans)
-            kind, _why = classify_bracket(text, r, start, spans)
+            kind, _why = classify_bracket(text, r, start, spans, i)
             return kind == 'array'
     return False
 
@@ -970,10 +1060,16 @@ def scan_file(src, is_html, rel):
             inner = m.group(1)
             if bkind == 'array':
                 continue                              # 배열 리터럴이다(표현식이 새로 시작한다)
-            if QUOTED.fullmatch(inner.strip()):
+            q_lit = QUOTED.fullmatch(inner.strip())
+            if q_lit and not (q_lit.group(1) == chr(96) and '${' in q_lit.group(2)):
                 # ★통짜 문자열 첨자는 위(멤버 이름) 경로가 끝까지 책임진다 — 분류 불가까지
-                #   그쪽이 멈췔 준다. 여기서 같이 잡으면 한 줄에 지적이 둘 나고, 더 나쁘게는
+                #   그쪽이 멈춰 준다. 여기서 같이 잡으면 한 줄에 지적이 둘 나고, 더 나쁘게는
                 #   두 방어가 서로를 공허하게 만들어 어느 쪽을 지워도 자기시험이 초록이 된다.
+                # ★R11 예외 — **치환이 든 백틱 리터럴은 통짜가 아니다**. 글자 그대로는 이름이
+                #   아니므로 멤버 이름 경로(완성된 낱말만 찾는다)가 볼 수 없고, 여기서 손을 떼면
+                #   아무도 안 잡는다(실측: window[`${p}Storage`].setItem 이 rc=0 · 실제 저장).
+                #   그래서 치환 템플릿만 이 continue 에서 빼고 아래 '못 접었다' 경로로 보낸다 —
+                #   위 경로와 담당이 겹치지 않으므로 서로를 공허하게 만들지 않는다.
                 continue
             if bkind == 'unknown':
                 # ★무시하지 않는다. 다만 **저장소가 걸린 자리에만** 멈춘다 — 무관한 대괄호까지
@@ -1663,6 +1759,100 @@ def _prose_sliced_into_name(work):
                         'Reflect.get(window, zzCut).setItem("zz.cut", "1");')
 
 
+def _r11_shape_call_only(work):
+    """★코드 모양 표의 '호출 모양' 항목만 홀로 책임지는 짝 — 점·대괄호·화살표·치환이 없다."""
+    _append_stats(work, 'const zzEc = eval; zzEc("zzSave(localStorage)");')
+
+
+def _r11_shape_dot_only(work):
+    """★'점 접근' 항목만 홀로 책임지는 짝 — 괄호 호출이 없고, 이름 앞을 괄호로 감싸
+    '이름 앞 대입 자리' 가드가 대신 잡지 못하게 했다(속성 대입으로 실제 저장된다)."""
+    _append_stats(work, 'const zzEd = eval; zzEd("(localStorage).zzK = 1");')
+
+
+def _r11_shape_bracket_string_only(work):
+    """★'문자열 첨자' 항목만 홀로 책임지는 짝 — 점이 없다(대괄호 대입으로 실제 저장된다)."""
+    _append_stats(work, 'const zzEb = eval; zzEb("(localStorage)[' + chr(39) + 'zzB' + chr(39) + "] = 1\");")
+
+
+def _r11_shape_arrow_only(work):
+    """★'화살표 함수' 항목만 홀로 책임지는 짝 — 별칭을 만들어 밖에서 저장하는 길이다
+    (이 문자열 자체는 저장하지 않는다 · 별칭 경로는 따라갈 수 없으므로 멈춘다)."""
+    _append_stats(work, 'const zzEa = eval; zzEa("zzR = (x) => localStorage");')
+
+
+def _r11_shape_mustache(work):
+    """★'치환 템플릿' 항목만 홀로 책임지는 짝. ★정직 고지 — 이 짝은 **소음 쪽**이다:
+    문안에 든 자리표(${n})까지 멈춘다. 그래도 남겨 둔다 — 조립되는 이름과 자리표 문안은
+    글자로 구별되지 않고, 이 도구의 기본값은 '모르면 멈춘다' 이기 때문이다(저장 0건)."""
+    _append_stats(work, 'const zzTm = "localStorage 에 ${n}건 저장했습니다"; void zzTm;')
+
+
+def _r11_template_subscript(work):
+    """★치환이 든 백틱 첨자 — 글자 그대로는 이름이 아니라 멤버 이름 경로가 볼 수 없고,
+    첨자 루프가 '통짜 문자열' 로 접어 손을 떼면 아무도 안 잡는다(오라클 저장 1건)."""
+    _append_stats(work, "const zzPT = 'local'; window[" + chr(96) + "${zzPT}Storage" + chr(96)
+                        + "].setItem('zz.r11ts', '1');")
+
+
+def _r11_template_subscript_optional(work):
+    """같은 자리의 옵셔널 형태 — 함께 막혀야 한다(오라클 저장 1건)."""
+    _append_stats(work, "const zzPT2 = 'local'; window?.[" + chr(96) + "${zzPT2}Storage" + chr(96)
+                        + "]?.setItem('zz.r11tso', '1');")
+
+
+def _r11_computed_objkey(work):
+    """계산형 객체키인데 값이 문자열 리터럴이다 — 저장소를 꺼내지 않는다(오라클 저장 0건)."""
+    _append_stats(work, "const zzLabR = ({['localStorage']: 'Browser storage'}); void zzLabR;")
+
+
+def _r11_class_static_key(work):
+    """클래스 정적 계산형 키 — 'static' 뒤라 표현식이 새로 시작하는 자리다(저장 0건)."""
+    _append_stats(work, "class zzLabelsR { static ['localStorage'] = 'Browser storage'; } void zzLabelsR;")
+
+
+def _r11_block_array(work):
+    """블록 안 문 자리의 배열 리터럴 — ']' 뒤가 ':' 이 아니라 계산형 키가 아니다(저장 0건)."""
+    _append_stats(work, "if (true) { ['localStorage']; }")
+
+
+def _r11_destructure_literal(work):
+    """★안전핀의 짝 — 같은 '{[…]' 모양인데 이쪽은 **실제로 저장소를 꺼낸다**(오라클 저장 1건).
+    값이 식별자면 구조분해와 구별할 수 없으므로 열지 않는다."""
+    _append_stats(work, "const { ['localStorage']: zzStR } = window; zzStR.setItem('zz.r11destr', '1');")
+
+
+def _r11_param_destructure(work):
+    """파라미터 구조분해도 같은 모양이다 — 함께 닫혀 있어야 한다(저장 1건)."""
+    _append_stats(work, "function zzFR({ ['localStorage']: st }) { st.setItem('zz.r11param', '1'); } zzFR(window);")
+
+
+def _r11_dot_static_subscript(work):
+    """★'static' 을 키워드 표에 넣은 반대편 짝 — 점 뒤의 static 은 키워드가 아니라 속성 이름이라
+    그 뒤 대괄호는 진짜 첨자다(저장 1건 · 키가 잡혀야 한다)."""
+    _append_stats(work, "const zzOR = { static: window }; zzOR.static['localStorage'].setItem('zz.r11static', '1');")
+
+
+def _r11_tagged_in_string(work):
+    """★문자열 안의 태그드 템플릿 호출 — 이름 뒤 백틱은 문자열이 아니라 호출이다(저장 1건)."""
+    _append_stats(work, 'const zzER = eval; zzER("zzTag' + chr(96) + 'localStorage' + chr(96) + '");')
+
+
+def _r11_tagged_space(work):
+    """태그 이름과 백틱 사이에 공백이 있어도 호출이다(저장 1건)."""
+    _append_stats(work, 'const zzER2 = eval; zzER2("zzTag ' + chr(96) + 'localStorage' + chr(96) + '");')
+
+
+def _r11_md_quote_mid(work):
+    """★그 반대편(master 조건 ⓐ) — 백틱 인용이 든 문안은 새로 막히면 안 된다(저장 0건)."""
+    _append_stats(work, 'const zzMdA = "저장은 ' + chr(96) + 'localStorage' + chr(96) + ' 를 씁니다"; void zzMdA;')
+
+
+def _r11_md_quote_en(work):
+    """영문 문안의 백틱 인용 — '이름+백틱' 모양이 호출과 같아 보이는 자리다(저장 0건)."""
+    _append_stats(work, 'const zzMdB = "use ' + chr(96) + 'localStorage' + chr(96) + ' for saving"; void zzMdB;')
+
+
 def _prose_space_then_dot(work):
     """★F1 · 이름과 점 사이의 공백 하나. R9 는 이걸 산문으로 열었고 Node 에서 실제로 저장됐다.
     JS 는 식별자와 '.' 사이의 공백류(공백·줄바꿈·탭·NBSP·전각공백·BOM)를 허용한다."""
@@ -1842,6 +2032,30 @@ CASES = [
     ('문안 · 이름을 괄호로 감쌈',      _prose_paren_copy,          0, []),
     ('문안 · 이름 뒤 쉼표 나열',       _prose_comma_copy,          0, []),
     ('문안 · 영문',                  _prose_english_copy,        0, []),
+    # ── R11 · 저장하지 않는 '{' 뒤 대괄호 세 자리를 연다(오라클 저장 0건 실측) ──
+    ('계산형 객체키 · 값이 리터럴',      _r11_computed_objkey,       0, []),
+    ('클래스 정적 계산형 키',           _r11_class_static_key,      0, []),
+    ('블록 안 문 자리 배열',           _r11_block_array,           0, []),
+    # ── R11 · ★그 안전핀: 같은 모양인데 값이 식별자면 구조분해라 여전히 닫는다 ──
+    ('계산형 키 구조분해(리터럴 키)',    _r11_destructure_literal,   2, ['uncertain-code']),
+    ('파라미터 구조분해',              _r11_param_destructure,     2, ['uncertain-code']),
+    # ── R11 · 'static' 키워드의 반대편 짝: 점 뒤 static 은 속성 이름이라 진짜 첨자다 ──
+    ('.static 뒤 첨자(짝 케이스)',     _r11_dot_static_subscript,  1, ['missing-exact']),
+    # ── R11 · 태그드 템플릿 호출을 닫는다(문자열 안에서만 새던 자리) ──
+    ('문자열 안 태그드 템플릿',         _r11_tagged_in_string,      2, ['uncertain-code']),
+    ('태그 이름 뒤 공백 + 백틱',        _r11_tagged_space,          2, ['uncertain-code']),
+    # ── R11 · ★그 반대편(조건 ⓐ): 백틱 인용이 든 문안은 열려 있어야 한다 ──
+    ('문안 · 백틱 인용(한국어)',        _r11_md_quote_mid,          0, []),
+    ('문안 · 백틱 인용(영문)',          _r11_md_quote_en,           0, []),
+    # ── R11 · 치환이 든 백틱 첨자는 '통짜 문자열' 이 아니다(첨자 루프가 손을 떼던 자리) ──
+    ('치환 템플릿 첨자',              _r11_template_subscript,    2, ['uncertain-code']),
+    ('치환 템플릿 첨자 · 옵셔널',      _r11_template_subscript_optional, 2, ['uncertain-code']),
+    # ── R11 · ★코드 모양 표의 **항목별** 짝(worker-3 잔여 지적 — 표 전체가 아니라 항목 단위) ──
+    ('코드모양 · 호출만',             _r11_shape_call_only,       2, ['uncertain-code']),
+    ('코드모양 · 점 접근만',          _r11_shape_dot_only,        2, ['uncertain-code']),
+    ('코드모양 · 문자열 첨자만',       _r11_shape_bracket_string_only, 2, ['uncertain-code']),
+    ('코드모양 · 화살표만',           _r11_shape_arrow_only,      2, ['uncertain-code']),
+    ('코드모양 · 자리표 문안(소음쪽)',  _r11_shape_mustache,        2, ['uncertain-code']),
     ('배열 원소로 놓인 문자열',        _array_element_word,        0, []),
     # ── R7 · 별칭이 되는 자리와 계산형 이름(codex R6 표본) ──
     ('?? 로 꺼내 담기',              _nullish_alias,        2, ['uncertain-code']),
@@ -1917,7 +2131,8 @@ META = [
     ('meta:계산형 첨자 분류불가 정지 제거', '분류 불가 대괄호 · 계산형',
      '                if bracket_mentions_storage' + '(inner):', '                if False:', 0),
     ('meta:키워드 표 확장 되돌리기', 'export default 뒤 배열',
-     "'default', 'export', " + "'extends', 'as', 'from'}", "'extends', 'as', 'from'}", 2),
+     "'default', 'export', " + "'extends', 'as', 'from', " + "'static'}",
+     "'extends', 'as', 'from', " + "'static'}", 2),
     ('meta:중첩 전역 첨자 훑기 제거', '배열에 담았다 꺼내기(중첩)',
      "        for gm in GLOBAL_SUBSCRIPT_OPEN" + '.finditer(text):', '        for gm in ():', 0),
     # ── R10 · 새 축의 가드 일곱을 **하나씩 홀로** 지운다 ──
@@ -1940,6 +2155,44 @@ META = [
     # ★F1 을 낳은 바로 그 지점 — 이름과 접근 사이의 공백류를 건너뛰지 않으면 다시 샌다.
     ('meta:공백류 건너뛰기 제거', '공백 뒤 대괄호 대입(짝)',
      '    while 0 <= i < len(body) and ' + '_js_space(body[i]):', '    while False:', 0),
+    # ── R11 · 새로 연 자리와 새로 닫은 자리를 **하나씩 홀로** 지운다 ──
+    ('meta:중괄호 뒤 대괄호 판정 제거', '계산형 객체키 · 값이 리터럴',
+     "    if prev == " + "'{':", '    if False:', 2),
+    # ★안전핀 — 이걸 지우면 구조분해가 함께 열려 실제 저장이 새 나간다.
+    ('meta:구조분해 안전핀 제거', '계산형 키 구조분해(리터럴 키)',
+     '    return None                                       # 값이 식별자 = ' + '구조분해와 구별할 수 없다',
+     "    return ('array', '(변이) 값이 식별자여도 연다')", 0),
+    ('meta:static 키워드 제거', '클래스 정적 계산형 키',
+     "'from', " + "'static'}", "'from'}", 2),
+    ('meta:태그드 템플릿 모양 제거', '문자열 안 태그드 템플릿',
+     "    ('태그드 템플릿 호출', " + '_TaggedTemplateShape()),',
+     "    ('태그드 템플릿 호출(꺼짐)', re.compile(r'(?!x)x')),", 0),
+    # ★조건 ⓐ 를 지키는 두 규칙 — 지우면 백틱 인용 문안이 함께 막힌다(오탐 방향).
+    ('meta:백틱 홀짝 판정 제거', '문안 · 백틱 인용(한국어)',
+     "            if body.count('" + chr(96) + "', 0, m.end() - 1) % 2:", '            if False:', 2),
+    ('meta:백틱 꼬리 판정 제거', '문안 · 백틱 인용(영문)',
+     '            if rest == ' + "'' or rest[0] in self.TAIL_CODE:", '            if True:', 2),
+    # ★치환 템플릿을 '통짜 문자열' 로 접어 손을 떼면 그 첨자는 아무도 안 잡는다.
+    ('meta:치환 템플릿 첨자 예외 제거', '치환 템플릿 첨자',
+     "            if q_lit and not (q_lit.group(1) == chr(96) and " + "'${' in q_lit.group(2)):",
+     '            if q_lit:', 0),
+    # ★코드 모양 표는 **항목마다** 짝이 있어야 한다 — 표를 통째로 지워야만 붉어지면
+    #   그 줄은 언제든 조용히 사라진다(worker-3 잔여 지적 · 격리 실측으로 짝을 골랐다).
+    ('meta:코드모양 항목 제거 · 호출', '코드모양 · 호출만',
+     r"    ('호출 모양', re.compile(r'[A-Za-z_$]" + r"[\w$]*\s*\(')),",
+     "    ('호출 모양(꺼짐)', re.compile(r'(?!x)x')),", 0),
+    ('meta:코드모양 항목 제거 · 점접근', '코드모양 · 점 접근만',
+     r"    ('점 접근',   re.compile(r'\.\s*" + r"[A-Za-z_$]')),",
+     "    ('점 접근(꺼짐)', re.compile(r'(?!x)x')),", 0),
+    ('meta:코드모양 항목 제거 · 문자열첨자', '코드모양 · 문자열 첨자만',
+     "    ('문자열 첨자', re.compile(r'" + chr(92) + "[" + chr(92) + "s*[" + chr(92) + chr(39) + chr(34) + chr(96) + "]')),",
+     "    ('문자열 첨자(꺼짐)', re.compile(r'(?!x)x')),", 0),
+    ('meta:코드모양 항목 제거 · 화살표', '코드모양 · 화살표만',
+     "    ('화살표 함수', re.compile(r'" + "=>')),",
+     "    ('화살표 함수(꺼짐)', re.compile(r'(?!x)x')),", 0),
+    ('meta:코드모양 항목 제거 · 치환', '코드모양 · 자리표 문안(소음쪽)',
+     r"    ('치환 템플릿', re.compile(r'\$" + r"\{')),",
+     "    ('치환 템플릿(꺼짐)', re.compile(r'(?!x)x')),", 0),
     ('meta:제어문 머리 판정 제거', 'if 머리 뒤 배열 리터럴',
      "        head = _is_control_head_paren" + '(text, r - 1, start, spans)',
      '        head = False', 2),
