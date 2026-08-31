@@ -120,3 +120,11 @@ Sitemap: https://hanpango.com/sitemap.xml
    - [ ] `CACHE` 문자열의 버전을 올린다 (예: `hanpango-v1` → `hanpango-v2`)
    버전을 올리지 않으면 이미 방문한 사람의 브라우저가 **옛 캐시를 계속 쓴다** — 새 게임이 안 보인다.
    버전을 올리면 서비스워커가 활성화될 때 구버전 캐시를 스스로 지운다.
+8. ★**병합한 나무에서 게이트를 다시 돌린 뒤 push 한다.**
+   - [ ] `node tools/check_functions.mjs .` → rc=0
+   - [ ] `node tools/counter/test_functions.mjs .` · `node tools/counter/test_pages.mjs .`
+   각 레인(브랜치)에서 초록이었다는 것은 **병합 결과가 초록이라는 뜻이 아니다**. 2026-08-31 에
+   노노그램 병합이 `functions/_games.js` 의 `export const GAMES` 를 두 줄로 만들어 Cloudflare
+   Pages 빌드가 거부했고, 배포가 통째로 실패해 새 경로만 404 였다. 두 부모는 각자 한 줄이라
+   양쪽 레인의 시험은 정직하게 초록이었다 — 손상은 병합 커밋에서 처음 생겼다.
+   그러니 검사는 **병합한 나무에서 한 번 더** 돌려야 의미가 있다.
