@@ -38,6 +38,24 @@
      아니라 속성 이름이므로 진짜 첨자다. 키워드 목록을 넓힐 때마다 이 짝 케이스를 함께 세운다
      (넓히면 반대 방향으로 구멍이 열린다).
 
+★R9 (gemini REVISE 반영) — **대괄호 분류의 기본값을 '무시' 에서 '판정 불가' 로 뒤집었다**
+  R8 까지는 '수신자 끝 문자 목록에 없으면 배열 리터럴(=무시)' 이라고 단정했다. 그래서 목록에
+  빠진 표기가 나오면 실행되는 저장 호출이 조용히 사라졌다 — `window?.["localStorage"]?.setItem(…)`
+  가 rc=0 으로 통과했다(같은 코드를 `window?.localStorage?.setItem` 으로 쓰면 rc=1 로 잡힌다는
+  대조군까지 확인했다). 반대로 목록에 없던 `export default ["localStorage"]` 는 첨자로 오인돼
+  rc=2 로 부당하게 멈췄다. **닫힌 목록은 새 문법이 나올 때마다 또 샌다.**
+
+  이제 `classify_bracket` 이 셋 중 하나로 답한다 — 첨자 / 배열 리터럴 / **분류 불가**.
+  표(`BRACKET_SUBSCRIPT_CHARS`·`BRACKET_ARRAY_CHARS`·`BRACKET_KEYWORDS`)는 **확신할 수 있는
+  경우를 넓히는 용도로만** 쓰고, 표 밖은 전부 분류 불가로 떨어진다. 분류 불가 대괄호 안에
+  저장소 이름이 보이면 무시가 아니라 **정지(rc=2)** 다. 그러면 빠뜨린 표기는 소음(안전)이
+  되지 저장 누출(위험)이 되지 않는다.
+  ★단 **저장소가 걸린 자리에만** 멈춘다 — 무관한 대괄호까지 멈추면 소음이 폭발해 아무도
+    게이트를 안 본다. 표를 넓힐 때는 반대 방향 짝 케이스를 함께 세워라.
+  ★두 경로의 담당 구역을 갈라 두었다: 통짜 문자열 첨자는 멤버 이름 경로가, 계산형 첨자는
+    첨자 순회가 끝까지 책임진다. 겹치면 한 줄에 지적이 둘 나고, 더 나쁘게는 두 방어가
+    서로를 공허하게 만들어 어느 쪽을 지워도 자기시험이 초록이 된다.
+
 ★기능 감지(`if (localStorage && localStorage.getItem)`)의 rc=2 는 **현행 유지**다(2026-08-31 결정).
   '호출되지 않는 메서드 참조' 를 문맥 없이 safe 로 접으면 `(localStorage.getItem)('key')` 가 뚫린다
   — 이름 직후가 ')' 라 단순 참조로 보이지만 실제로는 호출된다(실행으로 확인). 완화하려면 그 참조가
@@ -430,11 +448,19 @@ def _skip_gap(text, i, end):
     return i
 
 
-def _skip_gap_back(text, i, start=0):
-    """i 바로 앞에서부터 공백과 주석을 뒤로 건너뛴다(대괄호 여는 자리를 찾기 위함)."""
+def _skip_gap_back(text, i, start=0, spans=None):
+    """i 바로 앞에서부터 공백과 주석을 뒤로 건너뛴다(대괄호 여는 자리를 찾기 위함).
+
+    ★spans(주석 구간)를 주면 그 구간도 통째로 넘는다. 안 넘으면 **줄 주석 바로 다음 줄**의
+      대괄호가 주석 글자를 앞 토큰으로 읽는다 — `// 메모` 다음 줄의 `['localStorage']` 가
+      '메모' 라는 식별자 뒤에 온 첨자로 둔갑한다(2026-08-31 실측)."""
     while i > start:
         if text[i - 1].isspace():
             i -= 1; continue
+        if spans:
+            sp = _span_at(spans, i - 1)
+            if sp and sp[0] > start:
+                i = sp[0]; continue
         if i - 2 >= start and text[i - 2:i] == '*/':
             j = text.rfind('/*', start, i - 2)
             if j < 0:
@@ -445,14 +471,44 @@ def _skip_gap_back(text, i, start=0):
 
 
 STORAGE_NAMES = ('localStorage', 'sessionStorage')
+# ★코드 자리의 저장소 이름 문자열을 '설명되지 않으면 정지' 로 다룬다(R9 기본값 뒤집기).
+#   자기시험의 meta 변이체가 이 한 줄을 False 로 바꿔 옛 동작(무시)을 되살린다.
+STOP_UNEXPLAINED_STORAGE_STRING = True
 # 여는 대괄호 앞에 이 문자가 있으면 **수신자 표현이 끝난 자리**라 그 대괄호는 멤버 첨자다.
 # (없으면 배열 리터럴이다 — `= ["localStorage"]` 의 대괄호는 첨자가 아니다.)
-RECEIVER_END = '_$)]\'"`'
-# 여는 대괄호 앞 토큰이 이 **키워드**면 수신자일 수 없다 — 그 대괄호는 배열 리터럴이다.
-# (`return ['localStorage']` 의 'n' 은 영숫자지만 수신자가 아니다 — 한 글자로 보면 오판한다.)
+RECEIVER_END = '_$)]\'"`'          # (옛 이름 — 아래 표들이 이 역할을 이어받는다)
+
+# ─────────────────── 대괄호 분류 — **확신할 수 있는 경우만** 적는다 ───────────────────
+# ★2026-08-31 설계 전환(gemini REVISE). 예전에는 '수신자 끝 문자 목록에 없으면 배열 리터럴'
+#   이라고 단정했다. 그래서 목록에 빠진 표기(`window?.["localStorage"]`)가 **조용히 무시**돼
+#   실제로 저장하는 코드가 rc=0 으로 샜다. 닫힌 목록은 새 문법이 나올 때마다 또 샌다.
+#   이제 이 표들은 **'확신할 수 있는 경우'를 넓히는 용도로만** 쓰고, 표 밖은 전부 '분류 불가'
+#   로 떨어뜨린다. 분류 불가 대괄호 안에 저장소 이름이 보이면 무시가 아니라 **정지(rc=2)** 다.
+#   그러면 빠뜨린 표기는 소음(안전)이 되지 저장 누출(위험)이 되지 않는다.
+#   ★표를 넓힐 때는 반대 방향 짝 케이스를 함께 세워라(한쪽을 좁히면 반대편에 구멍이 난다).
+
+# 이 키워드의 괄호는 **제어문 머리**다 — 그 ')' 는 값이 아니므로 뒤의 대괄호는 첨자가 아니다.
+#   `if (true) ['localStorage']` 는 문(statement)이 새로 시작하는 자리다.
+#   ★반대편을 놓치지 마라: `fn()['localStorage']` 와 `(obj)['localStorage']` 의 ')' 는 값이라
+#     여전히 첨자다(자기시험이 이 짝을 지킨다).
+CONTROL_HEAD_KEYWORDS = {'if', 'while', 'for', 'switch', 'catch', 'with'}
+
+# 이 문자로 끝난 자리는 **수신자 표현이 끝난 자리**다 → 뒤따르는 대괄호는 멤버 첨자.
+BRACKET_SUBSCRIPT_CHARS = ')]' + '\'"`'
+# 이 문자 뒤에서는 표현식이 새로 시작한다 → 뒤따르는 대괄호는 배열 리터럴.
+# ★'{' 은 뺐다 — `{[k]: st}` 는 배열 리터럴이 아니라 **계산형 속성 키**다(구조분해 포함).
+#   배열 리터럴로 접어 두면 `const {[k]: st} = window; st.setItem(…)` 가 통째로 사라진다
+#   (2026-08-31 실측 · codex 표본). 블록문 안의 배열 리터럴일 수도 있어 단정하지 않고
+#   '분류 불가' 로 떨어뜨린다 — 저장소가 걸렸을 때만 멈추므로 소음은 제한된다.
+BRACKET_ARRAY_CHARS = set('=(,:;}[+-*/%<>!&|^~?')
+# 이 **키워드** 뒤도 표현식이 새로 시작하는 자리다(단 점 뒤에 오면 속성 이름이라 예외).
 BRACKET_KEYWORDS = {'return', 'yield', 'case', 'throw', 'typeof', 'in', 'of', 'new',
-                    'delete', 'await', 'void', 'instanceof', 'do', 'else'}
+                    'delete', 'await', 'void', 'instanceof', 'do', 'else',
+                    'default', 'export', 'extends', 'as', 'from'}
 SUBSCRIPT = re.compile(r'\[([^\[\]]{1,160})\]')
+# ★위 정규식은 대괄호 안에 대괄호가 없을 때만 맞는다 — `window[zzA[0]]` 는 통째로 안 보인다.
+#   전역 객체를 첨자로 여는 자리는 **괄호를 세어** 따로 훑는다(중첩이 있어도 끝을 찾는다).
+GLOBAL_SUBSCRIPT_OPEN = re.compile(r'(?<![\w$.])(window|globalThis|self)\s*(?:\?\.)?\s*\[')
 QUOTED = re.compile(r"""(['"`])((?:[^'"`\\]|\\.)*)\1""")
 
 
@@ -464,27 +520,97 @@ def _prev_word(text, r, start=0):
     return text[j:r], j
 
 
-def opens_array_literal(text, r, start=0):
-    """r 위치에서 열리는 대괄호가 **배열 리터럴**인가(= 멤버 첨자가 아니었는가).
+def _matching_open_paren(text, close, start=0, spans=None):
+    """close 위치의 ')' 와 짝이 되는 '(' 위치를 뒤로 찾는다(못 찾으면 -1).
+
+    문자열·주석 구간(spans)은 통째로 건너뛴다 — 그 안의 괄호는 코드가 아니다."""
+    depth = 0
+    i = close
+    while i > start:
+        i -= 1
+        if spans:
+            sp = _span_at(spans, i)
+            if sp and sp[0] > start:
+                i = sp[0]
+                continue
+        c = text[i]
+        if c == ')':
+            depth += 1
+        elif c == '(':
+            if depth == 0:
+                return i
+            depth -= 1
+    return -1
+
+
+def _is_control_head_paren(text, close, start=0, spans=None):
+    """close 의 ')' 가 **제어문 머리**의 닫는 괄호인가 — `if (…)` 처럼 값이 아닌 괄호인가."""
+    op = _matching_open_paren(text, close, start, spans)
+    if op < 0:
+        return None                                   # 짝을 못 찾았다 = 단정하지 않는다
+    k = _skip_gap_back(text, op, start, spans)
+    if k <= start:
+        return False
+    if not (text[k - 1].isalnum() or text[k - 1] in '_$'):
+        return False                                  # `)(` · `}(` 등 — 값 자리의 괄호다
+    word, _j = _prev_word(text, k, start)
+    return word in CONTROL_HEAD_KEYWORDS
+
+
+def classify_bracket(text, r, start=0, spans=None):
+    """r 위치에서 열리는 대괄호가 무엇인가 — **셋 중 하나**로 답한다.
+
+    ('subscript', 근거) — 멤버 첨자다(앞이 수신자 표현의 끝)
+    ('array',     근거) — 배열 리터럴이다(앞에서 표현식이 새로 시작한다)
+    ('unknown',   근거) — **확신할 수 없다**. 무시하지 않는다 — 호출자가 정지로 다룬다.
 
     r 은 공백·주석을 이미 건너뛴 자리여야 한다(_skip_gap_back 결과).
-    ★판정은 한 글자가 아니라 토큰으로 한다. 단 `it.return[k]` 처럼 **점 뒤**에 온 같은
-      낱말은 키워드가 아니라 속성 이름이다 — 그건 수신자다(자기시험이 이 짝을 지킨다).
+    ★기본값이 'unknown' 이라는 것이 이 함수의 요점이다. 예전 판은 기본값이 '배열 리터럴'
+      (= 무시)이라, 표에 없는 표기가 나올 때마다 저장 호출이 조용히 빠져나갔다.
     """
     if r <= start:
-        return True                                   # 앞에 아무것도 없다
+        return ('array', '앞에 아무것도 없다')
     prev = text[r - 1]
-    if not (prev.isalnum() or prev in RECEIVER_END):
-        return True                                   # = ( , : 등 — 수신자 표현이 아니다
-    if not (prev.isalnum() or prev in '_$'):
-        return False                                  # ) ] \' " ` — 수신자 표현이 끝난 자리다
-    word, j = _prev_word(text, r, start)
-    if word not in BRACKET_KEYWORDS:
-        return False                                  # 보통 식별자 = 수신자
-    k = _skip_gap_back(text, j, start)
-    if k > start and text[k - 1] == '.':
-        return False                                  # `it.return[k]` — 속성 이름이다
-    return True
+    if prev == '.':
+        # `a?.[k]` 는 **옵셔널 체이닝 첨자**다 — 수신자 표현이 끝난 자리다.
+        # 그냥 `a.[k]` 는 자바스크립트 문법이 아니므로 단정하지 않는다.
+        if r - 2 >= start and text[r - 2] == '?':
+            return ('subscript', '옵셔널 체이닝 첨자 ?.[…]')
+        return ('unknown', "대괄호 앞이 '.' 인데 옵셔널 체이닝(?.[…])이 아니다")
+    if prev == ')':
+        # ★모든 ')' 가 값인 것은 아니다. `if (true) ['x']` 의 ')' 는 제어문 머리를 닫는
+        #   괄호라 값이 아니고, 그 뒤 대괄호는 문이 새로 시작하는 자리의 배열 리터럴이다.
+        head = _is_control_head_paren(text, r - 1, start, spans)
+        if head is None:
+            return ('unknown', "')' 의 짝 괄호를 찾지 못해 값인지 제어문 머리인지 가릴 수 없다")
+        if head:
+            return ('array', '제어문 머리를 닫는 괄호 뒤라 값이 아니다')
+        return ('subscript', '값을 내는 괄호 뒤다')
+    if prev in BRACKET_SUBSCRIPT_CHARS:
+        return ('subscript', '수신자 표현이 %r 로 끝난 자리다' % prev)
+    if prev.isalnum() or prev in '_$':
+        word, j = _prev_word(text, r, start)
+        if word not in BRACKET_KEYWORDS:
+            return ('subscript', '식별자 %r 뒤다' % word)
+        k = _skip_gap_back(text, j, start)
+        if k > start and text[k - 1] == '.':
+            return ('subscript', "'.%s' — 키워드가 아니라 속성 이름이다" % word)
+        return ('array', "키워드 '%s' 뒤라 표현식이 새로 시작한다" % word)
+    if prev in BRACKET_ARRAY_CHARS:
+        return ('array', '%r 뒤라 표현식이 새로 시작한다' % prev)
+    return ('unknown', '앞 토큰(%r)을 분류할 수 없다' % prev)
+
+
+def bracket_mentions_storage(inner):
+    """대괄호 안에 저장소 이름(조각)이 보이는가 — 분류 불가일 때 **멈출 값어치**가 있는가.
+
+    ★무관한 대괄호까지 멈추면 소음이 폭발해 게이트를 아무도 안 본다. 정지는 저장소가
+      걸린 자리에만 건다."""
+    for q in QUOTED.finditer(inner):
+        v = q.group(2)
+        if len(v) >= 4 and any(v in n for n in STORAGE_NAMES):
+            return True
+    return any(n in inner for n in STORAGE_NAMES)
 
 
 def fold_subscript(expr, consts):
@@ -520,26 +646,75 @@ def fold_subscript(expr, consts):
     return ('unresolved', expr)
 
 
-def string_is_member_name(text, s0, s1):
+def string_is_member_name(text, s0, s1, spans=None):
     """[s0,s1) 문자열이 **대괄호 첨자 자리**에 놓였는가 — 그렇다면 그 문자열은 데이터가 아니라
     멤버 이름이고, 그 자리는 코드다. obj["localStorage"] 의 "localStorage" 가 그 예다.
 
     ★대괄호가 다 첨자는 아니다 — `["localStorage"]` 는 **배열 리터럴**일 수도 있다. 둘을 가르는 것은
-    여는 대괄호 **앞의 토큰**이다: 수신자 표현을 끝낼 수 있는 토큰(식별자·`)`·`]`·문자열)이 앞에 있으면
-    멤버 첨자이고, `=`·`(`·`,`·`return` 같은 것이 앞에 있으면 배열 리터럴이라 그 문자열은 데이터다.
+    여는 대괄호 **앞의 토큰**이고, 그 판정은 classify_bracket 이 셋 중 하나로 답한다.
 
-    돌려주는 값: 닫는 대괄호 다음 위치(코드가 이어지는 자리) 또는 -1(첨자 자리가 아님).
+    돌려주는 값:
+      양수  — 닫는 대괄호 다음 위치(첨자가 맞다 · 코드가 이어지는 자리)
+      -1    — 대괄호에 붙어 있지 않다(설명되지 않은 자리) → 호출자가 판단한다
+      -2    — **분류할 수 없다** → 호출자는 무시하지 말고 멈춰야 한다
+      -3    — **배열 리터럴 원소임이 구조적으로 확인됐다** → 데이터다(안전하게 무시)
     """
-    b = _skip_gap_back(text, s0)
+    b = _skip_gap_back(text, s0, 0, spans)
     if b <= 0 or text[b - 1] != '[':
         return -1
-    r = _skip_gap_back(text, b - 1)                 # 여는 대괄호 앞을 본다
-    if opens_array_literal(text, r):
-        return -1                                   # 배열 리터럴이다 — 이 문자열은 데이터다
+    r = _skip_gap_back(text, b - 1, 0, spans)       # 여는 대괄호 앞을 본다
+    kind, _why = classify_bracket(text, r, 0, spans)
+    if kind == 'array':
+        return -3                                   # 배열 리터럴 원소임이 확인됐다 — 데이터다
     a = _skip_gap(text, s1, len(text))
     if a < 0 or text[a:a + 1] != ']':
         return -1
-    return a + 1
+    return a + 1 if kind == 'subscript' else -2
+
+
+def _enclosing_array_literal(text, pos, start=0, spans=None):
+    """pos 를 감싸는 **가장 안쪽 여는 대괄호**를 찾아 그것이 배열 리터럴인지 본다.
+
+    ★'바로 앞 글자가 [' 인지만 보면 `["a", "localStorage"]` 의 **둘째 원소**를 놓친다
+      (앞 글자가 ',' 라 대괄호에 붙어 있지 않다). 그래서 괄호를 세며 뒤로 걸어간다."""
+    depth = 0
+    i = pos
+    while i > start:
+        i -= 1
+        if spans:
+            sp = _span_at(spans, i)
+            if sp and sp[0] > start:
+                i = sp[0]
+                continue
+        c = text[i]
+        if c in ')]}':
+            depth += 1
+        elif c in '([{':
+            if depth:
+                depth -= 1
+                continue
+            if c != '[':
+                return False                       # 감싸는 것이 배열이 아니다
+            r = _skip_gap_back(text, i, start, spans)
+            kind, _why = classify_bracket(text, r, start, spans)
+            return kind == 'array'
+    return False
+
+
+def _is_tracked_const_value(text, span, consts):
+    """이 문자열이 **우리가 추적하는 상수 정의의 값**인가 — `const K = 'localStorage'`.
+
+    그런 자리는 무시해도 안전하다. 그 상수가 실제로 쓰이는 자리에서 판정하기 때문이다
+    (fold_subscript·classify_arg 가 consts 로 되짚는다). 추적하지 않는 상수라면 화이트리스트가
+    아니다 — 그때는 멈춰야 한다."""
+    if not span:
+        return False
+    m = CONST_DEF.search(text, max(0, span[0] - 200), span[1] + 2)
+    while m:
+        if m.start(3) <= span[0] and span[1] <= m.end(3) + 1:
+            return m.group(1) in consts
+        m = CONST_DEF.search(text, m.end(), span[1] + 2)
+    return False
 
 
 def classify_access(text, i, end):
@@ -665,17 +840,71 @@ def scan_file(src, is_html, rel):
                 continue
             consts[m.group(1)] = m.group(3)
 
+        # ── 전역 수신자 첨자를 중첩까지 포함해 훑는다 ────────────────────────────
+        for gm in GLOBAL_SUBSCRIPT_OPEN.finditer(text):
+            ob = gm.end() - 1                      # 여는 대괄호 위치
+            if _in(a, ob) or _in(b, ob):
+                continue
+            depth, j, cb = 0, ob, -1
+            while j < len(text):
+                sp = _span_at(a, j) or _span_at(b, j)
+                if sp and sp[0] <= j and j > ob:
+                    j = sp[1]; continue
+                ch = text[j]
+                if ch == '[':
+                    depth += 1
+                elif ch == ']':
+                    depth -= 1
+                    if depth == 0:
+                        cb = j; break
+                j += 1
+            if cb < 0:
+                stops.append('%s:%d — %s[ 의 닫는 대괄호를 찾지 못해 무엇을 꺼내는지 판정할 수 없다'
+                             % (rel, at(gm.start()), gm.group(1)))
+                continue
+            inner = text[ob + 1:cb]
+            if '[' not in inner:
+                continue                           # 중첩이 없으면 아래 SUBSCRIPT 순회가 이미 본다
+            kindg, valg = fold_subscript(inner, consts)
+            if kindg == 'other':
+                continue
+            accg = classify_access(text, cb + 1, len(text))
+            if kindg == 'name':
+                if accg[0] == 'call':
+                    exprg, _e = first_arg(text, accg[2])
+                    calls.append((valg, '%s:%d' % (rel, at(gm.start())), exprg, consts))
+                elif accg[0] == 'unknown':
+                    stops.append('%s:%d — %s' % (rel, at(gm.start()), accg[1]))
+                continue
+            # 접히지 않았다 — 그 결과로 저장소 메서드를 부르면 무엇을 저장하는지 알 수 없다
+            if accg[0] == 'call' or (accg[0] == 'safe' and accg[1] in SAFE_MEMBERS):
+                stops.append('%s:%d — %s[…] 의 계산형 이름을 끝까지 접지 못했는데 그 결과로 '
+                             '저장소 메서드(.%s)를 부른다 — 무슨 키를 다루는지 판정할 수 없다'
+                             % (rel, at(gm.start()), gm.group(1), accg[1]))
+
         for m in SUBSCRIPT.finditer(text):
             # ★OBJ_RE 는 'localStorage' 라는 **완성된 낱말**만 본다. 낱말을 조각내거나 상수에 담아
             #   대괄호로 꺼내면 그 그물에 안 걸린다 — 첨자를 직접 접어 보고, 못 접으면 멈춘다.
             if _in(a, m.start()) or _in(b, m.start()):
                 continue                              # 주석·문자열 안의 대괄호는 코드가 아니다
-            r0 = _skip_gap_back(text, m.start())  # ★대괄호가 다 첨자는 아니다 — 앞 토큰으로 가른다
-            if opens_array_literal(text, r0):
-                continue                              # 배열 리터럴이다(수신자 표현이 앞에 없다)
+            r0 = _skip_gap_back(text, m.start(), 0, a)  # ★대괄호가 다 첨자는 아니다 — 앞 토큰으로 가른다
+            bkind, bwhy = classify_bracket(text, r0, 0, a)
             inner = m.group(1)
+            if bkind == 'array':
+                continue                              # 배열 리터럴이다(표현식이 새로 시작한다)
             if QUOTED.fullmatch(inner.strip()):
-                continue                              # 통짜 문자열 첨자는 위(멤버 이름) 경로가 다룬다
+                # ★통짜 문자열 첨자는 위(멤버 이름) 경로가 끝까지 책임진다 — 분류 불가까지
+                #   그쪽이 멈췔 준다. 여기서 같이 잡으면 한 줄에 지적이 둘 나고, 더 나쁘게는
+                #   두 방어가 서로를 공허하게 만들어 어느 쪽을 지워도 자기시험이 초록이 된다.
+                continue
+            if bkind == 'unknown':
+                # ★무시하지 않는다. 다만 **저장소가 걸린 자리에만** 멈춘다 — 무관한 대괄호까지
+                #   멈추면 소음이 폭발해 아무도 게이트를 안 본다.
+                if bracket_mentions_storage(inner):
+                    stops.append('%s:%d — 이 대괄호가 멤버 첨자인지 배열 리터럴인지 가릴 수 없다(%s) '
+                                 '· 안에 저장소 이름이 있어 무시하지 않는다'
+                                 % (rel, at(m.start()), bwhy))
+                continue
             kindf, val = fold_subscript(inner, consts)
             if kindf == 'other':
                 continue
@@ -718,11 +947,45 @@ def scan_file(src, is_html, rel):
                 # ★문자열이라고 무조건 버리지 않는다 — 대괄호 첨자 자리의 문자열은 **멤버 이름**이고
                 #   그 자리는 코드다. window["localStorage"].setItem(…) 이 그렇게 실행된다.
                 span = _span_at(a, off)
+                quoted = bool(span and text[span[0]:span[0] + 1] in ('"', "'", '`'))
                 nxt = -1
-                if span and text[span[0]:span[0] + 1] in ('"', "'", '`'):
-                    nxt = string_is_member_name(text, span[0], span[1])
-                if nxt < 0:
+                if quoted:
+                    nxt = string_is_member_name(text, span[0], span[1], a)
+                if not quoted:
+                    ignored.append('%s:%d' % (rel, line))   # 주석·정규식 — 실행되지 않는 글자다
+                    continue
+                # ★예전에는 '배열 리터럴 원소' 와 '추적되는 상수 정의' 를 화이트리스트로 열어
+                #   두려 했으나, 둘 다 실측에서 누출 경로임이 드러났다:
+                #     const A = ['localStorage']; window[A[0]].setItem(…)   ← 배열 원소
+                #     const K = 'localStorage'; Reflect.get(window, K).setItem(…) ← 상수
+                #   그래서 둘 다 열지 않는다. 제품에는 이 표기가 0건이라 오늘 비용은 0 이고,
+                #   생기면 소음(멈춤)이지 누출이 아니다.
+                # ★예전에는 여기에 '분류 불가 대괄호(-2)' 전용 정지가 따로 있었다. 아래 포괄
+                #   규칙이 그 경우까지 덮게 되면서 그 가드는 **공허해졌다**(지워도 결과가 같아
+                #   자기시험이 잡지 못한다). 공허한 가드는 남겨 두면 '검사가 있다' 는 착각만
+                #   주므로 없앤다 — 대신 사유 문구로 어느 경우인지 구분해 적는다.
+                if nxt == -3 or (nxt == -1 and _enclosing_array_literal(text, off, 0, a)):
+                    # 배열 리터럴 안의 원소다 — 데이터임이 구조적으로 확인됐다.
+                    # ★단 '배열에 담아 두었다가 꺼내 쓰는' 경로는 아래 전역 수신자 훑기가 따로 잡는다.
                     ignored.append('%s:%d' % (rel, line))
+                    continue
+                if nxt < 0:
+                    # ★R9 기본값 뒤집기(2026-08-31). 여기가 오늘 네 번째 누출이 태어난 자리다.
+                    #   `Reflect.get(window, 'localStorage').setItem(…)` 처럼 저장소 이름이
+                    #   **식별자가 아니라 문자열**로 등장하면, 예전에는 '문자열이니 데이터' 로
+                    #   조용히 버렸다. 식별자 경로는 이미 '모르면 멈춘다' 인데 문자열 경로만
+                    #   기본값이 반대였다. 이제는 **설명되지 않은 코드 자리의 저장소 이름 문자열**
+                    #   을 무시하지 않는다. 설명되는 자리는 위에서 이미 걸러졌다:
+                    #     · 주석·정규식(실행되지 않는 글자)     · 배열 리터럴 원소(데이터 확인)
+                    #     · 대괄호 첨자(멤버 이름 → 아래 경로) · 상수 정의(consts 로 추적한다)
+                    if not STOP_UNEXPLAINED_STORAGE_STRING:
+                        ignored.append('%s:%d' % (rel, line))
+                        continue
+                    stops.append('%s:%d — 코드 자리에 저장소 이름 문자열이 있는데 그것이 저장과 '
+                                 '무관하다고 확신할 수 없다%s — 무시하지 않는다'
+                                 % (rel, line,
+                                    '(감싼 대괄호가 첨자인지 배열인지 가릴 수 없다)' if nxt == -2
+                                    else '(문자열로 이름을 넘겨 저장하는 표기가 있다)'))
                     continue
                 after = nxt
             kind = classify_access(text, after, len(text))
@@ -1164,6 +1427,97 @@ def _optchain_keyword_subscript(work):
     _append_stats(work, "const zzO2 = { yield: window }; zzO2?.yield['localStorage'].setItem('zz.opt-yld', '1');")
 
 
+# ── R9 · 대괄호 분류의 인접 경계(gemini REVISE) ─────────────────────────────────────
+def _optchain_subscript(work):
+    """window?.["localStorage"]?.setItem(…) — 실제로 저장한다(Node 실행으로 확인).
+    대괄호 앞이 '.' 이라 '수신자 끝이 아니다 → 배열 리터럴' 로 접혀 통째로 사라졌었다."""
+    _append_stats(work, 'window?.["localStorage"]?.setItem("zz.optsub", "1");')
+
+
+def _optchain_subscript_session(work):
+    _append_stats(work, 'self?.["sessionStorage"]?.setItem("zz.optsess", "1");')
+
+
+def _optchain_after_paren(work):
+    _append_stats(work, '(window)?.["localStorage"].setItem("zz.parenopt", "1");')
+
+
+def _export_default_array(work):
+    """export default ["localStorage"] — 순수 데이터인데 첨자로 오인해 멈췄었다."""
+    _append_stats(work, 'export default ["localStorage"];')
+
+
+def _arrow_body_array(work):
+    _append_stats(work, 'const zzF = () => ["localStorage"]; void zzF;')
+
+
+def _array_then_index(work):
+    """배열에 담았다가 꺼낸다 — `window[zzA[0]]` 은 **중첩 대괄호**라 옛 순회가 아예 못 봤다."""
+    _append_stats(work, 'const zzA = ["localStorage"]; window[zzA[0]].setItem("zz.arridx", "1");')
+
+
+def _nested_subscript_resolved(work):
+    """★반대편 짝 — 중첩 전역 첨자라도 **저장소 메서드를 부르지 않으면** 멈추지 않는다.
+    중첩이기만 하면 다 멈추면 소음이 폭발해 아무도 게이트를 안 본다."""
+    _append_stats(work, 'const zzC = ["someOtherKey"]; window[zzC[0]] === undefined;')
+
+
+def _reflect_get_string(work):
+    """Reflect.get(window, 'localStorage').setItem(…) — 이름을 문자열로 넘겨 저장한다."""
+    _append_stats(work, 'Reflect.get(window, "localStorage").setItem("zz.reflect", "1");')
+
+
+def _computed_destructuring(work):
+    """const {[k]: st} = window — 계산형 속성 키로 꺼낸다(대괄호가 '{' 뒤에 온다)."""
+    _append_stats(work, 'const zzK = "localStorage"; const { [zzK]: zzSt } = window; zzSt.setItem("zz.destr", "1");')
+
+
+def _descriptor_value(work):
+    _append_stats(work, 'Object.getOwnPropertyDescriptor(window, "localStorage").value.setItem("zz.gopd", "1");')
+
+
+def _indirect_eval_payload(work):
+    """간접 eval — 정적 검사가 원리적으로 못 닫는 부류다. 그래서 **멈춘다**."""
+    _append_stats(work, 'const zzE = eval; zzE("localStorage.setItem(\'zz.eval\', \'1\')");')
+
+
+def _control_head_array(work):
+    """`if (true) ['localStorage']` — 제어문 머리 뒤라 배열 리터럴(데이터)이다."""
+    _append_stats(work, "if (true) ['localStorage'];")
+
+
+def _while_head_array(work):
+    _append_stats(work, "let zzW = 0; while (zzW++ < 1) ['localStorage'];")
+
+
+def _call_result_subscript(work):
+    """★반대편 짝 — `fn()['localStorage']` 의 ')' 는 **값**이라 여전히 첨자다."""
+    _append_stats(work, "function zzGw(){ return window; } zzGw()['localStorage'].setItem('zz.callsub', '1');")
+
+
+def _paren_expr_subscript(work):
+    """★반대편 짝 — `(obj)['localStorage']` 의 ')' 도 값이다."""
+    _append_stats(work, "(window)['localStorage'].setItem('zz.parensub', '1');")
+
+
+def _unclassified_bracket_dot(work):
+    """★새 원칙 자체를 재는 케이스 — 분류할 수 없는 대괄호는 **무시가 아니라 정지**다.
+    `zzO.["localStorage"]` 는 자바스크립트 문법이 아니지만, 검사기가 '모르겠다' 를
+    '없는 셈' 으로 접으면 그 틈으로 실행되는 저장 호출이 빠져나간다."""
+    _append_stats(work, 'const zzO = { m: 1 }; zzO.["localStorage"].setItem("zz.dot", "1");')
+
+
+def _unclassified_bracket_unquoted(work):
+    """같은 원칙의 다른 경로 — 통짜 문자열이 아닌 첨자(계산형)에서도 정지해야 한다."""
+    _append_stats(work, 'const zzP = "local"; const zzO2 = { m: 1 }; zzO2.[zzP + "Storage"].setItem("zz.u", "1");')
+
+
+def _unclassified_bracket_no_storage(work):
+    """★반대 방향 — 분류 못 해도 **저장소가 안 걸린 대괄호**는 멈추지 않는다.
+    무관한 대괄호까지 멈추면 소음이 폭발해 아무도 게이트를 안 본다."""
+    _append_stats(work, 'const zzO3 = { m: 1 }; const zzV = zzO3.["someOtherKey"]; void zzV;')
+
+
 def _global_bracket_window(work):
     """window["localStorage"] — 문자열이 데이터가 아니라 **멤버 이름**으로 쓰인 자리다."""
     _append_stats(work, 'window["localStorage"].setItem("zz.win", "1");')
@@ -1260,7 +1614,9 @@ CASES = [
     ('허구 접두로 정확 키 대체',       _fake_prefix,          1, ['missing-exact', 'stale-entry']),
     ('줄 주석 속 호출 예시',          _comment_call,         0, []),
     ('블록 주석 속 호출 예시',        _block_comment_call,   0, []),
-    ('문자열 속 호출 예시',           _string_call,          0, []),
+    # ★R9 계약 변경 — 코드 자리의 저장소 이름 문자열은 이제 설명되지 않으면 정지다.
+    #   이 표본은 간접 eval 이 실행하는 payload 와 **글자 그대로 같은 모양**이라 가를 수 없다.
+    ('문자열 속 호출 예시',           _string_call,          2, ['uncertain-code']),
     ('HTML 본문 속 호출 예시',        _prose_call,           0, []),
     ('핸들러 속성 속 실호출',         _handler_call,         1, ['missing-exact']),
     # ── R4 · 실행되는데 놓치기 쉬운 자리(놓치면 거짓 통과) ──
@@ -1300,12 +1656,16 @@ CASES = [
     # ── R6 · 막지 말아야 할 정상 패턴(오탐 회귀 방지) ──
     ('window.localStorage 점표기',  _dot_window_call,           1, ['missing-exact']),
     ('단락 평가(&&) 뒤 실호출',       _short_circuit_guard,       1, ['missing-exact']),
-    ('첨자 아닌 문자열 속 낱말',       _string_data_word,          0, []),
+    # ★R9 계약 변경 — 사람에게 보여 줄 문안이어도 코드 자리의 문자열이면 멈춘다.
+    #   (열어 줄지 여부는 master 판단 사항으로 보고했다 — 애매하면 닫아 두고 묻는다.)
+    ('첨자 아닌 문자열 속 낱말',       _string_data_word,          2, ['uncertain-code']),
     ('배열 원소로 놓인 문자열',        _array_element_word,        0, []),
     # ── R7 · 별칭이 되는 자리와 계산형 이름(codex R6 표본) ──
     ('?? 로 꺼내 담기',              _nullish_alias,        2, ['uncertain-code']),
     ('계산형 첨자 · 문자열 결합',      _computed_concat,      1, ['missing-exact']),
-    ('계산형 첨자 · 상수 경유',        _computed_const,       1, ['missing-exact']),
+    # ★R9 계약 변경 — 상수 정의 자체가 정지 대상이 되어 rc 가 1 에서 2 로 올라갔다.
+    #   키는 여전히 정확히 찾아낸다(missing-exact 가 함께 나온다) — 판정 불가가 우선할 뿐이다.
+    ('계산형 첨자 · 상수 경유',        _computed_const,       2, ['missing-exact', 'uncertain-code']),
     ('계산형 첨자 · 못 접는 조각',      _computed_unfoldable,  2, ['uncertain-code']),
     ('배열 첫 원소 문자열',           _array_first_literal,  0, []),
     ('&& 조건만 쓰는 자리',           _and_condition_only,   0, []),
@@ -1322,6 +1682,31 @@ CASES = [
     # ── R8 · ★그 반대 방향: 점 뒤에 온 같은 낱말은 속성 이름이라 진짜 첨자다 ──
     ('.return 뒤 첨자(짝 케이스)',    _dot_keyword_subscript, 1, ['missing-exact']),
     ('?.yield 뒤 첨자(짝 케이스)',    _optchain_keyword_subscript, 1, ['missing-exact']),
+    # ── R9 · 옵셔널 체이닝 첨자는 진짜 첨자다(rc=0 으로 새던 자리) ──
+    ('옵셔널 체이닝 첨자',            _optchain_subscript,        1, ['missing-exact']),
+    ('옵셔널 첨자 · sessionStorage',  _optchain_subscript_session, 1, ['missing-exact']),
+    ('괄호 수신자 + 옵셔널 첨자',      _optchain_after_paren,      1, ['missing-exact']),
+    # ── R9 · 표현식이 새로 시작하는 자리의 배열은 데이터다(rc=2 로 멈추던 오탐) ──
+    ('export default 뒤 배열',       _export_default_array,      0, []),
+    ('화살표 몸체의 배열',            _arrow_body_array,          0, []),
+    # ── R9 · ★분류할 수 없는 대괄호는 무시가 아니라 정지다(새 원칙 자체) ──
+    ('분류 불가 대괄호 · 통짜 첨자',    _unclassified_bracket_dot,  2, ['uncertain-code']),
+    ('분류 불가 대괄호 · 계산형',      _unclassified_bracket_unquoted, 2, ['uncertain-code']),
+    # ── R9 · 그 반대 방향: 저장소가 안 걸린 대괄호는 멈추지 않는다(소음 억제) ──
+    ('분류 불가지만 저장소 없음',      _unclassified_bracket_no_storage, 0, []),
+    # ── R9 · 제어문 머리의 ')' 는 값이 아니다(오탐) ──
+    ('if 머리 뒤 배열 리터럴',        _control_head_array,        0, []),
+    ('while 머리 뒤 배열 리터럴',     _while_head_array,          0, []),
+    # ── R9 · ★그 반대편: 값을 내는 괄호 뒤는 여전히 첨자다 ──
+    ('호출 결과 뒤 첨자(짝 케이스)',   _call_result_subscript,     1, ['missing-exact']),
+    ('괄호식 뒤 첨자(짝 케이스)',      _paren_expr_subscript,      1, ['missing-exact']),
+    # ── R9 추가 · 이름을 문자열로 넘겨 저장하던 경로들(전부 rc=0 으로 샜다) ──
+    ('Reflect.get 문자열 이름',       _reflect_get_string,        2, ['uncertain-code']),
+    ('배열에 담았다 꺼내기(중첩)',   _array_then_index,          2, ['uncertain-code']),
+    ('중첩 첨자지만 저장 호출 아님',  _nested_subscript_resolved, 0, []),
+    ('계산형 속성 키 구조분해',        _computed_destructuring,    2, ['uncertain-code']),
+    ('속성 서술자로 꺼내기',           _descriptor_value,          2, ['uncertain-code']),
+    ('간접 eval payload',           _indirect_eval_payload,     2, ['uncertain-code']),
 ]
 
 # ★방어를 **하나씩 홀로** 지운 변이체 — 그 방어가 없으면 해당 케이스의 rc 가 옛 값으로
@@ -1337,6 +1722,24 @@ META = [
      "            if m.group(2) == '`' and '${' in " + 'm.group(3):', '            if False:', 0),
     ('meta:키워드 토큰 판정 제거', 'return 뒤 배열 리터럴',
      '    if word not in ' + 'BRACKET_KEYWORDS:', '    if True:', 2),
+    # ── R9 · 새 원칙(분류 불가 → 정지)을 경로별로 홀로 지워 본다 ──
+    # ★첫 짝짓기를 틀렸다 — 옵셔널 첨자가 잡히는 것은 -2 정지가 아니라 '?.[…] 를 첨자로
+    #   알아보는 줄' 덕분이다. 뭐가 잡는지를 못박지 않으면 무임승차를 방어로 착각한다.
+    ('meta:옵셔널 첨자 인식 제거', '옵셔널 체이닝 첨자',
+     "        if r - 2 >= start and text[r - 2] == " + "'?':", '        if False:', 2),
+    # ★'분류 불가 대괄호 전용 가드' 는 포괄 규칙에 흡수돼 공허해졌으므로 변이체도 지웠다.
+    #   대신 포괄 규칙 자체를 홀로 지워 본다 — 이걸 끄면 오늘의 누출들이 통째로 되살아난다.
+    ('meta:코드 자리 문자열 정지 제거', '분류 불가 대괄호 · 통짜 첨자',
+     'STOP_UNEXPLAINED_STORAGE_STRING' + ' = True', 'STOP_UNEXPLAINED_STORAGE_STRING = False', 0),
+    ('meta:계산형 첨자 분류불가 정지 제거', '분류 불가 대괄호 · 계산형',
+     '                if bracket_mentions_storage' + '(inner):', '                if False:', 0),
+    ('meta:키워드 표 확장 되돌리기', 'export default 뒤 배열',
+     "'default', 'export', " + "'extends', 'as', 'from'}", "'extends', 'as', 'from'}", 2),
+    ('meta:중첩 전역 첨자 훑기 제거', '배열에 담았다 꺼내기(중첩)',
+     "        for gm in GLOBAL_SUBSCRIPT_OPEN" + '.finditer(text):', '        for gm in ():', 0),
+    ('meta:제어문 머리 판정 제거', 'if 머리 뒤 배열 리터럴',
+     "        head = _is_control_head_paren" + '(text, r - 1, start, spans)',
+     '        head = False', 2),
 ]
 
 

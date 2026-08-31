@@ -135,6 +135,11 @@ Sitemap: https://hanpango.com/sitemap.xml
          ★계산형 멤버 이름(`window[expr]`)을 정적으로 끝까지 접지 못했는데 그 결과로 저장소
          메서드를 부르면 rc=2 다. 그 줄을 정적으로 읽히게 고쳐라(문자열 상수 하나로 적거나
          `window.localStorage` 로 직접 쓴다) — 게이트를 완화하는 것이 답이 아니다.
+         ★대괄호가 **멤버 첨자인지 배열 리터럴인지 가릴 수 없을 때**도 rc=2 다(그 안에 저장소
+         이름이 있을 때만). 이것은 고장이 아니라 설계다 — 모르는 표기를 '없는 셈' 으로 접으면
+         실행되는 저장 호출이 그 틈으로 빠져나간다. 지적문이 어느 줄인지·왜 못 가렸는지 적어
+         주니, 그 줄을 흔한 표기로 고쳐 쓰면 된다(`window["localStorage"]` 또는
+         `window.localStorage`). 검사기의 표를 넓히는 것은 그다음 선택지다.
    - [ ] `node tools/counter/test_functions.mjs .` · `node tools/counter/test_pages.mjs .`
    각 레인(브랜치)에서 초록이었다는 것은 **병합 결과가 초록이라는 뜻이 아니다**. 2026-08-31 에
    노노그램 병합이 `functions/_games.js` 의 `export const GAMES` 를 두 줄로 만들어 Cloudflare
