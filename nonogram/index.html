@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>노노그램 — 숫자로 그림을 채우는 네모로직 | Nonogram</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 노노그램(네모로직). 줄마다 적힌 숫자를 단서로 칸을 칠해 그림을 완성합니다. 5×5 미니와 10×10 클래식, 쉬움·보통·어려움 세 난이도. 모든 판은 답이 하나뿐이고 찍지 않고 논리만으로 풀립니다. 되돌리기·힌트가 있고 진행은 자동 저장되며, 매일 새로 열리는 오늘의 도전을 풀고 시간·실수로 자랑하세요. Free nonogram (picross) — 5×5 and 10×10 boards with a unique, guess-free solution and a daily challenge.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#120d2e" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="노노그램 — 숫자로 그림을 채우는 네모로직 | Nonogram">
+<meta property="og:description" content="줄마다 적힌 숫자만 보고 칸을 칠해 그림을 완성하는 논리 퍼즐 — 오늘의 도전을 풀고 시간·실수로 자랑하기. 설치 없이 바로 플레이.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/nonogram/">
+<link rel="canonical" href="https://hanpango.com/nonogram/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"노노그램","alternateName":"Nonogram","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본이다. 다크는 아래 @media 에서 ★같은 이름의 값만 바꿔 끼운다 —
+     HTML 마크업은 두 테마가 완전히 동일하다. 시그니처는 보라(--sig).
+     ★글자 대비: --text/--muted-2/--sig-ink/--bad 는 --bg·--board·--panel2·--sig-soft 위에서 4.5:1 이상이다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#7c3aed; --sig-ink:#5b21b6; --sig-soft:#ede9fe; --on-sig:#ffffff;
+    --good:#15803d; --warn:#a16207; --bad:#b91c1c; --bad-soft:#fee2e2;
+    --board:#ffffff; --frame:#374151; --grid:#cbd5e1;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#a78bfa; --sig-ink:#c4b5fd; --sig-soft:#2e2670; --on-sig:#2e1065;
+      --good:#34d399; --warn:#fbbf24; --bad:#fca5a5; --bad-soft:#4c1d1d;
+      --board:#120d2e; --frame:#b8b5e6; --grid:#3f3a7a;
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px;gap:6px}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em;white-space:nowrap}
+  h1 small{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:6px}
+  .hdr-btns{display:flex;gap:6px;flex:0 0 auto}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer;white-space:nowrap}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:6px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .score b{display:block;font-size:1.2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+  .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
+  .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 결과 화면 자리 */
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  /* ---- 판 ----
+     한 장의 격자에 단서와 놀이판을 함께 그린다. 전체 칸 수 = 단서칸(G) + 판(N) = --tot.
+     칸 한 변 --u 는 판 폭에서 나온다(360px 상한 · 좌우 14px 여백). 글자 크기는 --u 에서 파생하므로
+     10×10(단서 4)일 때도 5×5(단서 3)일 때도 숫자가 칸을 넘치지 않는다. */
+  .nboard{
+    --u: calc(min(360px, 100vw - 28px) / var(--tot));
+    width:100%;max-width:360px;aspect-ratio:1;display:grid;
+    background:var(--panel);border:2px solid var(--frame);border-radius:8px;overflow:hidden;
+    touch-action:none;user-select:none;-webkit-user-select:none;
+  }
+  /* ★격자의 열·행 배치와 --tot 는 **자바스크립트 한 곳**(buildBoard)에서 함께 정한다.
+     단서 칸은 놀이 칸보다 좁게(CLUE_FR 배) 잡아 놀이 칸을 최대한 키운다 — 여기 CSS 에 같은
+     비율을 또 적어 두면 두 값이 어긋날 때 칸 크기와 글자 크기가 따로 놀게 된다. */
+  .nboard:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+  .corner{background:var(--panel2)}
+  .cl{display:flex;align-items:center;justify-content:center;background:var(--panel);color:var(--muted-2);overflow:hidden;
+      font:700 calc(var(--u) * .44)/1 system-ui,sans-serif;font-variant-numeric:tabular-nums}
+  /* 다 푼 줄의 단서 — 흐리게 하되 '읽을 수 있는 흐림' 으로 둔다(투명도로 지우면 라이트에서 1.8:1 까지 떨어졌다) */
+  .cl.done{color:var(--muted);font-weight:400}
+  .cl.edge{box-shadow:inset -1px 0 0 var(--grid)}          /* 단서 칸 사이 옅은 구분선 */
+  .cl.edgeb{box-shadow:inset 0 -1px 0 var(--grid)}
+  .cl.wall{box-shadow:inset -2px 0 0 var(--frame)}          /* 단서 ↔ 판 경계(세로) */
+  .cl.wallb{box-shadow:inset 0 -2px 0 var(--frame)}         /* 단서 ↔ 판 경계(가로) */
+  .cell{border:0;padding:0;margin:0;background:var(--board);cursor:pointer;min-width:0;min-height:0;
+        display:flex;align-items:center;justify-content:center;position:relative;
+        box-shadow:inset -1px 0 0 var(--grid), inset 0 -1px 0 var(--grid);
+        color:var(--muted-2);font:700 calc(var(--u) * .55)/1 system-ui,sans-serif}
+  .cell.b5r{box-shadow:inset -2px 0 0 var(--frame), inset 0 -1px 0 var(--grid)}
+  .cell.b5b{box-shadow:inset -1px 0 0 var(--grid), inset 0 -2px 0 var(--frame)}
+  .cell.b5r.b5b{box-shadow:inset -2px 0 0 var(--frame), inset 0 -2px 0 var(--frame)}
+  .cell.on{background:var(--sig)}
+  .cell.bad{background:var(--bad-soft);color:var(--bad)}
+  /* 힌트로 받은 칸 — 색을 바꾸지 않고 가운데에 점을 찍는다.
+     보라 위 보라(1.58:1)는 안 보이고, 초록으로 바꾸면 명도차가 1.14:1 이라 적록색약에게 사라진다.
+     점은 칠한 칸 위 --on-sig(라이트 5.70:1 · 다크 6.87:1)라 색을 못 가려도 보인다. */
+  /* 크기는 칸 한 변(--u)에서 낸다 — %는 flex 항목이라 뜻대로 안 먹었다(27.6px 칸에서 13px 이 나왔다) */
+  .cell.hinted::after{content:'';flex:0 0 auto;width:calc(var(--u) * .3);height:calc(var(--u) * .3);border-radius:50%;background:var(--on-sig)}
+  .cell.sel{outline:2px solid var(--sig-ink);outline-offset:-2px;z-index:1}
+  .cell:focus-visible{outline:2px solid var(--sig);outline-offset:-2px;z-index:1}
+  /* 손맛 — 칠할 때 팝 · 완성 물결. 움직임 줄이기면 전부 0. */
+  @keyframes pop{0%{transform:scale(.55)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+  @keyframes wave{0%{background:var(--sig-soft)}100%{background:inherit}}
+  .cell.pop{animation:pop .16s ease-out}
+  .cell.wave{animation:wave .55s var(--d,0ms) ease-out}
+  /* ---- 도구 ---- */
+  .tools{width:100%;max-width:360px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+  .tool{min-height:48px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--text);font-size:.85rem;font-weight:600;cursor:pointer;padding:0 2px}
+  .tool:active{transform:scale(.96)}
+  .tool[disabled]{opacity:.45;cursor:default}
+  .tool[aria-pressed="true"]{background:var(--sig);color:var(--on-sig);border-color:var(--sig)}
+  /* 도움말 문단 — ★.hint 가 아니다: 칸 상태 클래스와 이름이 겹치면 이 작은 글자 크기가 칸에도 먹는다 */
+  .help{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card h2{margin:0 0 6px;font-size:1.5rem}
+  .card .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1;font-variant-numeric:tabular-nums}
+  .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card .marks{font-size:1.25rem;letter-spacing:.06em;margin:4px 0;line-height:1.3;word-break:break-all}
+  .card .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .hp-stat[hidden]{display:none!important}
+  .card .hp-stat b{font-weight:600}
+  .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .card .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[disabled]{opacity:.5;cursor:default}
+  .btn[hidden]{display:none}
+  .seg{display:flex;gap:4px;margin:6px 0}
+  .seg button{flex:1;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--text);font-weight:700;font-size:.95rem;cursor:pointer;padding:0 2px}
+  .seg button[aria-pressed="true"]{background:var(--sig);color:var(--on-sig);border-color:var(--sig)}
+  .seg-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;text-align:left;margin:8px 0 0}
+  .stats3{display:flex;gap:6px;margin:10px 0 4px}
+  .stats3 div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .stats3 b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums}
+  .stats3 span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* 결과 카드의 완성 그림 — 판을 작게 다시 그려 보여 준다(공유 문구에는 넣지 않는다) */
+  .pic{display:grid;gap:1px;justify-content:center;margin:10px auto 2px}
+  .pic i{display:block;width:9px;height:9px;background:var(--panel2);border-radius:1px}
+  .pic i.on{background:var(--sig)}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  /* 좁은 화면(360px 안팎) — 머리글 글자와 버튼을 한 줄에 담는다. ko 보다 문안이 긴 en 이 기준이다. */
+  @media (max-width:400px){
+    h1{font-size:.95rem}
+    h1 small{display:none}
+    .ibtn{padding:5px 7px;font-size:.75rem}
+    .tool{font-size:.76rem}
+  }
+  /* 움직임을 줄여 달라고 한 사람에게는 애니·전환을 전부 끈다 */
+  @media (prefers-reduced-motion: reduce){
+    .cell.pop,.cell.wave{animation:none}
+    .toast{transition:none}
+    .btn:active,.ibtn:active,.tool:active{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">노노그램</span> <small id="subtitle" data-i18n="subtitle">네모로직</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 다른 게임</a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="timeNow">–</b><span data-i18n="timeLbl">시간</span></div>
+  <div class="score"><b id="mistNow">–</b><span data-i18n="mistLbl">실수</span></div>
+  <div class="score"><b id="hintNow">–</b><span data-i18n="hintLbl">힌트</span></div>
+</div>
+
+<main>
+  <div class="nboard" id="board" role="grid" tabindex="0" aria-label="nonogram board"></div>
+  <div class="tools">
+    <button class="tool" id="btnFill" aria-pressed="true" data-i18n="fillBtn">■ 칠하기</button>
+    <button class="tool" id="btnMark" aria-pressed="false" data-i18n="markBtn">✕ 빈칸</button>
+    <button class="tool" id="btnUndo" data-i18n="undoBtn">↩ 되돌리기</button>
+    <button class="tool" id="btnHint" data-i18n="hintBtn">💡 힌트</button>
+  </div>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="help" data-i18n="hint">칸을 눌러 칠하고, 죽 끌면 이어서 칠해집니다 · 키보드 방향키·Space 칠하기·X 빈칸·Z 되돌리기</p>
+</main>
+
+<!-- 결과 -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card">
+    <h2 id="overTitle" data-i18n="result">완성!</h2>
+    <div class="big" id="finalTime">0:00</div>
+    <div class="pic" id="pic" aria-hidden="true"></div>
+    <div class="marks" id="marks" aria-hidden="true"></div>
+    <div class="new" id="streakLine" style="color:var(--sig-ink)"></div>
+    <div class="new" id="newBest"></div>
+    <div class="stats3">
+      <div><b id="nTime">0:00</b><span data-i18n="timeLbl2">시간</span></div>
+      <div><b id="nMist">0</b><span data-i18n="mistLbl2">실수</span></div>
+      <div><b id="nHint">0</b><span data-i18n="hintLbl2">힌트</span></div>
+    </div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- 시작 -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card">
+    <h2 id="startTitle" data-i18n="title2">노노그램</h2>
+    <div class="sub" data-i18n="startSub">줄에 적힌 숫자만 보고 칸을 칠해 그림을 완성합니다.<br>모든 판은 답이 하나뿐 · 찍지 않고 논리로 풀립니다.</div>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnResumeDaily" hidden></button>
+    <button class="btn ghost" id="btnResumeFree" hidden></button>
+    <p class="seg-lbl" data-i18n="sizeLbl">판형</p>
+    <div class="seg" id="segSize" role="group">
+      <button data-size="5" aria-pressed="false">5×5</button>
+      <button data-size="10" aria-pressed="true">10×10</button>
+    </div>
+    <p class="seg-lbl" data-i18n="levelLbl">난이도</p>
+    <div class="seg" id="segLevel" role="group">
+      <button data-level="easy" aria-pressed="false" data-i18n="lvEasy">쉬움</button>
+      <button data-level="normal" aria-pressed="true" data-i18n="lvNormal">보통</button>
+      <button data-level="hard" aria-pressed="false" data-i18n="lvHard">어려움</button>
+    </div>
+    <button class="btn ghost" id="btnStart" data-i18n="start">▶ 시작</button>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.nonogram.today">–</b>판 · 누적 <b data-hp="plays.nonogram.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">노노그램(네모로직·피크로스)은 줄 바깥에 적힌 숫자를 단서로 칸을 칠해 숨은 그림을 찾는 논리 퍼즐입니다. 왼쪽 숫자는 그 가로줄에서 이어서 칠해지는 칸의 덩어리 길이를, 위쪽 숫자는 그 세로줄의 덩어리 길이를 순서대로 알려 줍니다. 예를 들어 한 줄의 단서가 <b>3 1</b>이면 그 줄에는 세 칸짜리 덩어리가 먼저 나오고, 한 칸 이상 띄운 뒤 한 칸짜리 덩어리가 나옵니다. 덩어리 사이에는 빈칸이 적어도 하나 있습니다.</p>
+  <p data-i18n="how2">칸을 누르면 칠해지고 다시 누르면 지워집니다. 손가락이나 마우스를 누른 채로 죽 끌면 지나가는 칸이 이어서 칠해져 긴 덩어리를 한 번에 그릴 수 있습니다. <b>✕ 빈칸</b> 버튼을 켜면 같은 방법으로 '여기는 확실히 비어 있다'는 ✕ 표시를 남길 수 있습니다(마우스 오른쪽 단추로도 됩니다). ✕ 표시는 채점에 쓰이지 않는 메모지만, 남은 칸을 좁히는 데 큰 도움이 됩니다.</p>
+  <p data-i18n="how3">단서와 어긋나게 칠하거나 ✕ 를 찍으면 그 자리는 곧바로 붉게 깜빡인 뒤 되돌아가고 실수로 셉니다(횟수 제한은 없습니다). ↩ 되돌리기는 방금 그은 획을 통째로 취소하고, 💡 힌트는 아직 못 찾은 칸 하나를 대신 칠해 줍니다(힌트 수로 셉니다). 어떤 줄의 칠이 그 줄 단서와 맞아떨어지면 그 줄의 숫자가 흐려집니다. 컴퓨터에서는 방향키로 칸을 옮기고 Space 로 칠하고 X 로 ✕ 표시, Z 로 되돌립니다.</p>
+  <p data-i18n="how4">그림에 필요한 칸을 모두 칠하면 끝납니다 — ✕ 를 다 찍지 않아도 됩니다. 판을 끝내지 못하고 나가도 진행은 이 기기에 자동 저장되어, 다시 오면 시작 화면의 이어하기로 그 자리부터 계속할 수 있습니다(오늘의 도전과 자유 모드 각각 한 판씩).</p>
+  <h2 data-i18n="levelTitle">판형과 난이도</h2>
+  <p data-i18n="level1">판형은 5×5 미니와 10×10 클래식 둘입니다. 난이도는 그림이 얼마나 빽빽한지로 정합니다 — 쉬움은 약 66%, 보통은 약 56%, 어려움은 약 46%의 칸이 칠해집니다. 빽빽할수록 긴 덩어리가 많아 단서만으로 곧장 확정되는 칸이 늘고, 성길수록 여러 줄을 오가며 따져야 합니다. 어려움 판은 여기에 조건을 하나 더 겁니다: 가로·세로를 번갈아 훑는 추론을 여러 번(5×5 는 3번, 10×10 은 5번) 돌려야만 끝까지 풀리는 판만 골라 냅니다.</p>
+  <h2 data-i18n="uniqTitle">답이 하나뿐인 이유</h2>
+  <p data-i18n="uniq1">판을 만들 때마다 <b>줄 단위 추론기</b>를 돌립니다. 이 추론기는 한 줄의 단서에 맞는 모든 배치를 빠짐없이 늘어놓고, 그 모든 배치에서 똑같이 칠해지는 칸만 '칠함'으로, 모든 배치에서 똑같이 비는 칸만 '빈칸'으로 확정합니다. 찍기가 한 번도 들어가지 않는 추론입니다. 이 과정을 가로·세로로 번갈아 반복해 <b>판 전체가 확정될 때만</b> 그 판을 냅니다. 모든 배치가 동의하는 칸만 확정했는데 판이 다 채워졌다는 것은 곧 그 답 말고 다른 답이 있을 수 없다는 뜻입니다. 그래서 이 게임의 모든 판은 답이 하나뿐이고, 찍지 않고 논리만으로 끝까지 풀립니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 10×10 보통 판이 하나 열립니다. 전 세계 모든 플레이어가 완전히 같은 판을 받고, 하루에 한 번만 도전할 수 있습니다. 결과는 시간·실수·힌트와 함께 판을 위에서 아래로 다섯 칸으로 나눈 🟩🟨🟥 한 줄로 공유됩니다(그 구간에서 실수 0이면 🟩, 1~2이면 🟨, 3 이상이면 🟥). 완성한 그림 자체는 공유 문구에 넣지 않습니다 — 아직 안 푼 사람에게 답이 새기 때문입니다. 연속으로 도전하면 🔥 스트릭이 쌓입니다. 자유 모드는 판형·난이도를 골라 횟수 제한 없이 할 수 있습니다.</p>
+  <h2 data-i18n="tipsTitle">잘 푸는 요령</h2>
+  <details><summary data-i18n="tip1q">가장 큰 숫자부터</summary><p data-i18n="tip1a">줄 길이에 가까운 큰 숫자부터 보세요. 10칸 줄에 단서가 <b>8</b>이면 덩어리를 맨 왼쪽에 붙여 놓든 맨 오른쪽에 붙여 놓든 가운데 여섯 칸은 늘 칠해집니다. 이렇게 '어디에 놓아도 겹치는 부분'을 먼저 칠하는 것이 노노그램의 기본기입니다. 단서 여러 개를 더한 값(사이 빈칸 포함)이 줄 길이에 가까울수록 겹치는 칸이 많아집니다.</p></details>
+  <details><summary data-i18n="tip2q">✕ 를 아끼지 마세요</summary><p data-i18n="tip2a">확실히 빈 칸에 ✕ 를 찍어 두면 남은 칸이 눈에 확 들어옵니다. 어떤 줄의 칠이 이미 단서를 다 채웠다면 그 줄의 나머지는 전부 ✕ 입니다. 반대로 ✕ 사이에 낀 짧은 구간에는 그보다 긴 덩어리가 들어갈 수 없다는 것도 바로 보입니다.</p></details>
+  <details><summary data-i18n="tip3q">가로와 세로를 번갈아</summary><p data-i18n="tip3a">한 줄에서 얻은 칸 하나가 그 줄과 교차하는 다른 줄의 단서를 풀어 줍니다. 가로줄을 한 바퀴 훑고 막히면 그대로 세로줄을 한 바퀴 훑으세요. 이 왕복을 몇 번 반복하면 아무 데도 안 풀리던 판이 갑자기 풀리기 시작합니다. 어려움 판은 이 왕복을 여러 번 해야만 풀리도록 골라 낸 판입니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
+  <details><summary data-i18n="faq2q">진행과 기록은 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다. 브라우저 데이터를 지우면 진행도 함께 지워집니다. 어떤 항목을 저장하는지는 개인정보처리방침에 전부 적어 두었습니다.</p></details>
+  <details><summary data-i18n="faq3q">답이 정말 하나뿐인가요?</summary><p data-i18n="faq3a">네. 위 '답이 하나뿐인 이유'에 적은 대로, 찍기가 들어가지 않는 줄 단위 추론만으로 판 전체가 확정되는 판만 내보냅니다. 그 조건을 통과했다는 것 자체가 답이 하나뿐이라는 증명입니다.</p></details>
+  <details><summary data-i18n="faq4q">같은 날이면 정말 같은 판인가요?</summary><p data-i18n="faq4a">네. 오늘의 도전 판은 날짜만으로 정해지는 씨앗에서 만들어집니다. 게임을 하는 동안에는 난수를 한 번도 더 쓰지 않기 때문에, 누가 언제 어떻게 풀든 같은 날짜면 같은 그림이 나옵니다.</p></details>
+  <details><summary data-i18n="faq5q">소리를 끌 수 있나요?</summary><p data-i18n="faq5a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 그대로 유지됩니다. 효과음은 모두 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 '동작 줄이기' 를 켜면 애니메이션도 꺼집니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 노노그램 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·판정에는 관여하지 않는다. 태그가 아직 실리지 않았거나 차단됐으면
+   조용히 지나간다. 닉네임 같은 개인정보도, 광고 노출·클릭도 보내지 않는다. */
+const GA_GAME = 'nonogram';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ======================= i18n ======================= */
+const I18N = {
+  ko: {
+    title:'노노그램', subtitle:'네모로직', title2:'노노그램',
+    timeLbl:'시간', mistLbl:'실수', hintLbl:'힌트', timeLbl2:'시간', mistLbl2:'실수', hintLbl2:'힌트',
+    fillBtn:'■ 칠하기', markBtn:'✕ 빈칸', undoBtn:'↩ 되돌리기', hintBtn:'💡 힌트',
+    hint:'칸을 눌러 칠하고, 죽 끌면 이어서 칠해집니다 · 키보드 방향키·Space 칠하기·X 빈칸·Z 되돌리기',
+    result:'완성!', again:'다시 하기', share:'결과 공유', start:'▶ 시작',
+    home:'🏠 다른 게임',
+    startSub:'줄에 적힌 숫자만 보고 칸을 칠해 그림을 완성합니다.<br>모든 판은 답이 하나뿐 · 찍지 않고 논리로 풀립니다.',
+    sizeLbl:'판형', levelLbl:'난이도', lvEasy:'쉬움', lvNormal:'보통', lvHard:'어려움',
+    lv:{ easy:'쉬움', normal:'보통', hard:'어려움' },
+    newBest:'🎉 최고 기록 갱신!',
+    finalSub:(b)=>b ? `최고 ${b}` : '',
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    copied:'결과가 복사됐어요',
+    freeShare:(sz,lv,t,mi,h,m)=>`⬛ 노노그램 ${sz}×${sz} ${lv} ⏱ ${t} · 실수 ${mi} · 힌트 ${h} ${m}\n`,
+    dailyShare:(n,t,mi,h,m,r)=>`⬛ 노노그램 #${n} ⏱ ${t} · 실수 ${mi} · 힌트 ${h} ${m}${r>1?` 🔥${r}일 연속`:''}\n`,
+    daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
+    dailyHint:'매일 10×10 보통 한 판 · 전 세계 같은 판 · 하루 한 번',
+    dailyHintDone:'오늘 도전 완료 — 내일 새 판이 열립니다',
+    dailyOver:(n)=>`오늘의 도전 #${n} 완성`, streak:(n)=>`🔥 ${n}일 연속 도전`,
+    resumeDaily:(n,t)=>`▶ 이어하기 · 오늘의 도전 #${n} · ${t}`,
+    resumeFree:(sz,lv,t)=>`▶ 이어하기 · ${sz}×${sz} ${lv} · ${t}`,
+    modeDaily:(n)=>`오늘의 도전 #${n}`, modeFree:(sz,lv)=>`${sz}×${sz} · ${lv}`,
+    hintNone:'힌트를 줄 칸이 없어요', undoNone:'되돌릴 것이 없어요',
+    srStart:'노노그램 시작.',
+    srCell:(r,c,s)=>`${r}행 ${c}열, ${s}`, srFill:'칠함', srMark:'빈칸 표시', srEmpty:'미정',
+    srOver:(t,mi,h)=>`완성. 시간 ${t}, 실수 ${mi}, 힌트 ${h}.`,
+    docTitle:'노노그램 — 숫자로 그림을 채우는 네모로직 | Nonogram', langBtn:'EN',
+    ariaBoard:'노노그램 판',
+    ariaSoundOn:'소리 끄기 (지금 켜짐)', ariaSoundOff:'소리 켜기 (지금 꺼짐)',
+    ariaLang:'언어 바꾸기 — English 로', ariaHome:'다른 게임 목록으로',
+    ariaRowClue:(r,s)=>`${r}행 단서 ${s}`, ariaColClue:(c,s)=>`${c}열 단서 ${s}`,
+    statPlays:'오늘 <b data-hp="plays.nonogram.today">–</b>판 · 누적 <b data-hp="plays.nonogram.total">–</b>판',
+    howTitle:'게임 방법',
+    how1:'노노그램(네모로직·피크로스)은 줄 바깥에 적힌 숫자를 단서로 칸을 칠해 숨은 그림을 찾는 논리 퍼즐입니다. 왼쪽 숫자는 그 가로줄에서 이어서 칠해지는 칸의 덩어리 길이를, 위쪽 숫자는 그 세로줄의 덩어리 길이를 순서대로 알려 줍니다. 예를 들어 한 줄의 단서가 <b>3 1</b>이면 그 줄에는 세 칸짜리 덩어리가 먼저 나오고, 한 칸 이상 띄운 뒤 한 칸짜리 덩어리가 나옵니다. 덩어리 사이에는 빈칸이 적어도 하나 있습니다.',
+    how2:'칸을 누르면 칠해지고 다시 누르면 지워집니다. 손가락이나 마우스를 누른 채로 죽 끌면 지나가는 칸이 이어서 칠해져 긴 덩어리를 한 번에 그릴 수 있습니다. <b>✕ 빈칸</b> 버튼을 켜면 같은 방법으로 \'여기는 확실히 비어 있다\'는 ✕ 표시를 남길 수 있습니다(마우스 오른쪽 단추로도 됩니다). ✕ 표시는 채점에 쓰이지 않는 메모지만, 남은 칸을 좁히는 데 큰 도움이 됩니다.',
+    how3:'단서와 어긋나게 칠하거나 ✕ 를 찍으면 그 자리는 곧바로 붉게 깜빡인 뒤 되돌아가고 실수로 셉니다(횟수 제한은 없습니다). ↩ 되돌리기는 방금 그은 획을 통째로 취소하고, 💡 힌트는 아직 못 찾은 칸 하나를 대신 칠해 줍니다(힌트 수로 셉니다). 어떤 줄의 칠이 그 줄 단서와 맞아떨어지면 그 줄의 숫자가 흐려집니다. 컴퓨터에서는 방향키로 칸을 옮기고 Space 로 칠하고 X 로 ✕ 표시, Z 로 되돌립니다.',
+    how4:'그림에 필요한 칸을 모두 칠하면 끝납니다 — ✕ 를 다 찍지 않아도 됩니다. 판을 끝내지 못하고 나가도 진행은 이 기기에 자동 저장되어, 다시 오면 시작 화면의 이어하기로 그 자리부터 계속할 수 있습니다(오늘의 도전과 자유 모드 각각 한 판씩).',
+    levelTitle:'판형과 난이도',
+    level1:'판형은 5×5 미니와 10×10 클래식 둘입니다. 난이도는 그림이 얼마나 빽빽한지로 정합니다 — 쉬움은 약 66%, 보통은 약 56%, 어려움은 약 46%의 칸이 칠해집니다. 빽빽할수록 긴 덩어리가 많아 단서만으로 곧장 확정되는 칸이 늘고, 성길수록 여러 줄을 오가며 따져야 합니다. 어려움 판은 여기에 조건을 하나 더 겁니다: 가로·세로를 번갈아 훑는 추론을 여러 번(5×5 는 3번, 10×10 은 5번) 돌려야만 끝까지 풀리는 판만 골라 냅니다.',
+    uniqTitle:'답이 하나뿐인 이유',
+    uniq1:'판을 만들 때마다 <b>줄 단위 추론기</b>를 돌립니다. 이 추론기는 한 줄의 단서에 맞는 모든 배치를 빠짐없이 늘어놓고, 그 모든 배치에서 똑같이 칠해지는 칸만 \'칠함\'으로, 모든 배치에서 똑같이 비는 칸만 \'빈칸\'으로 확정합니다. 찍기가 한 번도 들어가지 않는 추론입니다. 이 과정을 가로·세로로 번갈아 반복해 <b>판 전체가 확정될 때만</b> 그 판을 냅니다. 모든 배치가 동의하는 칸만 확정했는데 판이 다 채워졌다는 것은 곧 그 답 말고 다른 답이 있을 수 없다는 뜻입니다. 그래서 이 게임의 모든 판은 답이 하나뿐이고, 찍지 않고 논리만으로 끝까지 풀립니다.',
+    dailyTitle:'오늘의 도전',
+    dailyDesc:'매일 자정에 10×10 보통 판이 하나 열립니다. 전 세계 모든 플레이어가 완전히 같은 판을 받고, 하루에 한 번만 도전할 수 있습니다. 결과는 시간·실수·힌트와 함께 판을 위에서 아래로 다섯 칸으로 나눈 🟩🟨🟥 한 줄로 공유됩니다(그 구간에서 실수 0이면 🟩, 1~2이면 🟨, 3 이상이면 🟥). 완성한 그림 자체는 공유 문구에 넣지 않습니다 — 아직 안 푼 사람에게 답이 새기 때문입니다. 연속으로 도전하면 🔥 스트릭이 쌓입니다. 자유 모드는 판형·난이도를 골라 횟수 제한 없이 할 수 있습니다.',
+    tipsTitle:'잘 푸는 요령',
+    tip1q:'가장 큰 숫자부터',
+    tip1a:'줄 길이에 가까운 큰 숫자부터 보세요. 10칸 줄에 단서가 <b>8</b>이면 덩어리를 맨 왼쪽에 붙여 놓든 맨 오른쪽에 붙여 놓든 가운데 여섯 칸은 늘 칠해집니다. 이렇게 \'어디에 놓아도 겹치는 부분\'을 먼저 칠하는 것이 노노그램의 기본기입니다. 단서 여러 개를 더한 값(사이 빈칸 포함)이 줄 길이에 가까울수록 겹치는 칸이 많아집니다.',
+    tip2q:'✕ 를 아끼지 마세요',
+    tip2a:'확실히 빈 칸에 ✕ 를 찍어 두면 남은 칸이 눈에 확 들어옵니다. 어떤 줄의 칠이 이미 단서를 다 채웠다면 그 줄의 나머지는 전부 ✕ 입니다. 반대로 ✕ 사이에 낀 짧은 구간에는 그보다 긴 덩어리가 들어갈 수 없다는 것도 바로 보입니다.',
+    tip3q:'가로와 세로를 번갈아',
+    tip3a:'한 줄에서 얻은 칸 하나가 그 줄과 교차하는 다른 줄의 단서를 풀어 줍니다. 가로줄을 한 바퀴 훑고 막히면 그대로 세로줄을 한 바퀴 훑으세요. 이 왕복을 몇 번 반복하면 아무 데도 안 풀리던 판이 갑자기 풀리기 시작합니다. 어려움 판은 이 왕복을 여러 번 해야만 풀리도록 골라 낸 판입니다.',
+    faqTitle:'자주 묻는 질문',
+    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'진행과 기록은 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다. 브라우저 데이터를 지우면 진행도 함께 지워집니다. 어떤 항목을 저장하는지는 개인정보처리방침에 전부 적어 두었습니다.',
+    faq3q:'답이 정말 하나뿐인가요?', faq3a:'네. 위 \'답이 하나뿐인 이유\'에 적은 대로, 찍기가 들어가지 않는 줄 단위 추론만으로 판 전체가 확정되는 판만 내보냅니다. 그 조건을 통과했다는 것 자체가 답이 하나뿐이라는 증명입니다.',
+    faq4q:'같은 날이면 정말 같은 판인가요?', faq4a:'네. 오늘의 도전 판은 날짜만으로 정해지는 씨앗에서 만들어집니다. 게임을 하는 동안에는 난수를 한 번도 더 쓰지 않기 때문에, 누가 언제 어떻게 풀든 같은 날짜면 같은 그림이 나옵니다.',
+    faq5q:'소리를 끌 수 있나요?', faq5a:'네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 그대로 유지됩니다. 효과음은 모두 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 \'동작 줄이기\' 를 켜면 애니메이션도 꺼집니다.',
+    footer:'© 2026 노노그램 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개'
+  },
+  en: {
+    title:'Nonogram', subtitle:'picross', title2:'Nonogram',
+    timeLbl:'time', mistLbl:'mistakes', hintLbl:'hints', timeLbl2:'time', mistLbl2:'mistakes', hintLbl2:'hints',
+    fillBtn:'■ Fill', markBtn:'✕ Mark', undoBtn:'↩ Undo', hintBtn:'💡 Hint',
+    hint:'Tap a cell to fill it, drag to fill a run · arrows · Space fill · X mark · Z undo',
+    result:'Solved!', again:'Play again', share:'Share result', start:'▶ Start',
+    home:'🏠 More games',
+    startSub:'Read the numbers, paint the squares, reveal the picture.<br>One solution per board — logic only, never a guess.',
+    sizeLbl:'Board', levelLbl:'Level', lvEasy:'Easy', lvNormal:'Normal', lvHard:'Hard',
+    lv:{ easy:'Easy', normal:'Normal', hard:'Hard' },
+    newBest:'🎉 New best!',
+    finalSub:(b)=>b ? `Best ${b}` : '',
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    copied:'Result copied',
+    freeShare:(sz,lv,t,mi,h,m)=>`⬛ Nonogram ${sz}×${sz} ${lv} ⏱ ${t} · mistakes ${mi} · hints ${h} ${m}\n`,
+    dailyShare:(n,t,mi,h,m,r)=>`⬛ Nonogram #${n} ⏱ ${t} · mistakes ${mi} · hints ${h} ${m}${r>1?` 🔥${r}-day streak`:''}\n`,
+    daily:(n)=>`Daily challenge #${n}`, dailyDone:(n)=>`Daily #${n} · see result`,
+    dailyHint:'One 10×10 normal board a day · same for everyone · once a day',
+    dailyHintDone:'Done for today — a new board at midnight',
+    dailyOver:(n)=>`Daily challenge #${n} solved`, streak:(n)=>`🔥 ${n}-day streak`,
+    resumeDaily:(n,t)=>`▶ Resume · Daily #${n} · ${t}`,
+    resumeFree:(sz,lv,t)=>`▶ Resume · ${sz}×${sz} ${lv} · ${t}`,
+    modeDaily:(n)=>`Daily #${n}`, modeFree:(sz,lv)=>`${sz}×${sz} · ${lv}`,
+    hintNone:'Nothing left to hint', undoNone:'Nothing to undo',
+    srStart:'Nonogram started.',
+    srCell:(r,c,s)=>`row ${r} column ${c}, ${s}`, srFill:'filled', srMark:'marked empty', srEmpty:'undecided',
+    srOver:(t,mi,h)=>`Solved. Time ${t}, mistakes ${mi}, hints ${h}.`,
+    docTitle:'Nonogram — paint the picture from the numbers | 노노그램', langBtn:'한국어',
+    ariaBoard:'Nonogram board',
+    ariaSoundOn:'Turn sound off (currently on)', ariaSoundOff:'Turn sound on (currently off)',
+    ariaLang:'Change language — switch to Korean', ariaHome:'Go to the other games',
+    ariaRowClue:(r,s)=>`Row ${r} clue ${s}`, ariaColClue:(c,s)=>`Column ${c} clue ${s}`,
+    statPlays:'<b data-hp="plays.nonogram.today">–</b> today · <b data-hp="plays.nonogram.total">–</b> all-time',
+    howTitle:'How to play',
+    how1:'A nonogram (also called picross or paint-by-numbers) hides a picture behind the numbers along the edges of the grid. The numbers to the left of a row give the lengths of the filled blocks in that row, in order; the numbers above a column do the same going down. A clue of <b>3 1</b> means a block of three filled squares comes first, then at least one empty square, then a single filled square. Blocks are always separated by at least one gap.',
+    how2:'Tap a square to fill it and tap again to clear it. Press and drag to fill a whole run in one stroke. Switch on <b>✕ Mark</b> to leave an ✕ on squares you have worked out are empty — right-click does the same on a desktop. The ✕ marks are only your own notes and never count towards finishing, but they make the remaining squares much easier to see.',
+    how3:'Fill or mark a square that contradicts the clues and it flashes red, snaps back, and counts as a mistake — there is no limit on how many you can make. ↩ Undo takes back your whole last stroke, and 💡 Hint fills in one square you have not found yet (counted as a hint). When the squares you have filled in a line match its clue, that line\'s numbers fade out. On a computer, move with the arrow keys, press Space to fill, X to mark and Z to undo.',
+    how4:'The board is finished the moment every square of the picture is filled — you never have to place the last ✕. If you leave before finishing, your progress is saved on this device: come back and tap Resume on the start screen to carry on (one daily board and one free board).',
+    levelTitle:'Boards and levels',
+    level1:'There are two boards: a 5×5 mini and a classic 10×10. The level sets how dense the picture is — roughly 66% of the squares are filled on easy, 56% on normal and 46% on hard. A dense picture has long blocks, so the clues pin squares down straight away; a sparse one makes you work across several lines before anything is certain. Hard boards must clear one extra bar: only boards that need several full sweeps of the grid — three on 5×5, five on 10×10 — before they come out are used.',
+    uniqTitle:'Why there is only one solution',
+    uniq1:'Every board is put through a <b>line solver</b> as it is built. For one line the solver lists every arrangement that fits the clue, then fills in only the squares that are filled in <i>all</i> of them and rules out only the squares that are empty in <i>all</i> of them. Nothing is ever guessed. It sweeps rows and columns in turn, and a board is only used if that process settles <b>every single square</b>. Since each square was decided by unanimous agreement of all valid arrangements, no other solution can exist. That is why every board here has exactly one solution and can be finished by pure logic.',
+    dailyTitle:'Daily challenge',
+    dailyDesc:'A 10×10 normal board opens every midnight. Everyone in the world gets exactly the same board and one attempt per day. Your result is shared as your time, mistakes and hints plus a 🟩🟨🟥 strip that splits the board into five bands from top to bottom (🟩 no mistakes in that band, 🟨 one or two, 🟥 three or more). The finished picture itself is deliberately left out of the share text so it does not spoil the board for anyone who has not played yet. Come back on consecutive days to build a 🔥 streak. Free mode lets you pick the board and level with no limit.',
+    tipsTitle:'Tips',
+    tip1q:'Start with the biggest numbers',
+    tip1a:'Look first at clues that are nearly as long as the line itself. In a row of ten with a clue of <b>8</b>, the block can sit hard left or hard right and the middle six squares are filled either way. Filling in that overlap is the first move every nonogram player learns. The closer the clues plus their gaps come to the length of the line, the bigger the overlap.',
+    tip2q:'Do not be shy with ✕',
+    tip2a:'Marking the squares you know are empty makes the ones that are left jump out. Once a line already holds everything its clue asks for, every remaining square in it is an ✕. Working the other way, a short gap fenced in by ✕ marks clearly cannot hold a block longer than the gap.',
+    tip3q:'Alternate rows and columns',
+    tip3a:'One square you win in a row unlocks the clue of the column crossing it. Sweep all the rows, and when you stall, sweep all the columns instead. A few passes back and forth and a board that looked stuck starts to fall apart. Hard boards are chosen precisely because they need several of those passes.',
+    faqTitle:'FAQ',
+    faq1q:'Do I need to install anything?', faq1a:'No. It runs straight in the browser. Add it to your home screen to use it like an app.',
+    faq2q:'Where are my progress and records stored?', faq2a:'Only in the browser on this device. Nothing is sent to a server. Clearing browser data also clears your progress. Every item that gets stored is listed in the privacy policy.',
+    faq3q:'Is the solution really unique?', faq3a:'Yes. As explained under "Why there is only one solution", a board is published only when the guess-free line solver settles the entire grid on its own. Passing that test is itself the proof that no second solution exists.',
+    faq4q:'Is the daily board really the same for everyone?', faq4a:'Yes. The daily board is built from a seed that depends on nothing but the date, and no further random numbers are drawn while you play. Whoever plays, whenever and however they play, the same date gives the same picture.',
+    faq5q:'Can I turn the sound off?', faq5a:'Yes — the speaker button at the top right toggles it, and your choice is remembered next time. Every effect is generated by the browser on the spot, so there are no audio files to download. Turning on "reduce motion" on your device also switches off the animations.',
+    footer:'© 2026 Nonogram · Privacy: records stay on your device; third-party cookies (Google and others) may be used to serve ads.',
+    navPrivacy:'Privacy policy', navAbout:'About'
+  }
+};
+/* 언어 키는 사이트 공통(bp.lang) — 포털·다른 게임과 공유한다. */
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const LV = l => I18N[lang].lv[l] || l;
+const $ = id => document.getElementById(id);
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  $('btnLang2').textContent = T('langBtn');
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  /* 문안을 innerHTML 로 갈아 끼우면 채운 숫자가 지워진다 — 다시 채운다.
+     hp-stats.js 는 defer 라 없을 수도 있으므로 있는지 보고 부른다. */
+  if (window.hpStats) window.hpStats();
+}
+/* 접근성 이름을 현재 언어로 맞춘다 — 소리 버튼은 켜짐/꺼짐 상태까지 이름과 aria-pressed 에 담는다. */
+function applyA11yLabels(){
+  for (const id of ['btnSound','btnSound2']){
+    const b = $(id); if (!b) continue;
+    b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  }
+  for (const id of ['btnLang','btnLang2']){ const l = $(id); if (l) l.setAttribute('aria-label', T('ariaLang')); }
+  $('board').setAttribute('aria-label', T('ariaBoard'));
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+}
+
+/* 움직임 줄이기 — 팝·물결 애니를 0 으로 만드는 스위치(CSS 와 같은 질의). 값은 그때그때 읽는다. */
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } };
+
+/* ======================= 사운드(WebAudio · 파일 없음) ======================= */
+let soundOn = localStorage.getItem('ng.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0, freq2=null){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();     /* 제스처 뒤에 resume */
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime + delay;
+    if (freq2 !== null) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq2), t + dur);
+    o.start(t);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sFill  = () => beep(560, .035, 'square', .022, 0, 720);
+const sMark  = () => beep(400, .03, 'sine', .02);
+const sErase = () => beep(300, .03, 'sine', .018);
+const sMiss  = () => { beep(220, .16, 'sawtooth', .04, 0, 120); vib(40); };
+const sLine  = () => { beep(660, .08, 'triangle', .05); beep(880, .08, 'triangle', .05, .08); beep(1320, .16, 'triangle', .05, .16); vib([20,30,40]); };
+const sOver  = () => { beep(523, .12, 'triangle', .05); beep(659, .12, 'triangle', .05, .12); beep(784, .3, 'triangle', .05, .24); vib([30,40,30,40,60]); };
+
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   // 2026-08-23 = #1 (다른 게임과 동일 기준일)
+const DAILY_SIZE = 10, DAILY_LEVEL = 'normal';
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const dailySeedKey = (d=new Date()) => 'hanpango-daily-nonogram-' + dayKey(d);
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('ng.daily')||'null'); }catch(_){ return null; } };
+/* 오늘 이미 끝냈는가. 날짜가 바뀌면 없는 것으로 친다 — 자정에 자동으로 새 판이 열린다. */
+function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && r.result); }
+function saveDaily(result){
+  /* ★시작 시 고정한 runDay/runNo 로 저장한다 — 자정을 넘겨 완료해도 시작한 날짜의 기록이다. */
+  localStorage.setItem('ng.daily', JSON.stringify({ date: runDay, no: runNo, result }));
+}
+/* 🔥스트릭 — 어제 했으면 이어지고, 하루라도 건너뛰면 1 부터 다시 센다. */
+function bumpStreak(day){
+  let st; try{ st = JSON.parse(localStorage.getItem('ng.streak')||'{}'); }catch(_){ st = {}; }
+  if (st.last === day) return st.n || 1;
+  const n = (st.last === prevDayKey(day)) ? (st.n || 0) + 1 : 1;
+  localStorage.setItem('ng.streak', JSON.stringify({ last: day, n }));
+  return n;
+}
+/* 'YYYY-MM-DD' 의 전날 키 — 문자열 날짜에서 계산해 시계 의존을 없앤다. */
+function prevDayKey(day){ const [y, m, d] = day.split('-').map(Number); const t = new Date(y, m - 1, d); t.setDate(t.getDate() - 1); return dayKey(t); }
+/* ★신선도: last 가 오늘이나 어제일 때만 살아 있는 스트릭이다. 더 오래된 기록은 이미 끊긴 것이라 0. */
+const streakNow = () => { try{ const s = JSON.parse(localStorage.getItem('ng.streak')||'{}'); const today = dayKey();
+  return (s.last === today || s.last === prevDayKey(today)) ? (s.n || 0) : 0; }catch(_){ return 0; } };
+
+/* ======================= 상수 ======================= */
+const SIZES = [5, 10];
+const LEVELS = ['easy', 'normal', 'hard'];
+/* 난이도 = 칠해지는 칸의 비율(밀도). 빽빽할수록 단서가 길어 곧장 확정되는 칸이 많다. */
+const DENSITY = { easy: 0.66, normal: 0.56, hard: 0.46 };
+/* 한 줄에 들어갈 수 있는 단서 숫자의 최대 개수 — 그대로 단서칸 폭(G)의 상한이 된다.
+   ★이 값이 곧 판 밖 여백이라 화면 크기를 좌우한다: 10×10·상한 4 면 격자는 14칸,
+   360px 폭에서 한 칸이 약 25.7px 로 손가락에 닿는다. 상한을 5 로 올리면 24px 밑으로 떨어진다. */
+const MAXCLUE = { 5: 3, 10: 4 };
+/* 어려움이 추가로 넘어야 하는 바 — 가로·세로 왕복 추론을 이만큼은 돌아야 풀리는 판만 낸다. */
+const HARD_ROUNDS = { 5: 3, 10: 5 };
+/* 생성 재시도 상한 — ★횟수만 센다. 시간(경과 ms)으로 끊으면 느린 기기에서만 재시도가 일어나
+   '같은 seed = 같은 판' 이 기기마다 갈라진다. */
+const GEN_MAX_TRIES = 300;
+const BANDS = 5;                 /* 공유 문구의 🟩🟨🟥 구간 수(판을 위에서 아래로 5등분) */
+const SAVE_EVERY_MS = 3000;
+const WAVE_MS = 900;
+const LOG_MAX = 40;
+
+/* ======================= 단서·추론기 ======================= */
+/* 한 줄(0/1 배열)의 단서 — 이어진 1 덩어리의 길이를 순서대로. 전부 0 이면 [0]. */
+function clueOf(line){
+  const out = []; let run = 0;
+  for (const v of line){ if (v === 1) run++; else if (run){ out.push(run); run = 0; } }
+  if (run) out.push(run);
+  return out.length ? out : [0];
+}
+function cluesOf(grid, N){
+  const rows = [], cols = [];
+  for (let r = 0; r < N; r++) rows.push(clueOf(grid.slice(r * N, r * N + N)));
+  for (let c = 0; c < N; c++){ const col = []; for (let r = 0; r < N; r++) col.push(grid[r * N + c]); cols.push(clueOf(col)); }
+  return { rows, cols };
+}
+const clueLen = cl => (cl.length === 1 && cl[0] === 0) ? 0 : cl.length;
+const clueSum = cl => (cl.length === 1 && cl[0] === 0) ? 0 : cl.reduce((a, b) => a + b, 0);
+const maxClueLen = list => list.reduce((m, cl) => Math.max(m, clueLen(cl)), 0);
+
+/* 한 줄의 단서에 맞는 **모든** 배치를 훑어, 그 전부에서 칠해지는 칸과 전부에서 비는 칸을 뽑는다.
+   cells: 0 미정 · 1 칠함 · 2 빈칸.  반환 null = 그 줄이 모순(가능한 배치가 하나도 없음).
+   ★찍기가 한 번도 들어가지 않는다 — 모든 배치가 동의하는 칸만 확정한다. 이것이 유일해의 근거다. */
+function lineDeduce(clue, cells){
+  const n = cells.length;
+  const allFill = new Array(n).fill(true), allBlank = new Array(n).fill(true);
+  const cur = new Array(n).fill(2);
+  const cl = (clue.length === 1 && clue[0] === 0) ? [] : clue;
+  let count = 0;
+  function place(ci, pos){
+    if (ci === cl.length){
+      for (let i = pos; i < n; i++){ if (cells[i] === 1) return; cur[i] = 2; }
+      count++;
+      for (let i = 0; i < n; i++){ if (cur[i] === 1) allBlank[i] = false; else allFill[i] = false; }
+      return;
+    }
+    const len = cl[ci];
+    let rest = 0; for (let k = ci + 1; k < cl.length; k++) rest += cl[k] + 1;
+    for (let s = pos; s + len + rest <= n; s++){
+      if (s > pos && cells[s - 1] === 1) break;        /* 건너뛴 자리에 칠해진 칸이 있으면 더 밀 수 없다 */
+      let ok = true;
+      for (let i = s; i < s + len; i++) if (cells[i] === 2){ ok = false; break; }
+      if (ok && s + len < n && cells[s + len] === 1) ok = false;
+      if (!ok) continue;
+      for (let i = pos; i < s; i++) cur[i] = 2;
+      for (let i = s; i < s + len; i++) cur[i] = 1;
+      if (s + len < n) cur[s + len] = 2;
+      place(ci + 1, s + len + 1);
+    }
+  }
+  place(0, 0);
+  if (!count) return null;
+  return { allFill, allBlank, count };
+}
+/* 줄 단위 추론만으로 판이 끝까지 확정되는가.
+   반환 {solved, grid, rounds, bad} — solved 가 참이면 그 단서의 답은 **하나뿐**이다. */
+function lineSolve(rowClues, colClues, N){
+  const g = new Array(N * N).fill(0);
+  let changed = true, rounds = 0;
+  while (changed){
+    changed = false; rounds++;
+    for (let r = 0; r < N; r++){
+      const line = new Array(N); for (let c = 0; c < N; c++) line[c] = g[r * N + c];
+      const d = lineDeduce(rowClues[r], line); if (!d) return { solved:false, grid:g, rounds, bad:true };
+      for (let c = 0; c < N; c++){
+        const i = r * N + c;
+        if (g[i] !== 0) continue;
+        if (d.allFill[c]){ g[i] = 1; changed = true; } else if (d.allBlank[c]){ g[i] = 2; changed = true; }
+      }
+    }
+    for (let c = 0; c < N; c++){
+      const line = new Array(N); for (let r = 0; r < N; r++) line[r] = g[r * N + c];
+      const d = lineDeduce(colClues[c], line); if (!d) return { solved:false, grid:g, rounds, bad:true };
+      for (let r = 0; r < N; r++){
+        const i = r * N + c;
+        if (g[i] !== 0) continue;
+        if (d.allFill[r]){ g[i] = 1; changed = true; } else if (d.allBlank[r]){ g[i] = 2; changed = true; }
+      }
+    }
+  }
+  return { solved: g.every(v => v !== 0), grid: g, rounds, bad:false };
+}
+/* 단서를 만족하는 답이 몇 개인가 — ★줄 추론기를 전혀 쓰지 않는 독립된 탐색이다.
+   가로줄마다 단서에 맞는 완성 배치를 모두 만들어 놓고 한 줄씩 골라 내려가며, 세로줄의
+   '지금까지 확정된 부분' 이 그 세로줄 단서의 앞부분과 맞는지로 가지를 친다(가지치기는 옳은
+   답을 하나도 버리지 않는다 — 어긋난 순간 그 아래로는 답이 없기 때문이다).
+   줄 추론기(lineSolve)와 방법이 겹치지 않으므로, 검증기는 이 함수로 유일해를 **다시** 확인한다.
+   limit 까지만 센다(보통 2 — '둘 이상인가' 만 알면 된다). */
+function lineFills(clue, n){                 /* 한 줄의 모든 완성 배치(0/1 배열들) */
+  const out = [], cl = clue.filter(v => v > 0), cur = new Array(n).fill(0);
+  (function place(ci, pos){
+    if (ci === cl.length){ for (let i = pos; i < n; i++) cur[i] = 0; out.push(cur.slice()); return; }
+    let rest = 0; for (let k = ci + 1; k < cl.length; k++) rest += cl[k] + 1;
+    for (let s = pos; s + cl[ci] + rest <= n; s++){
+      for (let i = pos; i < s; i++) cur[i] = 0;
+      for (let i = s; i < s + cl[ci]; i++) cur[i] = 1;
+      place(ci + 1, s + cl[ci] + 1);
+      for (let i = s; i < s + cl[ci]; i++) cur[i] = 0;
+    }
+  })(0, 0);
+  return out;
+}
+/* 세로줄 c 를 r 행까지 채웠을 때, 아직 그 세로줄 단서와 어긋나지 않았는가.
+   done=true 면 마지막 행까지 끝난 것이므로 '앞부분이 맞는가' 가 아니라 '똑같은가' 를 본다. */
+function colPrefixOk(work, c, r, N, clue, done){
+  const full = clue.filter(v => v > 0);
+  const closed = []; let open = 0;
+  for (let k = 0; k <= r; k++){
+    if (work[k * N + c] === 1) open++;
+    else if (open){ closed.push(open); open = 0; }
+  }
+  if (done){
+    const all = open ? closed.concat([open]) : closed;
+    return all.length === full.length && all.every((v, k) => v === full[k]);
+  }
+  if (closed.length > full.length) return false;
+  for (let k = 0; k < closed.length; k++) if (closed[k] !== full[k]) return false;
+  if (open){
+    if (closed.length >= full.length) return false;
+    if (open > full[closed.length]) return false;
+  }
+  /* 남은 칸으로 나머지 덩어리(사이 빈칸 포함)를 담을 수 있는가 */
+  const rem = N - 1 - r;
+  let need = 0;
+  if (open){
+    need = full[closed.length] - open;
+    for (let k = closed.length + 1; k < full.length; k++) need += full[k] + 1;
+  } else {
+    for (let k = closed.length; k < full.length; k++) need += full[k] + (k > closed.length ? 1 : 0);
+  }
+  return need <= rem;
+}
+function countSolutions(rowClues, colClues, N, limit=2){
+  const opts = [];
+  for (let r = 0; r < N; r++){
+    const o = lineFills(rowClues[r], N);
+    if (!o.length) return 0;
+    opts.push(o);
+  }
+  const work = new Array(N * N).fill(0);
+  let found = 0;
+  (function rec(r){
+    if (found >= limit) return;
+    for (const line of opts[r]){
+      for (let c = 0; c < N; c++) work[r * N + c] = line[c];
+      const last = (r === N - 1);
+      let ok = true;
+      for (let c = 0; c < N; c++) if (!colPrefixOk(work, c, r, N, colClues[c], last)){ ok = false; break; }
+      if (!ok) continue;
+      if (last) found++; else rec(r + 1);
+      if (found >= limit) return;
+    }
+  })(0);
+  return found;
+}
+
+/* ======================= 판 만들기 ======================= */
+/* ★난수는 판을 짜는 이 순간에만 쓴다 — 플레이 중에는 한 번도 당기지 않는다.
+   플레이 행동이 난수를 소비하면 같은 seed 가 사람마다 다른 판이 된다. */
+function makeGridSym(N, rng, p){
+  /* 좌우 대칭 — 왼쪽 절반만 굴리고 거울로 뒤집는다. 노이즈가 아니라 '그림' 처럼 보이게 하는 장치다. */
+  const g = new Array(N * N).fill(0);
+  const half = Math.ceil(N / 2);
+  for (let r = 0; r < N; r++) for (let c = 0; c < half; c++){
+    const v = rng() < p ? 1 : 0;
+    g[r * N + c] = v; g[r * N + (N - 1 - c)] = v;
+  }
+  return g;
+}
+function gridHash(g){ let h = 2166136261; for (const v of g){ h ^= (v | 0); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
+
+function makePuzzle(N, level, seedKey){
+  const p = DENSITY[level] !== undefined ? DENSITY[level] : DENSITY.normal;
+  const maxc = MAXCLUE[N] || 4;
+  const needRounds = (level === 'hard') ? (HARD_ROUNDS[N] || 4) : 0;
+  const rng = mulberry32(hashStr(seedKey));
+  let relaxed = null;                       /* 라운드 조건만 못 넘긴 후보 — 마지막 보루 */
+  for (let attempt = 1; attempt <= GEN_MAX_TRIES; attempt++){
+    const g = makeGridSym(N, rng, p);
+    const { rows, cols } = cluesOf(g, N);
+    /* 빈 줄(단서 0)은 내지 않는다 — 그림이 잘려 보이고 단서 칸도 비어 허전하다. */
+    if (rows.some(cl => clueLen(cl) === 0) || cols.some(cl => clueLen(cl) === 0)) continue;
+    if (maxClueLen(rows) > maxc || maxClueLen(cols) > maxc) continue;
+    const res = lineSolve(rows, cols, N);
+    if (!res.solved) continue;              /* 줄 추론으로 안 끝나면 = 유일해 보장 못 함 → 버린다 */
+    const info = { N, size:N, level, seed:seedKey, attempt, solution:g.slice(), rows, cols,
+                   gutter: Math.max(1, Math.max(maxClueLen(rows), maxClueLen(cols))),
+                   filled: g.reduce((a, v) => a + v, 0), rounds: res.rounds, fallback:false, hash: gridHash(g) };
+    if (res.rounds >= needRounds) return info;
+    if (!relaxed) relaxed = info;           /* 조건은 못 넘겼지만 유일해인 판 — 기억해 둔다 */
+  }
+  /* 상한까지 갔는데 난이도 바를 못 넘겼다면, **유일해는 지키고** 난이도 조건만 놓는다.
+     여기서도 못 찾으면 밀도를 낮춰 한 번 더 — 그래도 결정론이다(난수 흐름은 이어진다). */
+  if (relaxed){ relaxed.fallback = true; return relaxed; }
+  for (let attempt = GEN_MAX_TRIES + 1; attempt <= GEN_MAX_TRIES * 2; attempt++){
+    const g = makeGridSym(N, rng, 0.6);
+    const { rows, cols } = cluesOf(g, N);
+    if (rows.some(cl => clueLen(cl) === 0) || cols.some(cl => clueLen(cl) === 0)) continue;
+    if (maxClueLen(rows) > maxc || maxClueLen(cols) > maxc) continue;
+    const res = lineSolve(rows, cols, N);
+    if (!res.solved) continue;
+    return { N, size:N, level, seed:seedKey, attempt, solution:g.slice(), rows, cols,
+             gutter: Math.max(1, Math.max(maxClueLen(rows), maxClueLen(cols))),
+             filled: g.reduce((a, v) => a + v, 0), rounds: res.rounds, fallback:true, hash: gridHash(g) };
+  }
+  /* 여기까지 오는 일은 실측상 없다(5×5·10×10 각 난이도 전부 첫 상한 안에서 나온다).
+     그래도 판 없이 게임을 시작하지는 않는다 — 손으로 확인한 최소 판을 낸다. */
+  const g = new Array(N * N).fill(0);
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (r === c || c === N - 1 - r) g[r * N + c] = 1;
+  const { rows, cols } = cluesOf(g, N);
+  return { N, size:N, level, seed:seedKey, attempt:0, solution:g, rows, cols,
+           gutter: Math.max(1, Math.max(maxClueLen(rows), maxClueLen(cols))),
+           filled: g.reduce((a, v) => a + v, 0), rounds:0, fallback:true, hash: gridHash(g) };
+}
+
+/* ======================= 상태 ======================= */
+let mode = 'free', running = false, over = false, paused = false;
+let size = 10, level = 'normal', N = 10, G = 4;
+let solution = [], cells = [], rowClues = [], colClues = [], hintCells = new Set();
+let undoStack = [], sel = -1, paintMode = 1;      /* 1 = 칠하기 · 2 = ✕ 빈칸 */
+let mistakes = 0, hints = 0, moves = 0, bandMist = [];
+let elapsed = 0, sinceSave = 0, lastShownSec = -1;
+let seedKeyNow = '', runDay = '', runNo = 0;
+let genInfo = null, lastResult = null;
+let rafId = 0, prevTs = 0, timers = [];
+const puzzleLog = [];
+let pref = (() => { try{ const p = JSON.parse(localStorage.getItem('ng.pref')||'{}');
+  return { size: SIZES.includes(p.size) ? p.size : 10, level: LEVELS.includes(p.level) ? p.level : 'normal' }; }
+  catch(_){ return { size:10, level:'normal' }; } })();
+
+const fmtTime = s => `${Math.floor(s/60)}:${pad2(s%60)}`;
+const bandOf = r => Math.min(BANDS - 1, Math.floor(r * BANDS / N));
+function marksOf(bm){ return (bm || []).map(m => m === 0 ? '🟩' : (m <= 2 ? '🟨' : '🟥')).join(''); }
+
+/* ======================= 진행 저장(ng.progress · 일일·자유 각 1슬롯) ======================= */
+const slotOf = m => (m === 'daily' ? 'daily' : 'free');
+function loadProgress(){ try{ const p = JSON.parse(localStorage.getItem('ng.progress')||'{}'); return (p && typeof p === 'object') ? p : {}; }catch(_){ return {}; } }
+function writeProgress(p){
+  if (!p.daily && !p.free) localStorage.removeItem('ng.progress');
+  else localStorage.setItem('ng.progress', JSON.stringify(p));
+}
+function snapshot(){
+  return { v:1, mode, size, level, seedKey: seedKeyNow, runDay, runNo,
+           solution: solution.join(''), cells: cells.join(''), hintCells: [...hintCells],
+           elapsed: Math.round(elapsed), mistakes, hints, moves, bandMist: bandMist.slice(),
+           attempt: genInfo ? genInfo.attempt : 0, rounds: genInfo ? genInfo.rounds : 0,
+           fallback: !!(genInfo && genInfo.fallback), savedAt: Date.now() };
+}
+function saveProgress(){
+  if (!running) return false;
+  const p = loadProgress(); p[slotOf(mode)] = snapshot(); writeProgress(p); sinceSave = 0; return true;
+}
+function clearProgress(m){ const p = loadProgress(); delete p[slotOf(m)]; writeProgress(p); }
+/* 저장본이 온전한가 — 길이·판형·해 정합이 어긋나면 버린다(손상 저장본으로 판을 열지 않는다).
+   ★저장된 해가 정말 '답이 하나뿐인 판' 인지 줄 추론으로 다시 확인한다. */
+function validSlot(s){
+  if (!s || typeof s !== 'object' || s.v !== 1) return false;
+  if (!SIZES.includes(s.size) || !LEVELS.includes(s.level)) return false;
+  const M = s.size * s.size;
+  if (typeof s.solution !== 'string' || s.solution.length !== M) return false;
+  if (typeof s.cells !== 'string' || s.cells.length !== M) return false;
+  if (!/^[01]+$/.test(s.solution) || !/^[012]+$/.test(s.cells)) return false;
+  const sol = s.solution.split('').map(Number);
+  if (!sol.some(v => v === 1)) return false;
+  const { rows, cols } = cluesOf(sol, s.size);
+  if (!lineSolve(rows, cols, s.size).solved) return false;
+  const cs = s.cells.split('').map(Number);
+  for (let i = 0; i < M; i++){                      /* 칠해진 칸은 답과 어긋날 수 없다(어긋난 칠은 되돌려 저장한다) */
+    if (cs[i] === 1 && sol[i] !== 1) return false;
+    if (cs[i] === 2 && sol[i] === 1) return false;
+  }
+  if (!Array.isArray(s.bandMist) || s.bandMist.length !== BANDS) return false;
+  if (s.mode === 'daily' && !(typeof s.runDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.runDay))) return false;
+  return true;
+}
+function resumable(kind){ const s = loadProgress()[kind]; return validSlot(s) ? s : null; }
+
+/* ======================= 판 진행 ======================= */
+function resetBoardState(){
+  cells = new Array(N * N).fill(0); hintCells = new Set();
+  undoStack = []; sel = -1;
+  mistakes = 0; hints = 0; moves = 0; bandMist = new Array(BANDS).fill(0);
+  elapsed = 0; sinceSave = 0; lastShownSec = -1;
+  over = false; paused = false;
+}
+function logPuzzle(info, key){
+  puzzleLog.push({ seedKey: key, size: info.size, level: info.level, attempt: info.attempt, rounds: info.rounds,
+                   filled: info.filled, gutter: info.gutter, fallback: info.fallback, hash: info.hash });
+  if (puzzleLog.length > LOG_MAX) puzzleLog.splice(0, puzzleLog.length - LOG_MAX);
+}
+function adoptPuzzle(info){
+  N = info.N; G = info.gutter;
+  solution = info.solution.slice(); rowClues = info.rows.map(a => a.slice()); colClues = info.cols.map(a => a.slice());
+}
+function startRun(m, sz, lv){
+  mode = m;
+  /* ★일일: 날짜·번호·seed 를 이 순간의 시계로 한 번에 고정한다 — 이후 endRun 은 시계를 다시 보지 않는다. */
+  const t0 = new Date();
+  if (m === 'daily'){ size = DAILY_SIZE; level = DAILY_LEVEL; runDay = dayKey(t0); runNo = dailyNo(t0); seedKeyNow = dailySeedKey(t0); }
+  else { size = SIZES.includes(sz) ? sz : pref.size; level = LEVELS.includes(lv) ? lv : pref.level; runDay = ''; runNo = 0;
+         seedKeyNow = 'free-' + size + '-' + level + '-' + Math.random().toString(36).slice(2, 10); }
+  genInfo = makePuzzle(size, level, seedKeyNow);
+  adoptPuzzle(genInfo);
+  logPuzzle(genInfo, seedKeyNow);
+  resetBoardState();
+  running = true;
+  hide('start'); hide('over');
+  buildBoard(); render(); updateHud(); updateSubtitle();
+  say(T('srStart'));
+  ga('game_start', { game: GA_GAME, size: size + 'x' + size, level });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+  saveProgress();
+  focusBoard();
+  prevTs = 0;
+}
+/* 저장된 판을 그대로 잇는다 — 판·시간·실수·힌트 전부 저장 시점으로 돌아간다.
+   새 시작이 아니므로 game_start·판수는 보내지 않는다. */
+function resumeRun(kind){
+  const s = resumable(kind); if (!s) return false;
+  mode = s.mode === 'daily' ? 'daily' : 'free'; size = s.size; level = s.level;
+  runDay = s.runDay || ''; runNo = s.runNo || 0; seedKeyNow = s.seedKey || '';
+  const sol = s.solution.split('').map(Number);
+  const { rows, cols } = cluesOf(sol, size);
+  genInfo = { N: size, size, level, seed: seedKeyNow, attempt: s.attempt || 0, solution: sol.slice(), rows, cols,
+              gutter: Math.max(1, Math.max(maxClueLen(rows), maxClueLen(cols))),
+              filled: sol.reduce((a, v) => a + v, 0), rounds: s.rounds || 0, fallback: !!s.fallback,
+              hash: gridHash(sol), resumed: true };
+  adoptPuzzle(genInfo);
+  resetBoardState();
+  cells = s.cells.split('').map(Number);
+  hintCells = new Set((s.hintCells || []).filter(i => i >= 0 && i < cells.length));
+  mistakes = s.mistakes | 0; hints = s.hints | 0; moves = s.moves | 0;
+  bandMist = s.bandMist.map(n => n | 0);
+  elapsed = Math.max(0, s.elapsed | 0);
+  running = true;
+  hide('start'); hide('over');
+  buildBoard(); render(); updateHud(); updateSubtitle();
+  say(T('srStart'));
+  focusBoard();
+  prevTs = 0;
+  return true;
+}
+function endRun(){
+  if (!running) return;
+  running = false; over = true;
+  const durS = Math.max(0, Math.round(elapsed / 1000));
+  const marks = bandMist.slice();
+  const bestKey = size + 'x' + size + '.' + level;
+  let best; try{ best = JSON.parse(localStorage.getItem('ng.best')||'{}'); }catch(_){ best = {}; }
+  const prevBest = best[bestKey];
+  const isNew = !(prevBest > 0) || durS < prevBest;
+  if (isNew){ best[bestKey] = durS; localStorage.setItem('ng.best', JSON.stringify(best)); }
+  let streak = 0;
+  if (mode === 'daily'){
+    saveDaily({ duration: durS, mistakes, hints, bandMist: marks, size, level, pic: solution.join('') });
+    streak = bumpStreak(runDay);
+    ga('daily_complete', { game: GA_GAME, streak });
+  }
+  clearProgress(mode);                                   /* 완료한 판의 진행은 지운다 */
+  lastResult = { mode, size, level, durS, mistakes, hints, bandMist: marks, isNew, best: best[bestKey], streak,
+                 no: (mode === 'daily' ? runNo : dailyNo()), pic: solution.join('') };
+  ga('game_over', { game: GA_GAME, score: durS, moves, duration_s: durS, daily: mode === 'daily', mistakes, hints });
+  sOver();
+  say(T('srOver', fmtTime(durS), mistakes, hints));
+  renderOver();
+  refreshStart();
+  updateHud();
+}
+
+/* ======================= 한 칸 바꾸기 ======================= */
+/* want: 0 지우기 · 1 칠하기 · 2 ✕ 표시.  반환 'ok' | 'same' | 'miss' */
+function applyCell(i, want, stroke){
+  if (!running || over) return 'same';
+  if (cells[i] === want) return 'same';
+  if (want === 1 && solution[i] !== 1) return 'miss';
+  if (want === 2 && solution[i] === 1) return 'miss';
+  if (stroke) stroke.push([i, cells[i]]);
+  cells[i] = want; moves++;
+  return 'ok';
+}
+function countMiss(i){
+  mistakes++; bandMist[bandOf(Math.floor(i / N))]++;
+  sMiss(); flashBad(i); updateHud(); saveProgress();
+}
+/* 어떤 줄의 칠이 그 줄 단서를 다 채웠는가 — 어긋난 칠은 애초에 남지 않으므로 개수만 보면 된다. */
+const rowDone = r => { let n = 0; for (let c = 0; c < N; c++) if (cells[r * N + c] === 1) n++; return n === clueSum(rowClues[r]); };
+const colDone = c => { let n = 0; for (let r = 0; r < N; r++) if (cells[r * N + c] === 1) n++; return n === clueSum(colClues[c]); };
+const isSolved = () => solution.every((v, i) => v !== 1 || cells[i] === 1);
+
+function finishStroke(stroke, changed, lastIdx){
+  if (!changed) return;
+  if (stroke.length) undoStack.push(stroke);
+  render(); updateHud(); saveProgress();
+  if (lastIdx >= 0) announceCell(lastIdx);
+  if (isSolved()){ endRun(); return; }
+  if (lastIdx >= 0){
+    const r = Math.floor(lastIdx / N), c = lastIdx % N;
+    if (rowDone(r) || colDone(c)) sLine();
+  }
+}
+
+/* ======================= 힌트·되돌리기 ======================= */
+/* 힌트 — 아직 못 찾은 칸 하나를 대신 칠한다. ★난수를 쓰지 않는다(선택 칸 → 없으면 첫 칸). */
+function hint(){
+  if (!running || over) return false;
+  let i = (sel >= 0 && solution[sel] === 1 && cells[sel] !== 1) ? sel : -1;
+  if (i < 0){ for (let k = 0; k < solution.length; k++){ if (solution[k] === 1 && cells[k] !== 1){ i = k; break; } } }
+  if (i < 0){ toast(T('hintNone')); return false; }
+  const stroke = [];
+  applyCell(i, 1, stroke);
+  hintCells.add(i); hints++; sel = i;
+  sFill(); pop(i);
+  finishStroke(stroke, true, i);
+  return true;
+}
+function undo(){
+  if (!running || over) return false;
+  const st = undoStack.pop();
+  if (!st || !st.length){ toast(T('undoNone')); return false; }
+  for (let k = st.length - 1; k >= 0; k--){ const [i, prev] = st[k]; cells[i] = prev; hintCells.delete(i); }
+  sel = st[st.length - 1][0];
+  sErase(); render(); updateHud(); saveProgress();
+  return true;
+}
+function setPaint(m){
+  paintMode = m;
+  $('btnFill').setAttribute('aria-pressed', m === 1 ? 'true' : 'false');
+  $('btnMark').setAttribute('aria-pressed', m === 2 ? 'true' : 'false');
+}
+
+/* ======================= 한 걸음(시계) ======================= */
+function step(dt){          /* dt = 초 */
+  if (!running || paused || over) return;
+  elapsed += dt * 1000; sinceSave += dt * 1000;
+  const s = Math.floor(elapsed / 1000);
+  if (s !== lastShownSec){ lastShownSec = s; $('timeNow').textContent = fmtTime(s); }
+  if (sinceSave >= SAVE_EVERY_MS) saveProgress();
+}
+function loop(ts){
+  rafId = requestAnimationFrame(loop);
+  if (!prevTs) prevTs = ts;
+  let dt = (ts - prevTs) / 1000; prevTs = ts;
+  if (dt > 0.5) dt = 0.5;
+  step(dt);
+}
+
+/* ======================= 그리기 ======================= */
+let cellEls = [], rowClueEls = [], colClueEls = [];
+/* 단서 칸의 폭·높이 = 놀이 칸의 몇 배인가. 단서는 숫자 한 개만 담으므로 좁혀도 되고,
+   좁힌 만큼 놀이 칸이 커진다(10×10·단서 4 기준 22.5px → 25.9px · 지뢰찾기 25.6px 와 같은 급). */
+const CLUE_FR = 0.7;
+function buildBoard(){
+  const board = $('board');
+  /* span = 격자의 줄 수(단서칸 + 놀이칸) · --tot = 칸 크기 계산용 '칸 환산 총량'(단서 칸은 CLUE_FR 칸으로 센다).
+     ★둘은 값이 다르다 — 하나로 합치면 격자가 잘린다(2026-08-31 실측: 14줄이어야 할 판이 13줄로 그려졌다). */
+  const span = G + N;
+  board.style.setProperty('--tot', String(G * CLUE_FR + N));
+  const track = `repeat(${G}, ${CLUE_FR}fr) repeat(${N}, 1fr)`;
+  board.style.gridTemplateColumns = track;
+  board.style.gridTemplateRows = track;
+  board.innerHTML = '';
+  cellEls = new Array(N * N); rowClueEls = []; colClueEls = [];
+  const frag = document.createDocumentFragment();
+  for (let gr = 0; gr < span; gr++){
+    for (let gc = 0; gc < span; gc++){
+      const inClueR = gr < G, inClueC = gc < G;
+      if (inClueR && inClueC){                                  /* 왼쪽 위 빈 모서리 */
+        const d = document.createElement('div'); d.className = 'corner';
+        if (gr === G - 1) d.classList.add('wallb');
+        if (gc === G - 1) d.classList.add('wall');
+        frag.appendChild(d); continue;
+      }
+      if (inClueR){                                             /* 위쪽 = 세로줄 단서 */
+        const c = gc - G, cl = colClues[c].filter(v => v > 0);
+        const k = cl.length - (G - gr);                          /* 아래쪽에 붙여 쓴다 */
+        const d = document.createElement('div'); d.className = 'cl';
+        d.textContent = k >= 0 ? String(cl[k]) : '';
+        if (gr === G - 1) d.classList.add('wallb'); else d.classList.add('edgeb');
+        if ((c + 1) % 5 === 0 && c !== N - 1) d.classList.add('wall');
+        frag.appendChild(d);
+        (colClueEls[c] = colClueEls[c] || []).push(d);
+        continue;
+      }
+      if (inClueC){                                             /* 왼쪽 = 가로줄 단서 */
+        const r = gr - G, cl = rowClues[r].filter(v => v > 0);
+        const k = cl.length - (G - gc);
+        const d = document.createElement('div'); d.className = 'cl';
+        d.textContent = k >= 0 ? String(cl[k]) : '';
+        if (gc === G - 1) d.classList.add('wall'); else d.classList.add('edge');
+        if ((r + 1) % 5 === 0 && r !== N - 1) d.classList.add('wallb');
+        frag.appendChild(d);
+        (rowClueEls[r] = rowClueEls[r] || []).push(d);
+        continue;
+      }
+      const r = gr - G, c = gc - G, i = r * N + c;              /* 놀이판 */
+      const el = document.createElement('button');
+      el.type = 'button'; el.className = 'cell'; el.setAttribute('role', 'gridcell'); el.dataset.i = String(i); el.tabIndex = -1;
+      if ((c + 1) % 5 === 0 && c !== N - 1) el.classList.add('b5r');
+      if ((r + 1) % 5 === 0 && r !== N - 1) el.classList.add('b5b');
+      frag.appendChild(el);
+      cellEls[i] = el;
+    }
+  }
+  board.appendChild(frag);
+  updateClueLabels();
+}
+function updateClueLabels(){
+  for (let r = 0; r < N; r++){
+    const s = rowClues[r].filter(v => v > 0).join(' ');
+    for (const d of (rowClueEls[r] || [])) d.setAttribute('aria-label', T('ariaRowClue', r + 1, s));
+  }
+  for (let c = 0; c < N; c++){
+    const s = colClues[c].filter(v => v > 0).join(' ');
+    for (const d of (colClueEls[c] || [])) d.setAttribute('aria-label', T('ariaColClue', c + 1, s));
+  }
+}
+function cellLabel(i){
+  const r = Math.floor(i / N) + 1, c = i % N + 1, v = cells[i];
+  return T('srCell', r, c, v === 1 ? T('srFill') : (v === 2 ? T('srMark') : T('srEmpty')));
+}
+function render(){
+  if (!cellEls.length) return;
+  for (let i = 0; i < N * N; i++){
+    const el = cellEls[i]; if (!el) continue;
+    const v = cells[i];
+    el.classList.toggle('on', v === 1);
+    el.classList.toggle('hinted', v === 1 && hintCells.has(i));
+    el.textContent = v === 2 ? '✕' : '';
+    el.classList.toggle('sel', i === sel);
+    el.setAttribute('aria-label', cellLabel(i));
+  }
+  for (let r = 0; r < N; r++){ const d = rowDone(r); for (const e of (rowClueEls[r] || [])) e.classList.toggle('done', d); }
+  for (let c = 0; c < N; c++){ const d = colDone(c); for (const e of (colClueEls[c] || [])) e.classList.toggle('done', d); }
+}
+function updateHud(){
+  $('timeNow').textContent = fmtTime(Math.floor(elapsed / 1000));
+  $('mistNow').textContent = running || over ? String(mistakes) : '–';
+  $('hintNow').textContent = running || over ? String(hints) : '–';
+}
+function updateSubtitle(){
+  $('subtitle').textContent = (mode === 'daily') ? T('modeDaily', runNo || dailyNo()) : T('modeFree', size, LV(level));
+}
+function pop(i){
+  if (reduceMotion()) return;
+  const el = cellEls[i]; if (!el) return;
+  el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+}
+function flashBad(i){
+  const el = cellEls[i]; if (!el) return;
+  el.classList.add('bad');
+  timers.push(setTimeout(() => el.classList.remove('bad'), 320));
+}
+function focusBoard(){ try { $('board').focus({ preventScroll:true }); } catch(e){} }
+function announceCell(i){ say(cellLabel(i)); }
+
+/* ======================= 조작(포인터·자판) ======================= */
+let dragging = false, dragWant = -1, dragSeen = null;
+function cellIndexAt(x, y){
+  const el = document.elementFromPoint(x, y);
+  const c = el && el.closest ? el.closest('.cell') : null;
+  return c ? Number(c.dataset.i) : -1;
+}
+let stroke = null, strokeChanged = false, strokeLast = -1;
+function beginStroke(i, want){
+  dragging = true; dragWant = want; dragSeen = new Set();
+  stroke = []; strokeChanged = false; strokeLast = -1;
+  touchCell(i);
+}
+function touchCell(i){
+  if (i < 0 || dragSeen.has(i)) return;
+  dragSeen.add(i);
+  sel = i; strokeLast = i;
+  const res = applyCell(i, dragWant, stroke);
+  if (res === 'miss'){ countMiss(i); endStroke(); return; }
+  if (res === 'ok'){
+    strokeChanged = true;
+    if (dragWant === 1){ sFill(); pop(i); } else if (dragWant === 2) sMark(); else sErase();
+    render();
+  } else { render(); }
+}
+function endStroke(){
+  if (!dragging) return;
+  dragging = false;
+  const st = stroke, changed = strokeChanged, last = strokeLast;
+  stroke = null; strokeChanged = false;
+  finishStroke(st || [], changed, last);
+}
+const board = $('board');
+board.addEventListener('contextmenu', e => e.preventDefault());
+board.addEventListener('pointerdown', e => {
+  if (!running || over) return;
+  const i = cellIndexAt(e.clientX, e.clientY);
+  if (i < 0) return;
+  e.preventDefault();
+  try{ board.setPointerCapture(e.pointerId); }catch(_){}
+  /* 오른쪽 단추(또는 ✕ 모드)면 ✕, 아니면 칠하기. 이미 그 상태인 칸에서 시작하면 지우는 획이다. */
+  const want = (e.button === 2) ? 2 : paintMode;
+  beginStroke(i, cells[i] === want ? 0 : want);
+});
+board.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  e.preventDefault();
+  touchCell(cellIndexAt(e.clientX, e.clientY));
+});
+for (const ev of ['pointerup','pointercancel','pointerleave']) board.addEventListener(ev, () => endStroke());
+window.addEventListener('blur', () => endStroke());
+
+function moveSel(dr, dc){
+  if (!running || over) return false;
+  let r = sel < 0 ? 0 : Math.floor(sel / N), c = sel < 0 ? 0 : sel % N;
+  if (sel >= 0){ r = (r + dr + N) % N; c = (c + dc + N) % N; }
+  sel = r * N + c; render(); announceCell(sel); return true;
+}
+function keyApply(want){
+  if (sel < 0){ sel = 0; render(); announceCell(sel); return; }
+  const i = sel;
+  beginStroke(i, cells[i] === want ? 0 : want);
+  endStroke();
+}
+/* 물리 자판은 code 로 본다 — 한글 입력 상태여도 같은 자리를 누르면 같이 움직인다. */
+window.addEventListener('keydown', ev => {
+  if (!running || over || $('start').classList.contains('show') || $('over').classList.contains('show')) return;
+  const code = ev.code || '';
+  let handled = true;
+  if (code === 'ArrowLeft') moveSel(0, -1);
+  else if (code === 'ArrowRight') moveSel(0, 1);
+  else if (code === 'ArrowUp') moveSel(-1, 0);
+  else if (code === 'ArrowDown') moveSel(1, 0);
+  else if (code === 'Space' || code === 'Enter') keyApply(1);
+  else if (code === 'KeyX') keyApply(2);
+  else if (code === 'Backspace' || code === 'Delete') keyApply(0);
+  else if (code === 'KeyH') hint();
+  else if (code === 'KeyZ') undo();
+  else handled = false;
+  if (handled) ev.preventDefault();
+});
+/* 탭을 떠나면 시계를 세우고 진행을 저장한다 — 돌아왔을 때 시간이 흘러 있지 않게. */
+document.addEventListener('visibilitychange', () => {
+  paused = document.hidden;
+  if (paused){ endStroke(); saveProgress(); } else prevTs = 0;
+});
+window.addEventListener('pagehide', () => { saveProgress(); });
+
+/* ======================= 창(오버레이) ======================= */
+function show(id){
+  const o = $(id); o.classList.add('show');
+  setOutsideInert(true);
+  const f = o.querySelector('button:not([disabled]):not([hidden]), a[href]');
+  if (f) try { f.focus({ preventScroll:true }); } catch(e){}
+}
+function hide(id){
+  $(id).classList.remove('show');
+  if (!$('start').classList.contains('show') && !$('over').classList.contains('show')) setOutsideInert(false);
+}
+/* 창이 떠 있는 동안 뒤쪽을 초점에서 통째로 뺀다 — 탭이 창 밖으로 새면 갇힌 것처럼 느껴진다. */
+function setOutsideInert(on){
+  for (const el of document.querySelectorAll('body > header, body > main, body > section, body > footer, body > .ad-slot, body > .scores')){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+  }
+}
+function say(msg){ $('srSummary').textContent = msg; }
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); timers.push(setTimeout(() => t.classList.remove('show'), 1600)); }
+
+/* ======================= 시작 화면 ======================= */
+function refreshStart(){
+  const done = dailyDoneToday();
+  const no = dailyNo();
+  $('btnDaily').textContent = done ? T('dailyDone', no) : T('daily', no);
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint');
+  const st = streakNow();
+  $('btnDaily').disabled = false;   /* 끝냈어도 '결과 보기' 로는 눌린다 */
+  $('dailyHint').textContent += (st > 1 ? ' · ' + T('streak', st) : '');
+  /* 이어하기 카드 — 일일·자유 각 1슬롯. 완료한 판은 저장이 지워지므로 여기 안 나온다. */
+  const d = resumable('daily'), f = resumable('free');
+  const bd = $('btnResumeDaily'), bf = $('btnResumeFree');
+  bd.hidden = !d; if (d) bd.textContent = T('resumeDaily', d.runNo || no, fmtTime(Math.floor((d.elapsed | 0) / 1000)));
+  bf.hidden = !f; if (f) bf.textContent = T('resumeFree', f.size, LV(f.level), fmtTime(Math.floor((f.elapsed | 0) / 1000)));
+  for (const b of $('segSize').querySelectorAll('button')) b.setAttribute('aria-pressed', Number(b.dataset.size) === pref.size ? 'true' : 'false');
+  for (const b of $('segLevel').querySelectorAll('button')) b.setAttribute('aria-pressed', b.dataset.level === pref.level ? 'true' : 'false');
+}
+/* 오늘 이미 끝냈으면 새 판을 열지 않고 저장된 결과를 보여 준다(하루 한 번). */
+function startDaily(){
+  if (dailyDoneToday()){
+    const r = dailyRec(), res = r.result || {};
+    lastResult = { mode:'daily', size: res.size || DAILY_SIZE, level: res.level || DAILY_LEVEL, durS: res.duration ?? 0,
+                   mistakes: res.mistakes | 0, hints: res.hints | 0,
+                   bandMist: Array.isArray(res.bandMist) ? res.bandMist.slice() : [],
+                   isNew:false, best: 0, streak: streakNow(), no: r.no || dailyNo(), pic: res.pic || '' };
+    /* ★시작 창을 먼저 닫는다 — 닫지 않으면 결과 창 위에 시작 창이 남아 결과를 못 본다. */
+    hide('start');
+    renderOver();
+    return;
+  }
+  startRun('daily');
+}
+/* 완성한 그림을 결과 카드에 작게 다시 그린다(공유 문구에는 넣지 않는다 — 답이 새기 때문). */
+function renderPic(pic, n){
+  const box = $('pic');
+  box.innerHTML = '';
+  if (!pic || !n || pic.length !== n * n){ box.style.gridTemplateColumns = ''; return; }
+  box.style.gridTemplateColumns = `repeat(${n}, 9px)`;
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < pic.length; i++){
+    const d = document.createElement('i'); if (pic[i] === '1') d.className = 'on'; frag.appendChild(d);
+  }
+  box.appendChild(frag);
+}
+function renderOver(){
+  const r = lastResult; if (!r) return;
+  $('overTitle').textContent = (r.mode === 'daily') ? T('dailyOver', r.no) : T('result');
+  $('finalTime').textContent = fmtTime(r.durS);
+  renderPic(r.pic || '', r.size);
+  $('marks').textContent = marksOf(r.bandMist);
+  $('nTime').textContent = fmtTime(r.durS);
+  $('nMist').textContent = String(r.mistakes);
+  $('nHint').textContent = String(r.hints);
+  $('finalSub').textContent = (r.mode === 'daily')
+    ? T('modeDaily', r.no) + ' · ' + T('modeFree', r.size, LV(r.level))
+    : T('modeFree', r.size, LV(r.level)) + (r.best > 0 ? ' · ' + T('finalSub', fmtTime(r.best)) : '');
+  $('newBest').textContent = r.isNew ? T('newBest') : '';
+  $('streakLine').textContent = (r.mode === 'daily' && r.streak > 1) ? T('streak', r.streak) : '';
+  show('over');
+}
+
+/* ======================= UI 배선 ======================= */
+$('btnFill').onclick = () => setPaint(1);
+$('btnMark').onclick = () => setPaint(2);
+$('btnUndo').onclick = () => undo();
+$('btnHint').onclick = () => hint();
+$('btnStart').onclick = () => startRun('free', pref.size, pref.level);
+$('btnDaily').onclick = () => startDaily();
+$('btnResumeDaily').onclick = () => resumeRun('daily');
+$('btnResumeFree').onclick = () => resumeRun('free');
+$('btnAgain').onclick = () => startRun('free', size, level);
+function setPref(p){ pref = Object.assign({}, pref, p); localStorage.setItem('ng.pref', JSON.stringify(pref)); refreshStart(); }
+for (const b of $('segSize').querySelectorAll('button')) b.onclick = () => setPref({ size: Number(b.dataset.size) });
+for (const b of $('segLevel').querySelectorAll('button')) b.onclick = () => setPref({ level: b.dataset.level });
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyLang();
+  refreshStart();
+  updateSubtitle(); updateHud();
+  if (cellEls.length){ updateClueLabels(); render(); }
+  if (over && lastResult) renderOver();
+  ga('lang_switch', { lang });
+}
+$('btnLang').onclick = toggleLang;
+$('btnLang2').onclick = toggleLang;
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('ng.sound', soundOn ? '1' : '0');
+  const face = soundOn ? '🔊' : '🔇';
+  $('btnSound').textContent = face; $('btnSound2').textContent = face;
+  applyA11yLabels();
+  if (soundOn) beep(660, .06, 'sine', .04);
+}
+$('btnSound').onclick = toggleSound;
+$('btnSound2').onclick = toggleSound;
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnSound2').textContent = soundOn ? '🔊' : '🔇';
+
+/* 공유 텍스트 — "노노그램 #N ⏱ 4:32 · 실수 1 · 힌트 0 🟩🟩🟨…" + URL
+   ★완성한 그림은 넣지 않는다 — 아직 안 푼 사람에게 답이 새기 때문이다. */
+function shareText(r, url){
+  const m = marksOf(r.bandMist || []);
+  const t = fmtTime(r.durS);
+  return ((r.mode === 'daily') ? T('dailyShare', r.no, t, r.mistakes, r.hints, m, r.streak)
+                               : T('freeShare', r.size, LV(r.level), t, r.mistakes, r.hints, m)) + url;
+}
+async function doShare(){
+  const url = location.href.split('#')[0];
+  const r = lastResult;
+  if (!r) return;
+  try{
+    if (navigator.share){
+      /* ★네이티브 공유는 text 와 url 을 분리한다 — text 에 URL 을 또 넣으면 공유 시트가 링크를 두 번 붙인다. */
+      await navigator.share({ title: T('docTitle'), text: shareText(r, '').trimEnd(), url });
+    } else { await navigator.clipboard.writeText(shareText(r, url)); toast(T('copied')); }   /* 폴백은 완성 문자열 */
+  }catch(_){}
+}
+$('btnShare').onclick = doShare;
+
+/* ======================= 기동 ======================= */
+/* 시작 전에도 빈 격자를 그려 둔다(시작 창 뒤 배경 · 레이아웃 실측용). */
+size = pref.size; level = pref.level; N = size; G = MAXCLUE[N] || 4;
+solution = new Array(N * N).fill(0); cells = solution.slice();
+rowClues = new Array(N).fill(null).map(() => [0]); colClues = new Array(N).fill(null).map(() => [0]);
+bandMist = new Array(BANDS).fill(0);
+setPaint(1);
+buildBoard(); render();
+applyLang();
+refreshStart();
+updateHud(); updateSubtitle();
+if ($('start').classList.contains('show')) show('start');
+rafId = requestAnimationFrame(loop);
+
+/* ======================= 검증 창구(관측 전용) ======================= */
+/* ★배포되는 이 창구에는 **읽기만 하는 getter 와 순수 함수** 만 둔다. 판을 시작하거나 칸을 칠하거나
+   시간을 진행시키는 **상태 변경 명령은 여기에 두지 않는다** — 그런 것이 전역에 열려 있으면 콘솔이나
+   외부 스크립트가 관측을 넘어 제품 상태를 바꾸고, startRun 같은 것은 GA game_start·공개 카운터
+   전송·일일 결과 저장까지 실제로 일으킨다(스도쿠·지뢰찾기 계약 그대로).
+   검증에 필요한 변경 명령은 연기시험 하네스가 **메모리 위에서만** 이 파일 뒤에 덧붙인다.
+   반환값은 전부 사본이다 — 받은 쪽에서 고쳐도 게임 안쪽이 바뀌지 않는다. 외부 전송 0. */
+const copy = o => JSON.parse(JSON.stringify(o));
+window.__ng = {
+  const: () => ({ SIZES: SIZES.slice(), LEVELS: LEVELS.slice(), DENSITY: copy(DENSITY), MAXCLUE: copy(MAXCLUE),
+                  HARD_ROUNDS: copy(HARD_ROUNDS), GEN_MAX_TRIES, BANDS, SAVE_EVERY_MS, LOG_MAX, CLUE_FR,
+                  DAILY_SIZE, DAILY_LEVEL, DAILY_EPOCH }),
+  seedKey: (d) => dailySeedKey(d ? new Date(d) : new Date()),
+  seedDraws: (key, n) => { const f = mulberry32(hashStr(key)); return Array.from({length:n}, () => +f().toFixed(9)); },
+  state: () => ({ mode, running, over, paused, size, level, N, G, seedKey: seedKeyNow, runDay, runNo, sel, paintMode,
+                  mistakes, hints, moves, elapsed, undoDepth: undoStack.length,
+                  filled: cells.filter(v => v === 1).length, marked: cells.filter(v => v === 2).length,
+                  need: solution.filter(v => v === 1).length, solved: solution.length > 0 && isSolved() }),
+  daily: () => ({ done: dailyDoneToday(), rec: dailyRec(), no: dailyNo(), streak: streakNow() }),
+  /* ★'같은 날짜 = 같은 판' 을 기계가 대조하게 하는 창구 — 원시 난수열이 아니라 실제 판(해·단서) */
+  solution: () => copy(solution),
+  cells: () => copy(cells),
+  rowClues: () => copy(rowClues),
+  colClues: () => copy(colClues),
+  hintCells: () => [...hintCells],
+  bandMist: () => copy(bandMist),
+  gen: () => (genInfo ? copy(genInfo) : null),
+  transcript: () => puzzleLog.map(o => `${o.seedKey}|${o.size}|${o.level}|a${o.attempt}|r${o.rounds}|f${o.filled}|g${o.gutter}|${o.fallback ? 'FB' : 'ok'}|${o.hash}`).join(' '),
+  log: () => copy(puzzleLog),
+  logMax: () => LOG_MAX,
+  progress: () => copy(loadProgress()),
+  best: () => { try{ return JSON.parse(localStorage.getItem('ng.best')||'{}'); }catch(_){ return {}; } },
+  pref: () => copy(pref),
+  /* 순수 함수 — 전역 상태를 읽지도 쓰지도 않는다(생성기 다판 시험·해 개수 대조용) */
+  makePuzzle: (sz, lv, seed) => copy(makePuzzle(Number(sz), String(lv), String(seed))),
+  cluesOf: (arr, n) => copy(cluesOf(arr.map(Number), Number(n))),
+  clueOf: (arr) => clueOf(arr.map(Number)).slice(),
+  lineSolve: (rows, cols, n) => copy(lineSolve(rows, cols, Number(n))),
+  countSolutions: (rows, cols, n, limit) => countSolutions(rows, cols, Number(n), limit || 2),
+  marks: (bm) => marksOf(bm.slice()),
+  shareText: (r) => shareText(r, 'https://hanpango.com/nonogram/'),
+  shown: (id) => $(id).classList.contains('show'),
+  reduceMotion: () => reduceMotion(),
+  sound: () => soundOn,
+  lang: () => lang
+};
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

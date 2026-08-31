@@ -297,5 +297,30 @@
       "group",
       "share"
     ]
+  },
+  {
+    "id": "nonogram",
+    "path": "/nonogram/",
+    "title": {
+      "ko": "노노그램",
+      "en": "Nonogram"
+    },
+    "desc": {
+      "ko": "숫자 힌트로 칸을 칠해 그림을 완성하는 논리 퍼즐 — 답이 하나뿐인 판만 냅니다",
+      "en": "Paint the squares from the number clues to reveal a picture — one solution, never a guess"
+    },
+    "thumb": "/nonogram/thumb.webp",
+    "playtime": {
+      "ko": "한 판 3~10분",
+      "en": "3–10 min a round"
+    },
+    "daily": true,
+    "released": "2026-08-31",
+    "tags": [
+      "puzzle",
+      "logic",
+      "picture",
+      "daily"
+    ]
   }
 ]
