@@ -103,17 +103,31 @@ const BUILTIN_PREFIX = ['node:', 'cloudflare:'];
    manifest 를 두면 그것으로 대조하고, 없으면 named binding 검사를 판정 불가로 올린다.
    ★'런타임 모듈을 허용한다' 와 '그 모듈이 요구된 모든 이름을 내보낸다고 가정한다' 는
      완전히 다른 이야기다(codex R7). 형식: { "node:crypto": ["randomUUID", …] } */
-const RUNTIME_EXPORTS_FILE = path.join(ROOT, 'tools', 'runtime-module-exports.json');
+const RUNTIME_EXPORTS_REL = 'tools/runtime-module-exports.json';
+const RUNTIME_EXPORTS_FILE = path.join(ROOT, ...RUNTIME_EXPORTS_REL.split('/'));
 let _runtimeExports = null;
+/* ★이 함수 안에서 **다른 곳에 선언된 도우미를 부르지 않는다.** 첫 판(83fc4b4)은 여기서
+   rel() 을 불렀는데 rel 은 run() 안의 지역 상수라 모듈 층위에서 보이지 않았다 —
+   ReferenceError 가 아래 catch 로 떨어져 map 이 {} 로 굳었고, manifest 를 무슨 내용으로
+   두든 영원히 '대조할 수단이 없다' 가 나왔다(문서가 약속한 탈출구가 닫혀 있었다).
+   ★교훈: 넓은 try/catch 는 '읽기 실패' 뿐 아니라 **프로그래밍 오류까지 정상 분기로 둔갑**
+     시킨다. 그래서 존재 검사는 try 밖으로 빼고, 실패 사유(why)를 반드시 들고 나와
+     지적문에 싣는다 — '파일이 없다' 와 '읽지 못했다' 가 같은 문구로 나오면 안 된다. */
 function runtimeExports() {
   if (_runtimeExports) return _runtimeExports;
-  _runtimeExports = { map: {}, src: '없음' };
+  if (!fs.existsSync(RUNTIME_EXPORTS_FILE)) {
+    _runtimeExports = { map: {}, src: RUNTIME_EXPORTS_REL, why: RUNTIME_EXPORTS_REL + ' 이 없다' };
+    return _runtimeExports;
+  }
   try {
-    if (fs.existsSync(RUNTIME_EXPORTS_FILE)) {
-      const j = JSON.parse(fs.readFileSync(RUNTIME_EXPORTS_FILE, 'utf8'));
-      if (j && typeof j === 'object') _runtimeExports = { map: j, src: rel(RUNTIME_EXPORTS_FILE) };
-    }
-  } catch (e) { _runtimeExports = { map: {}, src: '읽지 못함(' + e.message + ')' }; }
+    const j = JSON.parse(fs.readFileSync(RUNTIME_EXPORTS_FILE, 'utf8'));
+    _runtimeExports = (j && typeof j === 'object' && !Array.isArray(j))
+      ? { map: j, src: RUNTIME_EXPORTS_REL, why: null }
+      : { map: {}, src: RUNTIME_EXPORTS_REL, why: RUNTIME_EXPORTS_REL + ' 의 최상위가 객체가 아니다' };
+  } catch (e) {
+    _runtimeExports = { map: {}, src: RUNTIME_EXPORTS_REL,
+                        why: RUNTIME_EXPORTS_REL + ' 을 읽지 못함(' + e.message + ')' };
+  }
   return _runtimeExports;
 }
 const ROUTE_NAMES = ['onRequest', 'onRequestGet', 'onRequestPost', 'onRequestPut',
@@ -207,9 +221,14 @@ const FAIL = (rule, name, detail) => {
   failedRules.add(rule); fails.push(rule);
   console.log('  ✗ [' + rule + '] ' + name + (detail ? ' — ' + detail : ''));
 };
-const INDET = (rule, name, why) => {
+/* ★파생 판정 불가 — 앞 단계가 막혀 '그래서 이 검사를 수행할 수 없었다' 가 된 것.
+   원인이 하나인데 판정 불가가 여럿으로 보이면 보고서에서 원인 수와 판정 수가 어긋난다.
+   집계에서 갈라 적되, rc 계산에서는 똑같이 '통과로 세지 않는다'(파생이라고 봐주지 않는다). */
+let derivedIndets = 0;
+const INDET = (rule, name, why, derived) => {
   indetRules.add(rule); indets.push(rule);
-  console.log('  ‽ [' + rule + '] ' + name + ' — ' + why);
+  if (derived) derivedIndets++;
+  console.log('  ‽ [' + rule + '] ' + name + ' — ' + why + (derived ? ' (앞 단계가 막혀 파생된 판정이다)' : ''));
 };
 
 /* SourceTextModule 이 던지는 SyntaxError 에는 **소스 위치가 없다**(스택은 이 스크립트의 호출
@@ -359,10 +378,13 @@ async function run(scanRoot) {
        (https://developers.cloudflare.com/pages/functions/module-support/). */
     if (DATA.has(ext)) return { kind: 'data-named' };
     if (!BUILTIN_PREFIX.some(p => spec.startsWith(p))) return { kind: 'foreign' };
-    const man = runtimeExports().map[spec];
-    /* 방어B — 버전 결박 manifest 가 없으면 '내보낸다/안 내보낸다' 를 말할 수 없다. */
-    if (!Array.isArray(man)) return { kind: 'builtin-unverified' };
-    if (!man.includes(name)) return { kind: 'builtin-missing' };
+    const R = runtimeExports();
+    const man = R.map[spec];
+    /* 방어B — 버전 결박 manifest 가 없으면 '내보낸다/안 내보낸다' 를 말할 수 없다.
+       ★왜 대조할 수 없는지(파일이 없다 / 못 읽었다 / 그 모듈 항목이 없다)를 구분해 싣는다. */
+    const noList = R.why || (R.src + ' 에 ' + spec + ' 항목이 배열로 적혀 있지 않다');
+    if (!Array.isArray(man)) return { kind: 'builtin-unverified', why: noList };
+    if (!man.includes(name)) return { kind: 'builtin-missing', why: R.src + ' 의 ' + spec + ' 목록' };
     return { kind: 'ok' };
   }
   const MAX_PROBE = 64;
@@ -421,8 +443,8 @@ async function run(scanRoot) {
         const why = v.kind === 'data-named'
           ? `데이터 모듈 ${miss.spec} 에서 named import '${miss.name}' 를 가져온다 — Pages 의 text/binary/wasm 모듈은 default 만 내보낸다`
           : v.kind === 'builtin-missing'
-            ? `런타임 모듈 ${miss.spec} 의 export 목록(${runtimeExports().src})에 '${miss.name}' 가 없다`
-            : `런타임 모듈 ${miss.spec} 이 '${miss.name}' 를 내보내는지 대조할 수단이 없다 — tools/runtime-module-exports.json 에 버전 결박 목록을 두면 판정할 수 있다`;
+            ? `런타임 모듈 ${miss.spec} 의 export 목록(${v.why})에 '${miss.name}' 가 없다`
+            : `런타임 모듈 ${miss.spec} 이 '${miss.name}' 를 내보내는지 대조할 수단이 없다(${v.why}) — ${RUNTIME_EXPORTS_REL} 에 버전 결박 목록을 두면 판정할 수 있다`;
         return { ok: false, kind: v.kind, spec: miss.spec, name: miss.name, error: new Error(why) };
       }
       if (!syn.has(miss.spec)) syn.set(miss.spec, new Set(['default']));
@@ -435,12 +457,12 @@ async function run(scanRoot) {
   const linkBad = new Set();
   for (const f of files) {
     const nm = rel(f) + ' 의 import 이름이 대상 모듈에 실재한다';
-    if (blocked.has(f)) { INDET('link', nm, `${rel(f)} · ${blocked.get(f)}`); linkBad.add(f); continue; }
+    if (blocked.has(f)) { INDET('link', nm, `${rel(f)} · ${blocked.get(f)}`, true); linkBad.add(f); continue; }
     const kinds = specKind.get(f) || new Map();
     const un = [...kinds.entries()].filter(([, v]) => v.kind === 'unparseable').map(([k]) => k);
     if (un.length) { INDET('link', nm, `${rel(f)} · 이 도구가 파싱할 수 없는 모듈을 들인다: ${un.join(', ')}`); linkBad.add(f); continue; }
     const depBad = [...kinds.values()].some(v => v.kind === 'module' && blocked.has(v.target));
-    if (depBad) { INDET('link', nm, `${rel(f)} · 의존 모듈이 판정 불가·파싱 실패다`); linkBad.add(f); continue; }
+    if (depBad) { INDET('link', nm, `${rel(f)} · 의존 모듈이 판정 불가·파싱 실패다`, true); linkBad.add(f); continue; }
     const r = await linkResolving(H => H.makeFile(f));
     if (r.ok) P('link', nm);
     else if (String(r.error.message).startsWith('UNPARSEABLE:')) { INDET('link', nm, `${rel(f)} · 이 도구가 파싱할 수 없는 모듈을 들인다`); linkBad.add(f); }
@@ -467,8 +489,8 @@ async function run(scanRoot) {
   for (const f of files) {
     const helper = path.basename(f).startsWith('_');
     const nm = rel(f) + (helper ? ' 는 onRequest* 를 내보내지 않는다(보조 파일)' : ' 는 onRequest* 를 하나 이상 내보낸다(라우트)');
-    if (blocked.has(f)) { INDET('route-export', nm, `${rel(f)} · ${blocked.get(f)}`); continue; }
-    if (linkBad.has(f)) { INDET('route-export', nm, `${rel(f)} · 링크가 서지 않아 내보내는 이름을 알 수 없다`); continue; }
+    if (blocked.has(f)) { INDET('route-export', nm, `${rel(f)} · ${blocked.get(f)}`, true); continue; }
+    if (linkBad.has(f)) { INDET('route-export', nm, `${rel(f)} · 링크가 서지 않아 내보내는 이름을 알 수 없다`, true); continue; }
     const found = [];
     let unknownName = null;
     for (const rn of ROUTE_NAMES) {
@@ -481,7 +503,9 @@ async function run(scanRoot) {
   }
 
   console.log('');
-  console.log(`==== functions 배포 게이트: PASS ${passCount} · 미달 ${fails.length} · 판정 불가 ${indets.length} ====`);
+  console.log(`==== functions 배포 게이트: PASS ${passCount} · 미달 ${fails.length} · 판정 불가 ${indets.length}`
+    + (derivedIndets ? ` (그중 ${derivedIndets} 건은 앞 단계가 막혀 파생된 것 — 원인은 ${indets.length - derivedIndets} 곳이다)` : '')
+    + ' ====');
   /* ★이 분기가 'SKIP 은 통과가 아니다' 방어의 본체다 — 자기시험의 meta 케이스가 이 줄을 지운
      사본을 돌려 rc 가 0 으로 새는지 확인한다. 문구를 바꾸면 그 앵커도 함께 고쳐라. */
   if (indets.length) {
@@ -547,6 +571,23 @@ const FIXTURES = {
     st => { writeF(st, 'functions/message.html', '<strong>hello</strong>\n');
             prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from '../message.html';\n"); },
     2, ['link']],
+  /* ★R8b — **탈출구가 실제로 열리는가**. 방어가 서 있는지만 재고 빠져나갈 길을 재지 않으면,
+     문서가 약속한 manifest 가 아무 일도 못 하는 채로 자기시험 전부 PASS 가 된다
+     (2026-08-31 실측: runtimeExports() 가 run() 지역 상수 rel 을 불러 ReferenceError 가
+      catch 로 떨어졌고 map 이 {} 로 굳어 manifest 를 무엇으로 두든 판정 불가였다).
+     규칙을 바꾸면 자기시험의 범위도 함께 넓힌다 — 위 'node-builtin-named' 가 (c) manifest 無 다. */
+  'runtime-manifest-allows': ['(a) manifest 有 + 목록에 있는 이름 → 통과해야 한다(탈출구)',
+    st => { writeF(st, 'tools/runtime-module-exports.json', '{"node:crypto": ["randomUUID"]}');
+            prependF(st, 'functions/api/hit.js', "import { randomUUID as zzR } from 'node:crypto';\n"); },
+    0, []],
+  'runtime-manifest-rejects': ['(b) manifest 有 + 목록에 없는 이름 → 미달이어야 한다',
+    st => { writeF(st, 'tools/runtime-module-exports.json', '{"node:crypto": ["randomUUID"]}');
+            prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from 'node:crypto';\n"); },
+    2, ['link']],
+  'runtime-manifest-broken': ['(d) manifest 가 깨진 JSON → 판정 불가로 멈춘다(조용히 무시하지 않는다)',
+    st => { writeF(st, 'tools/runtime-module-exports.json', '{ this is not json');
+            prependF(st, 'functions/api/hit.js', "import { randomUUID as zzR } from 'node:crypto';\n"); },
+    2, ['link']],
   'pages-text-module': ['Pages 가 지원하는 text 모듈 import 를 막지 않는다(R1 오탐)',
     st => { writeF(st, 'functions/message.html', '<strong>hello</strong>\n');
             prependF(st, 'functions/api/hit.js', "import zzHtml from '../message.html';\n"); }, 0, []],
@@ -604,10 +645,21 @@ function selftest() {
        "    if (DATA.has(ext)) return { kind: " + "'data-named' };",
        "    if (DATA.has(ext)) return { kind: 'ok' };"],
       ['meta:런타임 모듈 manifest 방어 제거', 'node-unknown-export',
-       "    if (!Array.isArray(man)) return { kind: " + "'builtin-unverified' };",
+       "    if (!Array.isArray(man)) return { kind: " + "'builtin-unverified', why: noList };",
        "    if (!Array.isArray(man)) return { kind: 'ok' };"],
+      /* ★탈출구 배선 자체가 살아 있는가 — manifest 를 읽는 경로를 끈으면 (a) 가 다시
+         판정 불가로 떨어져야 한다. 그러지 않으면 (a) 의 통과는 manifest 와 무관한 일이다.
+         (83fc4b4 이 정확히 그 상태였다 — 배선이 끊겼는데 자기시험 20항목이 전부 PASS 였다.) */
+      ['meta:탈출구 배선 끊기', 'runtime-manifest-allows',
+       "const RUNTIME_EXPORTS_REL = " + "'tools/runtime-module-exports.json';",
+       "const RUNTIME_EXPORTS_REL = 'tools/__nonexistent__.json';", 2],
+      /* ★탈출구 쪽 방어도 홀로 지워 본다 — 목록에 없는 이름을 미달로 잡던 줄을 지우면
+         manifest 를 두고도 아무 이름이나 통과하게 된다(탈출구가 뒷문이 되는 경로). */
+      ['meta:manifest 목록 대조 제거', 'runtime-manifest-rejects',
+       "    if (!man.includes(name)) return { kind: " + "'builtin-missing', why: R.src + ' 의 ' + spec + ' 목록' };",
+       "    if (!man.includes(name)) return { kind: 'ok' };", 0],
     ];
-    for (const [mname, fixture, anchor, replaced] of METAS) {
+    for (const [mname, fixture, anchor, replaced, metaWantRc = 0] of METAS) {
       const n = toolSrc.split(anchor).length - 1;
       if (n !== 1) { setupFail++; rows.push({ name: mname, wantRc: 0, rc: '주입실패',
         wantRules: [], seen: [], miss: [], noise: [], ok: false, meta: true,
@@ -620,9 +672,11 @@ function selftest() {
       catch (e) { setupFail++; rows.push({ name: mname, wantRc: 0, rc: '주입실패', wantRules: [],
         seen: [], miss: [], noise: [], ok: false, meta: true, why: e.message }); continue; }
       const mr = runChild(mutatedTool, work);
-      const metaOk = mr.rc === 0;   /* 방어를 지우면 통과로 새야 한다 = 그 방어가 일하고 있었다 */
+      /* 방어를 지우면 그 표본이 **옛 rc 로 되돌아가야** 한다 = 그 방어가 일하고 있었다.
+         대개는 0(다시 샌다)이지만, 오탐을 없앤 방어라면 옛 rc 가 2 일 수도 있다. */
+      const metaOk = mr.rc === metaWantRc;
       if (!metaOk) bad++;
-      rows.push({ name: mname, wantRc: 0, rc: mr.rc, wantRules: [], seen: [], miss: [],
+      rows.push({ name: mname, wantRc: metaWantRc, rc: mr.rc, wantRules: [], seen: [], miss: [],
                   noise: [], ok: metaOk, meta: true });
     }
   } finally {
