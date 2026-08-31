@@ -18,3 +18,4 @@
  */
 
 export const GAMES = ['block-puzzle', '2048', 'block-drop', 'word', 'shooting', 'brick-breaker', 'estimate', 'sudoku', 'nonsense', 'wordchain', 'minesweeper', 'ladder', 'memory'];
+export const GAMES = ['block-puzzle', '2048', 'block-drop', 'word', 'shooting', 'brick-breaker', 'estimate', 'sudoku', 'nonsense', 'wordchain', 'minesweeper', 'ladder', 'nonogram'];

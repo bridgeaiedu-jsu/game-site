@@ -58,6 +58,29 @@ node tools/verify_word.js --html word/index.html
 node tools/verify_word.js --mutate w-no-cas                # 검출력 확인(임시 사본에만 주입)
 ```
 
+## verify_nonogram.js — 노노그램 판 검증 (답이 하나뿐인가)
+
+`nonogram/index.html` 의 `<script>` 를 그대로 꺼내 최소 DOM 스텁 위에서 돌리고, 실제
+`makePuzzle()` 로 판형×난이도 6조합의 판을 만들어 본다. 보는 것은 일곱 가지다 —
+①단서가 그 판의 해에서 뽑은 단서와 일치하는가 ②그 단서를 만족하는 답이 **정확히 하나**인가
+③빈 줄이 없고 단서 개수가 판형별 상한을 넘지 않는가 ④어려움 판이 왕복 추론 횟수 조건을
+지키는가 ⑤같은 seed 가 같은 판을 내는가·오늘의 도전 seed 가 날짜만으로 정해지는가
+⑥배포 파일이 플레이 중 난수를 당기지 않는가(정적 대조) ⑦검증기 자신이 답 둘인 판을
+'2' 로 세는가.
+
+★②의 답 개수는 게임이 판을 고를 때 쓴 줄 추론기가 아니라 **방법이 겹치지 않는 별도
+탐색**(가로줄 완성 배치 나열 + 세로줄 앞부분 가지치기)으로 센다. 같은 방법으로 두 번 재면
+자기채점이라 증거가 되지 못한다.
+
+```sh
+node tools/verify_nonogram.js --html nonogram/index.html               # seed 60개 × 6조합 = 360판
+node tools/verify_nonogram.js --html nonogram/index.html --seeds 20
+node tools/verify_nonogram.js --html nonogram/index.html --mutate no-unique-gate   # 검출력 확인
+```
+뮤테이션은 `no-unique-gate`(유일해 관문 제거) · `no-hard-gate`(난이도 관문 제거) ·
+`no-clue-cap`(단서 개수 상한 제거) 셋이며, 셋 다 rc=1(FAIL)이 나와야 정상이다.
+앵커가 나와야 할 곳 수와 다르면 rc=2 로 멈춘다(앵커 노후화를 통과로 접지 않는다).
+
 ## run_mutations.py — 위 검증기의 검출력 검산
 
 `verify_word.js` 가 **고의 결함을 정말로 잡는지** 를 17종 주입으로 검산한다.

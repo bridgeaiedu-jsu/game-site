@@ -241,6 +241,12 @@
           <span class="body"><h2>기억력 카드 / Memory Match</h2>
             <p>뒤집힌 카드를 두 장씩 열어 같은 그림을 찾는 기억력 게임 — 뒤집기 수가 적을수록 좋은 기록<br>Flip two cards at a time and find every matching pair — the fewer flips, the better</p></span>
         </a></li>
+        <li><a class="card" href="/nonogram/">
+          <span class="thumb"><img src="/nonogram/thumb.webp" alt="노노그램 / Nonogram" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 3~10분 / 3–10 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>노노그램 / Nonogram</h2>
+            <p>숫자 힌트로 칸을 칠해 그림을 완성하는 논리 퍼즐 — 답이 하나뿐인 판만 냅니다<br>Paint the squares from the number clues to reveal a picture — one solution, never a guess</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -402,6 +408,13 @@ const FALLBACK = [{
   thumb:'/memory/thumb.webp',
   playtime:{ko:'한 판 1~3분',en:'1–3 min a round'},
   daily:true, released:'2026-08-31', tags:['puzzle','memory','casual','daily']
+},{
+  id:'nonogram', path:'/nonogram/',
+  title:{ko:'노노그램',en:'Nonogram'},
+  desc:{ko:'숫자 힌트로 칸을 칠해 그림을 완성하는 논리 퍼즐 — 답이 하나뿐인 판만 냅니다',en:'Paint the squares from the number clues to reveal a picture — one solution, never a guess'},
+  thumb:'/nonogram/thumb.webp',
+  playtime:{ko:'한 판 3~10분',en:'3–10 min a round'},
+  daily:true, released:'2026-08-31', tags:['puzzle','logic','picture','daily']
 }];
 
 let games = FALLBACK;
