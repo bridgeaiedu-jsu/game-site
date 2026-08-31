@@ -425,15 +425,62 @@ def _skip_gap_back(text, i, start=0):
     return i
 
 
+STORAGE_NAMES = ('localStorage', 'sessionStorage')
+# 여는 대괄호 앞에 이 문자가 있으면 **수신자 표현이 끝난 자리**라 그 대괄호는 멤버 첨자다.
+# (없으면 배열 리터럴이다 — `= ["localStorage"]` 의 대괄호는 첨자가 아니다.)
+RECEIVER_END = '_$)]\'"`'
+SUBSCRIPT = re.compile(r'\[([^\[\]]{1,160})\]')
+QUOTED = re.compile(r"""(['"`])((?:[^'"`\\]|\\.)*)\1""")
+
+
+def fold_subscript(expr, consts):
+    """대괄호 첨자 표현식을 **정적으로 접어** 무슨 이름인지 본다.
+
+    ('name', 접힌 이름)  — 문자열 리터럴들의 결합 또는 상수 식별자로 이름이 완성됐다
+    ('fragment', 조각)   — 저장소 이름의 **조각**은 보이는데 끝까지 접지 못했다(= 무엇을 꺼내는지 모른다)
+    ('other', None)      — 저장소와 무관해 보인다
+    """
+    parts = [x.strip() for x in expr.split('+')]
+    folded, ok = [], True
+    for part in parts:
+        m = STR_LIT.match(part)
+        if m and not (m.group(1) == '`' and '${' in m.group(2)):
+            folded.append(m.group(2)); continue
+        if IDENT.match(part) and part in consts:
+            folded.append(consts[part]); continue
+        ok = False
+        break
+    if ok:
+        name = ''.join(folded)
+        return ('name', name) if name in STORAGE_NAMES else ('other', None)
+    # 끝까지 못 접었다 — 저장소 이름의 조각이 섞여 있으면 '모른다'로 멈춰야 한다.
+    seen = [q.group(2) for q in QUOTED.finditer(expr)]
+    seen += [consts[x.strip()] for x in parts if IDENT.match(x.strip()) and x.strip() in consts]
+    for frag in seen:
+        if len(frag) >= 4 and any(frag in n for n in STORAGE_NAMES):
+            return ('fragment', frag)
+    return ('other', None)
+
+
 def string_is_member_name(text, s0, s1):
     """[s0,s1) 문자열이 **대괄호 첨자 자리**에 놓였는가 — 그렇다면 그 문자열은 데이터가 아니라
     멤버 이름이고, 그 자리는 코드다. obj["localStorage"] 의 "localStorage" 가 그 예다.
+
+    ★대괄호가 다 첨자는 아니다 — `["localStorage"]` 는 **배열 리터럴**일 수도 있다. 둘을 가르는 것은
+    여는 대괄호 **앞의 토큰**이다: 수신자 표현을 끝낼 수 있는 토큰(식별자·`)`·`]`·문자열)이 앞에 있으면
+    멤버 첨자이고, `=`·`(`·`,`·`return` 같은 것이 앞에 있으면 배열 리터럴이라 그 문자열은 데이터다.
 
     돌려주는 값: 닫는 대괄호 다음 위치(코드가 이어지는 자리) 또는 -1(첨자 자리가 아님).
     """
     b = _skip_gap_back(text, s0)
     if b <= 0 or text[b - 1] != '[':
         return -1
+    r = _skip_gap_back(text, b - 1)                 # 여는 대괄호 앞을 본다
+    if r <= 0:
+        return -1                                   # 앞에 아무것도 없다 = 배열 리터럴
+    prev = text[r - 1]
+    if not (prev.isalnum() or prev in RECEIVER_END):
+        return -1                                   # 수신자 표현이 아니다 = 배열 리터럴
     a = _skip_gap(text, s1, len(text))
     if a < 0 or text[a:a + 1] != ']':
         return -1
@@ -459,7 +506,9 @@ def classify_access(text, i, end):
         # ★있는지만 보는 자리는 안전하다 — 그 값이 저장소 객체로 새어 나가지 않는 표기만 인정한다:
         #   `localStorage && …`(왼쪽 피연산자의 값은 버려지고 오른쪽 값이 남는다) · 삼항의 조건 ·
         #   비교 연산. ★`||` 는 넣지 않는다 — 참이면 저장소 객체가 그대로 결과가 되어 새어 나간다.
-        if re.match(r'(&&|\?[^.]|===|!==|==|!=)', text[j:end]):
+        # ★`??` 와 `??=` 는 여기 들어오면 안 된다 — 널 병합은 왼쪽이 null/undefined 가 아니면
+        #   **저장소 객체를 그대로 결과로 내놓는다**(= 별칭이 된다). 삼항의 '?' 만 존재 확인이다.
+        if re.match(r'(&&(?!=)|\?(?![?.=])|===|!==|==(?!=)|!=(?!=))', text[j:end]):
             return ('safe', '존재 확인')
         return ('unknown', '저장소 객체가 호출이 아닌 자리로 흘러간다(별칭 대입·인자 전달 등) — 뒤를 따라갈 수 없다')
     if j < 0:
@@ -555,6 +604,34 @@ def scan_file(src, is_html, rel):
         for m in CONST_DEF.finditer(text):
             if not _in(a, m.start()) and not _in(b, m.start()):
                 consts[m.group(1)] = m.group(3)
+
+        for m in SUBSCRIPT.finditer(text):
+            # ★OBJ_RE 는 'localStorage' 라는 **완성된 낱말**만 본다. 낱말을 조각내거나 상수에 담아
+            #   대괄호로 꺼내면 그 그물에 안 걸린다 — 첨자를 직접 접어 보고, 못 접으면 멈춘다.
+            if _in(a, m.start()) or _in(b, m.start()):
+                continue                              # 주석·문자열 안의 대괄호는 코드가 아니다
+            r0 = _skip_gap_back(text, m.start())  # ★대괄호가 다 첨자는 아니다 — 앞 토큰으로 가른다
+            if r0 <= 0 or not (text[r0 - 1].isalnum() or text[r0 - 1] in RECEIVER_END):
+                continue                              # 배열 리터럴이다(수신자 표현이 앞에 없다)
+            inner = m.group(1)
+            if QUOTED.fullmatch(inner.strip()):
+                continue                              # 통짜 문자열 첨자는 위(멤버 이름) 경로가 다룬다
+            kindf, val = fold_subscript(inner, consts)
+            if kindf == 'other':
+                continue
+            line = at(m.start())
+            if kindf == 'fragment':
+                stops.append('%s:%d — 계산형 멤버 이름에 저장소 이름 조각(%s)이 있는데 끝까지 접지 못했다'
+                             % (rel, line, val))
+                continue
+            acc = classify_access(text, m.end(), len(text))
+            if acc[0] == 'unknown':
+                stops.append('%s:%d — %s' % (rel, line, acc[1]))
+                continue
+            if acc[0] == 'safe':
+                continue
+            expr, _end = first_arg(text, acc[2])
+            calls.append((val, '%s:%d' % (rel, line), expr, consts))
 
         for m in OBJ_RE.finditer(text):
             off, line = m.start(), at(m.start())
@@ -1014,6 +1091,37 @@ def _string_data_word(work):
     _append_stats(work, 'const zzMsg = "localStorage 에 저장합니다";')
 
 
+def _nullish_alias(work):
+    """?? 는 왼쪽이 null/undefined 가 아니면 저장소 객체를 그대로 내놓는다 — 존재 확인이 아니다."""
+    _append_stats(work, 'const zzS = window.localStorage ?? {}; zzS.setItem("zz.nullish", "1");')
+
+
+def _computed_concat(work):
+    _append_stats(work, 'window["local" + "Storage"].setItem("zz.concat", "1");')
+
+
+def _computed_const(work):
+    _append_stats(work, 'const zzName = "localStorage"; window[zzName].setItem("zz.variable", "1");')
+
+
+def _computed_unfoldable(work):
+    """이름 조각은 보이는데 끝까지 접을 수 없다 — 무엇을 꺼내는지 모르니 멈춘다."""
+    _append_stats(work, 'window["local" + zzUnknownPart].setItem("zz.fragment", "1");')
+
+
+def _array_first_literal(work):
+    """배열 **첫** 원소 — 앞에 수신자 표현이 없으니 첨자가 아니라 배열 리터럴이다(데이터)."""
+    _append_stats(work, 'const zzArr = ["localStorage"]; void zzArr;')
+
+
+def _and_condition_only(work):
+    _append_stats(work, 'const zzP = window.localStorage && true;')
+
+
+def _ternary_condition_only(work):
+    _append_stats(work, 'const zzP = window.localStorage ? true : false;')
+
+
 def _hide_list(work):
     p = os.path.join(work, 'privacy', 'index.html')
     s = _read(p)
@@ -1079,6 +1187,14 @@ CASES = [
     ('단락 평가(&&) 뒤 실호출',       _short_circuit_guard,       1, ['missing-exact']),
     ('첨자 아닌 문자열 속 낱말',       _string_data_word,          0, []),
     ('배열 원소로 놓인 문자열',        _array_element_word,        0, []),
+    # ── R7 · 별칭이 되는 자리와 계산형 이름(codex R6 표본) ──
+    ('?? 로 꺼내 담기',              _nullish_alias,        2, ['uncertain-code']),
+    ('계산형 첨자 · 문자열 결합',      _computed_concat,      1, ['missing-exact']),
+    ('계산형 첨자 · 상수 경유',        _computed_const,       1, ['missing-exact']),
+    ('계산형 첨자 · 못 접는 조각',      _computed_unfoldable,  2, ['uncertain-code']),
+    ('배열 첫 원소 문자열',           _array_first_literal,  0, []),
+    ('&& 조건만 쓰는 자리',           _and_condition_only,   0, []),
+    ('삼항 조건만 쓰는 자리',          _ternary_condition_only, 0, []),
 ]
 
 
