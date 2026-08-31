@@ -95,12 +95,12 @@
     <h3>기기에만 저장되는 정보 (localStorage)</h3>
     <p>기록·설정을 유지하기 위해 필요한 값은 방문하신 <strong>기기의 브라우저 안(localStorage)에만</strong> 저장됩니다. 이 값들은 운영자에게 전송되지 않으며 운영자가 열람할 수 없습니다. 현재 저장되는 항목은 다음이 전부입니다.</p>
     <ul>
-      <li><code>bp.best</code> — 최고 점수</li>
-      <li><code>bp.bestPrev</code> — 직전 최고 점수 (기록 갱신 표시용)</li>
-      <li><code>bp.daily</code> — 오늘의 도전 완료 기록(게임 종료 시 저장) 및 결과</li>
-      <li><code>bp.streak</code> — 연속 도전 일수(스트릭)</li>
-      <li><code>bp.lang</code> — 선택한 표시 언어(한국어/English)</li>
-      <li><code>bp.sound</code> — 효과음 켜짐/꺼짐 설정</li>
+      <li><code>bp.lang</code> — 선택한 표시 언어(한국어/English) — 사이트 전체 공통</li>
+      <li><code>bp.best</code> — 블록 퍼즐 최고 점수</li>
+      <li><code>bp.bestPrev</code> — 블록 퍼즐 직전 최고 점수 (기록 갱신 표시용)</li>
+      <li><code>bp.daily</code> — 블록 퍼즐 오늘의 도전 완료 기록(게임 종료 시 저장) 및 결과</li>
+      <li><code>bp.streak</code> — 블록 퍼즐 연속 도전 일수(스트릭)</li>
+      <li><code>bp.sound</code> — 블록 퍼즐 효과음 켜짐/꺼짐 설정</li>
       <li><code>g2048.best</code> — 2048 최고 점수</li>
       <li><code>g2048.daily</code> — 2048 오늘의 도전의 진행 상태(한 수마다 저장)와 완료 결과</li>
       <li><code>g2048.streak</code> — 2048 연속 도전 일수(스트릭)</li>
@@ -113,9 +113,52 @@
       <li><code>wd.daily</code> — 오늘의 낱말 오늘 도전의 진행 상태(시도할 때마다 저장)와 완료 결과</li>
       <li><code>wd.streak</code> — 오늘의 낱말 연속 성공 일수(스트릭)</li>
       <li><code>wd.sound</code> — 오늘의 낱말 효과음 켜짐/꺼짐 설정</li>
+      <li><code>sh.best</code> — 슈팅 최고 점수</li>
+      <li><code>sh.daily</code> — 슈팅 오늘의 도전 완료 결과</li>
+      <li><code>sh.streak</code> — 슈팅 연속 도전 일수(스트릭)</li>
+      <li><code>sh.sound</code> — 슈팅 효과음 켜짐/꺼짐 설정</li>
+      <li><code>bb.best</code> — 벽돌깨기 최고 점수</li>
+      <li><code>bb.daily</code> — 벽돌깨기 오늘의 도전 완료 결과</li>
+      <li><code>bb.streak</code> — 벽돌깨기 연속 도전 일수(스트릭)</li>
+      <li><code>bb.sound</code> — 벽돌깨기 효과음 켜짐/꺼짐 설정</li>
+      <li><code>es.best</code> — 어림수 최고 점수</li>
+      <li><code>es.daily</code> — 어림수 오늘의 도전 완료 결과</li>
+      <li><code>es.streak</code> — 어림수 연속 도전 일수(스트릭)</li>
+      <li><code>es.sound</code> — 어림수 효과음 켜짐/꺼짐 설정</li>
+      <li><code>sd.best</code> — 스도쿠 판 크기·난이도별 최단 완성 시간(초)</li>
+      <li><code>sd.daily</code> — 스도쿠 오늘의 도전 완료 결과</li>
+      <li><code>sd.progress</code> — 스도쿠 진행 중인 판(오늘의 도전·자유 모드)의 중간 상태</li>
+      <li><code>sd.pref</code> — 스도쿠에서 고른 판 크기와 난이도</li>
+      <li><code>sd.streak</code> — 스도쿠 연속 도전 일수(스트릭)</li>
+      <li><code>sd.sound</code> — 스도쿠 효과음 켜짐/꺼짐 설정</li>
+      <li><code>nq.best</code> — 넌센스 퀴즈 한 판 최다 정답 수</li>
+      <li><code>nq.daily</code> — 넌센스 퀴즈 오늘의 도전 완료 결과</li>
+      <li><code>nq.progress</code> — 넌센스 퀴즈 진행 중인 판의 중간 상태</li>
+      <li><code>nq.seen</code> — 넌센스 퀴즈에서 최근에 나온 문제 번호 목록(같은 문제가 계속 나오지 않게 하기 위함)</li>
+      <li><code>nq.streak</code> — 넌센스 퀴즈 연속 도전 일수(스트릭)</li>
+      <li><code>nq.sound</code> — 넌센스 퀴즈 효과음 켜짐/꺼짐 설정</li>
+      <li><code>wc.best</code> — 끝말잇기 한 판에서 가장 길게 이어간 횟수</li>
+      <li><code>wc.daily</code> — 끝말잇기 오늘의 도전 완료 결과</li>
+      <li><code>wc.progress</code> — 끝말잇기 진행 중인 판의 중간 상태</li>
+      <li><code>wc.level</code> — 끝말잇기에서 고른 난이도</li>
+      <li><code>wc.streak</code> — 끝말잇기 연속 도전 일수(스트릭)</li>
+      <li><code>wc.sound</code> — 끝말잇기 효과음 켜짐/꺼짐 설정</li>
+      <li><code>ms.best.&lt;난이도&gt;</code> — 지뢰찾기 난이도별 최단 완성 시간(초) · 난이도 자리에 <code>easy</code>·<code>normal</code>·<code>hard</code> 가 들어갑니다</li>
+      <li><code>ms.daily</code> — 지뢰찾기 오늘의 도전 완료 결과</li>
+      <li><code>ms.progress</code> — 지뢰찾기 진행 중인 판의 중간 상태</li>
+      <li><code>ms.level</code> — 지뢰찾기에서 고른 난이도</li>
+      <li><code>ms.streak</code> — 지뢰찾기 연속 도전 일수(스트릭)</li>
+      <li><code>ms.sound</code> — 지뢰찾기 효과음 켜짐/꺼짐 설정</li>
       <li><code>ld.sound</code> — 사다리타기 효과음 켜짐/꺼짐 설정</li>
     </ul>
     <p>이 값들은 브라우저의 사이트 데이터 삭제 기능으로 언제든지 직접 지우실 수 있습니다. 삭제하시면 최고 점수와 스트릭 기록도 함께 사라집니다.</p>
+    <h3>탭을 닫으면 사라지는 정보 (sessionStorage)</h3>
+    <p>아래 값은 <strong>지금 열어 둔 탭 안에만</strong> 잠시 남고 <strong>탭을 닫으면 사라집니다</strong>. 역시 운영자에게 전송되지 않으며 운영자가 열람할 수 없습니다. 현재 저장되는 항목은 다음이 전부입니다.</p>
+    <ul>
+      <li><code>ld.p</code> — 사다리타기 판 링크(주소의 <code>#</code> 뒤 부분) · 새로고침해도 같은 판을 다시 열기 위함</li>
+      <li><code>ld.m</code> — 그 사다리 판이 열려 있던 화면 종류(즉석/공유 · 만든 사람인지) · 복원할 때 화면을 그대로 되살리기 위함</li>
+      <li><code>hp.visit</code> — 이 탭에서 방문 수를 이미 한 번 셌다는 표시(값은 <code>1</code>) · 새로고침할 때마다 중복해서 세지 않기 위함</li>
+    </ul>
   </section>
 
   <section>
@@ -182,12 +225,12 @@
     <h3>Data kept on your device only (localStorage)</h3>
     <p>Values needed to keep your records and settings are stored <strong>only in your own browser (localStorage)</strong>. They are never transmitted to the operator and the operator cannot read them. The complete list is:</p>
     <ul>
-      <li><code>bp.best</code> — your best score</li>
-      <li><code>bp.bestPrev</code> — previous best score (used to show a new-record message)</li>
-      <li><code>bp.daily</code> — your completed daily-challenge record (saved when the game ends) and its result</li>
-      <li><code>bp.streak</code> — consecutive-day streak count</li>
-      <li><code>bp.lang</code> — the display language you chose</li>
-      <li><code>bp.sound</code> — sound on/off setting</li>
+      <li><code>bp.lang</code> — the display language you chose — shared across the whole site</li>
+      <li><code>bp.best</code> — your best score in Block Puzzle</li>
+      <li><code>bp.bestPrev</code> — previous best score in Block Puzzle (used to show a new-record message)</li>
+      <li><code>bp.daily</code> — your completed Block Puzzle daily-challenge record (saved when the game ends) and its result</li>
+      <li><code>bp.streak</code> — consecutive-day streak count in Block Puzzle</li>
+      <li><code>bp.sound</code> — Block Puzzle sound on/off setting</li>
       <li><code>g2048.best</code> — your best score in 2048</li>
       <li><code>g2048.daily</code> — your 2048 daily-challenge progress (saved after each move) and its final result</li>
       <li><code>g2048.streak</code> — consecutive-day streak count in 2048</li>
@@ -200,9 +243,52 @@
       <li><code>wd.daily</code> — your Daily Word daily-challenge progress (saved after each guess) and its final result</li>
       <li><code>wd.streak</code> — consecutive-day streak count in Daily Word</li>
       <li><code>wd.sound</code> — Daily Word sound on/off setting</li>
+      <li><code>sh.best</code> — your best score in Shooting</li>
+      <li><code>sh.daily</code> — your completed Shooting daily-challenge result</li>
+      <li><code>sh.streak</code> — consecutive-day streak count in Shooting</li>
+      <li><code>sh.sound</code> — Shooting sound on/off setting</li>
+      <li><code>bb.best</code> — your best score in Brick Breaker</li>
+      <li><code>bb.daily</code> — your completed Brick Breaker daily-challenge result</li>
+      <li><code>bb.streak</code> — consecutive-day streak count in Brick Breaker</li>
+      <li><code>bb.sound</code> — Brick Breaker sound on/off setting</li>
+      <li><code>es.best</code> — your best score in Estimate</li>
+      <li><code>es.daily</code> — your completed Estimate daily-challenge result</li>
+      <li><code>es.streak</code> — consecutive-day streak count in Estimate</li>
+      <li><code>es.sound</code> — Estimate sound on/off setting</li>
+      <li><code>sd.best</code> — your fastest Sudoku time (in seconds) per board size and difficulty</li>
+      <li><code>sd.daily</code> — your completed Sudoku daily-challenge result</li>
+      <li><code>sd.progress</code> — the in-progress Sudoku board (daily challenge and free play)</li>
+      <li><code>sd.pref</code> — the Sudoku board size and difficulty you chose</li>
+      <li><code>sd.streak</code> — consecutive-day streak count in Sudoku</li>
+      <li><code>sd.sound</code> — Sudoku sound on/off setting</li>
+      <li><code>nq.best</code> — most correct answers in a single Nonsense Quiz round</li>
+      <li><code>nq.daily</code> — your completed Nonsense Quiz daily-challenge result</li>
+      <li><code>nq.progress</code> — the in-progress Nonsense Quiz round</li>
+      <li><code>nq.seen</code> — ids of Nonsense Quiz questions shown recently (so the same ones do not keep coming back)</li>
+      <li><code>nq.streak</code> — consecutive-day streak count in Nonsense Quiz</li>
+      <li><code>nq.sound</code> — Nonsense Quiz sound on/off setting</li>
+      <li><code>wc.best</code> — the longest chain you reached in a Word Chain round</li>
+      <li><code>wc.daily</code> — your completed Word Chain daily-challenge result</li>
+      <li><code>wc.progress</code> — the in-progress Word Chain round</li>
+      <li><code>wc.level</code> — the Word Chain difficulty you chose</li>
+      <li><code>wc.streak</code> — consecutive-day streak count in Word Chain</li>
+      <li><code>wc.sound</code> — Word Chain sound on/off setting</li>
+      <li><code>ms.best.&lt;difficulty&gt;</code> — your fastest Minesweeper time (in seconds) per difficulty · the placeholder is <code>easy</code>, <code>normal</code> or <code>hard</code></li>
+      <li><code>ms.daily</code> — your completed Minesweeper daily-challenge result</li>
+      <li><code>ms.progress</code> — the in-progress Minesweeper board</li>
+      <li><code>ms.level</code> — the Minesweeper difficulty you chose</li>
+      <li><code>ms.streak</code> — consecutive-day streak count in Minesweeper</li>
+      <li><code>ms.sound</code> — Minesweeper sound on/off setting</li>
       <li><code>ld.sound</code> — Ladder sound on/off setting</li>
     </ul>
     <p>You can erase these at any time by clearing site data in your browser. Doing so also erases your best score and streak.</p>
+    <h3>Data that disappears when you close the tab (sessionStorage)</h3>
+    <p>The values below are kept <strong>only inside the tab you have open</strong> and <strong>disappear when you close it</strong>. They are never transmitted to the operator and the operator cannot read them. The complete list is:</p>
+    <ul>
+      <li><code>ld.p</code> — the Ladder board link (the part after <code>#</code> in the address) · a refresh reopens the same board</li>
+      <li><code>ld.m</code> — which screen that Ladder board was open in (on the spot / share, and whether you were the host) so a refresh restores the same screen</li>
+      <li><code>hp.visit</code> — a marker (value <code>1</code>) that this tab has already been counted once for the visit tally, so a refresh is not counted again</li>
+    </ul>
   </section>
 
   <section>
