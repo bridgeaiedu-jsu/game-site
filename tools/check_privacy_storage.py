@@ -127,7 +127,13 @@ def classify_arg(expr, consts):
 # 본문이 실행되는 script type (HTML 표준 — 그 밖의 type 은 데이터 블록이라 실행되지 않는다)
 JS_MIME = {'text/javascript', 'application/javascript', 'module',
            'text/ecmascript', 'application/ecmascript'}
-ENTITY = {'quot': '"', 'apos': "'", 'amp': '&', 'lt': '<', 'gt': '>', 'nbsp': ' ', '#39': "'", '#34': '"'}
+# 이름 있는 엔티티 — 핸들러 속성값은 이걸 풀어야 진짜 코드가 보인다(&lpar; 같은 것으로 괄호를 숨길 수 있다).
+ENTITY = {'quot': '"', 'apos': "'", 'amp': '&', 'lt': '<', 'gt': '>', 'nbsp': ' ',
+          'lpar': '(', 'rpar': ')', 'lbrack': '[', 'rbrack': ']', 'lbrace': '{', 'rbrace': '}',
+          'comma': ',', 'period': '.', 'semi': ';', 'colon': ':', 'equals': '=', 'sol': '/',
+          'bsol': '\\', 'plus': '+', 'excl': '!', 'quest': '?', 'ast': '*', 'percnt': '%',
+          'commat': '@', 'grave': '`', 'dollar': '$', 'num': '#', 'lowbar': '_', 'minus': '-',
+          'verbar': '|'}
 # '/' 앞에 이 낱말이 오면 나눗셈이 문법 오류다 → 정규식이 확실하다.
 KW_BEFORE_REGEX = {'return', 'typeof', 'instanceof', 'new', 'delete', 'void', 'in', 'of',
                    'case', 'do', 'else', 'yield', 'await', 'throw'}
@@ -324,8 +330,11 @@ def html_scan(src):
                     vs, ve, j = j, k, k
                 attrs[aname] = (vs, ve)
                 if re.match(r'^on[a-z]+$', aname):     # 진짜 이벤트 핸들러만 코드다(data-onclick 은 아니다)
-                    units.append({'kind': 'handler', 's': vs, 'e': ve,
-                                  'text': html_unescape(src[vs:ve]), 'exact_offsets': False})
+                    decoded = html_unescape(src[vs:ve])
+                    units.append({'kind': 'handler', 's': vs, 'e': ve, 'text': decoded,
+                                  'exact_offsets': False,
+                                  # 못 푼 엔티티가 남았으면 이 값이 진짜 무슨 코드인지 단정할 수 없다.
+                                  'undecoded': bool(re.search(r'&[#\w]+;', decoded))})
                 else:
                     noncode.append((vs, ve))
             else:
@@ -340,8 +349,11 @@ def html_scan(src):
             if name == 'script':
                 t = attrs.get('type')
                 tv = src[t[0]:t[1]].strip().lower() if t else None
-                # type 이 없거나 자바스크립트 계열이고 src 가 없을 때만 본문이 실행된다(HTML 표준).
-                if (tv is None or tv in JS_MIME) and 'src' not in attrs:
+                if tv is not None:
+                    tv = html_unescape(tv).split(';')[0].strip()   # MIME 매개변수(; charset=…)는 떼고 본다
+                # type 이 없거나 비었거나 자바스크립트 계열이고 src 가 없을 때만 본문이 실행된다(HTML 표준 —
+                # 빈 type 과 매개변수 붙은 MIME 도 실행된다. 여기를 좁게 보면 실행되는 코드를 놓친다).
+                if (tv is None or tv == '' or tv in JS_MIME) and 'src' not in attrs:
                     units.append({'kind': 'js', 's': body_s, 'e': body_e,
                                   'text': src[body_s:body_e], 'exact_offsets': True})
                 else:
@@ -363,12 +375,90 @@ def _line(src, pos):
     return src.count('\n', 0, pos) + 1
 
 
-def scan_file(src, is_html, rel):
-    """한 파일에서 (호출 판정 목록, 못 믿어 멈춰야 할 사유들) 를 돌려준다.
+# ★후보 수집의 그물 — 저장소 객체 이름이 나오는 자리를 전부 본다(R5).
+OBJ_RE = re.compile(r'(?<![\w$])(localStorage|sessionStorage)(?![\w$])')
+# 이름을 가리는 표기 — 보이면 이름을 단정할 수 없으니 멈춘다.
+ESCAPED_IDENT = re.compile(r'\\u\{?[0-9a-fA-F]')
+DYNAMIC_EXEC = re.compile(r'(?<![\w$.])(eval\s*\(|new\s+Function\s*\()')
+KEY_METHODS = {'setItem', 'getItem', 'removeItem'}
+# 키를 만들지도 읽지도 않는 멤버 — 이것만 '안전하게 무시'한다(그 밖의 멤버는 모른다=정지).
+SAFE_MEMBERS = {'length', 'clear', 'key'}
 
-    호출 판정 = (종류, 위치표시, 인자표현식, 그 자리의 상수표). 종류는 'code' 뿐이며,
-    코드가 아님이 **확실한** 호출은 세지 않고 ignored 로만 남긴다. 확실하지 않으면 stops 에 넣는다
-    (fail-closed — 놓치고 통과시키느니 멈춘다).
+
+def _skip_gap(text, i, end):
+    """공백과 주석을 건너뛴다 — 객체와 '.' 사이에 주석이 끼어도 같은 호출이다."""
+    while i < end:
+        if text[i].isspace():
+            i += 1; continue
+        if text.startswith('//', i):
+            j = text.find('\n', i, end)
+            i = end if j < 0 else j
+            continue
+        if text.startswith('/*', i):
+            j = text.find('*/', i + 2, end)
+            if j < 0:
+                return -1
+            i = j + 2; continue
+        break
+    return i
+
+
+def classify_access(text, i, end):
+    """저장소 객체 이름 **바로 뒤**를 보고 무엇으로 쓰였는지 가른다.
+
+    ('call', 메서드, 인자시작) — 우리가 아는 호출: .setItem( · ?.setItem( · ["setItem"]( · ?.["setItem"](
+    ('safe', 이름)            — 키와 무관한 멤버(length·clear·key)
+    ('unknown', 사유)         — 그 밖의 모든 것. 별칭 대입·인자 전달·낯선 멤버·동적 이름은 여기로 오며
+                                호출자는 이것을 **정지**로 다룬다(모르면 멈춘다).
+    """
+    j = _skip_gap(text, i, end)
+    if j < 0:
+        return ('unknown', '주석이 닫히지 않아 이 자리를 읽지 못했다')
+    if text.startswith('?.', j):
+        j = _skip_gap(text, j + 2, end)
+    elif text[j:j + 1] == '.':
+        j = _skip_gap(text, j + 1, end)
+    elif text[j:j + 1] != '[':
+        return ('unknown', '저장소 객체가 호출이 아닌 자리로 흘러간다(별칭 대입·인자 전달 등) — 뒤를 따라갈 수 없다')
+    if j < 0:
+        return ('unknown', '주석이 닫히지 않아 이 자리를 읽지 못했다')
+    if text[j:j + 1] == '[':
+        k = _skip_gap(text, j + 1, end)
+        if k < 0:
+            return ('unknown', '주석이 닫히지 않아 이 자리를 읽지 못했다')
+        m = re.match(r"""(['"`])([A-Za-z_$][\w$]*)\1""", text[k:end])
+        if not m:
+            return ('unknown', '대괄호 접근의 이름이 문자열 상수가 아니라 무엇을 부르는지 알 수 없다')
+        name = m.group(2)
+        k = _skip_gap(text, k + m.end(), end)
+        if k < 0 or text[k:k + 1] != ']':
+            return ('unknown', '대괄호 접근을 끝까지 읽지 못했다')
+        k = _skip_gap(text, k + 1, end)
+    else:
+        m = re.match(r'[A-Za-z_$][\w$]*', text[j:end])
+        if not m:
+            return ('unknown', '멤버 이름을 읽지 못했다')
+        name = m.group(0)
+        k = _skip_gap(text, j + m.end(), end)
+    if k < 0:
+        return ('unknown', '주석이 닫히지 않아 이 자리를 읽지 못했다')
+    if name in KEY_METHODS:
+        if text[k:k + 1] != '(':
+            return ('unknown', '%s 가 호출되지 않고 값으로 넘어간다 — 어디서 불릴지 알 수 없다' % name)
+        return ('call', name, k + 1)
+    if name in SAFE_MEMBERS:
+        return ('safe', name)
+    return ('unknown', '알 수 없는 멤버 접근(.%s) — 무엇을 하는지 단정할 수 없다' % name)
+
+
+def scan_file(src, is_html, rel):
+    """한 파일에서 (호출 판정 목록, 코드 아님으로 뺀 것, 멈춰야 할 자리) 를 돌려준다.
+
+    ★후보 수집부터 fail-closed 다(R5). 예전에는 `localStorage.setItem(` 이라는 **한 문법**만 후보로
+    모아서, 그 밖의 표기(대괄호 `localStorage["setItem"]` · 옵셔널 체이닝 `localStorage?.setItem` ·
+    별칭 `const LS = localStorage`)는 애초에 보이지도 않았다 — 안 보이는 것은 멈출 수도 없다.
+    이제는 **저장소 객체 이름이 나오는 자리를 전부** 후보로 모으고, 그 뒤가 우리가 아는 호출 모양이
+    아니면(객체가 값으로 흘러가면) 그 자리에서 멈춘다.
     """
     calls, ignored, stops = [], [], []
     if is_html:
@@ -376,45 +466,76 @@ def scan_file(src, is_html, rel):
     else:
         units, noncode, bad = [{'kind': 'js', 's': 0, 'e': len(src), 'text': src,
                                 'exact_offsets': True}], [], []
-    # ★못 읽은 자리가 있다는 사실만으로는 멈추지 않는다 — 그 뒤에 **저장소 호출이 실제로 있을 때만**
-    #   멈춘다(아래 두 규칙). 호출이 없으면 판정에 영향이 없고, 영향 없는 정지는 소음일 뿐이다.
+    # ★못 읽은 자리가 있다는 사실만으로는 멈추지 않는다 — 그 뒤에 **저장소 언급이 실제로 있을 때만**
+    #   멈춘다(아래 규칙들). 언급이 없으면 판정에 영향이 없고, 영향 없는 정지는 소음일 뿐이다.
     html_bad = bad[0] if bad else None
 
     covered = [(u['s'], u['e']) for u in units]
-    for m in CALL_HEAD.finditer(src):                  # 원문에서 후보를 먼저 전수로 모은다
+    for m in OBJ_RE.finditer(src):                     # 원문에서 후보를 먼저 전수로 모은다
         if _in(covered, m.start()):
             continue                                   # 코드 단위 안 — 아래에서 따로 본다
         if _in(noncode, m.start()):
             ignored.append('%s:%d' % (rel, _line(src, m.start())))
             continue
-        stops.append('%s:%d — 코드인지 아닌지 가릴 수 없는 자리의 저장소 호출%s'
+        stops.append('%s:%d — 코드인지 아닌지 가릴 수 없는 자리의 저장소 언급%s'
                      % (rel, _line(src, m.start()),
                         ('(앞 %d행에서 %s)' % (_line(src, html_bad[0]), html_bad[1]))
                         if html_bad and m.start() >= html_bad[0] else ''))
 
     for u in units:
         text = u['text']
+        if u.get('undecoded'):
+            stops.append('%s:%d — 이벤트 핸들러 속성에 풀지 못한 엔티티가 남아 무슨 코드인지 단정할 수 없다'
+                         % (rel, _line(src, u['s'])))
         a, b, first_bad = js_verdicts(text)
+
+        def at(off):
+            """유닛 안 위치를 파일 행 번호로."""
+            return _line(src, u['s']) + (text.count('\n', 0, off) if u['exact_offsets'] else 0)
+
+        def certainly_code(off):
+            ca, cb = not _in(a, off), not _in(b, off)
+            return (ca, cb)
+
+        # ── 이름을 가릴 수 없게 만드는 표기들 — 보이면 멈춘다 ──────────────
+        for m in ESCAPED_IDENT.finditer(text):
+            ca, cb = certainly_code(m.start())
+            if ca and cb:
+                stops.append('%s:%d — 유니코드 이스케이프가 섞인 식별자라 이름을 단정할 수 없다(%s)'
+                             % (rel, at(m.start()), m.group(0)))
+        for m in DYNAMIC_EXEC.finditer(text):
+            ca, cb = certainly_code(m.start())
+            if ca and cb:
+                stops.append('%s:%d — %s 로 만들어 실행하는 코드가 있어 무엇이 실행될지 단정할 수 없다'
+                             % (rel, at(m.start()), m.group(0).strip()))
+
         consts = {}
         for m in CONST_DEF.finditer(text):
             if not _in(a, m.start()) and not _in(b, m.start()):
                 consts[m.group(1)] = m.group(3)
-        for m in CALL_HEAD.finditer(text):
-            line = _line(src, u['s']) + (text.count('\n', 0, m.start()) if u['exact_offsets'] else 0)
-            code_a, code_b = not _in(a, m.start()), not _in(b, m.start())
+
+        for m in OBJ_RE.finditer(text):
+            off, line = m.start(), at(m.start())
+            code_a, code_b = certainly_code(off)
             if code_a != code_b:
                 stops.append('%s:%d — 정규식인지 나눗셈인지에 따라 코드 여부가 갈린다(둘 중 하나로 단정하지 않는다)'
                              % (rel, line))
                 continue
-            if first_bad and m.start() >= first_bad[0]:
-                stops.append('%s:%d — 앞에서 %s 라 이 호출이 코드인지 단정할 수 없다' % (rel, line, first_bad[1]))
+            if first_bad and off >= first_bad[0]:
+                stops.append('%s:%d — 앞에서 %s 라 이 자리가 코드인지 단정할 수 없다' % (rel, line, first_bad[1]))
                 continue
             if not code_a:
                 ignored.append('%s:%d' % (rel, line))
                 continue
-            store = CALL_HEAD.match(text, m.start()).group(1)
-            expr, _end = first_arg(text, m.end())
-            calls.append((store, '%s:%d' % (rel, line), expr, consts))
+            kind = classify_access(text, m.end(), len(text))
+            if kind[0] == 'unknown':
+                stops.append('%s:%d — %s' % (rel, line, kind[1]))
+                continue
+            if kind[0] == 'safe':
+                ignored.append('%s:%d' % (rel, line))
+                continue
+            expr, _end = first_arg(text, kind[2])
+            calls.append((m.group(1), '%s:%d' % (rel, line), expr, consts))
     return calls, ignored, stops
 
 
@@ -752,6 +873,54 @@ def _open_html_comment(work):
     _before_body(work, '<!-- 닫지 않는 주석\n<script>localStorage.setItem("zz.after-open-comment","1");</script>')
 
 
+def _bracket_call(work):
+    _append_stats(work, 'localStorage["setItem"]("zz.bracket", "1");')
+
+
+def _comment_gap_call(work):
+    _append_stats(work, 'localStorage/* 사이 주석 */.setItem("zz.comment-gap", "1");')
+
+
+def _optional_chain_call(work):
+    _append_stats(work, 'localStorage?.setItem("zz.optional", "1");')
+
+
+def _alias_object(work):
+    """저장소 객체를 별칭에 담아 간다 — 뒤를 따라갈 수 없으니 멈춰야 한다."""
+    _append_stats(work, 'const zzLS = localStorage; zzLS.setItem("zz.alias", "1");')
+
+
+def _reflect_apply(work):
+    _append_stats(work, 'Reflect.apply(localStorage.setItem, localStorage, ["zz.reflect", "1"]);')
+
+
+def _escaped_identifier(work):
+    _append_stats(work, 'local' + chr(92) + 'u0053torage.setItem("zz.unicode", "1");')
+
+
+def _eval_string(work):
+    _append_stats(work, 'eval(' + chr(39) + 'localStorage.setItem("zz.eval", "1")' + chr(39) + ');')
+
+
+def _entity_paren_handler(work):
+    _before_body(work, '<button onclick=localStorage.setItem&lpar;&quot;zz.entity-lpar&quot;,'
+                       '&quot;1&quot;&rpar;>x</button>')
+
+
+def _unknown_entity_handler(work):
+    """풀 수 없는 엔티티가 남은 핸들러 — 무슨 코드인지 단정할 수 없으니 멈춰야 한다."""
+    _before_body(work, '<button onclick="localStorage.setItem(&zzunknown;)">x</button>')
+
+
+def _empty_type_script(work):
+    _before_body(work, '<script type="">localStorage.setItem("zz.empty-type","1");</script>')
+
+
+def _mime_param_script(work):
+    _before_body(work, '<script type="text/javascript; charset=utf-8">'
+                       'localStorage.setItem("zz.mime-param","1");</script>')
+
+
 def _hide_list(work):
     p = os.path.join(work, 'privacy', 'index.html')
     s = _read(p)
@@ -793,6 +962,19 @@ CASES = [
     ('안 닫힌 블록 주석 뒤 실호출',    _unterminated_comment, 2, ['uncertain-code']),
     ('안 닫힌 HTML 주석 뒤 실호출',   _open_html_comment,    2, ['uncertain-code']),
     ('태그 안 호출 모양 텍스트',       _call_shaped_in_tag,   2, ['uncertain-code']),
+    # ── R5 · 후보 수집까지 fail-closed(다른 표기의 실행 호출을 보기라도 한다) ──
+    ('대괄호 메서드 호출',            _bracket_call,         1, ['missing-exact']),
+    ('객체와 점 사이 주석',           _comment_gap_call,     1, ['missing-exact']),
+    ('옵셔널 체이닝 호출',            _optional_chain_call,  1, ['missing-exact']),
+    ('빈 type script',             _empty_type_script,    1, ['missing-exact']),
+    ('MIME 매개변수 script',        _mime_param_script,    1, ['missing-exact']),
+    ('엔티티 괄호 핸들러',            _entity_paren_handler, 1, ['missing-exact']),
+    # ── R5 · 따라갈 수 없으면 멈춘다 ──
+    ('별칭 객체 경유',               _alias_object,         2, ['uncertain-code']),
+    ('Reflect.apply 로 넘김',       _reflect_apply,        2, ['uncertain-code']),
+    ('유니코드 이스케이프 식별자',      _escaped_identifier,   2, ['uncertain-code']),
+    ('eval 로 만든 코드',            _eval_string,          2, ['uncertain-code']),
+    ('풀 수 없는 엔티티 핸들러',       _unknown_entity_handler, 2, ['uncertain-code']),
 ]
 
 
