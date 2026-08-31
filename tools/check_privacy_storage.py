@@ -474,6 +474,73 @@ STORAGE_NAMES = ('localStorage', 'sessionStorage')
 # ★코드 자리의 저장소 이름 문자열을 '설명되지 않으면 정지' 로 다룬다(R9 기본값 뒤집기).
 #   자기시험의 meta 변이체가 이 한 줄을 False 로 바꿔 옛 동작(무시)을 되살린다.
 STOP_UNEXPLAINED_STORAGE_STRING = True
+# ★R9 축소안(2026-09-01 · master 승인) — 그 정지 중 **산문**만 좁게 연다.
+#   master 원안은 경계를 '식별자가 될 수 없는 문자(공백·한글·문장부호)' 로 잡았는데,
+#   실측으로 기각됐다: 문장부호를 넣으면 `"localStorage.setItem(...)"` 같은 **간접 eval
+#   payload** 도 이름 뒤가 '.' 이라 '더 긴 산문' 으로 읽혀 함께 열린다 — 오늘 R9 에서
+#   0(샘)→2 로 닫은 누출 경로 그 자체다. 그래서 경계는 **접근·호출 모양을 만들 수 없는
+#   문자** — 공백과 비ASCII(한글 등) — 로만 한정한다. 그 문자들 사이에 놓인 이름은
+#   자바스크립트에서 멤버 이름이 될 수 없음이 구조적으로 성립한다.
+#   ★이 한 줄을 True 로 바꾸면 원안(문장부호 허용)이 되살아난다 — 자기시험 meta 변이체가
+#     '간접 eval payload' 로 그 완화를 잡는다(다음에 같은 완화가 제안돼도 막힌다).
+PROSE_PUNCTUATION_IS_PROSE = False
+# 산문 문자열이라도 이 문자에 물려 있으면 **조립되는 이름**일 수 있다 → 열지 않는다.
+#   `"localStorage 저장".slice(0, 12)` 는 사람이 읽는 문안처럼 생겼지만 잘라 내면 이름이다.
+PROSE_BLOCKING_AFTER = '.+['
+PROSE_BLOCKING_BEFORE = '+'
+
+
+def _prose_boundary_ok(ch):
+    """이름 양옆의 이 글자가 '여기는 산문이다' 를 보증하는가.
+
+    True  — 공백·비ASCII(한글 등). 자바스크립트 접근·호출 모양을 만들 수 없다.
+    False — 그 외 전부(영숫자·_·$ 는 물론 **문장부호도**). '.' 하나면 호출 모양이 된다.
+    None  — 경계가 없다(문자열 끝). 호출자가 반대편 경계로 판단한다."""
+    if ch is None:
+        return None
+    if ch.isspace():
+        return True
+    if ord(ch) > 127:
+        return True
+    if PROSE_PUNCTUATION_IS_PROSE and not (ch.isalnum() or ch in '_$'):
+        return True        # ← master 원안. 실측으로 기각됐다(간접 eval payload 가 함께 열린다).
+    return False
+
+
+def storage_name_is_prose(text, span, s_at, s_end, spans=None):
+    """[span] 문자열 안 [s_at, s_end) 에 놓인 저장소 이름이 **사람에게 보여 줄 문안**인가.
+
+    연다(True) 조건은 셋을 모두 만족할 때뿐이다:
+      ① 문자열이 이름과 **정확히 같지 않다** — `'localStorage'` 단독은 그대로 멤버 이름이
+         될 수 있으므로 종전대로 정지다(여기를 열면 오늘 막은 것이 도로 열린다).
+      ② 이름 양옆이 공백·비ASCII 다 — 한쪽이 문자열 끝이면 남은 쪽만 본다. 양쪽이 다
+         끝이면 그것은 ①의 정확 일치이므로 여기 오지 않는다.
+      ③ 그 문자열이 **문자열 연산에 물려 있지 않다** — 앞뒤의 '.', '+', '[' 와 치환
+         템플릿(`${…}`)은 이름을 조립하는 길이므로 닫는다."""
+    if not span:
+        return False
+    q = text[span[0]:span[0] + 1]
+    body0, body1 = span[0] + 1, span[1] - 1
+    if body0 > s_at or s_end > body1:
+        return False                                  # 이름이 따옴표 밖에 걸쳐 있다 — 모른다
+    if body0 == s_at and s_end == body1:
+        return False                                  # ① 정확 일치 단독 문자열 → 정지 유지
+    if q == '`' and '${' in text[body0:body1]:
+        return False                                  # 치환 템플릿은 조립이다
+    left = text[s_at - 1] if s_at > body0 else None
+    right = text[s_end] if s_end < body1 else None
+    lok, rok = _prose_boundary_ok(left), _prose_boundary_ok(right)
+    if lok is False or rok is False:
+        return False                                  # ② 한쪽이라도 코드 모양이면 닫는다
+    if lok is None and rok is None:
+        return False
+    b = _skip_gap_back(text, span[0], 0, spans)       # ③ 문자열 연산에 물렸나
+    if b > 0 and text[b - 1] in PROSE_BLOCKING_BEFORE:
+        return False
+    a = _skip_gap(text, span[1], len(text))
+    if a >= 0 and text[a:a + 1] and text[a] in PROSE_BLOCKING_AFTER:
+        return False
+    return True
 # 여는 대괄호 앞에 이 문자가 있으면 **수신자 표현이 끝난 자리**라 그 대괄호는 멤버 첨자다.
 # (없으면 배열 리터럴이다 — `= ["localStorage"]` 의 대괄호는 첨자가 아니다.)
 RECEIVER_END = '_$)]\'"`'          # (옛 이름 — 아래 표들이 이 역할을 이어받는다)
@@ -979,6 +1046,12 @@ def scan_file(src, is_html, rel):
                     #     · 주석·정규식(실행되지 않는 글자)     · 배열 리터럴 원소(데이터 확인)
                     #     · 대괄호 첨자(멤버 이름 → 아래 경로) · 상수 정의(consts 로 추적한다)
                     if not STOP_UNEXPLAINED_STORAGE_STRING:
+                        ignored.append('%s:%d' % (rel, line))
+                        continue
+                    # ★R9 축소안 — 이름 양옆이 공백·비ASCII 라 **멤버 이름이 될 수 없는**
+                    #   산문만 연다(master 승인). 정확 일치 단독 문자열과 문자열 연산에
+                    #   물린 자리는 여기서 열리지 않는다 — 아래 정지로 그대로 내려간다.
+                    if storage_name_is_prose(text, span, off, m.end(), a):
                         ignored.append('%s:%d' % (rel, line))
                         continue
                     stops.append('%s:%d — 코드 자리에 저장소 이름 문자열이 있는데 그것이 저장과 '
@@ -1560,6 +1633,29 @@ def _string_data_word(work):
     _append_stats(work, 'const zzMsg = "localStorage 에 저장합니다";')
 
 
+def _prose_between_hangul(work):
+    """양옆이 한글인 낱말 — 접근·호출 모양이 될 수 없으니 산문이다."""
+    _append_stats(work, 'const zzMsg2 = "저장은 localStorage 를 씁니다";')
+
+
+def _exact_name_string_alone(work):
+    """★짝 ⓐ — 정확히 이름 하나뿐인 문자열은 **그대로 멤버 이름이 될 수 있다**.
+    여기를 열면 Reflect.get(window, K) 계열이 통째로 도로 열린다 — 종전대로 정지다."""
+    _append_stats(work, 'const zzExact = "localStorage"; void zzExact;')
+
+
+def _prose_sliced_into_name(work):
+    """★짝 ⓑ — 산문처럼 생겼어도 잘라 내면 이름이 된다(실제로 저장된다).
+    계산형 첨자 훑기가 닿지 않는 자리라(Reflect.get) **문자열 연산 가드만이** 이걸 막는다."""
+    _append_stats(work, 'const zzCut = "localStorage 저장".slice(0, 12); '
+                        'Reflect.get(window, zzCut).setItem("zz.cut", "1");')
+
+
+def _prose_template_substitution(work):
+    """치환이 든 템플릿은 조립이다 — 글자 그대로 읽어 산문으로 봐주지 않는다."""
+    _append_stats(work, 'const zzT = `localStorage ${zzN}건`; void zzT;')
+
+
 def _nullish_alias(work):
     """?? 는 왼쪽이 null/undefined 가 아니면 저장소 객체를 그대로 내놓는다 — 존재 확인이 아니다."""
     _append_stats(work, 'const zzS = window.localStorage ?? {}; zzS.setItem("zz.nullish", "1");')
@@ -1656,9 +1752,17 @@ CASES = [
     # ── R6 · 막지 말아야 할 정상 패턴(오탐 회귀 방지) ──
     ('window.localStorage 점표기',  _dot_window_call,           1, ['missing-exact']),
     ('단락 평가(&&) 뒤 실호출',       _short_circuit_guard,       1, ['missing-exact']),
-    # ★R9 계약 변경 — 사람에게 보여 줄 문안이어도 코드 자리의 문자열이면 멈춘다.
-    #   (열어 줄지 여부는 master 판단 사항으로 보고했다 — 애매하면 닫아 두고 묻는다.)
-    ('첨자 아닌 문자열 속 낱말',       _string_data_word,          2, ['uncertain-code']),
+    # ★R9 축소안(2026-09-01 · master 승인) — 그 정지 중 **산문만** 좁게 연다.
+    #   경계는 '식별자가 될 수 없는 문자'가 아니라 **접근·호출 모양을 만들 수 없는 문자**
+    #   (공백·비ASCII)다. 문장부호까지 넣으면 간접 eval payload 가 함께 열린다(실측).
+    #   ★이 완화의 경계를 못박는 짝 케이스는 넷이다 — ⓐ정확 일치 단독 · ⓑ산문을 잘라
+    #     이름으로 · window["localStorage"] 첨자(아래 '전역 수신자 첨자 · window') ·
+    #     간접 eval payload(아래 R9 추가 목록). 넷 다 여전히 열리지 않아야 한다.
+    ('첨자 아닌 문자열 속 낱말',       _string_data_word,          0, []),
+    ('한글 사이에 놓인 낱말',          _prose_between_hangul,      0, []),
+    ('정확 일치 단독 문자열(짝)',      _exact_name_string_alone,   2, ['uncertain-code']),
+    ('산문을 잘라 이름으로(짝)',       _prose_sliced_into_name,    2, ['uncertain-code']),
+    ('치환 템플릿 속 낱말(짝)',        _prose_template_substitution, 2, ['uncertain-code']),
     ('배열 원소로 놓인 문자열',        _array_element_word,        0, []),
     # ── R7 · 별칭이 되는 자리와 계산형 이름(codex R6 표본) ──
     ('?? 로 꺼내 담기',              _nullish_alias,        2, ['uncertain-code']),
@@ -1737,6 +1841,15 @@ META = [
      "'default', 'export', " + "'extends', 'as', 'from'}", "'extends', 'as', 'from'}", 2),
     ('meta:중첩 전역 첨자 훑기 제거', '배열에 담았다 꺼내기(중첩)',
      "        for gm in GLOBAL_SUBSCRIPT_OPEN" + '.finditer(text):', '        for gm in ():', 0),
+    # ── R9 축소안 · 산문을 여는 경계를 **하나씩 홀로** 넓혀 본다 ──
+    # ★첫째는 master 원안(문장부호도 산문 경계로 인정) 그 자체다. 이걸 켜면 간접 eval
+    #   payload 가 함께 열린다 — 다음에 같은 완화가 제안돼도 이 변이체가 막는다.
+    ("meta:산문 경계에 문장부호 허용(master 원안)", '간접 eval payload',
+     'PROSE_PUNCTUATION_IS_PROSE' + ' = False', 'PROSE_PUNCTUATION_IS_PROSE = True', 0),
+    # ★둘째는 문자열 연산 가드다. 짝은 '산문을 잘라 이름으로' 여야 한다 — 상수 slice 경유
+    #   (계산형 첨자)는 다른 방어가 따로 잡아 주므로 이 가드의 짝으로는 공허하다(실측).
+    ('meta:산문 문자열 연산 가드 제거', '산문을 잘라 이름으로(짝)',
+     'PROSE_BLOCKING_AFTER = ' + "'.+['", "PROSE_BLOCKING_AFTER = ''", 0),
     ('meta:제어문 머리 판정 제거', 'if 머리 뒤 배열 리터럴',
      "        head = _is_control_head_paren" + '(text, r - 1, start, spans)',
      '        head = False', 2),
