@@ -68,6 +68,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import vm from 'vm';
+import nodeModule from 'module';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { spawnSync } from 'child_process';
 
@@ -98,6 +99,29 @@ const UNPARSEABLE = new Set(['.ts', '.mts', '.cts', '.tsx', '.jsx']);
 const DATA = new Set(['.wasm', '.html', '.htm', '.txt', '.bin']);
 const RESOLVE_EXT = ['.js', '.mjs', '.cjs', '.ts', '.mts', '.tsx', '.jsx'];
 const BUILTIN_PREFIX = ['node:', 'cloudflare:'];
+
+/* ★런타임 모듈은 **Node 에게 직접 묻는다**(2026-09-01 · codex R8 + master 설계).
+   추측도 목록도 필요 없다. 다만 두 단으로 나눈다 — 이 순서가 안전의 핵심이다:
+     (1) 실재 판정은 **실행 없이** module.isBuiltin(spec) 로 한다. 목록 조회일 뿐이다.
+     (2) export 이름 대조는 (1)을 통과한 것에만 동적 import 를 허용한다. 즉 **런타임이
+         스스로 내장이라고 인정한 specifier 만** import 대상이 된다 — 저장소 코드에서 온
+         문자열이 곧바로 import 에 도달하는 경로를 원천 차단한다.
+   ★정직성 고지: 여기서 판정하는 것은 '**이 Node 에 실재하는가**' 이지
+     '**Cloudflare Workers(workerd)에서 지원되는가**' 가 아니다. 예컨대 node:crypto 는
+     호환 날짜 2026-08-04 이후에야 기본 지원된다. 그 차이는 이 도구가 메울 수 없다. */
+const isBuiltinSpec = (spec) => {
+  try { return nodeModule.isBuiltin(spec); } catch { return false; }
+};
+const _nsCache = new Map();
+async function builtinNamespace(spec) {
+  /* (2) — isBuiltin 이 true 라고 인정한 specifier 에만 도달한다. */
+  if (_nsCache.has(spec)) return _nsCache.get(spec);
+  let out = null;
+  try { out = Object.keys(await import(spec)); }
+  catch { out = null; }                    /* 이름을 못 얻으면 '모른다'(정지)로 다룬다 */
+  _nsCache.set(spec, out);
+  return out;
+}
 /* 런타임 모듈(node:·cloudflare:)이 무슨 이름을 내보내는지는 이 도구가 알 길이 없다 —
    그것은 workerd 의 버전에 매인 사실이지 이 저장소의 사실이 아니다. 저장소가 버전 결박
    manifest 를 두면 그것으로 대조하고, 없으면 named binding 검사를 판정 불가로 올린다.
@@ -351,7 +375,18 @@ async function run(scanRoot) {
     const kinds = new Map();
     const missing = [], bare = [], unknown = [];
     for (const sp of specs) {
-      if (BUILTIN_PREFIX.some(p => sp.startsWith(p))) { kinds.set(sp, { kind: 'builtin' }); continue; }
+      if (BUILTIN_PREFIX.some(p => sp.startsWith(p))) {
+        /* ★'node:' 로 시작한다고 실재하는 것이 아니다 — node:totally-fake-xyz 는 배포되면
+           깨지는데 R8 까지는 게이트가 통과시켰다(내 실측: Node 는 rc=1 로 실패한다).
+           이 Node 가 아는 접두(node:)는 실재를 단정할 수 있고, 모르는 접두(cloudflare:)는
+           단정하지 못한다 — 후자는 아래 link 단계에서 판정 불가로 다룬다. */
+        const known = isBuiltinSpec(sp);
+        kinds.set(sp, { kind: 'builtin', known });
+        if (!known && sp.startsWith('node:')) {
+          missing.push(sp + ` (${rel(f)}:${lineOf(s, sp)} · 이 Node 에 그런 내장 모듈이 없다)`);
+        }
+        continue;
+      }
       if (!(sp.startsWith('./') || sp.startsWith('../') || sp.startsWith('/'))) { bare.push(sp); continue; }
       const base = path.resolve(path.dirname(f), sp);
       let target = fs.existsSync(base) && fs.statSync(base).isFile() ? base : null;
@@ -375,6 +410,17 @@ async function run(scanRoot) {
     } else P('module-type', nmType);
   }
 
+  /* ★(2)단 — 이 Node 가 **스스로 내장이라고 인정한** specifier 만 골라 이름을 물어본다.
+     저장소 코드에서 온 문자열이 곧바로 import 에 도달하지 않게 하는 것이 이 필터의 목적이다.
+     얻지 못하면 null 로 두고 '모른다'(판정 불가)로 다룬다 — 통과로 세지 않는다. */
+  const builtinNames = new Map();
+  for (const kinds of specKind.values()) {
+    for (const [sp, v] of kinds) {
+      if (v.kind !== 'builtin' || !v.known || builtinNames.has(sp)) continue;
+      builtinNames.set(sp, await builtinNamespace(sp));
+    }
+  }
+
   /* ── 링크 도우미 ──────────────────────────────────────────────────────
      런타임 모듈(node:·cloudflare:)과 데이터 모듈(.wasm·.html·.bin)은 디스크에서 찾지 않고
      합성 모듈로 세운다. 내보내는 이름은 링커가 스스로 알려 준다 — 'does not provide an export
@@ -390,10 +436,19 @@ async function run(scanRoot) {
        (https://developers.cloudflare.com/pages/functions/module-support/). */
     if (DATA.has(ext)) return { kind: 'data-named' };
     if (!BUILTIN_PREFIX.some(p => spec.startsWith(p))) return { kind: 'foreign' };
+    /* ★이 Node 가 아는 내장 모듈이면 **런타임이 정본**이다 — manifest 를 보지 않는다.
+       R8 은 manifest 를 먼저 봤고, 그래서 목록에 가짜 이름을 적어 두면 게이트가 통과시키는
+       뒷문이 있었다(내 실측: gate rc=0 · Node rc=1). 경고 문구는 방벽이 아니다. */
+    if (builtinNames && builtinNames.has(spec)) {
+      const names = builtinNames.get(spec);
+      if (names === null) return { kind: 'builtin-unverified', why: spec + ' 의 export 이름을 런타임에서 얻지 못했다' };
+      return names.includes(name) ? { kind: 'ok' }
+                                  : { kind: 'builtin-missing', why: '이 Node 의 ' + spec + ' export 목록' };
+    }
     const R = runtimeExports();
     const man = R.map[spec];
-    /* 방어B — 버전 결박 manifest 가 없으면 '내보낸다/안 내보낸다' 를 말할 수 없다.
-       ★왜 대조할 수 없는지(파일이 없다 / 못 읽었다 / 그 모듈 항목이 없다)를 구분해 싣는다. */
+    /* 여기 오는 것은 **이 Node 로 확인할 수 없는 접두**(cloudflare: 등)뿐이다.
+       그때만 버전 결박 manifest 가 의미를 갖고, 없으면 판정 불가다. */
     const noList = R.why || (R.src + ' 에 ' + spec + ' 항목이 배열로 적혀 있지 않다');
     if (!Array.isArray(man)) return { kind: 'builtin-unverified', why: noList };
     if (!man.includes(name)) return { kind: 'builtin-missing', why: R.src + ' 의 ' + spec + ' 목록' };
@@ -569,10 +624,21 @@ const FIXTURES = {
   /* ★R7 계약 변경 — 예전 기대는 rc=0 이었다. 런타임 모듈 import 를 '막지 않는다' 는 것과
      '그 모듈이 요구된 이름을 내보낸다고 가정한다' 는 다른 이야기다. 대조할 manifest 가
      없으면 named binding 은 판정 불가다(부수효과·default import 는 그대로 통과한다). */
-  'node-builtin-named': ['node: 런타임 모듈의 named import — 대조 수단이 없어 판정 불가',
-    st => prependF(st, 'functions/api/hit.js', "import { randomUUID as zzR } from 'node:crypto';\n"), 2, ['link']],
-  'cloudflare-builtin-named': ['cloudflare: 런타임 모듈의 named import — 대조 수단이 없어 판정 불가',
+  /* ★R9 계약 변경 — node: 는 이제 **Node 가 정본**이다(module.isBuiltin + 네임스페이스 키).
+     R8 은 대조 수단이 없다며 판정 불가를 냈지만, 지금은 실재하는 이름이면 통과한다.
+     추측이 아니라 런타임에게 물어 확인한 통과다. */
+  'node-builtin-named': ['node: 의 실재하는 named import — 런타임이 확인해 주므로 통과',
+    st => prependF(st, 'functions/api/hit.js', "import { randomUUID as zzR } from 'node:crypto';\n"), 0, []],
+  'cloudflare-builtin-named': ['cloudflare: 는 이 Node 로 확인할 수 없다 — 판정 불가',
     st => prependF(st, 'functions/api/hit.js', "import { DurableObject as zzD } from 'cloudflare:workers';\n"), 2, ['link']],
+  /* ★R9 — 존재하지 않는 런타임 모듈. R8 까지는 세 형태 중 둘이 rc=0 으로 샜다
+     (내 실측: Node 는 셋 다 rc=1 로 실패한다 = 배포되면 깨지는 코드였다). */
+  'node-missing-sideeffect': ['없는 node: 모듈 · 부수효과 import — R8 은 rc=0 이었다',
+    st => prependF(st, 'functions/api/hit.js', "import 'node:totally-fake-xyz';\n"), 2, ['import-path']],
+  'node-missing-default': ['없는 node: 모듈 · default import — R8 은 rc=0 이었다',
+    st => prependF(st, 'functions/api/hit.js', "import zzF from 'node:totally-fake-xyz';\n"), 2, ['import-path']],
+  'node-missing-named': ['없는 node: 모듈 · named import',
+    st => prependF(st, 'functions/api/hit.js', "import { zzN } from 'node:totally-fake-xyz';\n"), 2, ['import-path']],
   'node-builtin-sideeffect': ['부수효과만 들이는 런타임 모듈 import 는 막지 않는다',
     st => prependF(st, 'functions/api/hit.js', "import 'node:crypto';\n"), 0, []],
   'node-builtin-default': ['런타임 모듈의 default import 는 막지 않는다',
@@ -591,17 +657,26 @@ const FIXTURES = {
      (2026-08-31 실측: runtimeExports() 가 run() 지역 상수 rel 을 불러 ReferenceError 가
       catch 로 떨어졌고 map 이 {} 로 굳어 manifest 를 무엇으로 두든 판정 불가였다).
      규칙을 바꾸면 자기시험의 범위도 함께 넓힌다 — 위 'node-builtin-named' 가 (c) manifest 無 다. */
+  /* ★R9 — manifest 의 사정거리가 줄었다. node: 는 Node 가 정본이라 manifest 를 보지 않는다
+     (R8 에는 목록에 가짜 이름을 적으면 통과하는 뒷문이 있었다 — 경고는 방벽이 아니다).
+     이제 manifest 는 **이 Node 로 확인할 수 없는 접두**(cloudflare: 등)에만 유효하므로
+     시험도 그쪽으로 옮긴다. 옛 자리에 두면 시험이 아무것도 재지 않는다. */
   'runtime-manifest-allows': ['(a) manifest 有 + 목록에 있는 이름 → 통과해야 한다(탈출구)',
-    st => { writeF(st, 'tools/runtime-module-exports.json', '{"node:crypto": ["randomUUID"]}');
-            prependF(st, 'functions/api/hit.js', "import { randomUUID as zzR } from 'node:crypto';\n"); },
+    st => { writeF(st, 'tools/runtime-module-exports.json', '{"cloudflare:workers": ["DurableObject"]}');
+            prependF(st, 'functions/api/hit.js', "import { DurableObject as zzD } from 'cloudflare:workers';\n"); },
     0, []],
   'runtime-manifest-rejects': ['(b) manifest 有 + 목록에 없는 이름 → 미달이어야 한다',
-    st => { writeF(st, 'tools/runtime-module-exports.json', '{"node:crypto": ["randomUUID"]}');
-            prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from 'node:crypto';\n"); },
+    st => { writeF(st, 'tools/runtime-module-exports.json', '{"cloudflare:workers": ["DurableObject"]}');
+            prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from 'cloudflare:workers';\n"); },
     2, ['link']],
   'runtime-manifest-broken': ['(d) manifest 가 깨진 JSON → 판정 불가로 멈춘다(조용히 무시하지 않는다)',
     st => { writeF(st, 'tools/runtime-module-exports.json', '{ this is not json');
-            prependF(st, 'functions/api/hit.js', "import { randomUUID as zzR } from 'node:crypto';\n"); },
+            prependF(st, 'functions/api/hit.js', "import { DurableObject as zzD } from 'cloudflare:workers';\n"); },
+    2, ['link']],
+  /* ★뒷문 재현 — node: 목록에 가짜 이름을 적어도 이제는 Node 가 아니라고 말한다. */
+  'runtime-manifest-backdoor': ['node: manifest 에 가짜 이름 → Node 가 정본이라 막힌다(R8 뒷문)',
+    st => { writeF(st, 'tools/runtime-module-exports.json', '{"node:crypto": ["definitelyNotAnExport"]}');
+            prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from 'node:crypto';\n"); },
     2, ['link']],
   'pages-text-module': ['Pages 가 지원하는 text 모듈 import 를 막지 않는다(R1 오탐)',
     st => { writeF(st, 'functions/message.html', '<strong>hello</strong>\n');
@@ -672,15 +747,25 @@ function selftest() {
       ['meta:데이터 모듈 default-only 방어 제거', 'pages-text-named-export',
        "    if (DATA.has(ext)) return { kind: " + "'data-named' };",
        "    if (DATA.has(ext)) return { kind: 'ok' };"],
-      ['meta:런타임 모듈 manifest 방어 제거', 'node-unknown-export',
+      ['meta:런타임 모듈 manifest 방어 제거', 'runtime-manifest-broken',
        "    if (!Array.isArray(man)) return { kind: " + "'builtin-unverified', why: noList };",
        "    if (!Array.isArray(man)) return { kind: 'ok' };"],
+      /* ★R9 · Node 에게 묻는 두 단을 각각 홀로 지워 본다. */
+      ['meta:isBuiltin 실재 판정 제거', 'node-missing-sideeffect',
+       "  try { return nodeModule.isBuiltin(spec); } catch " + '{ return false; }',
+       '  return true;'],
+      /* '런타임 이름 대조' 변이체는 node-unknown-export 로는 격리되지 않는다 — 방어를
+         지워도 manifest 부재가 대신 막아 rc 가 그대로다. 같은 앵커를 격리되는 픽스처
+         (runtime-manifest-backdoor)로 아래에서 재고 있으므로 중복을 둔다. */
       /* ★탈출구 배선 자체가 살아 있는가 — manifest 를 읽는 경로를 끈으면 (a) 가 다시
          판정 불가로 떨어져야 한다. 그러지 않으면 (a) 의 통과는 manifest 와 무관한 일이다.
          (83fc4b4 이 정확히 그 상태였다 — 배선이 끊겼는데 자기시험 20항목이 전부 PASS 였다.) */
       ['meta:탈출구 배선 끊기', 'runtime-manifest-allows',
        "const RUNTIME_EXPORTS_REL = " + "'tools/runtime-module-exports.json';",
        "const RUNTIME_EXPORTS_REL = 'tools/__nonexistent__.json';", 2],
+      ['meta:node manifest 무시 되돌리기', 'runtime-manifest-backdoor',
+       "    if (builtinNames && builtinNames.has" + '(spec)) {',
+       '    if (false) {'],
       /* ★탈출구 쪽 방어도 홀로 지워 본다 — 목록에 없는 이름을 미달로 잡던 줄을 지우면
          manifest 를 두고도 아무 이름이나 통과하게 된다(탈출구가 뒷문이 되는 경로). */
       ['meta:manifest 목록 대조 제거', 'runtime-manifest-rejects',
