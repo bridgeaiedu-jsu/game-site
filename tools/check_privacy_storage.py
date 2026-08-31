@@ -474,73 +474,84 @@ STORAGE_NAMES = ('localStorage', 'sessionStorage')
 # ★코드 자리의 저장소 이름 문자열을 '설명되지 않으면 정지' 로 다룬다(R9 기본값 뒤집기).
 #   자기시험의 meta 변이체가 이 한 줄을 False 로 바꿔 옛 동작(무시)을 되살린다.
 STOP_UNEXPLAINED_STORAGE_STRING = True
-# ★R9 축소안(2026-09-01 · master 승인) — 그 정지 중 **산문**만 좁게 연다.
-#   master 원안은 경계를 '식별자가 될 수 없는 문자(공백·한글·문장부호)' 로 잡았는데,
-#   실측으로 기각됐다: 문장부호를 넣으면 `"localStorage.setItem(...)"` 같은 **간접 eval
-#   payload** 도 이름 뒤가 '.' 이라 '더 긴 산문' 으로 읽혀 함께 열린다 — 오늘 R9 에서
-#   0(샘)→2 로 닫은 누출 경로 그 자체다. 그래서 경계는 **접근·호출 모양을 만들 수 없는
-#   문자** — 공백과 비ASCII(한글 등) — 로만 한정한다. 그 문자들 사이에 놓인 이름은
-#   자바스크립트에서 멤버 이름이 될 수 없음이 구조적으로 성립한다.
-#   ★이 한 줄을 True 로 바꾸면 원안(문장부호 허용)이 되살아난다 — 자기시험 meta 변이체가
-#     '간접 eval payload' 로 그 완화를 잡는다(다음에 같은 완화가 제안돼도 막힌다).
-PROSE_PUNCTUATION_IS_PROSE = False
-# 산문 문자열이라도 이 문자에 물려 있으면 **조립되는 이름**일 수 있다 → 열지 않는다.
-#   `"localStorage 저장".slice(0, 12)` 는 사람이 읽는 문안처럼 생겼지만 잘라 내면 이름이다.
+# ★R10 축 교체(2026-09-01 · worker-3 REVISE + master 실측) — 산문 판별의 축을 바꾼다.
+#   R9 는 '이름 양옆에 무슨 문자가 있는가'로 갈랐다. 그 축은 두 번 틀렸다:
+#     ① 문장부호를 경계로 인정하면 간접 eval payload 가 함께 열린다(R9 에서 기각).
+#     ② 공백·비ASCII 만 남겨도 **여전히 샌다** — JS 는 식별자와 '.'·'[' 사이의 공백류를
+#        허용하기 때문이다. `"localStorage .setItem('k','v')"` 는 R9 에서 rc=0 이었고
+#        Node 에서 실제로 저장됐다(줄바꿈·탭·NBSP·전각공백·BOM·대괄호까지 9종 실측).
+#   그래서 이제 **'이름 뒤에 접근·호출 모양이 오는가'** 와 **'문자열 어딘가에 코드 모양이
+#   있는가'** 로 묻는다. 문자 목록을 다시 손보는 길로 돌아가지 마라 — 두 번 다 그 길에서 샜다.
+JS_SPACE_EXTRA = '\ufeff'          # JS 는 BOM 도 공백류로 읽는다(파이썬 isspace 는 아니다)
+# 이름 뒤가(공백류를 건너뛰고) 이 글자면 **접근·대입**이다 — 산문이 아니다.
+PROSE_ACCESS_AFTER = '.[(='
+# 이름 앞이(공백류를 건너뛰고) 이 글자면 이름이 **멤버·대입 대상 자리**에 있다.
+PROSE_ACCESS_BEFORE = '.[='
+# 문자열 어딘가에 이 모양이 있으면 그 문자열은 산문이 아니라 **코드**다.
+#   `localStorage, sessionStorage 를 씁니다` 와 `(function(s){s.setItem(…)})(localStorage, 0)`
+#   는 이름 옆 글자가 똑같이 ',' 다 — 글자로는 못 가른다. 문자열 전체를 봐야 갈린다.
+PROSE_CODE_SHAPES = (
+    ('호출 모양', re.compile(r'[A-Za-z_$][\w$]*\s*\(')),
+    ('점 접근',   re.compile(r'\.\s*[A-Za-z_$]')),
+    ('문자열 첨자', re.compile(r'\[\s*[\'"`]')),
+    ('화살표 함수', re.compile(r'=>')),
+    ('치환 템플릿', re.compile(r'\$\{')),
+)
+# 문자열이 이 연산에 물려 있으면 **이름으로 조립**될 수 있다(잘라 쓰기·이어붙이기).
 PROSE_BLOCKING_AFTER = '.+['
 PROSE_BLOCKING_BEFORE = '+'
 
 
-def _prose_boundary_ok(ch):
-    """이름 양옆의 이 글자가 '여기는 산문이다' 를 보증하는가.
+def _js_space(ch):
+    return ch.isspace() or ch in JS_SPACE_EXTRA
 
-    True  — 공백·비ASCII(한글 등). 자바스크립트 접근·호출 모양을 만들 수 없다.
-    False — 그 외 전부(영숫자·_·$ 는 물론 **문장부호도**). '.' 하나면 호출 모양이 된다.
-    None  — 경계가 없다(문자열 끝). 호출자가 반대편 경계로 판단한다."""
-    if ch is None:
-        return None
-    if ch.isspace():
-        return True
-    if ord(ch) > 127:
-        return True
-    if PROSE_PUNCTUATION_IS_PROSE and not (ch.isalnum() or ch in '_$'):
-        return True        # ← master 원안. 실측으로 기각됐다(간접 eval payload 가 함께 열린다).
-    return False
+
+def _skip_js_space(body, i, step):
+    """문자열 **안**에서 JS 공백류를 건너뛴다 — JS 가 식별자와 '.' 사이에 허용하는 그 공백이다."""
+    while 0 <= i < len(body) and _js_space(body[i]):
+        i += step
+    return i
 
 
 def storage_name_is_prose(text, span, s_at, s_end, spans=None):
-    """[span] 문자열 안 [s_at, s_end) 에 놓인 저장소 이름이 **사람에게 보여 줄 문안**인가.
+    """[span] 문자열 안 [s_at, s_end) 의 저장소 이름이 **사람에게 보여 줄 문안**인가.
 
-    연다(True) 조건은 셋을 모두 만족할 때뿐이다:
-      ① 문자열이 이름과 **정확히 같지 않다** — `'localStorage'` 단독은 그대로 멤버 이름이
-         될 수 있으므로 종전대로 정지다(여기를 열면 오늘 막은 것이 도로 열린다).
-      ② 이름 양옆이 공백·비ASCII 다 — 한쪽이 문자열 끝이면 남은 쪽만 본다. 양쪽이 다
-         끝이면 그것은 ①의 정확 일치이므로 여기 오지 않는다.
-      ③ 그 문자열이 **문자열 연산에 물려 있지 않다** — 앞뒤의 '.', '+', '[' 와 치환
-         템플릿(`${…}`)은 이름을 조립하는 길이므로 닫는다."""
+    산문이라고 말할 수 있는 것은 아래 여섯 가지가 **모두** 아닐 때뿐이다. 하나라도 걸리면
+    닫는다(정지). 각 항목에는 그 항목만 홀로 책임지는 자기시험 짝이 있다.
+      ① 문자열이 이름과 정확히 같다 — 그대로 멤버 이름이 된다(Reflect.get(window, K)).
+      ② 이름 뒤에(공백류를 건너뛰고) '.' '[' '(' '=' 가 온다 — 접근·대입이다.
+         ★공백류를 건너뛰는 것이 이번 라운드의 핵심이다. JS 가 그 공백을 허용한다.
+      ③ 이름 앞에(공백류를 건너뛰고) '.' '[' '=' 가 온다 — 멤버·대입 대상 자리다.
+      ④ 문자열 어딘가에 코드 모양(호출·점 접근·문자열 첨자·화살표·치환)이 있다.
+      ⑤ 문자열이 문자열 연산에 물려 있다(앞 '+' · 뒤 '.' '+' '[').
+    돌려주는 값은 (산문인가, 사유) 다 — 사유는 지적문에 그대로 실어 사람이 줄을 찾게 한다."""
     if not span:
-        return False
-    q = text[span[0]:span[0] + 1]
+        return (False, '문자열 경계를 모른다')
     body0, body1 = span[0] + 1, span[1] - 1
     if body0 > s_at or s_end > body1:
-        return False                                  # 이름이 따옴표 밖에 걸쳐 있다 — 모른다
-    if body0 == s_at and s_end == body1:
-        return False                                  # ① 정확 일치 단독 문자열 → 정지 유지
-    if q == '`' and '${' in text[body0:body1]:
-        return False                                  # 치환 템플릿은 조립이다
-    left = text[s_at - 1] if s_at > body0 else None
-    right = text[s_end] if s_end < body1 else None
-    lok, rok = _prose_boundary_ok(left), _prose_boundary_ok(right)
-    if lok is False or rok is False:
-        return False                                  # ② 한쪽이라도 코드 모양이면 닫는다
-    if lok is None and rok is None:
-        return False
-    b = _skip_gap_back(text, span[0], 0, spans)       # ③ 문자열 연산에 물렸나
+        return (False, '이름이 따옴표 밖에 걸쳐 있다')
+    body = text[body0:body1]
+    at, end = s_at - body0, s_end - body0
+    if at == 0 and end == len(body):
+        return (False, '문자열이 저장소 이름과 정확히 같다 — 그대로 멤버 이름이 될 수 있다')   # ①
+    j = _skip_js_space(body, end, 1)                                                        # ②
+    if j < len(body) and body[j] in PROSE_ACCESS_AFTER:
+        return (False, "이름 뒤에 접근·대입 모양('%s')이 온다 — 사이의 공백은 JS 가 허용한다" % body[j])
+    k = _skip_js_space(body, at - 1, -1)                                                    # ③
+    if k >= 0 and body[k] in PROSE_ACCESS_BEFORE:
+        return (False, "이름 앞이 멤버·대입 자리('%s')다" % body[k])
+    for why, rx in PROSE_CODE_SHAPES:                                                       # ④
+        if rx.search(body):
+            return (False, '문자열 안에 코드 모양(%s)이 있다 — 문안이 아니다' % why)
+    b = _skip_gap_back(text, span[0], 0, spans)                                             # ⑤
     if b > 0 and text[b - 1] in PROSE_BLOCKING_BEFORE:
-        return False
+        return (False, '문자열이 앞에서 이어붙여진다 — 잘라 쓰면 이름이 된다')
     a = _skip_gap(text, span[1], len(text))
     if a >= 0 and text[a:a + 1] and text[a] in PROSE_BLOCKING_AFTER:
-        return False
-    return True
+        return (False, '문자열이 뒤에서 연산에 물린다 — 잘라 쓰면 이름이 된다')
+    return (True, '')
+
+
 # 여는 대괄호 앞에 이 문자가 있으면 **수신자 표현이 끝난 자리**라 그 대괄호는 멤버 첨자다.
 # (없으면 배열 리터럴이다 — `= ["localStorage"]` 의 대괄호는 첨자가 아니다.)
 RECEIVER_END = '_$)]\'"`'          # (옛 이름 — 아래 표들이 이 역할을 이어받는다)
@@ -1051,14 +1062,15 @@ def scan_file(src, is_html, rel):
                     # ★R9 축소안 — 이름 양옆이 공백·비ASCII 라 **멤버 이름이 될 수 없는**
                     #   산문만 연다(master 승인). 정확 일치 단독 문자열과 문자열 연산에
                     #   물린 자리는 여기서 열리지 않는다 — 아래 정지로 그대로 내려간다.
-                    if storage_name_is_prose(text, span, off, m.end(), a):
+                    is_prose, _why = storage_name_is_prose(text, span, off, m.end(), a)
+                    if is_prose:
                         ignored.append('%s:%d' % (rel, line))
                         continue
                     stops.append('%s:%d — 코드 자리에 저장소 이름 문자열이 있는데 그것이 저장과 '
                                  '무관하다고 확신할 수 없다%s — 무시하지 않는다'
                                  % (rel, line,
                                     '(감싼 대괄호가 첨자인지 배열인지 가릴 수 없다)' if nxt == -2
-                                    else '(문자열로 이름을 넘겨 저장하는 표기가 있다)'))
+                                    else '(%s)' % (_why or '문자열로 이름을 넘겨 저장하는 표기가 있다')))
                     continue
                 after = nxt
             kind = classify_access(text, after, len(text))
@@ -1651,6 +1663,59 @@ def _prose_sliced_into_name(work):
                         'Reflect.get(window, zzCut).setItem("zz.cut", "1");')
 
 
+def _prose_space_then_dot(work):
+    """★F1 · 이름과 점 사이의 공백 하나. R9 는 이걸 산문으로 열었고 Node 에서 실제로 저장됐다.
+    JS 는 식별자와 '.' 사이의 공백류(공백·줄바꿈·탭·NBSP·전각공백·BOM)를 허용한다."""
+    _append_stats(work, 'const zzE = eval; zzE("localStorage .setItem(\'zzsp\', \'1\')");')
+
+
+def _prose_bracket_var_assign(work):
+    """★② 의 짝 — 이름 뒤 공백+대괄호(따옴표 없는 첨자). 속성 대입으로 실제 저장된다.
+    문자열 안에 호출·점이 없어 ④(코드 모양)가 닿지 않는다 — ② 와 ⑦ 만이 이걸 막는다."""
+    _append_stats(work, 'const zzE = eval; zzE("var zzI = \'zzw17\'; localStorage [zzI] = 1");')
+
+
+def _prose_alias_assign(work):
+    """★③ 의 짝 — 이름 앞이 대입 자리다. 이 문자열 자체는 저장하지 않지만 별칭을 만들고,
+    그 별칭의 저장 호출은 검사기 눈에 저장소로 보이지 않는다(따라갈 수 없으니 멈춘다)."""
+    _append_stats(work, 'const zzE = eval; zzE("zzG = localStorage");')
+
+
+def _prose_comma_arg(work):
+    """★④ 의 짝 — 이름 옆 글자는 ',' 로 산문과 똑같다. 문자열 전체의 코드 모양이 가른다."""
+    _append_stats(work, 'const zzE = eval; zzE("(function(s){s.setItem(\'zzw11\',\'1\')})(localStorage, 0)");')
+
+
+def _prose_concat_then_slice(work):
+    """★⑥ 의 짝 — 앞에서 이어붙인 뒤 잘라 이름으로 쓴다. 뒤쪽 연산 가드는 여기 닿지 않는다
+    (문자열 뒤에 오는 것은 ')' 다) — 앞쪽 가드만이 이걸 막는다."""
+    _append_stats(work, 'const zzK2 = ("zz" + "localStorage 저장").slice(2, 14); '
+                        'Reflect.get(window, zzK2).setItem("zz.concat-slice", "1");')
+
+
+def _prose_json_key(work):
+    """데이터 문자열 속 키 이름 — 코드 모양이 없다(오탐이면 안 된다)."""
+    _append_stats(work, 'const zzJ = \'{"localStorage": {"keys": 3}}\'; void zzJ;')
+
+
+def _prose_colon_copy(work):
+    _append_stats(work, 'const zzC2 = "localStorage: 브라우저에 남는 저장소"; void zzC2;')
+
+
+def _prose_paren_copy(work):
+    _append_stats(work, 'const zzP2 = "(localStorage) 를 씁니다"; void zzP2;')
+
+
+def _prose_comma_copy(work):
+    """★④ 의 반대편 — 같은 ',' 인데 이쪽은 문안이다. 글자로 갈랐다면 둘 중 하나를 틀린다."""
+    _append_stats(work, 'const zzL2 = "localStorage, sessionStorage 를 씁니다"; void zzL2;')
+
+
+def _prose_english_copy(work):
+    """영문 문안 — 산문 판정이 한국어(비ASCII)에 기대지 않음을 못박는다."""
+    _append_stats(work, 'const zzEn = "we use localStorage for saving"; void zzEn;')
+
+
 def _prose_template_substitution(work):
     """치환이 든 템플릿은 조립이다 — 글자 그대로 읽어 산문으로 봐주지 않는다."""
     _append_stats(work, 'const zzT = `localStorage ${zzN}건`; void zzT;')
@@ -1763,6 +1828,20 @@ CASES = [
     ('정확 일치 단독 문자열(짝)',      _exact_name_string_alone,   2, ['uncertain-code']),
     ('산문을 잘라 이름으로(짝)',       _prose_sliced_into_name,    2, ['uncertain-code']),
     ('치환 템플릿 속 낱말(짝)',        _prose_template_substitution, 2, ['uncertain-code']),
+    # ── R10 · ★축 교체 — '양옆 문자'가 아니라 '접근·코드 모양이 있는가'로 가른다 ──
+    #   R9 의 축은 JS 가 식별자와 '.' 사이 공백류를 허용한다는 사실 앞에서 무너졌다
+    #   (공백·줄바꿈·탭·NBSP·전각공백·BOM·대괄호 9종이 rc=0 으로 새고 Node 에서 저장됐다).
+    ('공백 뒤 점 접근(F1)',           _prose_space_then_dot,      2, ['uncertain-code']),
+    ('공백 뒤 대괄호 대입(짝)',        _prose_bracket_var_assign,  2, ['uncertain-code']),
+    ('이름 앞이 대입 자리(짝)',        _prose_alias_assign,        2, ['uncertain-code']),
+    ('쉼표 뒤 인자로 넘김(짝)',        _prose_comma_arg,           2, ['uncertain-code']),
+    ('이어붙인 뒤 잘라 이름으로(짝)',   _prose_concat_then_slice,   2, ['uncertain-code']),
+    # ── R10 · 그 반대편: 코드 모양이 없는 데이터·문안은 열린다(오탐 제거) ──
+    ('데이터 문자열 속 키 이름',       _prose_json_key,            0, []),
+    ('문안 · 이름 뒤 콜론',           _prose_colon_copy,          0, []),
+    ('문안 · 이름을 괄호로 감쌈',      _prose_paren_copy,          0, []),
+    ('문안 · 이름 뒤 쉼표 나열',       _prose_comma_copy,          0, []),
+    ('문안 · 영문',                  _prose_english_copy,        0, []),
     ('배열 원소로 놓인 문자열',        _array_element_word,        0, []),
     # ── R7 · 별칭이 되는 자리와 계산형 이름(codex R6 표본) ──
     ('?? 로 꺼내 담기',              _nullish_alias,        2, ['uncertain-code']),
@@ -1841,15 +1920,26 @@ META = [
      "'default', 'export', " + "'extends', 'as', 'from'}", "'extends', 'as', 'from'}", 2),
     ('meta:중첩 전역 첨자 훑기 제거', '배열에 담았다 꺼내기(중첩)',
      "        for gm in GLOBAL_SUBSCRIPT_OPEN" + '.finditer(text):', '        for gm in ():', 0),
-    # ── R9 축소안 · 산문을 여는 경계를 **하나씩 홀로** 넓혀 본다 ──
-    # ★첫째는 master 원안(문장부호도 산문 경계로 인정) 그 자체다. 이걸 켜면 간접 eval
-    #   payload 가 함께 열린다 — 다음에 같은 완화가 제안돼도 이 변이체가 막는다.
-    ("meta:산문 경계에 문장부호 허용(master 원안)", '간접 eval payload',
-     'PROSE_PUNCTUATION_IS_PROSE' + ' = False', 'PROSE_PUNCTUATION_IS_PROSE = True', 0),
-    # ★둘째는 문자열 연산 가드다. 짝은 '산문을 잘라 이름으로' 여야 한다 — 상수 slice 경유
-    #   (계산형 첨자)는 다른 방어가 따로 잡아 주므로 이 가드의 짝으로는 공허하다(실측).
-    ('meta:산문 문자열 연산 가드 제거', '산문을 잘라 이름으로(짝)',
+    # ── R10 · 새 축의 가드 일곱을 **하나씩 홀로** 지운다 ──
+    # ★짝은 격리 실측으로 골랐다(_round/evidence/T0831-R10-prose/guard-isolation.json) —
+    #   그 가드만 지웠을 때 실제로 열리는 표본이 있는 것만 짝으로 삼았다. R9 에서 세운 변이체
+    #   둘 중 하나(앞쪽 연산 가드)는 짝이 없어 **공허**했고, 그래서 그 구멍을 못 봤다.
+    ('meta:정확 일치 정지 제거', '정확 일치 단독 문자열(짝)',
+     '    if at == 0 and end == ' + 'len(body):', '    if False:', 0),
+    ('meta:이름 뒤 접근 판정 제거', '공백 뒤 대괄호 대입(짝)',
+     'PROSE_ACCESS_AFTER = ' + "'.[(='", "PROSE_ACCESS_AFTER = ''", 0),
+    ('meta:이름 앞 대입 판정 제거', '이름 앞이 대입 자리(짝)',
+     'PROSE_ACCESS_BEFORE = ' + "'.[='", "PROSE_ACCESS_BEFORE = ''", 0),
+    ('meta:코드 모양 판정 제거', '쉼표 뒤 인자로 넘김(짝)',
+     '    for why, rx in ' + 'PROSE_CODE_SHAPES:', '    for why, rx in ():', 0),
+    ('meta:뒤쪽 연산 가드 제거', '산문을 잘라 이름으로(짝)',
      'PROSE_BLOCKING_AFTER = ' + "'.+['", "PROSE_BLOCKING_AFTER = ''", 0),
+    # ★R9 에서 이 가드는 짝이 없어 지워도 자기시험이 초록이었다(worker-3 지적 F2).
+    ('meta:앞쪽 연산 가드 제거', '이어붙인 뒤 잘라 이름으로(짝)',
+     'PROSE_BLOCKING_BEFORE = ' + "'+'", "PROSE_BLOCKING_BEFORE = ''", 0),
+    # ★F1 을 낳은 바로 그 지점 — 이름과 접근 사이의 공백류를 건너뛰지 않으면 다시 샌다.
+    ('meta:공백류 건너뛰기 제거', '공백 뒤 대괄호 대입(짝)',
+     '    while 0 <= i < len(body) and ' + '_js_space(body[i]):', '    while False:', 0),
     ('meta:제어문 머리 판정 제거', 'if 머리 뒤 배열 리터럴',
      "        head = _is_control_head_paren" + '(text, r - 1, start, spans)',
      '        head = False', 2),
