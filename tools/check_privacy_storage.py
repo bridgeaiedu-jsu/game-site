@@ -371,6 +371,14 @@ def _in(spans, pos):
     return any(a <= pos < b for a, b in spans)
 
 
+def _span_at(spans, pos):
+    """pos 를 품은 구간(문자열·주석·정규식) 을 돌려준다 — 그 구간이 무엇인지 봐야 할 때 쓴다."""
+    for a, b in spans:
+        if a <= pos < b:
+            return (a, b)
+    return None
+
+
 def _line(src, pos):
     return src.count('\n', 0, pos) + 1
 
@@ -403,6 +411,35 @@ def _skip_gap(text, i, end):
     return i
 
 
+def _skip_gap_back(text, i, start=0):
+    """i 바로 앞에서부터 공백과 주석을 뒤로 건너뛴다(대괄호 여는 자리를 찾기 위함)."""
+    while i > start:
+        if text[i - 1].isspace():
+            i -= 1; continue
+        if i - 2 >= start and text[i - 2:i] == '*/':
+            j = text.rfind('/*', start, i - 2)
+            if j < 0:
+                return -1
+            i = j; continue
+        break
+    return i
+
+
+def string_is_member_name(text, s0, s1):
+    """[s0,s1) 문자열이 **대괄호 첨자 자리**에 놓였는가 — 그렇다면 그 문자열은 데이터가 아니라
+    멤버 이름이고, 그 자리는 코드다. obj["localStorage"] 의 "localStorage" 가 그 예다.
+
+    돌려주는 값: 닫는 대괄호 다음 위치(코드가 이어지는 자리) 또는 -1(첨자 자리가 아님).
+    """
+    b = _skip_gap_back(text, s0)
+    if b <= 0 or text[b - 1] != '[':
+        return -1
+    a = _skip_gap(text, s1, len(text))
+    if a < 0 or text[a:a + 1] != ']':
+        return -1
+    return a + 1
+
+
 def classify_access(text, i, end):
     """저장소 객체 이름 **바로 뒤**를 보고 무엇으로 쓰였는지 가른다.
 
@@ -419,6 +456,11 @@ def classify_access(text, i, end):
     elif text[j:j + 1] == '.':
         j = _skip_gap(text, j + 1, end)
     elif text[j:j + 1] != '[':
+        # ★있는지만 보는 자리는 안전하다 — 그 값이 저장소 객체로 새어 나가지 않는 표기만 인정한다:
+        #   `localStorage && …`(왼쪽 피연산자의 값은 버려지고 오른쪽 값이 남는다) · 삼항의 조건 ·
+        #   비교 연산. ★`||` 는 넣지 않는다 — 참이면 저장소 객체가 그대로 결과가 되어 새어 나간다.
+        if re.match(r'(&&|\?[^.]|===|!==|==|!=)', text[j:end]):
+            return ('safe', '존재 확인')
         return ('unknown', '저장소 객체가 호출이 아닌 자리로 흘러간다(별칭 대입·인자 전달 등) — 뒤를 따라갈 수 없다')
     if j < 0:
         return ('unknown', '주석이 닫히지 않아 이 자리를 읽지 못했다')
@@ -524,10 +566,19 @@ def scan_file(src, is_html, rel):
             if first_bad and off >= first_bad[0]:
                 stops.append('%s:%d — 앞에서 %s 라 이 자리가 코드인지 단정할 수 없다' % (rel, line, first_bad[1]))
                 continue
+            after = m.end()
             if not code_a:
-                ignored.append('%s:%d' % (rel, line))
-                continue
-            kind = classify_access(text, m.end(), len(text))
+                # ★문자열이라고 무조건 버리지 않는다 — 대괄호 첨자 자리의 문자열은 **멤버 이름**이고
+                #   그 자리는 코드다. window["localStorage"].setItem(…) 이 그렇게 실행된다.
+                span = _span_at(a, off)
+                nxt = -1
+                if span and text[span[0]:span[0] + 1] in ('"', "'", '`'):
+                    nxt = string_is_member_name(text, span[0], span[1])
+                if nxt < 0:
+                    ignored.append('%s:%d' % (rel, line))
+                    continue
+                after = nxt
+            kind = classify_access(text, after, len(text))
             if kind[0] == 'unknown':
                 stops.append('%s:%d — %s' % (rel, line, kind[1]))
                 continue
@@ -921,6 +972,48 @@ def _mime_param_script(work):
                        'localStorage.setItem("zz.mime-param","1");</script>')
 
 
+def _global_bracket_window(work):
+    """window["localStorage"] — 문자열이 데이터가 아니라 **멤버 이름**으로 쓰인 자리다."""
+    _append_stats(work, 'window["localStorage"].setItem("zz.win", "1");')
+
+
+def _global_bracket_globalthis(work):
+    _append_stats(work, 'globalThis["localStorage"].setItem("zz.global", "1");')
+
+
+def _global_bracket_self(work):
+    _append_stats(work, 'self["sessionStorage"].setItem("zz.self", "1");')
+
+
+def _bracket_held_in_var(work):
+    """첨자로 꺼내 변수에 담으면 뒤를 따라갈 수 없다 — 멈춰야 한다."""
+    _append_stats(work, 'const zzW = window["localStorage"]; zzW.setItem("zz.held", "1");')
+
+
+def _or_default_alias(work):
+    """|| 는 참일 때 저장소 객체를 그대로 내놓는다 — 존재 확인으로 봐주면 안 된다."""
+    _append_stats(work, 'const zzO = window.localStorage || {}; zzO.setItem("zz.or", "1");')
+
+
+def _dot_window_call(work):
+    _append_stats(work, 'window.localStorage.setItem("zz.dot-window", "1");')
+
+
+def _short_circuit_guard(work):
+    """있는지만 보는 자리(&& 의 왼쪽)는 안전하고, 뒤의 진짜 호출은 잡혀야 한다."""
+    _append_stats(work, 'window.localStorage && localStorage.getItem("zz.andand");')
+
+
+def _array_element_word(work):
+    """배열 원소로 놓인 문자열 — 뒤에 ']' 가 오지만 앞이 '[' 가 아니므로 멤버 이름이 아니다(데이터)."""
+    _append_stats(work, 'const zzArr = [1, "localStorage"];')
+
+
+def _string_data_word(work):
+    """첨자가 아닌 문자열 속 낱말은 데이터다 — 세지 않는다."""
+    _append_stats(work, 'const zzMsg = "localStorage 에 저장합니다";')
+
+
 def _hide_list(work):
     p = os.path.join(work, 'privacy', 'index.html')
     s = _read(p)
@@ -975,6 +1068,17 @@ CASES = [
     ('유니코드 이스케이프 식별자',      _escaped_identifier,   2, ['uncertain-code']),
     ('eval 로 만든 코드',            _eval_string,          2, ['uncertain-code']),
     ('풀 수 없는 엔티티 핸들러',       _unknown_entity_handler, 2, ['uncertain-code']),
+    # ── R6 · 문자열이 '멤버 이름'으로 쓰인 자리는 코드다 ──
+    ('전역 수신자 첨자 · window',     _global_bracket_window,     1, ['missing-exact']),
+    ('전역 수신자 첨자 · globalThis', _global_bracket_globalthis, 1, ['missing-exact']),
+    ('전역 수신자 첨자 · self',       _global_bracket_self,       1, ['missing-exact']),
+    ('첨자로 꺼내 변수에 담기',        _bracket_held_in_var,       2, ['uncertain-code']),
+    ('|| 로 꺼내 담기',              _or_default_alias,          2, ['uncertain-code']),
+    # ── R6 · 막지 말아야 할 정상 패턴(오탐 회귀 방지) ──
+    ('window.localStorage 점표기',  _dot_window_call,           1, ['missing-exact']),
+    ('단락 평가(&&) 뒤 실호출',       _short_circuit_guard,       1, ['missing-exact']),
+    ('첨자 아닌 문자열 속 낱말',       _string_data_word,          0, []),
+    ('배열 원소로 놓인 문자열',        _array_element_word,        0, []),
 ]
 
 
@@ -982,9 +1086,23 @@ def selftest():
     stage = tempfile.mkdtemp(prefix='privstore-')
     rows, bad = [], 0
     try:
+        # 사본은 **한 번만** 만들고 케이스마다 원상복구한다(케이스가 늘어도 시간이 선형으로 튀지 않게).
+        work = os.path.join(stage, 'tree')
+        shutil.copytree(ROOT, work, ignore=shutil.ignore_patterns('.git', 'node_modules', '_*'))
+        snapshot = {}
+        for d, _s, fs in os.walk(work):
+            for f in fs:
+                p = os.path.join(d, f)
+                snapshot[p] = open(p, 'rb').read()
         for name, mutate, want_rc, want_rules in CASES:
-            work = os.path.join(stage, re.sub(r'\W+', '_', name))
-            shutil.copytree(ROOT, work, ignore=shutil.ignore_patterns('.git', 'node_modules', '_*'))
+            for p, blob in snapshot.items():           # 앞 케이스의 변이를 되돌린다
+                if open(p, 'rb').read() != blob:
+                    open(p, 'wb').write(blob)
+            for d, _s, fs in os.walk(work):            # 앞 케이스가 새로 만든 파일도 지운다
+                for f in fs:
+                    p = os.path.join(d, f)
+                    if p not in snapshot:
+                        os.remove(p)
             if mutate:
                 mutate(work)
             r = subprocess.run([sys.executable, os.path.abspath(__file__), work],
