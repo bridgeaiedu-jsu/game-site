@@ -98,6 +98,38 @@ const UNPARSEABLE = new Set(['.ts', '.mts', '.cts', '.tsx', '.jsx']);
 const DATA = new Set(['.wasm', '.html', '.htm', '.txt', '.bin']);
 const RESOLVE_EXT = ['.js', '.mjs', '.cjs', '.ts', '.mts', '.tsx', '.jsx'];
 const BUILTIN_PREFIX = ['node:', 'cloudflare:'];
+/* 런타임 모듈(node:·cloudflare:)이 무슨 이름을 내보내는지는 이 도구가 알 길이 없다 —
+   그것은 workerd 의 버전에 매인 사실이지 이 저장소의 사실이 아니다. 저장소가 버전 결박
+   manifest 를 두면 그것으로 대조하고, 없으면 named binding 검사를 판정 불가로 올린다.
+   ★'런타임 모듈을 허용한다' 와 '그 모듈이 요구된 모든 이름을 내보낸다고 가정한다' 는
+     완전히 다른 이야기다(codex R7). 형식: { "node:crypto": ["randomUUID", …] } */
+const RUNTIME_EXPORTS_REL = 'tools/runtime-module-exports.json';
+const RUNTIME_EXPORTS_FILE = path.join(ROOT, ...RUNTIME_EXPORTS_REL.split('/'));
+let _runtimeExports = null;
+/* ★이 함수 안에서 **다른 곳에 선언된 도우미를 부르지 않는다.** 첫 판(83fc4b4)은 여기서
+   rel() 을 불렀는데 rel 은 run() 안의 지역 상수라 모듈 층위에서 보이지 않았다 —
+   ReferenceError 가 아래 catch 로 떨어져 map 이 {} 로 굳었고, manifest 를 무슨 내용으로
+   두든 영원히 '대조할 수단이 없다' 가 나왔다(문서가 약속한 탈출구가 닫혀 있었다).
+   ★교훈: 넓은 try/catch 는 '읽기 실패' 뿐 아니라 **프로그래밍 오류까지 정상 분기로 둔갑**
+     시킨다. 그래서 존재 검사는 try 밖으로 빼고, 실패 사유(why)를 반드시 들고 나와
+     지적문에 싣는다 — '파일이 없다' 와 '읽지 못했다' 가 같은 문구로 나오면 안 된다. */
+function runtimeExports() {
+  if (_runtimeExports) return _runtimeExports;
+  if (!fs.existsSync(RUNTIME_EXPORTS_FILE)) {
+    _runtimeExports = { map: {}, src: RUNTIME_EXPORTS_REL, why: RUNTIME_EXPORTS_REL + ' 이 없다' };
+    return _runtimeExports;
+  }
+  try {
+    const j = JSON.parse(fs.readFileSync(RUNTIME_EXPORTS_FILE, 'utf8'));
+    _runtimeExports = (j && typeof j === 'object' && !Array.isArray(j))
+      ? { map: j, src: RUNTIME_EXPORTS_REL, why: null }
+      : { map: {}, src: RUNTIME_EXPORTS_REL, why: RUNTIME_EXPORTS_REL + ' 의 최상위가 객체가 아니다' };
+  } catch (e) {
+    _runtimeExports = { map: {}, src: RUNTIME_EXPORTS_REL,
+                        why: RUNTIME_EXPORTS_REL + ' 을 읽지 못함(' + e.message + ')' };
+  }
+  return _runtimeExports;
+}
 const ROUTE_NAMES = ['onRequest', 'onRequestGet', 'onRequestPost', 'onRequestPut',
                      'onRequestPatch', 'onRequestDelete', 'onRequestHead', 'onRequestOptions'];
 
@@ -189,9 +221,22 @@ const FAIL = (rule, name, detail) => {
   failedRules.add(rule); fails.push(rule);
   console.log('  ✗ [' + rule + '] ' + name + (detail ? ' — ' + detail : ''));
 };
-const INDET = (rule, name, why) => {
+/* ★파생 판정 불가 — 앞 단계가 막혀 '그래서 이 검사를 수행할 수 없었다' 가 된 것.
+   원인이 하나인데 판정 불가가 여럿으로 보이면 보고서에서 원인 수와 판정 수가 어긋난다.
+   집계에서 갈라 적되, rc 계산에서는 똑같이 '통과로 세지 않는다'(파생이라고 봐주지 않는다).
+
+   ★원인은 **개수 빼기로 구하지 않는다**(2026-08-31 master 지적). '원인 = 판정불가 − 파생'
+     이라고 계산하면, 그 파생을 낳은 앞 단계 항목이 **미달(✗)** 일 때 원인이 0 곳으로 나온다 —
+     바로 위에 ✗ 가 찍혀 있는데 '원인 없는 파생' 이라는 있을 수 없는 상태를 보고하게 된다.
+     그래서 파생을 기록할 때 **그 파생을 낳은 앞 단계 항목의 식별자**(규칙@파일)를 함께 받아
+     서로 다른 원인의 개수를 센다. 원인이 미달이든 판정 불가든 똑같이 세어진다. */
+let derivedIndets = 0;
+const derivedCauses = new Set();
+const INDET = (rule, name, why, cause) => {
   indetRules.add(rule); indets.push(rule);
-  console.log('  ‽ [' + rule + '] ' + name + ' — ' + why);
+  if (cause) { derivedIndets++; derivedCauses.add(cause); }
+  console.log('  ‽ [' + rule + '] ' + name + ' — ' + why
+              + (cause ? ` (앞 단계 [${cause}] 가 막혀 파생된 판정이다)` : ''));
 };
 
 /* SourceTextModule 이 던지는 SyntaxError 에는 **소스 위치가 없다**(스택은 이 스크립트의 호출
@@ -233,6 +278,9 @@ async function run(scanRoot) {
   const source = new Map();       /* 절대경로 → 소스 */
   const parsed = new Map();       /* 절대경로 → SourceTextModule (파싱 성공분) */
   const blocked = new Map();      /* 절대경로 → 이 파일의 뒷 단계를 막는 사유 */
+  /* 절대경로 → 그 파일을 막은 **앞 단계 항목의 식별자**(규칙@파일).
+     파생 판정의 '원인' 은 개수 빼기가 아니라 이 식별자로 센다 — 원인이 미달(✗)일 수도 있기 때문이다. */
+  const blockCause = new Map();
 
   /* ① parse ------------------------------------------------------------- */
   for (const f of files) {
@@ -242,19 +290,19 @@ async function run(scanRoot) {
       /* Pages 는 이 확장자를 라우트로 삼지만(공식 문서) 이 도구의 파서는 ES 문법만 읽는다.
          조용히 건너뛰면 깨진 파일이 rc=0 으로 통과한다 — 그래서 멈춘다. */
       INDET('parse', nm, `${rel(f)}:1 · 이 도구는 ${ext} 를 파싱할 수 없다(Pages 는 지원한다) — wrangler 빌드를 별도 관문으로 세워야 판정할 수 있다`);
-      blocked.set(f, '파싱 불가 확장자');
+      blocked.set(f, '파싱 불가 확장자'); blockCause.set(f, 'parse@' + rel(f));
       continue;
     }
     let s;
     try { s = fs.readFileSync(f, 'utf8'); }
-    catch (e) { FAIL('parse', nm, e.message); blocked.set(f, '읽기 실패'); continue; }
+    catch (e) { FAIL('parse', nm, e.message); blocked.set(f, '읽기 실패'); blockCause.set(f, 'parse@' + rel(f)); continue; }
     source.set(f, s);
     try {
       parsed.set(f, new vm.SourceTextModule(s, { identifier: pathToFileURL(f).href, context }));
       P('parse', nm);
     } catch (e) {
       FAIL('parse', nm, e.constructor.name + ': ' + e.message + locateName(s, e.message));
-      blocked.set(f, '파싱 실패');
+      blocked.set(f, '파싱 실패'); blockCause.set(f, 'parse@' + rel(f));
     }
   }
 
@@ -264,7 +312,7 @@ async function run(scanRoot) {
   const dynSpecs = new Map();     /* 절대경로 → [specifier] */
   for (const f of files) {
     const nm = rel(f) + ' 의 동적 import 대상을 정적으로 풀 수 있다';
-    if (blocked.has(f)) { INDET('dynamic-import', nm, `${rel(f)} · ${blocked.get(f)}`); continue; }
+    if (blocked.has(f)) { INDET('dynamic-import', nm, `${rel(f)} · ${blocked.get(f)}`, blockCause.get(f)); continue; }
     const s = source.get(f);
     const found = [];
     let bad = 0, badLine = 0;
@@ -280,7 +328,7 @@ async function run(scanRoot) {
     if (bad) {
       INDET('dynamic-import', nm,
             `${rel(f)}:${badLine} · 대상을 정적으로 풀 수 없는 import() ${bad}곳 — Wrangler 도 변수형 동적 import 는 기본 설정에서 번들에 넣지 못한다`);
-      blocked.set(f, '동적 import 판정 불가');
+      blocked.set(f, '동적 import 판정 불가'); blockCause.set(f, 'dynamic-import@' + rel(f));
     } else {
       P('dynamic-import', nm + (found.length ? ` (문자열 ${found.length}건)` : ' (없음)'));
     }
@@ -294,7 +342,8 @@ async function run(scanRoot) {
     const nmType = rel(f) + ' 가 들이는 모듈 종류를 Pages 규칙으로 가릴 수 있다';
     if (blocked.has(f)) {
       const why = `${rel(f)} · ${blocked.get(f)}`;
-      INDET('import-path', nmPath, why); INDET('bare-import', nmBare, why); INDET('module-type', nmType, why);
+      const cause = blockCause.get(f);
+      INDET('import-path', nmPath, why, cause); INDET('bare-import', nmBare, why, cause); INDET('module-type', nmType, why, cause);
       continue;
     }
     const s = source.get(f);
@@ -315,14 +364,14 @@ async function run(scanRoot) {
       else unknown.push(sp + ` (${rel(f)}:${lineOf(s, sp)} · 확장자 ${ext})`);
     }
     specKind.set(f, kinds);
-    if (missing.length) { FAIL('import-path', nmPath, '없는 대상: ' + missing.join(', ')); blocked.set(f, 'import 대상 없음'); }
+    if (missing.length) { FAIL('import-path', nmPath, '없는 대상: ' + missing.join(', ')); blocked.set(f, 'import 대상 없음'); blockCause.set(f, 'import-path@' + rel(f)); }
     else P('import-path', nmPath + ` (${specs.length}건)`);
-    if (bare.length) { FAIL('bare-import', nmBare, '외부 패키지: ' + bare.join(', ') + ' · 이 저장소 규약(Wrangler 는 허용한다)'); blocked.set(f, '외부 패키지'); }
+    if (bare.length) { FAIL('bare-import', nmBare, '외부 패키지: ' + bare.join(', ') + ' · 이 저장소 규약(Wrangler 는 허용한다)'); blocked.set(f, '외부 패키지'); if (!blockCause.has(f)) blockCause.set(f, 'bare-import@' + rel(f)); }
     else P('bare-import', nmBare);
     if (unknown.length) {
       INDET('module-type', nmType,
             '이 확장자가 Pages 의 text/binary 모듈로 허용되는지 문서가 목록을 닫지 않아 단정할 수 없다: ' + unknown.join(', '));
-      blocked.set(f, '모듈 종류 판정 불가');
+      blocked.set(f, '모듈 종류 판정 불가'); if (!blockCause.has(f)) blockCause.set(f, 'module-type@' + rel(f));
     } else P('module-type', nmType);
   }
 
@@ -331,6 +380,25 @@ async function run(scanRoot) {
      합성 모듈로 세운다. 내보내는 이름은 링커가 스스로 알려 준다 — 'does not provide an export
      named X' 오류를 받아 그 이름을 더하고 다시 건다(파서가 진실을 말하게 하고, 내가 정규식으로
      import 절을 짐작하지 않는다). */
+  /* ★여기가 R7 이 뚫은 자리다. 예전에는 importer 가 달라는 이름을 링커에게 그대로
+     만들어 주었다(최대 64회 재시도) — 그것은 권위 모듈의 export 를 **확인**하는 것이
+     아니라 **발명**하는 것이다. 그래서 node:crypto 의 없는 이름도 통과했다.
+     이제 종류별로 갈라 판정한다. 각 분기는 자기시험의 meta 변이체가 홀로 지워 본다. */
+  function synVerdict(spec, name) {
+    const ext = path.extname(spec).toLowerCase();
+    /* 방어A — Cloudflare Pages 의 text/binary/wasm 모듈은 **default 만** 내보낸다
+       (https://developers.cloudflare.com/pages/functions/module-support/). */
+    if (DATA.has(ext)) return { kind: 'data-named' };
+    if (!BUILTIN_PREFIX.some(p => spec.startsWith(p))) return { kind: 'foreign' };
+    const R = runtimeExports();
+    const man = R.map[spec];
+    /* 방어B — 버전 결박 manifest 가 없으면 '내보낸다/안 내보낸다' 를 말할 수 없다.
+       ★왜 대조할 수 없는지(파일이 없다 / 못 읽었다 / 그 모듈 항목이 없다)를 구분해 싣는다. */
+    const noList = R.why || (R.src + ' 에 ' + spec + ' 항목이 배열로 적혀 있지 않다');
+    if (!Array.isArray(man)) return { kind: 'builtin-unverified', why: noList };
+    if (!man.includes(name)) return { kind: 'builtin-missing', why: R.src + ' 의 ' + spec + ' 목록' };
+    return { kind: 'ok' };
+  }
   const MAX_PROBE = 64;
   function makeHelpers(syn) {
     const fresh = new Map();
@@ -380,9 +448,17 @@ async function run(scanRoot) {
       const r = await tryLink(entryMaker, syn);
       if (r.ok) return { ok: true };
       const miss = r.missing;
-      const synthetic = miss && (BUILTIN_PREFIX.some(p => miss.spec.startsWith(p))
-                                 || DATA.has(path.extname(miss.spec).toLowerCase()));
-      if (!synthetic) return r;
+      if (!miss) return r;
+      const v = synVerdict(miss.spec, miss.name);
+      if (v.kind === 'foreign') return r;
+      if (v.kind !== 'ok') {
+        const why = v.kind === 'data-named'
+          ? `데이터 모듈 ${miss.spec} 에서 named import '${miss.name}' 를 가져온다 — Pages 의 text/binary/wasm 모듈은 default 만 내보낸다`
+          : v.kind === 'builtin-missing'
+            ? `런타임 모듈 ${miss.spec} 의 export 목록(${v.why})에 '${miss.name}' 가 없다`
+            : `런타임 모듈 ${miss.spec} 이 '${miss.name}' 를 내보내는지 대조할 수단이 없다(${v.why}) — ${RUNTIME_EXPORTS_REL} 에 버전 결박 목록을 두면 판정할 수 있다`;
+        return { ok: false, kind: v.kind, spec: miss.spec, name: miss.name, error: new Error(why) };
+      }
       if (!syn.has(miss.spec)) syn.set(miss.spec, new Set(['default']));
       syn.get(miss.spec).add(miss.name);
     }
@@ -393,16 +469,20 @@ async function run(scanRoot) {
   const linkBad = new Set();
   for (const f of files) {
     const nm = rel(f) + ' 의 import 이름이 대상 모듈에 실재한다';
-    if (blocked.has(f)) { INDET('link', nm, `${rel(f)} · ${blocked.get(f)}`); linkBad.add(f); continue; }
+    if (blocked.has(f)) { INDET('link', nm, `${rel(f)} · ${blocked.get(f)}`, blockCause.get(f)); linkBad.add(f); continue; }
     const kinds = specKind.get(f) || new Map();
     const un = [...kinds.entries()].filter(([, v]) => v.kind === 'unparseable').map(([k]) => k);
     if (un.length) { INDET('link', nm, `${rel(f)} · 이 도구가 파싱할 수 없는 모듈을 들인다: ${un.join(', ')}`); linkBad.add(f); continue; }
     const depBad = [...kinds.values()].some(v => v.kind === 'module' && blocked.has(v.target));
-    if (depBad) { INDET('link', nm, `${rel(f)} · 의존 모듈이 판정 불가·파싱 실패다`); linkBad.add(f); continue; }
+    const badDep = [...kinds.values()].find(v => v.kind === 'module' && blocked.has(v.target));
+    if (depBad) { INDET('link', nm, `${rel(f)} · 의존 모듈이 판정 불가·파싱 실패다`,
+                        (badDep && blockCause.get(badDep.target)) || ('의존모듈@' + rel(badDep.target)));
+                  linkBad.add(f); continue; }
     const r = await linkResolving(H => H.makeFile(f));
     if (r.ok) P('link', nm);
     else if (String(r.error.message).startsWith('UNPARSEABLE:')) { INDET('link', nm, `${rel(f)} · 이 도구가 파싱할 수 없는 모듈을 들인다`); linkBad.add(f); }
-    else { FAIL('link', nm, r.error.message); linkBad.add(f); }
+    else if (r.kind === 'builtin-unverified') { INDET('link', nm, `${rel(f)} · ${r.error.message}`); linkBad.add(f); }
+    else { FAIL('link', nm, `${rel(f)} · ${r.error.message}`); linkBad.add(f); }
   }
 
   /* ⑤ route-export ------------------------------------------------------
@@ -424,8 +504,8 @@ async function run(scanRoot) {
   for (const f of files) {
     const helper = path.basename(f).startsWith('_');
     const nm = rel(f) + (helper ? ' 는 onRequest* 를 내보내지 않는다(보조 파일)' : ' 는 onRequest* 를 하나 이상 내보낸다(라우트)');
-    if (blocked.has(f)) { INDET('route-export', nm, `${rel(f)} · ${blocked.get(f)}`); continue; }
-    if (linkBad.has(f)) { INDET('route-export', nm, `${rel(f)} · 링크가 서지 않아 내보내는 이름을 알 수 없다`); continue; }
+    if (blocked.has(f)) { INDET('route-export', nm, `${rel(f)} · ${blocked.get(f)}`, blockCause.get(f)); continue; }
+    if (linkBad.has(f)) { INDET('route-export', nm, `${rel(f)} · 링크가 서지 않아 내보내는 이름을 알 수 없다`, 'link@' + rel(f)); continue; }
     const found = [];
     let unknownName = null;
     for (const rn of ROUTE_NAMES) {
@@ -438,7 +518,9 @@ async function run(scanRoot) {
   }
 
   console.log('');
-  console.log(`==== functions 배포 게이트: PASS ${passCount} · 미달 ${fails.length} · 판정 불가 ${indets.length} ====`);
+  console.log(`==== functions 배포 게이트: PASS ${passCount} · 미달 ${fails.length} · 판정 불가 ${indets.length}`
+    + (derivedIndets ? ` (그중 ${derivedIndets} 건은 앞 단계 지적에서 파생된 것 — 그 파생을 낳은 앞 단계 지적은 ${derivedCauses.size} 곳이다: ${[...derivedCauses].sort().join(', ')})` : '')
+    + ' ====');
   /* ★이 분기가 'SKIP 은 통과가 아니다' 방어의 본체다 — 자기시험의 meta 케이스가 이 줄을 지운
      사본을 돌려 rc 가 0 으로 새는지 확인한다. 문구를 바꾸면 그 앵커도 함께 고쳐라. */
   if (indets.length) {
@@ -484,10 +566,43 @@ const FIXTURES = {
             writeF(st, 'functions/route-b.js', "export function onRequest(){ return new Response('b'); }\n");
             writeF(st, 'functions/ambiguous.js', "export * from './route-a.js';\nexport * from './route-b.js';\n"); },
     2, ['route-export']],
-  'node-builtin': ['node: 런타임 모듈 import 를 막지 않는다(R1 오탐)',
-    st => prependF(st, 'functions/api/hit.js', "import { randomUUID as zzR } from 'node:crypto';\n"), 0, []],
-  'cloudflare-builtin': ['cloudflare: 런타임 모듈 import 를 막지 않는다(R1 오탐)',
-    st => prependF(st, 'functions/api/hit.js', "import { DurableObject as zzD } from 'cloudflare:workers';\n"), 0, []],
+  /* ★R7 계약 변경 — 예전 기대는 rc=0 이었다. 런타임 모듈 import 를 '막지 않는다' 는 것과
+     '그 모듈이 요구된 이름을 내보낸다고 가정한다' 는 다른 이야기다. 대조할 manifest 가
+     없으면 named binding 은 판정 불가다(부수효과·default import 는 그대로 통과한다). */
+  'node-builtin-named': ['node: 런타임 모듈의 named import — 대조 수단이 없어 판정 불가',
+    st => prependF(st, 'functions/api/hit.js', "import { randomUUID as zzR } from 'node:crypto';\n"), 2, ['link']],
+  'cloudflare-builtin-named': ['cloudflare: 런타임 모듈의 named import — 대조 수단이 없어 판정 불가',
+    st => prependF(st, 'functions/api/hit.js', "import { DurableObject as zzD } from 'cloudflare:workers';\n"), 2, ['link']],
+  'node-builtin-sideeffect': ['부수효과만 들이는 런타임 모듈 import 는 막지 않는다',
+    st => prependF(st, 'functions/api/hit.js', "import 'node:crypto';\n"), 0, []],
+  'node-builtin-default': ['런타임 모듈의 default import 는 막지 않는다',
+    st => prependF(st, 'functions/api/hit.js', "import zzC from 'node:crypto';\n"), 0, []],
+  /* ★R7 fail-open 3종 — 합성 링커가 '달라는 이름' 을 만들어 주어 전부 rc=0 이었다. */
+  'node-unknown-export': ['node: 의 없는 named export — R7 은 rc=0 이었다',
+    st => prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from 'node:crypto';\n"), 2, ['link']],
+  'cloudflare-unknown-export': ['cloudflare: 의 없는 named export — R7 은 rc=0 이었다',
+    st => prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from 'cloudflare:workers';\n"), 2, ['link']],
+  'pages-text-named-export': ['데이터 모듈의 named import — Pages 는 default 만 준다. R7 은 rc=0 이었다',
+    st => { writeF(st, 'functions/message.html', '<strong>hello</strong>\n');
+            prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from '../message.html';\n"); },
+    2, ['link']],
+  /* ★R8b — **탈출구가 실제로 열리는가**. 방어가 서 있는지만 재고 빠져나갈 길을 재지 않으면,
+     문서가 약속한 manifest 가 아무 일도 못 하는 채로 자기시험 전부 PASS 가 된다
+     (2026-08-31 실측: runtimeExports() 가 run() 지역 상수 rel 을 불러 ReferenceError 가
+      catch 로 떨어졌고 map 이 {} 로 굳어 manifest 를 무엇으로 두든 판정 불가였다).
+     규칙을 바꾸면 자기시험의 범위도 함께 넓힌다 — 위 'node-builtin-named' 가 (c) manifest 無 다. */
+  'runtime-manifest-allows': ['(a) manifest 有 + 목록에 있는 이름 → 통과해야 한다(탈출구)',
+    st => { writeF(st, 'tools/runtime-module-exports.json', '{"node:crypto": ["randomUUID"]}');
+            prependF(st, 'functions/api/hit.js', "import { randomUUID as zzR } from 'node:crypto';\n"); },
+    0, []],
+  'runtime-manifest-rejects': ['(b) manifest 有 + 목록에 없는 이름 → 미달이어야 한다',
+    st => { writeF(st, 'tools/runtime-module-exports.json', '{"node:crypto": ["randomUUID"]}');
+            prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from 'node:crypto';\n"); },
+    2, ['link']],
+  'runtime-manifest-broken': ['(d) manifest 가 깨진 JSON → 판정 불가로 멈춘다(조용히 무시하지 않는다)',
+    st => { writeF(st, 'tools/runtime-module-exports.json', '{ this is not json');
+            prependF(st, 'functions/api/hit.js', "import { randomUUID as zzR } from 'node:crypto';\n"); },
+    2, ['link']],
   'pages-text-module': ['Pages 가 지원하는 text 모듈 import 를 막지 않는다(R1 오탐)',
     st => { writeF(st, 'functions/message.html', '<strong>hello</strong>\n');
             prependF(st, 'functions/api/hit.js', "import zzHtml from '../message.html';\n"); }, 0, []],
@@ -501,43 +616,97 @@ function runChild(tool, root) {
   const r = spawnSync(process.execPath,
     ['--experimental-vm-modules', '--disable-warning=ExperimentalWarning', tool, root],
     { encoding: 'utf8' });
-  const seen = new Set([...(r.stdout || '').matchAll(/[✗‽]\s*\[([a-z-]+)\]/g)].map(m => m[1]));
-  return { rc: r.status, seen, out: r.stdout || '', err: r.stderr || '' };
+  const out = r.stdout || '';
+  const seen = new Set([...out.matchAll(/[✗‽]\s*\[([a-z-]+)\]/g)].map(m => m[1]));
+  /* ★요약의 자기모순 검사 — '파생이 N 건인데 그 파생을 낳은 앞 단계 지적은 0 곳' 은
+     있을 수 없는 상태다. 원인을 '판정불가 − 파생' 으로 빼서 구하면, 막은 것이 **미달(✗)**
+     일 때 정확히 이 모순이 나온다(2026-08-31 master 지적). 그래서 케이스마다 이 불변식을
+     함께 본다 — 규칙을 바꿨으면 그 규칙이 낳는 산출물까지 자기시험이 붙잡아야 한다. */
+  const m = /파생된 것 — 그 파생을 낳은 앞 단계 지적은 (\d+) 곳이다: ([^)]*)\)/.exec(out);
+  const dm = /그중 (\d+) 건은 앞 단계 지적에서 파생된 것/.exec(out);
+  let contradiction = null;
+  if (dm && Number(dm[1]) > 0) {
+    if (!m) contradiction = '파생을 보고하면서 원인 목록을 적지 않았다';
+    else if (Number(m[1]) === 0 || !m[2].trim()) contradiction = '파생 ' + dm[1] + ' 건인데 원인이 0 곳이다';
+  }
+  return { rc: r.status, seen, out, err: r.stderr || '', contradiction };
 }
 function selftest() {
   const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'hp-fngate-selftest-'));
   const rows = [];
   let bad = 0;
+  /* ★하네스 오류(주입 실패)와 결함 탐지를 같은 칸에 뭉치지 않는다 — 주입도 안 된 케이스를
+     '탐지됨' 으로 세면 검출력이 부풀려진다(2026-08-31 교훈). */
+  let setupFail = 0;
   try {
     for (const [name, spec] of Object.entries(FIXTURES)) {
       const [, mutate, wantRc, wantRules] = spec;
       const work = path.join(stage, name);
       copyTree(path.join(ROOT, 'functions'), path.join(work, 'functions'));
-      if (mutate) mutate(work);
+      if (mutate) {
+        try { mutate(work); }
+        catch (e) {
+          setupFail++;
+          rows.push({ name, wantRc, rc: '주입실패', wantRules, seen: [], miss: [], noise: [],
+                      ok: false, why: '주입 실패(탐지 실패가 아니다): ' + e.message });
+          continue;
+        }
+      }
       const r = runChild(SELF, work);
       const miss = wantRules.filter(x => !r.seen.has(x));
       /* 기대 규칙이 없는 케이스(정상이어야 하는 것)는 어떤 지적도 나오면 안 된다 */
       const noise = wantRules.length ? [] : [...r.seen];
-      const ok = r.rc === wantRc && !miss.length && !noise.length;
+      const ok = r.rc === wantRc && !miss.length && !noise.length && !r.contradiction;
       if (!ok) bad++;
-      rows.push({ name, wantRc, rc: r.rc, wantRules, seen: [...r.seen].sort(), miss, noise, ok });
+      rows.push({ name, wantRc, rc: r.rc, wantRules, seen: [...r.seen].sort(), miss, noise, ok,
+                  why: r.contradiction ? ('요약이 자기모순이다: ' + r.contradiction) : undefined });
     }
-    /* ★방어를 지운 변이체 — 판정 불가를 통과로 세던 R1 의 계산식을 되살린다. */
-    const mutatedTool = path.join(stage, 'check_functions_nogate.mjs');
+    /* ★방어를 **하나씩 홀로** 지운 변이체 — 그 방어가 없으면 해당 표본이 다시 rc=0 으로
+       새는가를 본다. 새지 않으면 지금의 rc 는 그 방어의 산물이 아니라는 뜻이므로 공허한
+       통과다. 앵커를 통짜 문자열로 적으면 이 줄 자신이 두 번째 일치가 되어 죽으니
+       조각으로 이어 붙인다(2026-08-31 실측). */
     const toolSrc = fs.readFileSync(SELF, 'utf8');
-    /* ★앵커를 통짜 문자열로 적으면 이 줄 자신이 두 번째 일치가 되어 '유일하지 않다' 로 죽는다
-       (2026-08-31 실측). 조각으로 이어 붙여 파일 안에 완성형이 한 번만 있게 한다. */
-    const anchor = '  if (indets.' + 'length) {';
-    if (toolSrc.split(anchor).length - 1 !== 1) throw new Error('방어 앵커가 유일하지 않다 — 자기시험을 세울 수 없다');
-    fs.writeFileSync(mutatedTool, toolSrc.replace(anchor, '  if (false) {'));
-    const work = path.join(stage, 'meta');
-    copyTree(path.join(ROOT, 'functions'), path.join(work, 'functions'));
-    FIXTURES['star-conflict-route'][1](work);
-    const mr = runChild(mutatedTool, work);
-    const metaOk = mr.rc === 0;    /* 방어를 지우면 통과로 새야 한다 = 그 방어가 일하고 있었다 */
-    if (!metaOk) bad++;
-    rows.push({ name: 'meta:판정불가→rc2 방어 제거', wantRc: 0, rc: mr.rc, wantRules: [],
-                seen: [], miss: [], noise: [], ok: metaOk, meta: true });
+    const METAS = [
+      ['meta:판정불가→rc2 방어 제거', 'star-conflict-route',
+       '  if (indets.' + 'length) {', '  if (false) {'],
+      ['meta:데이터 모듈 default-only 방어 제거', 'pages-text-named-export',
+       "    if (DATA.has(ext)) return { kind: " + "'data-named' };",
+       "    if (DATA.has(ext)) return { kind: 'ok' };"],
+      ['meta:런타임 모듈 manifest 방어 제거', 'node-unknown-export',
+       "    if (!Array.isArray(man)) return { kind: " + "'builtin-unverified', why: noList };",
+       "    if (!Array.isArray(man)) return { kind: 'ok' };"],
+      /* ★탈출구 배선 자체가 살아 있는가 — manifest 를 읽는 경로를 끈으면 (a) 가 다시
+         판정 불가로 떨어져야 한다. 그러지 않으면 (a) 의 통과는 manifest 와 무관한 일이다.
+         (83fc4b4 이 정확히 그 상태였다 — 배선이 끊겼는데 자기시험 20항목이 전부 PASS 였다.) */
+      ['meta:탈출구 배선 끊기', 'runtime-manifest-allows',
+       "const RUNTIME_EXPORTS_REL = " + "'tools/runtime-module-exports.json';",
+       "const RUNTIME_EXPORTS_REL = 'tools/__nonexistent__.json';", 2],
+      /* ★탈출구 쪽 방어도 홀로 지워 본다 — 목록에 없는 이름을 미달로 잡던 줄을 지우면
+         manifest 를 두고도 아무 이름이나 통과하게 된다(탈출구가 뒷문이 되는 경로). */
+      ['meta:manifest 목록 대조 제거', 'runtime-manifest-rejects',
+       "    if (!man.includes(name)) return { kind: " + "'builtin-missing', why: R.src + ' 의 ' + spec + ' 목록' };",
+       "    if (!man.includes(name)) return { kind: 'ok' };", 0],
+    ];
+    for (const [mname, fixture, anchor, replaced, metaWantRc = 0] of METAS) {
+      const n = toolSrc.split(anchor).length - 1;
+      if (n !== 1) { setupFail++; rows.push({ name: mname, wantRc: 0, rc: '주입실패',
+        wantRules: [], seen: [], miss: [], noise: [], ok: false, meta: true,
+        why: `주입 실패(탐지 실패가 아니다): 방어 앵커가 ${n} 곳이다(1곳이어야 한다)` }); continue; }
+      const mutatedTool = path.join(stage, 'nogate_' + fixture + '.mjs');
+      fs.writeFileSync(mutatedTool, toolSrc.replace(anchor, replaced));
+      const work = path.join(stage, 'meta_' + fixture);
+      copyTree(path.join(ROOT, 'functions'), path.join(work, 'functions'));
+      try { FIXTURES[fixture][1](work); }
+      catch (e) { setupFail++; rows.push({ name: mname, wantRc: 0, rc: '주입실패', wantRules: [],
+        seen: [], miss: [], noise: [], ok: false, meta: true, why: '주입 실패(탐지 실패가 아니다): ' + e.message }); continue; }
+      const mr = runChild(mutatedTool, work);
+      /* 방어를 지우면 그 표본이 **옛 rc 로 되돌아가야** 한다 = 그 방어가 일하고 있었다.
+         대개는 0(다시 샌다)이지만, 오탐을 없앤 방어라면 옛 rc 가 2 일 수도 있다. */
+      const metaOk = mr.rc === metaWantRc;
+      if (!metaOk) bad++;
+      rows.push({ name: mname, wantRc: metaWantRc, rc: mr.rc, wantRules: [], seen: [], miss: [],
+                  noise: [], ok: metaOk, meta: true });
+    }
   } finally {
     fs.rmSync(stage, { recursive: true, force: true });
   }
@@ -551,10 +720,12 @@ function selftest() {
       + ' · 실제 ' + (r.seen.length ? r.seen.join(',') : '없음')
       + (r.miss.length ? '  ← 안 잡힌 규칙 ' + r.miss.join(',') : '')
       + (r.noise.length ? '  ← 나오면 안 되는 지적 ' + r.noise.join(',') : ''));
-    if (r.meta && !r.ok) console.log('        ← 방어를 지웠는데도 rc 가 그대로다. 지금의 rc=2 는 이 방어의 산물이 아니다(공허한 통과).');
+    if (r.why) console.log('        ← ' + r.why);
+    if (r.meta && !r.ok && !r.why) console.log('        ← 방어를 지웠는데도 rc 가 그대로다. 지금의 rc 는 이 방어의 산물이 아니다(공허한 통과).');
   }
-  console.log('자기시험 결과: rc=%d (항목 %d · 어긋남 %d)', bad ? 1 : 0, rows.length, bad);
-  return bad ? 1 : 0;
+  console.log('자기시험 결과: rc=%d (항목 %d · 어긋남 %d · 주입실패 %d)',
+              (bad || setupFail) ? 1 : 0, rows.length, bad, setupFail);
+  return (bad || setupFail) ? 1 : 0;
 }
 
 /* ── 진입 ────────────────────────────────────────────────────────────────── */
@@ -576,6 +747,8 @@ if (MUTATE) {
   console.log('  검출력 판정: 지정 규칙 [%s] · 미달 규칙 [%s] · 판정 불가 규칙 [%s] → %s',
     wantRule, [...failedRules].sort().join(',') || '없음', [...indetRules].sort().join(',') || '없음',
     okOnly ? 'OK(지정 규칙이 잡았고 다른 규칙은 미달로 울지 않았다)' : '어긋남');
-  process.exit(okOnly ? 1 : 2);
+  /* ★종료코드 3분할: 1=지정 규칙이 잡았다 · 3=귀속이 어긋났다 · 2=주입 실패(하네스 오류).
+     주입 실패는 stageMutation 이 이미 2 로 끝낸다 — 여기서 어긋남을 3 으로 밀어 둘을 가른다. */
+  process.exit(okOnly ? 1 : 3);
 }
 process.exit(rc);

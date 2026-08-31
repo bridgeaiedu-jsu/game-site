@@ -25,6 +25,25 @@
 읽다 막힌 자리(닫히지 않은 주석·문자열·태그) 뒤의 호출도 멈추며, 코드인지 아닌지 가릴 수 없는
 자리의 호출도 멈춘다. '코드가 아니다'라고 뺄 수 있는 것은 근거가 확실한 것뿐이다.
 
+★R8 (codex R7 지적 반영) — **계산형 멤버 이름**과 **대괄호 앞 토큰**
+  ① `window[expr].setItem(…)` 의 expr 을 정적으로 끝까지 접지 못했는데 그 결과로 저장소 메서드를
+     부르면, expr 안에 저장소 이름 조각이 보이든 말든 **판정 불가(rc=2)** 다. 예전에는 조각이
+     안 보이면 조용히 건너뛰어서 `window[['local','Storage'].join('')].setItem(…)` 가 rc=0 으로
+     샜다(Node 실행으로 실제 저장까지 확인). 상수 표현식의 종류를 늘려 쫓아가는 길은 끝이 없으니,
+     **못 읽은 입력은 통과가 아니다** 는 원칙으로 닫는다. 치환이 든 템플릿 리터럴(`` `${p}Storage` ``)은
+     상수로 접지 않는다 — 글자 그대로의 이름으로 보여 '저장소가 아니다' 로 오판하기 때문이다.
+  ② 여는 대괄호가 멤버 첨자인지 배열 리터럴인지는 **앞 한 글자가 아니라 앞 토큰**으로 가른다.
+     `return ['localStorage']` 의 'n' 은 영숫자지만 수신자가 아니다 — 순수한 데이터인데 rc=2 로
+     멈추던 오탐이었다. 다만 `it.return['localStorage']` 처럼 **점 뒤**에 온 같은 낱말은 키워드가
+     아니라 속성 이름이므로 진짜 첨자다. 키워드 목록을 넓힐 때마다 이 짝 케이스를 함께 세운다
+     (넓히면 반대 방향으로 구멍이 열린다).
+
+★기능 감지(`if (localStorage && localStorage.getItem)`)의 rc=2 는 **현행 유지**다(2026-08-31 결정).
+  '호출되지 않는 메서드 참조' 를 문맥 없이 safe 로 접으면 `(localStorage.getItem)('key')` 가 뚫린다
+  — 이름 직후가 ')' 라 단순 참조로 보이지만 실제로는 호출된다(실행으로 확인). 완화하려면 그 참조가
+  boolean 소비에서 완전히 끝났음을 문맥으로 증명해야 하고, 괄호 호출·별칭·인자 전달·`||`·`??` 회귀를
+  함께 잠가야 한다. 현재 제품에 이 패턴은 0건이라 급하지 않다.
+
 ★허용 목록을 이 파일 안에 상수로 두지 않는다 — 목록은 방침(privacy/index.html)이, 사실은 제품 코드가
 말한다. 이 스크립트는 둘을 읽어 **대조만** 한다. 어느 쪽이 맞는지 판단하지 않는다: 어긋나면 미달이다.
 
@@ -429,8 +448,43 @@ STORAGE_NAMES = ('localStorage', 'sessionStorage')
 # 여는 대괄호 앞에 이 문자가 있으면 **수신자 표현이 끝난 자리**라 그 대괄호는 멤버 첨자다.
 # (없으면 배열 리터럴이다 — `= ["localStorage"]` 의 대괄호는 첨자가 아니다.)
 RECEIVER_END = '_$)]\'"`'
+# 여는 대괄호 앞 토큰이 이 **키워드**면 수신자일 수 없다 — 그 대괄호는 배열 리터럴이다.
+# (`return ['localStorage']` 의 'n' 은 영숫자지만 수신자가 아니다 — 한 글자로 보면 오판한다.)
+BRACKET_KEYWORDS = {'return', 'yield', 'case', 'throw', 'typeof', 'in', 'of', 'new',
+                    'delete', 'await', 'void', 'instanceof', 'do', 'else'}
 SUBSCRIPT = re.compile(r'\[([^\[\]]{1,160})\]')
 QUOTED = re.compile(r"""(['"`])((?:[^'"`\\]|\\.)*)\1""")
+
+
+def _prev_word(text, r, start=0):
+    """r 바로 앞에서 식별자 토큰을 통짜로 읽는다. (낱말, 시작위치)."""
+    j = r
+    while j > start and (text[j - 1].isalnum() or text[j - 1] in '_$'):
+        j -= 1
+    return text[j:r], j
+
+
+def opens_array_literal(text, r, start=0):
+    """r 위치에서 열리는 대괄호가 **배열 리터럴**인가(= 멤버 첨자가 아니었는가).
+
+    r 은 공백·주석을 이미 건너뛴 자리여야 한다(_skip_gap_back 결과).
+    ★판정은 한 글자가 아니라 토큰으로 한다. 단 `it.return[k]` 처럼 **점 뒤**에 온 같은
+      낱말은 키워드가 아니라 속성 이름이다 — 그건 수신자다(자기시험이 이 짝을 지킨다).
+    """
+    if r <= start:
+        return True                                   # 앞에 아무것도 없다
+    prev = text[r - 1]
+    if not (prev.isalnum() or prev in RECEIVER_END):
+        return True                                   # = ( , : 등 — 수신자 표현이 아니다
+    if not (prev.isalnum() or prev in '_$'):
+        return False                                  # ) ] \' " ` — 수신자 표현이 끝난 자리다
+    word, j = _prev_word(text, r, start)
+    if word not in BRACKET_KEYWORDS:
+        return False                                  # 보통 식별자 = 수신자
+    k = _skip_gap_back(text, j, start)
+    if k > start and text[k - 1] == '.':
+        return False                                  # `it.return[k]` — 속성 이름이다
+    return True
 
 
 def fold_subscript(expr, consts):
@@ -438,7 +492,11 @@ def fold_subscript(expr, consts):
 
     ('name', 접힌 이름)  — 문자열 리터럴들의 결합 또는 상수 식별자로 이름이 완성됐다
     ('fragment', 조각)   — 저장소 이름의 **조각**은 보이는데 끝까지 접지 못했다(= 무엇을 꺼내는지 모른다)
-    ('other', None)      — 저장소와 무관해 보인다
+    ('unresolved', 원문) — 끝까지 접지 못했고 저장소 조각도 안 보인다(= 무슨 이름인지 모른다)
+    ('other', None)      — ★끝까지 접었고, 그 이름이 저장소가 아니다(이것만이 진짜 '무관함' 이다)
+
+    ★예전에는 '못 접었다' 와 '접었는데 저장소가 아니다' 를 둘 다 ('other', None) 로 돌려
+      호출자가 조용히 건너뛰었다 — 그 구멍으로 window[['local','Storage'].join('')].setItem 이 새다.
     """
     parts = [x.strip() for x in expr.split('+')]
     folded, ok = [], True
@@ -459,7 +517,7 @@ def fold_subscript(expr, consts):
     for frag in seen:
         if len(frag) >= 4 and any(frag in n for n in STORAGE_NAMES):
             return ('fragment', frag)
-    return ('other', None)
+    return ('unresolved', expr)
 
 
 def string_is_member_name(text, s0, s1):
@@ -476,11 +534,8 @@ def string_is_member_name(text, s0, s1):
     if b <= 0 or text[b - 1] != '[':
         return -1
     r = _skip_gap_back(text, b - 1)                 # 여는 대괄호 앞을 본다
-    if r <= 0:
-        return -1                                   # 앞에 아무것도 없다 = 배열 리터럴
-    prev = text[r - 1]
-    if not (prev.isalnum() or prev in RECEIVER_END):
-        return -1                                   # 수신자 표현이 아니다 = 배열 리터럴
+    if opens_array_literal(text, r):
+        return -1                                   # 배열 리터럴이다 — 이 문자열은 데이터다
     a = _skip_gap(text, s1, len(text))
     if a < 0 or text[a:a + 1] != ']':
         return -1
@@ -602,8 +657,13 @@ def scan_file(src, is_html, rel):
 
         consts = {}
         for m in CONST_DEF.finditer(text):
-            if not _in(a, m.start()) and not _in(b, m.start()):
-                consts[m.group(1)] = m.group(3)
+            if _in(a, m.start()) or _in(b, m.start()):
+                continue
+            # ★치환이 든 템플릿 리터럴은 상수가 아니다 — `${p}Storage` 를 값으로 접어 두면
+            #   그 글자 그대로의 이름으로 보여 '저장소가 아니다'로 오판한다(P1 변형).
+            if m.group(2) == '`' and '${' in m.group(3):
+                continue
+            consts[m.group(1)] = m.group(3)
 
         for m in SUBSCRIPT.finditer(text):
             # ★OBJ_RE 는 'localStorage' 라는 **완성된 낱말**만 본다. 낱말을 조각내거나 상수에 담아
@@ -611,7 +671,7 @@ def scan_file(src, is_html, rel):
             if _in(a, m.start()) or _in(b, m.start()):
                 continue                              # 주석·문자열 안의 대괄호는 코드가 아니다
             r0 = _skip_gap_back(text, m.start())  # ★대괄호가 다 첨자는 아니다 — 앞 토큰으로 가른다
-            if r0 <= 0 or not (text[r0 - 1].isalnum() or text[r0 - 1] in RECEIVER_END):
+            if opens_array_literal(text, r0):
                 continue                              # 배열 리터럴이다(수신자 표현이 앞에 없다)
             inner = m.group(1)
             if QUOTED.fullmatch(inner.strip()):
@@ -623,6 +683,16 @@ def scan_file(src, is_html, rel):
             if kindf == 'fragment':
                 stops.append('%s:%d — 계산형 멤버 이름에 저장소 이름 조각(%s)이 있는데 끝까지 접지 못했다'
                              % (rel, line, val))
+                continue
+            if kindf == 'unresolved':
+                # ★첫자 안에 저장소 조각이 보이는지로 가르면 질수가 끝이 없다
+                #   (['local','Storage'].join('') · atob(…) · 밖에서 받은 값…).
+                #   대신 **그 결과로 무엇을 하는가**를 본다 — 저장소 메서드를 부르면
+                #   그것이 저장소임을 부인할 수 없고, 우리는 무슨 키인지 모른다 → 판정 불가.
+                acc0 = classify_access(text, m.end(), len(text))
+                if acc0[0] == 'call' or (acc0[0] == 'safe' and acc0[1] in SAFE_MEMBERS):
+                    stops.append('%s:%d — 계산형 멤버 이름을 끝까지 접지 못했는데 그 결과로 저장소 메서드(.%s)를 부른다 — 무슨 키를 다루는지 판정할 수 없다'
+                                 % (rel, line, acc0[1]))
                 continue
             acc = classify_access(text, m.end(), len(text))
             if acc[0] == 'unknown':
@@ -1049,6 +1119,51 @@ def _mime_param_script(work):
                        'localStorage.setItem("zz.mime-param","1");</script>')
 
 
+# ── R8 · 계산형 첨자의 fail-open(P1) 과 키워드 뒤 배열 리터럴 오탐(P2) ──────────────
+def _computed_join(work):
+    """['local','Storage'].join('') — 결정론이지만 우리가 접을 수 있는 모양이 아니다.
+    런타임에서는 실제로 키를 쓴다(Node 실행으로 확인). 상수 표현식을 쫓아가는 길은 끝이
+    없으므로, 못 접은 첨자가 저장 메서드로 이어지면 멈추는 것이 정답이다."""
+    _append_stats(work, "const zzJ = ['local', 'Storage'].join(''); window[zzJ].setItem('zz.join', '1');")
+
+
+def _computed_template(work):
+    """치환이 든 템플릿 리터럴을 상수로 접어 두면 그 글자 그대로의 이름으로 보여 샌다."""
+    _append_stats(work, "const zzP = 'local'; const zzT = `${zzP}Storage`; window[zzT].setItem('zz.tpl', '1');")
+
+
+def _computed_concat_const(work):
+    """const 정의가 문자열 하나가 아니라 결합이면 상수로 접히지 않는다."""
+    _append_stats(work, "const zzC = 'local' + 'Storage'; globalThis[zzC].setItem('zz.cat', '1');")
+
+
+def _keyword_return_array(work):
+    """return 뒤 배열 리터럴은 **데이터**다 — 대괄호 앞 한 글자('n')만 보면 수신자로 오인한다."""
+    _append_stats(work, "function zzD(){ return ['localStorage']; } void zzD();")
+
+
+def _keyword_yield_array(work):
+    _append_stats(work, "function* zzG(){ yield ['localStorage']; } void [...zzG()];")
+
+
+def _keyword_typeof_array(work):
+    _append_stats(work, "const zzT2 = typeof ['localStorage']; void zzT2;")
+
+
+def _keyword_throw_array(work):
+    _append_stats(work, "try { throw ['localStorage']; } catch (zzE) { void zzE; }")
+
+
+def _dot_keyword_subscript(work):
+    """★짝 케이스 — 키워드 목록을 넓히면 반대 오류가 열린다. `.return[…]` 은 키워드가 아니라
+    **속성 이름**이고 그 대괄호는 진짜 첨자다. 여기서 놓치면 넓힌 만큼 구멍이 난다."""
+    _append_stats(work, "const zzO = { return: window }; zzO.return['localStorage'].setItem('zz.dot-ret', '1');")
+
+
+def _optchain_keyword_subscript(work):
+    _append_stats(work, "const zzO2 = { yield: window }; zzO2?.yield['localStorage'].setItem('zz.opt-yld', '1');")
+
+
 def _global_bracket_window(work):
     """window["localStorage"] — 문자열이 데이터가 아니라 **멤버 이름**으로 쓰인 자리다."""
     _append_stats(work, 'window["localStorage"].setItem("zz.win", "1");')
@@ -1195,12 +1310,42 @@ CASES = [
     ('배열 첫 원소 문자열',           _array_first_literal,  0, []),
     ('&& 조건만 쓰는 자리',           _and_condition_only,   0, []),
     ('삼항 조건만 쓰는 자리',          _ternary_condition_only, 0, []),
+    # ── R8 · 못 접는 계산형 첨자는 통과가 아니라 정지다(codex R7 이 실행으로 뚫은 자리) ──
+    ('계산형 첨자 · join 결합',        _computed_join,        2, ['uncertain-code']),
+    ('계산형 첨자 · 치환 템플릿',       _computed_template,    2, ['uncertain-code']),
+    ('계산형 첨자 · 결합 const',       _computed_concat_const, 2, ['uncertain-code']),
+    # ── R8 · 키워드 뒤 대괄호는 배열 리터럴이다(오탐 제거) ──
+    ('return 뒤 배열 리터럴',         _keyword_return_array, 0, []),
+    ('yield 뒤 배열 리터럴',          _keyword_yield_array,  0, []),
+    ('typeof 뒤 배열 리터럴',         _keyword_typeof_array, 0, []),
+    ('throw 뒤 배열 리터럴',          _keyword_throw_array,  0, []),
+    # ── R8 · ★그 반대 방향: 점 뒤에 온 같은 낱말은 속성 이름이라 진짜 첨자다 ──
+    ('.return 뒤 첨자(짝 케이스)',    _dot_keyword_subscript, 1, ['missing-exact']),
+    ('?.yield 뒤 첨자(짝 케이스)',    _optchain_keyword_subscript, 1, ['missing-exact']),
+]
+
+# ★방어를 **하나씩 홀로** 지운 변이체 — 그 방어가 없으면 해당 케이스의 rc 가 옛 값으로
+#   되돌아가는가를 본다. 되돌아가지 않으면 지금의 rc 는 그 방어의 산물이 아니다(공허한 통과).
+#   앵커는 조각으로 이어 붙인다 — 통짜로 적으면 이 줄 자신이 두 번째 일치가 된다.
+META = [
+    ('meta:못 접은 첨자→정지 방어 제거', '계산형 첨자 · join 결합',
+     "                if acc0[0] == 'call' or (acc0[0] == " + "'safe' and acc0[1] in SAFE_MEMBERS):",
+     '                if False:', 0),
+    ('meta:못 접었다/무관하다 구분 제거', '계산형 첨자 · join 결합',
+     "    return ('unresolved', " + 'expr)', "    return ('other', None)", 0),
+    ('meta:치환 템플릿 상수 배제 제거', '계산형 첨자 · 치환 템플릿',
+     "            if m.group(2) == '`' and '${' in " + 'm.group(3):', '            if False:', 0),
+    ('meta:키워드 토큰 판정 제거', 'return 뒤 배열 리터럴',
+     '    if word not in ' + 'BRACKET_KEYWORDS:', '    if True:', 2),
 ]
 
 
 def selftest():
     stage = tempfile.mkdtemp(prefix='privstore-')
     rows, bad = [], 0
+    # ★하네스 오류(주입 실패)와 결함 탐지를 같은 칸에 뭉치지 않는다 — 주입도 안 된 케이스를
+    #   '탐지됨'으로 세면 검출력이 부풀려진다.
+    setup_fail = 0
     try:
         # 사본은 **한 번만** 만들고 케이스마다 원상복구한다(케이스가 늘어도 시간이 선형으로 튀지 않게).
         work = os.path.join(stage, 'tree')
@@ -1220,7 +1365,13 @@ def selftest():
                     if p not in snapshot:
                         os.remove(p)
             if mutate:
-                mutate(work)
+                try:
+                    mutate(work)
+                except Exception as e:                 # noqa: BLE001 — 주입 실패는 탐지 실패가 아니다
+                    setup_fail += 1
+                    rows.append((name, want_rc, '주입실패', want_rules, [], [], [], False,
+                                 '주입 실패(탐지 실패가 아니다): %s' % e))
+                    continue
             r = subprocess.run([sys.executable, os.path.abspath(__file__), work],
                                capture_output=True, text=True, encoding='utf-8')
             seen = set(re.findall(r'[✗‽]\s*\[([a-z-]+)\]', r.stdout or ''))
@@ -1228,19 +1379,56 @@ def selftest():
             noise = seen if not want_rules else set()
             ok = (r.returncode == want_rc) and not miss and not noise
             bad += 0 if ok else 1
-            rows.append((name, want_rc, r.returncode, want_rules, sorted(seen), miss, sorted(noise), ok))
+            rows.append((name, want_rc, r.returncode, want_rules, sorted(seen), miss,
+                         sorted(noise), ok, None))
+
+        # ── 방어 홀로 제거 변이체 ────────────────────────────────────────
+        tool_src = _read(os.path.abspath(__file__))
+        by_name = {c[0]: c for c in CASES}
+        for mname, case_name, anchor, replaced, want_rc in META:
+            n = tool_src.count(anchor)
+            if n != 1 or case_name not in by_name:
+                setup_fail += 1
+                rows.append((mname, want_rc, '주입실패', [], [], [], [], False,
+                             '방어 앵커가 %d 곳이다(1곳이어야 한다) 또는 케이스를 못 찾았다' % n))
+                continue
+            mutated = os.path.join(stage, 'nogate_%d.py' % len(rows))
+            _write(mutated, tool_src.replace(anchor, replaced))
+            for p, blob in snapshot.items():
+                if open(p, 'rb').read() != blob:
+                    open(p, 'wb').write(blob)
+            for d, _s, fs in os.walk(work):
+                for f in fs:
+                    p = os.path.join(d, f)
+                    if p not in snapshot:
+                        os.remove(p)
+            try:
+                by_name[case_name][1](work)
+            except Exception as e:                     # noqa: BLE001
+                setup_fail += 1
+                rows.append((mname, want_rc, '주입실패', [], [], [], [], False, str(e)))
+                continue
+            mr = subprocess.run([sys.executable, mutated, work],
+                                capture_output=True, text=True, encoding='utf-8')
+            ok = mr.returncode == want_rc
+            bad += 0 if ok else 1
+            rows.append((mname, want_rc, mr.returncode, [], [], [], [], ok,
+                         None if ok else '방어를 지웠는데 rc 가 그대로다 — 지금의 판정은 이 방어의 산물이 아니다(공허한 통과)'))
     finally:
         shutil.rmtree(stage, ignore_errors=True)
 
     print('# 검출력 자기시험 — 케이스마다 "어느 검사가 잡아야 하는가"를 못박고 그 귀속까지 대조한다')
-    for name, want_rc, rc, want, seen, miss, noise, ok in rows:
-        print('  %s %-24s 기대rc=%d 실제rc=%d · 잡아야 할 규칙 %s · 실제 %s%s%s'
+    for name, want_rc, rc, want, seen, miss, noise, ok, why in rows:
+        print('  %s %-26s 기대rc=%d 실제rc=%s · 잡아야 할 규칙 %s · 실제 %s%s%s'
               % ('PASS' if ok else '★FAIL', name, want_rc, rc,
                  want or '없음', seen or '없음',
                  ('  ← 안 잡힌 규칙 %s' % miss) if miss else '',
                  ('  ← 나오면 안 되는 지적 %s' % noise) if noise else ''))
-    print('자기시험 결과: rc=%d (항목 %d · 어긋남 %d)' % (1 if bad else 0, len(rows), bad))
-    return 1 if bad else 0
+        if why:
+            print('        ← ' + why)
+    print('자기시험 결과: rc=%d (항목 %d · 어긋남 %d · 주입실패 %d)'
+          % (1 if (bad or setup_fail) else 0, len(rows), bad, setup_fail))
+    return 1 if (bad or setup_fail) else 0
 
 
 if __name__ == '__main__':

@@ -125,6 +125,16 @@ Sitemap: https://hanpango.com/sitemap.xml
          `rc=1` 은 미달, `rc=2` 는 **판정 불가**(검사할 수 없었던 자리가 있다)다 — 둘 다 배포하지
          않는다. rc=2 는 도구가 못 본 자리를 사유와 함께 적어 주니 그 자리를 사람이 보고
          해소하거나, 못 볼 수밖에 없는 것(예: `.ts` 도입)이면 wrangler 빌드를 관문으로 더해라.
+         ★`node:`·`cloudflare:` 에서 **이름을 지정해** 가져오면(`import { x } from 'node:crypto'`)
+         rc=2 가 난다 — 그 런타임이 그 이름을 정말 내보내는지 대조할 목록이 저장소에 없기
+         때문이다. 부수효과 import 와 default import 는 통과한다. 이름을 써야 하면
+         `tools/runtime-module-exports.json` 에 **쓰는 런타임 버전에 결박한** 목록을 적어라
+         (tools/README.md 의 R8 절). 데이터 모듈(`.html`·`.txt`·`.wasm`·`.bin`)의 named import 는
+         Pages 계약상 성립하지 않으므로 rc=1 미달이다 — default 로 받아라.
+   - [ ] `python3 tools/check_privacy_storage.py .` → 같은 규약(rc=0/1/2)이다.
+         ★계산형 멤버 이름(`window[expr]`)을 정적으로 끝까지 접지 못했는데 그 결과로 저장소
+         메서드를 부르면 rc=2 다. 그 줄을 정적으로 읽히게 고쳐라(문자열 상수 하나로 적거나
+         `window.localStorage` 로 직접 쓴다) — 게이트를 완화하는 것이 답이 아니다.
    - [ ] `node tools/counter/test_functions.mjs .` · `node tools/counter/test_pages.mjs .`
    각 레인(브랜치)에서 초록이었다는 것은 **병합 결과가 초록이라는 뜻이 아니다**. 2026-08-31 에
    노노그램 병합이 `functions/_games.js` 의 `export const GAMES` 를 두 줄로 만들어 Cloudflare
