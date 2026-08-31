@@ -13,6 +13,17 @@
   bad-placeholder   동적 항목의 자리표 문법이 어긋난다(접두 없음·안 닫힘·자리표 뒤 군더더기)
   unresolved-call   제품의 저장소 호출 인자를 정적으로 풀지 못했다 → 조용히 넘기지 않고 판정 불가로 멈춘다
   no-list           방침에서 해당 저장소의 목록(<h3>…(store)</h3> 다음 <ul>)을 읽지 못했다 → 판정 불가
+  uncertain-code    그 호출이 '실행되는 코드'인지 아닌지 단정할 수 없다 → 판정 불가로 멈춘다
+
+★설계 원칙(2026-08-31 오너 결정) — **틀릴 바에 멈춘다(fail-closed)**
+자바스크립트를 손으로 완전히 해석하는 것은 도달 불가능한 목표다(정규식과 나눗셈의 구분은 문맥
+의존이고, HTML 인라인·이벤트 핸들러·엔티티까지 겹친다). 그래서 이 검사기는 '정확히 파싱하는 도구'가
+아니라 '확신할 수 없으면 멈추는 도구'다. 애매한 자리를 한쪽으로 단정해 넘기면 실행되는 호출을
+조용히 놓치고(=거짓 통과) 방침이 거짓인 채로 배포된다. 놓치고 통과시키느니 멈춘다:
+멈춘 자리는 파일:라인과 사유로 남기니 사람이 그 줄만 보면 된다.
+구체적으로 — 애매한 '/' 는 두 해석(정규식/나눗셈)으로 각각 훑어 **결론이 갈리면 멈추고**,
+읽다 막힌 자리(닫히지 않은 주석·문자열·태그) 뒤의 호출도 멈추며, 코드인지 아닌지 가릴 수 없는
+자리의 호출도 멈춘다. '코드가 아니다'라고 뺄 수 있는 것은 근거가 확실한 것뿐이다.
 
 ★허용 목록을 이 파일 안에 상수로 두지 않는다 — 목록은 방침(privacy/index.html)이, 사실은 제품 코드가
 말한다. 이 스크립트는 둘을 읽어 **대조만** 한다. 어느 쪽이 맞는지 판단하지 않는다: 어긋나면 미달이다.
@@ -113,54 +124,62 @@ def classify_arg(expr, consts):
     return 'unresolved', e
 
 
-def code_regions(src, is_html):
-    """실행되는 코드가 놓인 구간만 돌려준다.
+# 본문이 실행되는 script type (HTML 표준 — 그 밖의 type 은 데이터 블록이라 실행되지 않는다)
+JS_MIME = {'text/javascript', 'application/javascript', 'module',
+           'text/ecmascript', 'application/ecmascript'}
+ENTITY = {'quot': '"', 'apos': "'", 'amp': '&', 'lt': '<', 'gt': '>', 'nbsp': ' ', '#39': "'", '#34': '"'}
+# '/' 앞에 이 낱말이 오면 나눗셈이 문법 오류다 → 정규식이 확실하다.
+KW_BEFORE_REGEX = {'return', 'typeof', 'instanceof', 'new', 'delete', 'void', 'in', 'of',
+                   'case', 'do', 'else', 'yield', 'await', 'throw'}
 
-    .js 는 파일 전체가 코드다. .html 은 두 자리만 코드다 —
-      ① <script>…</script> 안쪽  ② 이벤트 핸들러 속성값(onclick="…") 안쪽.
-    본문 산문·주석·다른 속성은 코드가 아니다(설명글 속 예시를 실사용으로 세지 않기 위함).
-    ②를 빼면 핸들러 속 진짜 호출을 놓쳐 false-pass 로 뒤집히므로 반드시 함께 본다.
+
+def html_unescape(t):
+    def one(m):
+        name = m.group(1)
+        if name.startswith('#'):
+            try:
+                return chr(int(name[2:], 16) if name[1:2].lower() == 'x' else int(name[1:]))
+            except ValueError:
+                return m.group(0)
+        return ENTITY.get(name.lower(), m.group(0))
+    return re.sub(r'&([#\w]+);', one, t)
+
+
+def _lex(text, i, end, ambiguous_is_regex, spans, bad, stop_at_brace=False):
+    """[i,end) 를 훑어 '실행되지 않는 글자'(주석·문자열·정규식) 구간을 spans 에 모은다.
+
+    ambiguous_is_regex — ')' · '}' 뒤의 '/' 처럼 문맥 없이는 정규식인지 나눗셈인지 가릴 수 없는 자리를
+    어느 쪽으로 볼지. 이 함수를 두 값으로 각각 돌려 **결론이 갈리면 그 자리는 '모른다'** 로 처리한다
+    (fail-closed — 한쪽 해석만 믿고 넘어가면 실행되는 호출을 조용히 놓친다).
+    stop_at_brace — 템플릿 치환 ${…} 안을 훑을 때, 짝 맞는 '}' 위치를 돌려주고 멈춘다(-1=못 찾음).
     """
-    if not is_html:
-        return [(0, len(src))]
-    out = []
-    for m in re.finditer(r'<script\b[^>]*>(.*?)</script\s*>', src, re.S | re.I):
-        out.append((m.start(1), m.end(1)))
-    for m in re.finditer(r"""\bon[a-z]+\s*=\s*(?:"([^"]*)"|'([^']*)')""", src, re.I):
-        g = 1 if m.group(1) is not None else 2
-        out.append((m.start(g), m.end(g)))
-    return out
-
-
-def _regex_can_start(prev):
-    """직전 유의미 문자로 보아 여기의 '/' 가 정규식 리터럴인가(아니면 나눗셈인가)."""
-    return prev == '' or prev in '(,=:[!&|?{};+-*%~^<>\n'
-
-
-def masked_spans(s):
-    """주석·문자열·정규식 리터럴이 차지한 구간 — 이 안의 호출은 실행되지 않는다.
-
-    템플릿 리터럴의 치환부(${…})는 실행되는 코드이므로 가리지 않는다(그 안의 호출은 센다).
-    """
-    spans, i, n, prev = [], 0, len(s), ''
-    while i < n:
-        c = s[i]
-        if c == '/' and i + 1 < n and s[i + 1] == '/':
-            j = s.find('\n', i)
-            j = n if j < 0 else j
+    prev, depth = 'none', 0
+    while i < end:
+        c = text[i]
+        if c.isspace():
+            i += 1
+            continue
+        if c == '/' and i + 1 < end and text[i + 1] == '/':
+            j = text.find('\n', i, end)
+            j = end if j < 0 else j
             spans.append((i, j)); i = j; continue
-        if c == '/' and i + 1 < n and s[i + 1] == '*':
-            j = s.find('*/', i + 2)
-            j = n if j < 0 else j + 2
-            spans.append((i, j)); i = j; continue
-        if c == '<' and s.startswith('<!--', i):          # HTML 주석(핸들러 밖 script 안에도 온다)
-            j = s.find('-->', i + 4)
-            j = n if j < 0 else j + 3
-            spans.append((i, j)); i = j; continue
-        if c == '/' and _regex_can_start(prev):
+        if c == '/' and i + 1 < end and text[i + 1] == '*':
+            j = text.find('*/', i + 2, end)
+            if j < 0:
+                bad.append((i, '닫히지 않은 블록 주석')); spans.append((i, end)); return -1 if stop_at_brace else end
+            spans.append((i, j + 2)); i = j + 2; continue
+        if c == '/':
+            if prev in ('ident', 'num', 'str', 'regex', 'inc', 'close_bracket'):
+                is_regex = False                       # 값 뒤의 '/' 는 나눗셈이 확실하다
+            elif prev in ('none', 'op', 'keyword'):
+                is_regex = True                        # 연산자·예약어 뒤의 '/' 는 정규식이 확실하다
+            else:
+                is_regex = ambiguous_is_regex          # ')' '}' 뒤 — 문맥 없이는 못 가린다
+            if not is_regex:
+                prev = 'op'; i += 1; continue
             j, esc, cls = i + 1, False, False
-            while j < n:
-                d = s[j]
+            while j < end:
+                d = text[j]
                 if esc:
                     esc = False
                 elif d == '\\':
@@ -173,52 +192,237 @@ def masked_spans(s):
                     j += 1
                     break
                 elif d == '\n':
+                    bad.append((i, '닫히지 않은 정규식 리터럴'))
                     break
                 j += 1
-            spans.append((i, j)); prev = '/'; i = j; continue
+            spans.append((i, j)); prev = 'regex'; i = j; continue
         if c in '\'"`':
             q, j, esc, seg = c, i + 1, False, i
-            while j < n:
-                d = s[j]
+            closed = False
+            while j < end:
+                d = text[j]
                 if esc:
                     esc = False
                 elif d == '\\':
                     esc = True
-                elif q == '`' and d == '$' and j + 1 < n and s[j + 1] == '{':
-                    spans.append((seg, j))                # 여기까지가 문자열
-                    depth, k = 1, j + 2
-                    while k < n and depth:                # 치환부는 코드 — 가리지 않는다
-                        if s[k] == '{':
-                            depth += 1
-                        elif s[k] == '}':
-                            depth -= 1
-                        k += 1
-                    inner = j + 2
-                    spans.extend([(a + inner, b + inner) for a, b in masked_spans(s[inner:k - 1])])
-                    j, seg = k, k
+                elif q == '`' and d == '$' and j + 1 < end and text[j + 1] == '{':
+                    spans.append((seg, j))             # 여기까지가 문자열
+                    k = _lex(text, j + 2, end, ambiguous_is_regex, spans, bad, stop_at_brace=True)
+                    if k < 0:
+                        bad.append((j, '템플릿 치환 ${…} 의 짝 중괄호를 찾지 못했다'))
+                        spans.append((j, end)); return -1 if stop_at_brace else end
+                    j = seg = k + 1                    # 치환부는 실행되는 코드 — 가리지 않는다
                     continue
                 elif d == q:
-                    j += 1
+                    j += 1; closed = True
                     break
-                elif q != '`' and d == '\n':              # 안 닫힌 홑·겹따옴표는 줄에서 끝난다
+                elif q != '`' and d == '\n':
                     break
                 j += 1
-            spans.append((seg, j)); prev = q; i = j; continue
-        if not c.isspace():
-            prev = c
-        i += 1
-    return spans
+            if not closed:
+                bad.append((i, '닫히지 않은 문자열'))
+            spans.append((seg, j)); prev = 'str'; i = j; continue
+        if c.isalpha() or c in '_$':
+            j = i
+            while j < end and (text[j].isalnum() or text[j] in '_$'):
+                j += 1
+            prev = 'keyword' if text[i:j] in KW_BEFORE_REGEX else 'ident'
+            i = j; continue
+        if c.isdigit():
+            j = i
+            while j < end and (text[j].isalnum() or text[j] == '.'):
+                j += 1
+            prev = 'num'; i = j; continue
+        if text.startswith('++', i) or text.startswith('--', i):
+            prev = 'inc'; i += 2; continue            # 후위 증감 뒤의 '/' 는 나눗셈이다
+        if c == '{':
+            depth += 1; prev = 'op'; i += 1; continue
+        if c == '}':
+            if stop_at_brace and depth == 0:
+                return i
+            depth -= 1; prev = 'close_brace'; i += 1; continue
+        if c == ')':
+            prev = 'close_paren'; i += 1; continue
+        if c == ']':
+            prev = 'close_bracket'; i += 1; continue
+        prev = 'op'; i += 1
+    return -1 if stop_at_brace else end
+
+
+def js_verdicts(text):
+    """두 해석으로 각각 훑어 (해석A 가린 구간, 해석B 가린 구간, 진짜로 못 읽은 지점) 을 돌려준다.
+
+    ★'못 읽었다'는 **두 해석이 모두 막혔을 때만** 참이다. 한쪽만 막힌 것은 그 해석이 잘못 고른
+    탓이지 원문의 결함이 아니다(예: 나눗셈을 정규식으로 본 해석은 줄 끝에서 막힌다). 한쪽만 막힌
+    구간의 위험은 아래 '두 해석이 갈리면 멈춘다' 규칙이 이미 덮는다.
+    """
+    a, b, bad_a, bad_b = [], [], [], []
+    _lex(text, 0, len(text), True, a, bad_a)
+    _lex(text, 0, len(text), False, b, bad_b)
+    if bad_a and bad_b:
+        pa, pb = min(bad_a)[0], min(bad_b)[0]
+        both = max(min(bad_a), min(bad_b), key=lambda x: x[0]) if pa != pb else min(bad_a)
+        return a, b, both
+    return a, b, None
+
+
+def html_scan(src):
+    """HTML 을 훑어 (실행되는 코드 단위, 확실히 코드가 아닌 구간, 못 읽은 지점) 을 돌려준다.
+
+    코드 단위는 둘뿐이다 — 실행되는 <script> 본문과 이벤트 핸들러 속성값(따옴표 유무·엔티티 모두).
+    확실히 코드가 아닌 것: 본문 산문 · HTML 주석 · 핸들러가 아닌 속성값(data-onclick 등) ·
+    type 이 자바스크립트가 아닌 script · src 가 있어 본문이 무시되는 script · style/textarea/title 본문.
+    그 밖에 읽다 막힌 자리는 '모른다'로 남겨 호출이 걸리면 멈춘다.
+    """
+    units, noncode, bad = [], [], []
+    i, n = 0, len(src)
+    while i < n:
+        lt = src.find('<', i)
+        if lt < 0:
+            noncode.append((i, n)); break
+        if lt > i:
+            noncode.append((i, lt))
+        if src.startswith('<!--', lt):
+            end = src.find('-->', lt + 4)
+            if end < 0:
+                bad.append((lt, '닫히지 않은 HTML 주석')); break   # 그 뒤를 '코드 아님'으로 접지 않는다
+            noncode.append((lt, end + 3)); i = end + 3; continue
+        m = re.match(r'</?([A-Za-z][\w:-]*)', src[lt:])
+        if not m:
+            noncode.append((lt, lt + 1)); i = lt + 1; continue
+        name, closing = m.group(1).lower(), src.startswith('</', lt)
+        j, attrs, broke = lt + m.end(), {}, False
+        while True:
+            while j < n and src[j].isspace():
+                j += 1
+            if j >= n:
+                bad.append((lt, '닫히지 않은 태그')); broke = True; break
+            if src[j] == '>':
+                j += 1; break
+            if src[j] == '/' and j + 1 < n and src[j + 1] == '>':
+                j += 2; break
+            am = re.match(r'[^\s=/>]+', src[j:])
+            if not am:
+                j += 1
+                continue
+            aname = am.group(0).lower(); j += am.end()
+            while j < n and src[j].isspace():
+                j += 1
+            if j < n and src[j] == '=':
+                j += 1
+                while j < n and src[j].isspace():
+                    j += 1
+                if j < n and src[j] in '"\'':
+                    q = src[j]; k = src.find(q, j + 1)
+                    if k < 0:
+                        bad.append((j, '닫히지 않은 속성값')); broke = True; break
+                    vs, ve, j = j + 1, k, k + 1
+                else:
+                    k = j
+                    while k < n and (not src[k].isspace()) and src[k] != '>':
+                        k += 1
+                    vs, ve, j = j, k, k
+                attrs[aname] = (vs, ve)
+                if re.match(r'^on[a-z]+$', aname):     # 진짜 이벤트 핸들러만 코드다(data-onclick 은 아니다)
+                    units.append({'kind': 'handler', 's': vs, 'e': ve,
+                                  'text': html_unescape(src[vs:ve]), 'exact_offsets': False})
+                else:
+                    noncode.append((vs, ve))
+            else:
+                attrs[aname] = None
+        if broke:
+            break   # 읽다 막혔으면 나머지를 모른다로 남긴다(비코드로 단정하지 않는다)
+        if name in ('script', 'style', 'textarea', 'title') and not closing:
+            cm = re.search(r'</%s[\s/>]' % name, src[j:], re.I)
+            if not cm:
+                bad.append((j, '닫히지 않은 <%s>' % name)); break
+            body_s, body_e = j, j + cm.start()
+            if name == 'script':
+                t = attrs.get('type')
+                tv = src[t[0]:t[1]].strip().lower() if t else None
+                # type 이 없거나 자바스크립트 계열이고 src 가 없을 때만 본문이 실행된다(HTML 표준).
+                if (tv is None or tv in JS_MIME) and 'src' not in attrs:
+                    units.append({'kind': 'js', 's': body_s, 'e': body_e,
+                                  'text': src[body_s:body_e], 'exact_offsets': True})
+                else:
+                    noncode.append((body_s, body_e))
+            else:
+                noncode.append((body_s, body_e))
+            close = src.find('>', body_e)
+            i = (close + 1) if close >= 0 else n
+            continue
+        i = j
+    return units, noncode, bad
 
 
 def _in(spans, pos):
     return any(a <= pos < b for a, b in spans)
 
 
+def _line(src, pos):
+    return src.count('\n', 0, pos) + 1
+
+
+def scan_file(src, is_html, rel):
+    """한 파일에서 (호출 판정 목록, 못 믿어 멈춰야 할 사유들) 를 돌려준다.
+
+    호출 판정 = (종류, 위치표시, 인자표현식, 그 자리의 상수표). 종류는 'code' 뿐이며,
+    코드가 아님이 **확실한** 호출은 세지 않고 ignored 로만 남긴다. 확실하지 않으면 stops 에 넣는다
+    (fail-closed — 놓치고 통과시키느니 멈춘다).
+    """
+    calls, ignored, stops = [], [], []
+    if is_html:
+        units, noncode, bad = html_scan(src)
+    else:
+        units, noncode, bad = [{'kind': 'js', 's': 0, 'e': len(src), 'text': src,
+                                'exact_offsets': True}], [], []
+    # ★못 읽은 자리가 있다는 사실만으로는 멈추지 않는다 — 그 뒤에 **저장소 호출이 실제로 있을 때만**
+    #   멈춘다(아래 두 규칙). 호출이 없으면 판정에 영향이 없고, 영향 없는 정지는 소음일 뿐이다.
+    html_bad = bad[0] if bad else None
+
+    covered = [(u['s'], u['e']) for u in units]
+    for m in CALL_HEAD.finditer(src):                  # 원문에서 후보를 먼저 전수로 모은다
+        if _in(covered, m.start()):
+            continue                                   # 코드 단위 안 — 아래에서 따로 본다
+        if _in(noncode, m.start()):
+            ignored.append('%s:%d' % (rel, _line(src, m.start())))
+            continue
+        stops.append('%s:%d — 코드인지 아닌지 가릴 수 없는 자리의 저장소 호출%s'
+                     % (rel, _line(src, m.start()),
+                        ('(앞 %d행에서 %s)' % (_line(src, html_bad[0]), html_bad[1]))
+                        if html_bad and m.start() >= html_bad[0] else ''))
+
+    for u in units:
+        text = u['text']
+        a, b, first_bad = js_verdicts(text)
+        consts = {}
+        for m in CONST_DEF.finditer(text):
+            if not _in(a, m.start()) and not _in(b, m.start()):
+                consts[m.group(1)] = m.group(3)
+        for m in CALL_HEAD.finditer(text):
+            line = _line(src, u['s']) + (text.count('\n', 0, m.start()) if u['exact_offsets'] else 0)
+            code_a, code_b = not _in(a, m.start()), not _in(b, m.start())
+            if code_a != code_b:
+                stops.append('%s:%d — 정규식인지 나눗셈인지에 따라 코드 여부가 갈린다(둘 중 하나로 단정하지 않는다)'
+                             % (rel, line))
+                continue
+            if first_bad and m.start() >= first_bad[0]:
+                stops.append('%s:%d — 앞에서 %s 라 이 호출이 코드인지 단정할 수 없다' % (rel, line, first_bad[1]))
+                continue
+            if not code_a:
+                ignored.append('%s:%d' % (rel, line))
+                continue
+            store = CALL_HEAD.match(text, m.start()).group(1)
+            expr, _end = first_arg(text, m.end())
+            calls.append((store, '%s:%d' % (rel, line), expr, consts))
+    return calls, ignored, stops
+
+
 def product_keys(root):
-    """(exact, prefix, unresolved, 스캔파일수, 코드아님으로 뺀 호출들)."""
+    """(exact, prefix, unresolved, 스캔파일수, 코드아님으로 뺀 호출들, 판정을 멈춰야 할 자리들)."""
     exact = {'localStorage': {}, 'sessionStorage': {}}
     prefix = {'localStorage': {}, 'sessionStorage': {}}
-    unresolved, ignored = [], []
+    unresolved, ignored, stops = [], [], []
     scanned = 0
     for d, subs, fs in os.walk(root):
         subs[:] = [s for s in subs if s not in SKIP_DIRS and not s.startswith('_')]
@@ -234,31 +438,16 @@ def product_keys(root):
                 continue
             scanned += 1
             rel = os.path.relpath(p, root).replace('\\', '/')
-            regions = code_regions(src, f.endswith('.html'))
-            masked = []
-            for a, b in regions:
-                masked.extend([(x + a, y + a) for x, y in masked_spans(src[a:b])])
-            in_code = [(m.start(), m.end()) for m in CALL_HEAD.finditer(src)
-                       if any(a <= m.start() < b for a, b in regions) and not _in(masked, m.start())]
-            starts = set(s for s, _e in in_code)
-            for m in CALL_HEAD.finditer(src):             # 코드가 아닌 자리의 호출 모양 텍스트
-                if m.start() not in starts:
-                    ignored.append('%s:%d' % (rel, src.count('\n', 0, m.start()) + 1))
-            consts = {}
-            for m in CONST_DEF.finditer(src):
-                if any(a <= m.start() < b for a, b in regions) and not _in(masked, m.start()):
-                    consts[m.group(1)] = m.group(3)
-            for s0, e0 in sorted(in_code):
-                store = CALL_HEAD.match(src, s0).group(1)
-                expr, _end = first_arg(src, e0)
+            calls, ign, stp = scan_file(src, f.endswith('.html'), rel)
+            ignored.extend(ign); stops.extend(stp)
+            for store, where, expr, consts in calls:
                 kind, val = classify_arg(expr, consts)
                 if kind == 'unresolved':
-                    line = src.count('\n', 0, s0) + 1
-                    unresolved.append('%s:%d — %s.…Item(%s'
-                                      % (rel, line, store, (val or '?').strip()[:60]))
+                    unresolved.append('%s — %s.…Item(%s' % (where, store, (val or '?').strip()[:60]))
                 else:
-                    (prefix if kind == 'prefix' else exact)[store].setdefault(val, set()).add(rel)
-    return exact, prefix, unresolved, scanned, ignored
+                    (prefix if kind == 'prefix' else exact)[store].setdefault(val, set()).add(
+                        where.rsplit(':', 1)[0])
+    return exact, prefix, unresolved, scanned, ignored, stops
 
 
 def policy_sections(src):
@@ -314,7 +503,10 @@ def run(root):
         print('결과: rc=2 (판정 불가)')
         return 2
 
-    exact, prefix, unresolved, scanned, ignored = product_keys(root)
+    exact, prefix, unresolved, scanned, ignored, stops = product_keys(root)
+    for s in stops:
+        # ★fail-closed — 코드인지 아닌지 확신할 수 없으면 배제하지도 인정하지도 않고 여기서 멈춘다.
+        indet.append('[uncertain-code] %s' % s)
     for u in unresolved:
         indet.append('[unresolved-call] 저장소 호출 인자를 정적으로 풀지 못했다 — %s' % u)
 
@@ -506,6 +698,60 @@ def _handler_call(work):
         '</body>', '<button onclick="localStorage.setItem(\'zz.handler\', \'1\')">x</button>\n</body>', 1))
 
 
+def _before_body(work, html):
+    p = os.path.join(work, 'index.html')
+    _write(p, _read(p).replace('</body>', html + '\n</body>', 1))
+
+
+def _postfix_division(work):
+    _append_stats(work, 'let zzN=2; const zzR=zzN++ / localStorage.getItem("zz.postfix-division");')
+
+
+def _template_brace(work):
+    _append_stats(work, 'const zzT = `${"}" + localStorage.getItem("zz.template-string-brace")}`;')
+
+
+def _entity_handler(work):
+    _before_body(work, '<button onclick=localStorage.setItem(&quot;zz.handler-unquoted&quot;,&quot;1&quot;)>x</button>')
+
+
+def _regex_return(work):
+    _append_stats(work, 'function zzRe(){ return /localStorage.setItem("zz.regex-return", "1")/; }')
+
+
+def _data_attr(work):
+    _before_body(work, '<div data-onclick="localStorage.setItem(\'zz.data-attribute\',\'1\')">x</div>')
+
+
+def _commented_script(work):
+    _before_body(work, '<!-- <script>localStorage.setItem("zz.commented-script","1");</script> -->')
+
+
+def _plain_script(work):
+    _before_body(work, '<script type="text/plain">localStorage.setItem("zz.plain-script","1");</script>')
+
+
+def _src_script(work):
+    _before_body(work, '<script src="/js/hp-stats.js">localStorage.setItem("zz.src-script","1");</script>')
+
+
+def _ambiguous_slash(work):
+    _append_stats(work, 'const zzA = Math.max(1,2) / localStorage.getItem("zz.ambiguous");')
+
+
+def _unterminated_comment(work):
+    _append_stats(work, '/* 열고 닫지 않는다\nlocalStorage.setItem("zz.after-unterminated", "1");')
+
+
+def _call_shaped_in_tag(work):
+    """태그 안(속성값이 아닌 자리)의 호출 모양 텍스트 — 우리 토크나이저가 뜻을 단정할 수 없는 자리다."""
+    _before_body(work, '<div localStorage.setItem("zz.in-tag","1")>x</div>')
+
+
+def _open_html_comment(work):
+    _before_body(work, '<!-- 닫지 않는 주석\n<script>localStorage.setItem("zz.after-open-comment","1");</script>')
+
+
 def _hide_list(work):
     p = os.path.join(work, 'privacy', 'index.html')
     s = _read(p)
@@ -532,6 +778,21 @@ CASES = [
     ('문자열 속 호출 예시',           _string_call,          0, []),
     ('HTML 본문 속 호출 예시',        _prose_call,           0, []),
     ('핸들러 속성 속 실호출',         _handler_call,         1, ['missing-exact']),
+    # ── R4 · 실행되는데 놓치기 쉬운 자리(놓치면 거짓 통과) ──
+    ('후위증가 뒤 나눗셈 실호출',      _postfix_division,     1, ['missing-exact']),
+    ('템플릿 치환 속 문자열 }',       _template_brace,       1, ['missing-exact']),
+    ('따옴표 없는 엔티티 핸들러',      _entity_handler,       1, ['missing-exact']),
+    # ── R4 · 실행되지 않는 자리(세면 거짓 미달) ──
+    ('return 뒤 정규식 리터럴',       _regex_return,         0, []),
+    ('data-onclick 속성',           _data_attr,            0, []),
+    ('주석 처리된 script',           _commented_script,     0, []),
+    ('type=text/plain script',     _plain_script,         0, []),
+    ('src 있는 script 의 본문',      _src_script,           0, []),
+    # ── R4 · fail-closed · 확신할 수 없으면 멈춘다(이 셋이 이 설계의 심장이다) ──
+    ('모호한 / 뒤의 실호출',          _ambiguous_slash,      2, ['uncertain-code']),
+    ('안 닫힌 블록 주석 뒤 실호출',    _unterminated_comment, 2, ['uncertain-code']),
+    ('안 닫힌 HTML 주석 뒤 실호출',   _open_html_comment,    2, ['uncertain-code']),
+    ('태그 안 호출 모양 텍스트',       _call_shaped_in_tag,   2, ['uncertain-code']),
 ]
 
 
