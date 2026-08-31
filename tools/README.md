@@ -81,6 +81,52 @@ node tools/verify_nonogram.js --html nonogram/index.html --mutate no-unique-gate
 `no-clue-cap`(단서 개수 상한 제거) 셋이며, 셋 다 rc=1(FAIL)이 나와야 정상이다.
 앵커가 나와야 할 곳 수와 다르면 rc=2 로 멈춘다(앵커 노후화를 통과로 접지 않는다).
 
+## verify_tensec.js — 10초 감각 검증 (시간을 재는 법과 감추는 법)
+
+`tensec/index.html` 의 인라인 스크립트를 그대로 꺼내 최소 DOM 스텁 위에서 돌리고, 제품이 실제로
+듣는 입력 사건(`pointerdown`·`keydown`)으로 판을 두드린다. 시험용 뒷문은 제품에 두지 않는다 —
+배포본의 `window.__ts` 는 읽기 전용 창구다.
+
+이 게임에는 다른 게임에 없는 두 가지 약속이 있고, 검사의 무게는 거기에 실려 있다.
+
+**① 잰 시간이 기기 사정에 흔들리지 않는가.** 시계를 검사기가 쥐고 **같은 두 도장**을 주되 그
+사이의 사정을 다섯 가지로 다르게 만든다 — 조용한 기기 · 밀린 콜백 500회 · 탭이 뒤에 가려짐 ·
+시계가 잘게 흐름 · 타이머 폭주. 다섯 결과가 하나라도 어긋나면 FAIL 이다. 덧붙여
+`requestAnimationFrame`·`setInterval` 호출 수가 0 인지 직접 센다.
+
+**② 재는 동안 화면이 시간을 알려 주지 않는가.** '흐른 시간이 안 보인다' 로 좁게 잡지 않고
+**화면이 시계와 아예 무관하다** 로 잡는다: 시작 도장과 흐른 시간을 바꿔 가며 다섯 상황을 만들고,
+누른 직후와 (재는 도중 언어를 바꿔) 다시 그린 뒤의 화면 두 장을 모두 대조한다. 여기에
+'재는 동안 시계를 읽은 횟수 0' · '걸린 타이머 0' · 재는 동안 모든 움직임을 끄는 CSS 빗장의
+실재까지 함께 본다.
+
+그 밖에 정확도 산식(기획안 예시 9.87초 → 오차 0.13초 · 98.7%), 날짜 seed 결정성(120일 전수),
+입력 동등성(손가락·Space·Enter·키 반복·창이 떠 있을 때), 기록·스트릭, 저장 키와 방침 등재,
+ko·en 문안 키 짝, 색 토큰, 외부 요청 0, 동작 줄이기 덮개까지 본다.
+
+```sh
+node tools/verify_tensec.js                          # 대조군은 rc=0
+node tools/verify_tensec.js --html tensec/index.html
+node tools/verify_tensec.js --list-mutations
+node tools/verify_tensec.js --mutate m-frame-clock    # 검출력 확인(임시 사본에만 주입)
+```
+뮤테이션을 걸면 **'지목한 검사가 잡았는가'** 까지 도구가 스스로 판정한다 — 지목한 검사가 아예
+돌지 않았으면(앵커 노후화) rc=2 로 멈춘다. 무임승차를 인정하지 않기 위해서다.
+
+## run_mutations_tensec.py — 위 검증기의 검출력 검산
+
+방어를 하나씩 지운 사본 19종으로 `verify_tensec.js` 를 돌려 **반드시 붉어지는지** 본다.
+탐지의 정의가 엄격하다: `exit 1` **그리고** 지목한 검사가 FAIL 목록에 있고 **그리고** 최종
+요약행에 도달했을 때만 탐지다. '주입 실패'(앵커 노후화)는 검출력 저하와 따로 세어 표에 남긴다 —
+둘을 뭉뚱그리면 오독을 부른다.
+
+```sh
+python3 tools/run_mutations_tensec.py
+python3 tools/run_mutations_tensec.py --html tensec/index.html
+```
+종료코드: `0` 전부 지목 검사로 탐지 + 원본 정상 · `1` 검출력 실패(미탐지·엉뚱탐지) ·
+`2` 하네스 비정상(주입 실패·요약행 미도달·원본이 이미 FAIL).
+
 ## check_functions.mjs — functions/ 배포 게이트 (SKIP 은 통과가 아니다)
 
 2026-08-31 배포 실패에서 나왔다. 병합이 `functions/_games.js` 에 `export const GAMES` 를 두 줄로

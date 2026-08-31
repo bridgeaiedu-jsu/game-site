@@ -347,5 +347,30 @@
       "picture",
       "daily"
     ]
+  },
+  {
+    "id": "tensec",
+    "path": "/tensec/",
+    "title": {
+      "ko": "10초 감각",
+      "en": "Ten-Second Sense"
+    },
+    "desc": {
+      "ko": "시간을 보지 않고 정확히 10초를 맞히는 감각 게임 — 오차가 작을수록 좋은 기록",
+      "en": "Count ten seconds in your head with no clock on screen — the smaller your miss, the better"
+    },
+    "thumb": "/tensec/thumb.webp",
+    "playtime": {
+      "ko": "한 판 20~30초",
+      "en": "20–30 sec a round"
+    },
+    "daily": true,
+    "released": "2026-08-31",
+    "tags": [
+      "timing",
+      "sense",
+      "casual",
+      "daily"
+    ]
   }
 ]
