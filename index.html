@@ -235,6 +235,12 @@
           <span class="body"><h2>사다리타기 / Ladder</h2>
             <p>이름과 결과만 넣으면 끝 — 링크를 나누면 모두 같은 판을 봅니다<br>Share one link, everyone sees the same ladder</p></span>
         </a></li>
+        <li><a class="card" href="/memory/">
+          <span class="thumb"><img src="/memory/thumb.webp" alt="기억력 카드 / Memory Match" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 1~3분 / 1–3 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>기억력 카드 / Memory Match</h2>
+            <p>뒤집힌 카드를 두 장씩 열어 같은 그림을 찾는 기억력 게임 — 뒤집기 수가 적을수록 좋은 기록<br>Flip two cards at a time and find every matching pair — the fewer flips, the better</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -389,6 +395,13 @@ const FALLBACK = [{
   thumb:'/ladder/thumb.webp',
   playtime:{ko:'한 판 1~2분',en:'1–2 min a round'},
   daily:false, released:'2026-08-29', tags:['party','random','group','share']
+},{
+  id:'memory', path:'/memory/',
+  title:{ko:'기억력 카드',en:'Memory Match'},
+  desc:{ko:'뒤집힌 카드를 두 장씩 열어 같은 그림을 찾는 기억력 게임 — 뒤집기 수가 적을수록 좋은 기록',en:'Flip two cards at a time and find every matching pair — the fewer flips, the better'},
+  thumb:'/memory/thumb.webp',
+  playtime:{ko:'한 판 1~3분',en:'1–3 min a round'},
+  daily:true, released:'2026-08-31', tags:['puzzle','memory','casual','daily']
 }];
 
 let games = FALLBACK;

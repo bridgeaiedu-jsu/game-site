@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>기억력 카드 — 뒤집어 짝을 찾는 기억력 게임 | Memory Match</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 기억력 카드 짝맞추기. 뒤집힌 카드를 두 장씩 열어 같은 그림을 찾습니다. 난이도 3단계·매일 새로 열리는 오늘의 도전·최소 뒤집기 수와 시간 기록·이모지 한 줄 공유. Flip two cards at a time and find every matching pair — daily challenge, three sizes, fewest-flip records.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="기억력 카드 — 뒤집어 짝을 찾는 기억력 게임 | Memory Match">
+<meta property="og:description" content="뒤집힌 카드를 두 장씩 열어 같은 그림을 찾는 기억력 게임 — 뒤집기 수가 적을수록 좋은 기록. 설치 없이 바로 플레이.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/memory/">
+<link rel="canonical" href="https://hanpango.com/memory/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"기억력 카드","alternateName":"Memory Match","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본. 다크는 아래 @media 에서 ★같은 이름의 값만 바꿔 끼운다 — 마크업은 두 테마가 동일하다.
+     시그니처는 보라(--sig). 카드 뒷면(--back)·앞면(--face)은 두 테마 모두 글자와 4.5:1 이상이다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#7c3aed; --sig-ink:#5b21b6; --sig-soft:#ede9fe; --on-sig:#ffffff;
+    --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
+    --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
+    --back:#cfd5df; --back-2:#b8c0cd; --back-ink:#3f4756;
+    --face:#ffffff; --face-line:#c3cad6;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#a78bfa; --sig-ink:#c4b5fd; --sig-soft:#2e2670; --on-sig:#2e1065;
+      --good:#34d399; --good-ink:#bbf7d0; --good-soft:#14532d;
+      --warn:#fbbf24; --bad:#fca5a5; --bad-ink:#fecaca; --bad-soft:#4c1d1d;
+      --back:#2e2870; --back-2:#3a3390; --back-ink:#d5d1ff;
+      --face:#141033; --face-line:#453da0;
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em;flex:1 1 auto;min-width:0;line-height:1.2}
+  h1 small{display:block;color:var(--muted);font-weight:400;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-btns{display:flex;gap:6px;flex:0 0 auto}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer;white-space:nowrap}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:6px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .score b{display:block;font-size:1.2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+  .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}
+  .ad-rect{width:300px;height:250px;margin:10px auto}
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  /* ---- 판 ----
+     ★360px 폭에서 어려움(5열)도 가로 스크롤 0: 판 폭은 화면에서 좌우 여백을 뺀 값이고 칸은 1fr 로 나눈다.
+     그림 글자 크기(--fs)는 renderGrid 가 열 수에 맞춰 계산해 넣는다(칸 폭의 약 55%). */
+  .wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .grid{display:grid;gap:6px;width:100%;max-width:min(100%, 420px);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  .card{appearance:none;border:0;margin:0;padding:0;background:transparent;aspect-ratio:3/4;min-width:0;
+        perspective:600px;cursor:pointer;display:block}
+  .card:disabled{cursor:default}
+  /* ★display:block 필수 — span 요소는 인라인이라 width/height 100% 가 먹지 않아 카드가 0×0 으로 접힌다(실브라우저 실측) */
+  .card .inner{display:block;position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .26s ease}
+  .card.up .inner{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+        border-radius:10px;display:flex;align-items:center;justify-content:center;line-height:1;overflow:hidden}
+  /* 뒷면 — 색만이 아니라 무늬(빗금)와 물음표로도 '아직 안 본 카드'임을 알린다 */
+  .face.back{background:var(--back);border:2px solid var(--back-2);color:var(--back-ink);
+             background-image:repeating-linear-gradient(45deg, transparent 0 6px, var(--back-2) 6px 8px);
+             font-size:calc(var(--fs, 1.6rem) * .62);font-weight:800}
+  .face.front{transform:rotateY(180deg);background:var(--face);border:2px solid var(--face-line);font-size:var(--fs, 1.6rem)}
+  .card.done .face.front{border-color:var(--good);box-shadow:inset 0 0 0 2px var(--good-soft)}
+  /* 맞춘 카드 표시 — 색만으로 알리지 않는다. ✓ 표식이 함께 붙는다(색각 이상 고려). */
+  .card.done .face.front::after{content:"✓";position:absolute;top:2px;right:4px;font-size:calc(var(--fs, 1.6rem) * .34);
+                                color:var(--good);font-weight:900;line-height:1}
+  .card:active .inner{transform:scale(.96)}
+  .card.up:active .inner{transform:rotateY(180deg) scale(.96)}
+  .card:focus-visible .face{outline:3px solid var(--sig);outline-offset:-3px}
+  @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.09)}100%{transform:scale(1)}}
+  @keyframes nudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  .card.popped{animation:pop .26s ease-out}
+  .card.missed{animation:nudge .22s ease-in-out}
+  /* 하단 조작 줄 */
+  .tools{width:100%;max-width:min(100%,420px);display:flex;gap:6px;position:sticky;bottom:calc(6px + var(--safe-b));padding-top:2px}
+  .tool{flex:1;min-height:52px;border:2px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);
+        font-size:1rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+  .tool:active{transform:scale(.98)}
+  .bhead{width:100%;max-width:min(100%,420px);display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .chip{font-size:.72rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--muted-2);font-weight:600}
+  .help{color:var(--muted);font-size:.78rem;text-align:center;margin:0}
+  /* ---- 난이도 선택(시작 카드) ---- */
+  .levels{display:flex;gap:6px;margin:8px 0 2px}
+  .levels button{flex:1;min-height:44px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);font-weight:700;font-size:.95rem;cursor:pointer}
+  .levels button[aria-pressed="true"]{border-color:var(--sig);background:var(--sig-soft);color:var(--sig-ink)}
+  .lvdesc{color:var(--muted);font-size:.78rem;min-height:1.3em;margin:0 0 6px}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card-box h2{margin:0 0 6px;font-size:1.5rem}
+  .card-box .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1;font-variant-numeric:tabular-nums}
+  .card-box .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card-box .marks{font-size:1.1rem;letter-spacing:.04em;margin:4px 0;line-height:1.3;word-break:break-all}
+  .card-box .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .hp-stat[hidden]{display:none!important}
+  .card-box .hp-stat b{font-weight:600}
+  .card-box .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .card-box .reason{font-size:.95rem;font-weight:600;margin:2px 0 6px;min-height:1.2em;color:var(--good-ink)}
+  .card-box .notice{color:var(--warn);font-size:.8rem;margin:0 0 8px}
+  .card-box .notice[hidden]{display:none}
+  .card-box .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[disabled]{opacity:.5;cursor:default}
+  .btn[hidden]{display:none}
+  .stats3{display:flex;gap:6px;margin:10px 0 4px}
+  .stats3 div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .stats3 b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums;word-break:keep-all}
+  .stats3 span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  section.content a{color:var(--muted-2)}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center;max-width:520px}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(84px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  @media (prefers-reduced-motion: reduce){
+    .card .inner{transition:none}
+    .card.popped,.card.missed{animation:none}
+    .toast{transition:none}
+    .btn:active,.ibtn:active,.tool:active,.card:active .inner,.card.up:active .inner{transform:none}
+    .card.up:active .inner{transform:rotateY(180deg)}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">기억력 카드</span> <small id="subtitle" data-i18n="subtitle">뒤집어 짝을 찾는 기억력 게임</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 다른 게임</a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="flipNow">–</b><span data-i18n="flipLbl">뒤집기</span></div>
+  <div class="score"><b id="pairNow">–</b><span data-i18n="pairLbl">맞춘 짝</span></div>
+  <div class="score"><b id="timeNow">–</b><span data-i18n="timeLbl">경과</span></div>
+</div>
+
+<main>
+  <div class="wrap">
+    <div class="bhead">
+      <span class="chip" id="modeChip">–</span>
+      <span class="chip" id="bestChip"></span>
+    </div>
+    <!-- ★data-i18n 을 붙이지 않는다 — 언어를 바꾸면 판이 지워진다(넌센스·끝말잇기에서 배운 결함). 라벨은 renderGrid 가 넣는다. -->
+    <div class="grid" id="grid" role="grid" aria-label="board"></div>
+    <div class="tools">
+      <button class="tool" id="btnRestart"><span aria-hidden="true">↻</span><span data-i18n="restart">새 판</span></button>
+    </div>
+  </div>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="help" data-i18n="hint">카드를 탭하면 뒤집힙니다 · 두 장이 같으면 그대로 남고, 다르면 잠시 뒤 다시 덮입니다</p>
+</main>
+
+<!-- 결과 -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card-box">
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <div class="big" id="finalFlips">0</div>
+    <div class="reason" id="finalReason"></div>
+    <div class="marks" id="marks" aria-hidden="true"></div>
+    <div class="new" id="streakLine" style="color:var(--sig-ink)"></div>
+    <div class="new" id="newBest"></div>
+    <div class="stats3">
+      <div><b id="nFlip">0</b><span data-i18n="flipLbl2">뒤집기</span></div>
+      <div><b id="nTime">0:00</b><span data-i18n="timeLbl2">시간</span></div>
+      <div><b id="nPair">0</b><span data-i18n="pairLbl2">짝</span></div>
+    </div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- 시작 -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card-box">
+    <h2 id="startTitle" data-i18n="title2">기억력 카드</h2>
+    <div class="sub" data-i18n="startSub">뒤집힌 카드를 두 장씩 열어 같은 그림을 찾습니다.<br>★뒤집기 수가 적을수록 좋은 기록입니다.</div>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnResumeDaily" hidden></button>
+    <div class="levels" id="levels" role="group" aria-label="level">
+      <button type="button" data-lv="easy" aria-pressed="false" data-i18n="lvEasy">쉬움</button>
+      <button type="button" data-lv="normal" aria-pressed="true" data-i18n="lvNormal">보통</button>
+      <button type="button" data-lv="hard" aria-pressed="false" data-i18n="lvHard">어려움</button>
+    </div>
+    <p class="lvdesc" id="lvDesc"></p>
+    <button class="btn ghost" id="btnStart" data-i18n="start">▶ 자유 모드</button>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.memory.today">–</b>판 · 누적 <b data-hp="plays.memory.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">모든 카드는 그림이 보이지 않게 엎어져 있습니다. 카드를 탭하면 한 장이 뒤집혀 그림이 보입니다. 두 장째를 뒤집었을 때 두 그림이 같으면 그 두 장은 열린 채로 남고 ✓ 표식이 붙습니다. 다르면 잠시 뒤 다시 엎어지니, 어느 자리에 무엇이 있었는지 기억해 두세요. 모든 짝을 찾으면 한 판이 끝납니다.</p>
+  <p data-i18n="how2">점수는 <strong>뒤집기 수</strong>입니다 — 적을수록 좋습니다. 한 판에서 가장 좋은 기록은 카드 수와 같습니다(모든 카드를 딱 한 번씩만 뒤집은 경우). 뒤집기 수가 같으면 걸린 시간이 짧은 쪽이 더 좋은 기록입니다. 시간은 첫 카드를 뒤집는 순간 시작합니다.</p>
+  <p data-i18n="how3">두 장이 다를 때 다시 덮이기를 기다릴 필요는 없습니다. 곧바로 다음 카드를 탭하면 앞의 두 장은 그 즉시 덮이고 새 차례가 시작됩니다 — 빠르게 연속으로 눌러도 판정이 밀리지 않습니다. 키보드로도 됩니다: 방향키로 이동, Space 또는 Enter 로 뒤집기.</p>
+  <p data-i18n="how4">난이도는 셋입니다 — 쉬움 3×4(카드 12장·6짝), 보통 4×5(20장·10짝), 어려움 5×6(30장·15짝). 그림은 색이 아니라 모양이 서로 다른 이모지라, 색을 구분하기 어려운 분도 짝을 찾을 수 있습니다. 화면 낭독기를 쓰면 카드마다 「3행 2열 · 뒷면」, 「3행 2열 · 나비 · 맞춤」처럼 자리와 그림 이름을 읽어 줍니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 같은 자리에 같은 그림이 놓인 판(난이도 보통)을 받고, 하루에 한 번만 도전할 수 있습니다. ★배치는 판을 만들 때 그날의 seed 로 한 번에 정해집니다 — 누가 어떤 카드를 먼저 뒤집든 배치는 달라지지 않습니다. 하다가 나가도 이 기기에 진행이 저장되어 시작 화면의 이어하기로 계속할 수 있습니다. 결과를 이모지 한 줄로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다.</p>
+  <h2 data-i18n="tipsTitle">요령</h2>
+  <details><summary data-i18n="tip1q">한 줄씩 훑어 두세요</summary><p data-i18n="tip1a">처음에는 짝이 잘 맞지 않습니다. 아무 데나 찍기보다 첫 줄부터 차례로 열어 두면 「무엇이 어디에 있었는지」가 자리로 기억됩니다. 그림 이름 대신 위치로 외우는 편이 훨씬 잘 남습니다.</p></details>
+  <details><summary data-i18n="tip2q">아는 카드부터 확정하세요</summary><p data-i18n="tip2a">이미 본 그림이 다시 나오면 그 짝을 먼저 맞춰 판에서 지워 두세요. 남은 카드가 줄어들수록 기억해야 할 양도 함께 줄어 뒤집기 수가 크게 절약됩니다.</p></details>
+  <details><summary data-i18n="tip3q">두 장을 짝지어 기억하세요</summary><p data-i18n="tip3a">「왼쪽 위 나비」처럼 그림 하나만 외우면 금방 흐려집니다. 「나비는 왼쪽 위와 오른쪽 아래」처럼 두 자리를 한 묶음으로 외우면 다음 차례에 바로 맞출 수 있습니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있고, 카드 그림은 내려받는 이미지 파일이 아니라 글자(이모지)라 인터넷이 끊겨도 그대로 됩니다.</p></details>
+  <details><summary data-i18n="faq2q">기록은 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 보내는 것은 판수 집계뿐이고 판의 내용은 보내지 않습니다. 브라우저 데이터를 지우면 진행과 기록도 함께 지워집니다. 저장하는 항목은 <a href="/privacy/">개인정보처리방침</a>에 모두 적어 두었습니다.</p></details>
+  <details><summary data-i18n="faq3q">같은 판을 다시 할 수 있나요?</summary><p data-i18n="faq3a">자유 모드는 매번 새로 섞으니 언제든 다시 할 수 있습니다. 오늘의 도전은 하루 한 번이라, 끝내고 나면 그날은 결과 화면만 다시 볼 수 있습니다. 다음 판은 자정에 열립니다.</p></details>
+  <details><summary data-i18n="faq4q">소리를 끌 수 있나요?</summary><p data-i18n="faq4a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 효과음은 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 「동작 줄이기」를 켜면 카드가 돌아가는 연출도 꺼집니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 기억력 카드 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·판정에는 관여하지 않는다. 태그가 아직 실리지 않았거나 차단됐으면 조용히 지나간다. */
+const GA_GAME = 'memory';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ======================= 카드 그림 ======================= */
+/* ★외부 이미지 0 — 카드 그림은 전부 이모지(글자)다. 오프라인에서도 그대로 나온다.
+   ★색이 아니라 **모양**이 서로 다른 것만 골랐다(색각 이상 고려) — 같은 실루엣에 색만 다른 조합은 넣지 않는다.
+   낭독기용 이름은 ko/en 둘 다 둔다. */
+const FACES = [
+  { e:'🍎', ko:'사과',   en:'apple' },
+  { e:'🍋', ko:'레몬',   en:'lemon' },
+  { e:'🍇', ko:'포도',   en:'grapes' },
+  { e:'🍉', ko:'수박',   en:'watermelon' },
+  { e:'🥝', ko:'키위',   en:'kiwi' },
+  { e:'🍄', ko:'버섯',   en:'mushroom' },
+  { e:'🌵', ko:'선인장', en:'cactus' },
+  { e:'🌻', ko:'해바라기', en:'sunflower' },
+  { e:'🍀', ko:'네잎클로버', en:'clover' },
+  { e:'🐧', ko:'펭귄',   en:'penguin' },
+  { e:'🐢', ko:'거북',   en:'turtle' },
+  { e:'🦋', ko:'나비',   en:'butterfly' },
+  { e:'🐙', ko:'문어',   en:'octopus' },
+  { e:'🐝', ko:'꿀벌',   en:'bee' },
+  { e:'🚀', ko:'로켓',   en:'rocket' },
+  { e:'⚓', ko:'닻',     en:'anchor' },
+  { e:'🎈', ko:'풍선',   en:'balloon' },
+  { e:'🎩', ko:'모자',   en:'top hat' },
+  { e:'🔔', ko:'종',     en:'bell' },
+  { e:'🎲', ko:'주사위', en:'dice' },
+  { e:'🔑', ko:'열쇠',   en:'key' },
+  { e:'🧩', ko:'퍼즐',   en:'puzzle piece' }
+];
+
+/* ======================= i18n(UI) ======================= */
+const I18N = {
+  ko: {
+    docTitle:'기억력 카드 — 뒤집어 짝을 찾는 기억력 게임 | Memory Match',
+    title:'기억력 카드', title2:'기억력 카드', subtitle:'뒤집어 짝을 찾는 기억력 게임',
+    home:'🏠 다른 게임', langBtn:'EN',
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    flipLbl:'뒤집기', pairLbl:'맞춘 짝', timeLbl:'경과',
+    flipLbl2:'뒤집기', timeLbl2:'시간', pairLbl2:'짝',
+    restart:'새 판', result:'결과', again:'다시 하기', share:'결과 공유',
+    start:'▶ 자유 모드', lvEasy:'쉬움', lvNormal:'보통', lvHard:'어려움',
+    startSub:'뒤집힌 카드를 두 장씩 열어 같은 그림을 찾습니다.<br>★뒤집기 수가 적을수록 좋은 기록입니다.',
+    hint:'카드를 탭하면 뒤집힙니다 · 두 장이 같으면 그대로 남고, 다르면 잠시 뒤 다시 덮입니다',
+    lvDesc:{ easy:'쉬움 · 3×4 · 카드 12장(6짝)', normal:'보통 · 4×5 · 카드 20장(10짝)', hard:'어려움 · 5×6 · 카드 30장(15짝)' },
+    lv:{ easy:'쉬움', normal:'보통', hard:'어려움' },
+    daily: n => `오늘의 도전 #${n}`,
+    dailyDone: n => `오늘의 도전 #${n} 결과 보기`,
+    dailyHint:'하루 한 판 · 전원 같은 판(보통)',
+    dailyHintDone:'오늘은 완료했습니다',
+    streak: n => `🔥 ${n}일 연속`,
+    resumeDaily: (n, p, t) => `이어하기 — #${n} · ${p}짝 · ${t}`,
+    modeDaily: n => `오늘의 도전 #${n}`, modeFree:'자유 모드',
+    clear:'🎉 모든 짝을 찾았습니다',
+    finalSub: (lv, c, r, p) => `${lv} · ${c}×${r} · ${p}짝`,
+    best: (f, t) => `🏆 최고 ${f}번 · ${t}`,
+    bestChip: (f, t) => `🏆 ${f}번 · ${t}`,
+    newBest:'🏆 새 최고 기록!',
+    perfect:'✨ 완벽 — 한 장도 헛돌리지 않았습니다',
+    copied:'결과를 복사했습니다',
+    dailyShare: (n, f, t, mk, st) => `🔗 기억력 카드 #${n} 🔄 ${f}번 · ⏱ ${t}\n${mk}${st > 1 ? ` 🔥${st}` : ''}\n`,
+    freeShare: (f, t, mk, lv) => `🔗 기억력 카드 ${lv} 🔄 ${f}번 · ⏱ ${t}\n${mk}\n`,
+    srStart: (c, r, p) => `${c}×${r} 판 · 짝 ${p}개. 방향키로 이동하고 Space 로 뒤집습니다.`,
+    srFlip: (row, col, name) => `행 ${row} 열 ${col} · ${name}`,
+    srMatch: (name, done, total) => `${name} 짝을 맞췄습니다. ${done}/${total}`,
+    srMiss: (a, b) => `${a} 와 ${b} 는 다릅니다`,
+    srOver: (f, t) => `모든 짝을 찾았습니다. 뒤집기 ${f}번, ${t}.`,
+    cellDown:'뒷면', cellDone:'맞춤',
+    cardLabel: (row, col, st) => `행 ${row} 열 ${col} · ${st}`,
+    ariaSoundOn:'소리 끄기', ariaSoundOff:'소리 켜기', ariaLang:'언어 바꾸기', ariaHome:'다른 게임 보기',
+    ariaGrid:'기억력 카드 판', ariaRestart:'새 판 시작',
+    statPlays:'오늘 <b data-hp="plays.memory.today">–</b>판 · 누적 <b data-hp="plays.memory.total">–</b>판',
+    how1:'모든 카드는 그림이 보이지 않게 엎어져 있습니다. 카드를 탭하면 한 장이 뒤집혀 그림이 보입니다. 두 장째를 뒤집었을 때 두 그림이 같으면 그 두 장은 열린 채로 남고 ✓ 표식이 붙습니다. 다르면 잠시 뒤 다시 엎어지니, 어느 자리에 무엇이 있었는지 기억해 두세요. 모든 짝을 찾으면 한 판이 끝납니다.',
+    how2:'점수는 <strong>뒤집기 수</strong>입니다 — 적을수록 좋습니다. 한 판에서 가장 좋은 기록은 카드 수와 같습니다(모든 카드를 딱 한 번씩만 뒤집은 경우). 뒤집기 수가 같으면 걸린 시간이 짧은 쪽이 더 좋은 기록입니다. 시간은 첫 카드를 뒤집는 순간 시작합니다.',
+    how3:'두 장이 다를 때 다시 덮이기를 기다릴 필요는 없습니다. 곧바로 다음 카드를 탭하면 앞의 두 장은 그 즉시 덮이고 새 차례가 시작됩니다 — 빠르게 연속으로 눌러도 판정이 밀리지 않습니다. 키보드로도 됩니다: 방향키로 이동, Space 또는 Enter 로 뒤집기.',
+    how4:'난이도는 셋입니다 — 쉬움 3×4(카드 12장·6짝), 보통 4×5(20장·10짝), 어려움 5×6(30장·15짝). 그림은 색이 아니라 모양이 서로 다른 이모지라, 색을 구분하기 어려운 분도 짝을 찾을 수 있습니다. 화면 낭독기를 쓰면 카드마다 「3행 2열 · 뒷면」, 「3행 2열 · 나비 · 맞춤」처럼 자리와 그림 이름을 읽어 줍니다.',
+    dailyDesc:'매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 같은 자리에 같은 그림이 놓인 판(난이도 보통)을 받고, 하루에 한 번만 도전할 수 있습니다. ★배치는 판을 만들 때 그날의 seed 로 한 번에 정해집니다 — 누가 어떤 카드를 먼저 뒤집든 배치는 달라지지 않습니다. 하다가 나가도 이 기기에 진행이 저장되어 시작 화면의 이어하기로 계속할 수 있습니다. 결과를 이모지 한 줄로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다.',
+    tip1q:'한 줄씩 훑어 두세요',
+    tip1a:'처음에는 짝이 잘 맞지 않습니다. 아무 데나 찍기보다 첫 줄부터 차례로 열어 두면 「무엇이 어디에 있었는지」가 자리로 기억됩니다. 그림 이름 대신 위치로 외우는 편이 훨씬 잘 남습니다.',
+    tip2q:'아는 카드부터 확정하세요',
+    tip2a:'이미 본 그림이 다시 나오면 그 짝을 먼저 맞춰 판에서 지워 두세요. 남은 카드가 줄어들수록 기억해야 할 양도 함께 줄어 뒤집기 수가 크게 절약됩니다.',
+    tip3q:'두 장을 짝지어 기억하세요',
+    tip3a:'「왼쪽 위 나비」처럼 그림 하나만 외우면 금방 흐려집니다. 「나비는 왼쪽 위와 오른쪽 아래」처럼 두 자리를 한 묶음으로 외우면 다음 차례에 바로 맞출 수 있습니다.',
+    faq1q:'설치가 필요한가요?',
+    faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있고, 카드 그림은 내려받는 이미지 파일이 아니라 글자(이모지)라 인터넷이 끊겨도 그대로 됩니다.',
+    faq2q:'기록은 어디에 저장되나요?',
+    faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 보내는 것은 판수 집계뿐이고 판의 내용은 보내지 않습니다. 브라우저 데이터를 지우면 진행과 기록도 함께 지워집니다. 저장하는 항목은 <a href="/privacy/">개인정보처리방침</a>에 모두 적어 두었습니다.',
+    faq3q:'같은 판을 다시 할 수 있나요?',
+    faq3a:'자유 모드는 매번 새로 섞으니 언제든 다시 할 수 있습니다. 오늘의 도전은 하루 한 번이라, 끝내고 나면 그날은 결과 화면만 다시 볼 수 있습니다. 다음 판은 자정에 열립니다.',
+    faq4q:'소리를 끌 수 있나요?',
+    faq4a:'네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 효과음은 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 「동작 줄이기」를 켜면 카드가 돌아가는 연출도 꺼집니다.',
+    howTitle:'게임 방법', dailyTitle:'오늘의 도전', tipsTitle:'요령', faqTitle:'자주 묻는 질문',
+    footer:'© 2026 기억력 카드 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개'
+  },
+  en: {
+    docTitle:'Memory Match — flip the cards and find every pair',
+    title:'Memory Match', title2:'Memory Match', subtitle:'Flip cards, find the pairs',
+    home:'🏠 More games', langBtn:'한국어',
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    flipLbl:'Flips', pairLbl:'Pairs', timeLbl:'Time',
+    flipLbl2:'Flips', timeLbl2:'Time', pairLbl2:'Pairs',
+    restart:'New', result:'Result', again:'Play again', share:'Share result',
+    start:'▶ Free play', lvEasy:'Easy', lvNormal:'Normal', lvHard:'Hard',
+    startSub:'Flip two cards at a time and find every matching picture.<br>★The fewer flips, the better your record.',
+    hint:'Tap a card to flip it · a matching pair stays open, a mismatch turns back over',
+    lvDesc:{ easy:'Easy · 3×4 · 12 cards (6 pairs)', normal:'Normal · 4×5 · 20 cards (10 pairs)', hard:'Hard · 5×6 · 30 cards (15 pairs)' },
+    lv:{ easy:'Easy', normal:'Normal', hard:'Hard' },
+    daily: n => `Daily #${n}`,
+    dailyDone: n => `Daily #${n} — see result`,
+    dailyHint:'One board a day · same for everyone (normal)',
+    dailyHintDone:'Finished for today',
+    streak: n => `🔥 ${n}-day streak`,
+    resumeDaily: (n, p, t) => `Resume — #${n} · ${p} pairs · ${t}`,
+    modeDaily: n => `Daily #${n}`, modeFree:'Free play',
+    clear:'🎉 All pairs found',
+    finalSub: (lv, c, r, p) => `${lv} · ${c}×${r} · ${p} pairs`,
+    best: (f, t) => `🏆 Best ${f} flips · ${t}`,
+    bestChip: (f, t) => `🏆 ${f} · ${t}`,
+    newBest:'🏆 New best!',
+    perfect:'✨ Perfect — not a single wasted flip',
+    copied:'Result copied',
+    dailyShare: (n, f, t, mk, st) => `🔗 Memory Match #${n} 🔄 ${f} flips · ⏱ ${t}\n${mk}${st > 1 ? ` 🔥${st}` : ''}\n`,
+    freeShare: (f, t, mk, lv) => `🔗 Memory Match ${lv} 🔄 ${f} flips · ⏱ ${t}\n${mk}\n`,
+    srStart: (c, r, p) => `${c} by ${r} board with ${p} pairs. Move with arrow keys, flip with Space.`,
+    srFlip: (row, col, name) => `row ${row} column ${col} · ${name}`,
+    srMatch: (name, done, total) => `${name} pair matched. ${done} of ${total}`,
+    srMiss: (a, b) => `${a} and ${b} do not match`,
+    srOver: (f, t) => `All pairs found in ${f} flips, ${t}.`,
+    cellDown:'face down', cellDone:'matched',
+    cardLabel: (row, col, st) => `row ${row} column ${col} · ${st}`,
+    ariaSoundOn:'Mute', ariaSoundOff:'Unmute', ariaLang:'Switch language', ariaHome:'More games',
+    ariaGrid:'Memory Match board', ariaRestart:'Start a new board',
+    statPlays:'Today <b data-hp="plays.memory.today">–</b> · total <b data-hp="plays.memory.total">–</b>',
+    how1:'Every card starts face down. Tap one to turn it over and reveal its picture. When you turn over a second card and the two pictures match, both stay open and get a ✓ mark. If they differ they flip back after a moment, so try to remember what was where. Find every pair and the round is over.',
+    how2:'Your score is the <strong>number of flips</strong> — fewer is better. The best possible score equals the number of cards (every card turned over exactly once). If two rounds tie on flips, the shorter time wins. The clock starts the moment you turn over your first card.',
+    how3:'When two cards differ you do not have to wait for them to flip back. Tap the next card straight away and the previous two turn over immediately as a new turn begins — rapid taps are never dropped or delayed. It works with a keyboard too: arrow keys to move, Space or Enter to flip.',
+    how4:'There are three sizes — Easy 3×4 (12 cards, 6 pairs), Normal 4×5 (20 cards, 10 pairs) and Hard 5×6 (30 cards, 15 pairs). The pictures are emoji chosen to differ in shape rather than colour, so colour-blind players can tell every pair apart. With a screen reader each card is announced by position and picture, like “row 3 column 2 · face down” or “row 3 column 2 · butterfly · matched”.',
+    dailyDesc:'A new board opens at midnight. Everyone in the world gets the same pictures in the same places (normal size), and you get one attempt a day. ★The layout is decided once, from that day’s seed, when the board is built — whichever card you turn over first, the layout never changes. If you leave mid-round your progress is kept on this device, so you can carry on from the start screen. Share your result as one line of emoji and race your friends. Play on consecutive days to build a 🔥 streak.',
+    tip1q:'Sweep one row at a time',
+    tip1a:'Early on nothing matches. Rather than tapping at random, work along the first row in order: what you saw sticks better as a position than as a name. Remembering places beats remembering pictures.',
+    tip2q:'Close out the cards you know',
+    tip2a:'When a picture you have already seen comes up again, match its pair right away and clear it off the board. The fewer cards remain, the less you have to hold in your head — and the more flips you save.',
+    tip3q:'Remember pairs, not single cards',
+    tip3a:'“Butterfly, top left” fades fast. “Butterfly is top left and bottom right” gives you both halves at once, so you can close the pair on your very next turn.',
+    faq1q:'Do I need to install anything?',
+    faq1a:'No. It runs straight in your browser. Add it to your home screen to use it like an app — and because the card pictures are text (emoji) rather than downloaded image files, they show up even with no connection.',
+    faq2q:'Where are my records stored?',
+    faq2a:'Only in the browser on the device you are using. The only thing sent to a server is the games-played tally; the contents of your board are never sent. Clearing your browser data also clears your progress and records. Everything we store is listed in the <a href="/privacy/">privacy policy</a>.',
+    faq3q:'Can I replay the same board?',
+    faq3a:'Free play reshuffles every time, so you can start again whenever you like. The daily challenge is once a day: once you finish it, that day only shows you the result screen again. The next board opens at midnight.',
+    faq4q:'Can I turn the sound off?',
+    faq4a:'Yes. Use the speaker button at the top right; your choice is remembered next time. The effects are generated by the browser on the spot, so there are no audio files to download. Turning on “reduce motion” on your device also switches off the card-turning animation.',
+    howTitle:'How to play', dailyTitle:'Daily challenge', tipsTitle:'Tips', faqTitle:'FAQ',
+    footer:'© 2026 Memory Match · Privacy: progress is stored on this device only; third-party cookies (Google) may be used for ads.',
+    navPrivacy:'Privacy policy', navAbout:'About'
+  }
+};
+/* 언어 키는 사이트 공통(bp.lang) — 포털·다른 게임과 공유한다. */
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } };
+const faceName = p => { const f = FACES[faceIds[p]]; return f ? f[lang] || f.ko : '?'; };
+
+/* ======================= 사운드(WebAudio · 파일 없음) ======================= */
+let soundOn = localStorage.getItem('mc.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0, freq2=null){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime + delay;
+    if (freq2 !== null) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq2), t + dur);
+    o.start(t);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sFlip  = () => beep(620, .05, 'square', .026);
+const sMatch = () => { beep(784, .07, 'triangle', .035); beep(1047, .1, 'triangle', .032, .07); vib(18); };
+const sMiss  = () => { beep(300, .1, 'sine', .03, 0, 200); };
+const sWin   = () => { beep(523, .1, 'triangle', .05); beep(659, .1, 'triangle', .05, .1); beep(784, .1, 'triangle', .05, .2); beep(1047, .35, 'triangle', .06, .3); vib([30,40,30,40,80]); };
+
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   // 2026-08-23 = #1 (다른 게임과 동일 기준일)
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const dailySeedKey = (d=new Date()) => 'hanpango-daily-memory-' + dayKey(d);
+/* ★배치 난수는 판 seed 에서 갈라진 스트림이고, 판을 짤 때 **한 번에** 다 굴린다.
+   ★플레이 행동(카드 뒤집기)은 난수를 단 한 번도 소비하지 않는다 — 소비하면 사람마다 판이 갈린다.
+   연출용 난수(fxRng)는 시계 난수라 판 seed 와 섞이지 않는다. */
+const boardSeedKey = seedKey => seedKey + '#board';
+const fxRng = mulberry32((Math.random() * 4294967296) >>> 0);
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('mc.daily')||'null'); }catch(_){ return null; } };
+function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && r.result); }
+function saveDaily(result){
+  /* ★시작 시 고정한 runDay/runNo 로 저장한다 — 자정을 넘겨 완료해도 시작한 날짜의 기록이다. */
+  localStorage.setItem('mc.daily', JSON.stringify({ date: runDay, no: runNo, result }));
+}
+function bumpStreak(day){
+  let st; try{ st = JSON.parse(localStorage.getItem('mc.streak')||'{}'); }catch(_){ st = {}; }
+  if (st.last === day) return st.n || 1;
+  const n = (st.last === prevDayKey(day)) ? (st.n || 0) + 1 : 1;
+  localStorage.setItem('mc.streak', JSON.stringify({ last: day, n }));
+  return n;
+}
+function prevDayKey(day){ const [y, m, d] = day.split('-').map(Number); const t = new Date(y, m - 1, d); t.setDate(t.getDate() - 1); return dayKey(t); }
+const streakNow = () => { try{ const s = JSON.parse(localStorage.getItem('mc.streak')||'{}'); const today = dayKey();
+  return (s.last === today || s.last === prevDayKey(today)) ? (s.n || 0) : 0; }catch(_){ return 0; } };
+
+/* ======================= 상수 ======================= */
+const LV = {                                     /* 열(C) × 행(R) · 짝 수(P) — 세로 화면 기준 */
+  easy:   { C: 3, R: 4,  P: 6 },
+  normal: { C: 4, R: 5,  P: 10 },
+  hard:   { C: 5, R: 6,  P: 15 }
+};
+const LEVELS = ['easy', 'normal', 'hard'];
+const DAILY_LEVEL = 'normal';
+const MISS_MS = 900;          /* 짝이 아닐 때 다시 덮이기까지 — ★화면 연출 지연일 뿐 판정은 이미 끝나 있다 */
+const SAVE_EVERY_MS = 5000;   /* 시계만 흘러도 이 간격으로 진행 저장 */
+const MARK_COLS = 5;          /* 공유 마크 한 줄에 넣는 짝 수 */
+const LOG_MAX = 200;
+
+/* ======================= 판 만들기(순수 함수) ======================= */
+const idx = (C, x, y) => y * C + x;
+/* Fisher–Yates — 난수는 넘겨받은 스트림에서만 뽑는다(전역 Math.random 금지). */
+function shuffle(a, rnd){
+  for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+/* seedKey 하나로 ①어떤 그림을 쓸지 ②어느 자리에 놓을지를 **판을 짜는 이 순간에 모두** 정한다. */
+function buildDeck(lv, seedKey){
+  const d = LV[lv], N = d.C * d.R;
+  const rnd = mulberry32(hashStr(boardSeedKey(String(seedKey))));
+  const pool = shuffle(FACES.map((_, i) => i), rnd).slice(0, d.P);   /* 그림 고르기 */
+  const cards = [];
+  for (let p = 0; p < d.P; p++){ cards.push(p); cards.push(p); }     /* 짝 번호 두 장씩 */
+  shuffle(cards, rnd);                                              /* 자리 섞기 */
+  return { faceIds: pool, deck: cards.slice(0, N) };
+}
+
+/* ======================= 상태 ======================= */
+let mode = 'free', level = localStorage.getItem('mc.level') || 'normal';
+if (!LEVELS.includes(level)) level = 'normal';
+let C = 0, R = 0, P = 0;
+let deck = [], faceIds = [];        /* deck[i] = 그 자리의 짝 번호 · faceIds[p] = 그 짝이 쓰는 FACES 색인 */
+let up = null, done = null;         /* up[i]=앞면인가 · done[i]=이미 맞춘 짝인가 */
+let pairFlips = null;               /* 짝마다 그 짝의 카드를 몇 번 뒤집었나(공유 마크용) */
+let first = -1, second = -1, missTimer = 0;
+let running = false, over = false, paused = false;
+let elapsed = 0, sinceSave = 0, timerOn = false;
+let flips = 0, pairsDone = 0;
+let seedKeyNow = '', runDay = '', runNo = 0;
+let cursor = 0;
+let lastResult = null, rafId = 0, prevTs = 0, lastShownSec = -1;
+let roundLog = [];
+let best = { easy: loadBest('easy'), normal: loadBest('normal'), hard: loadBest('hard') };
+
+/* ======================= 최고 기록(mc.best.<난이도>) ======================= */
+/* 값은 {f: 뒤집기 수, t: 초}. 뒤집기 수가 적을수록 좋고, 같으면 시간이 짧은 쪽이 좋다. */
+function loadBest(lv){
+  try{
+    const raw = localStorage.getItem('mc.best.' + lv);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    if (!o || typeof o !== 'object') return null;
+    if (!Number.isFinite(o.f) || !Number.isFinite(o.t) || o.f <= 0 || o.t < 0) return null;
+    return { f: o.f | 0, t: o.t | 0 };
+  }catch(_){ return null; }
+}
+const betterThan = (a, b) => !b || a.f < b.f || (a.f === b.f && a.t < b.t);
+function saveBest(lv, rec){ localStorage.setItem('mc.best.' + lv, JSON.stringify(rec)); }
+
+/* ======================= 진행 저장(mc.progress · 일일 1슬롯) ======================= */
+const maskOf = arr => { let s = ''; for (let i = 0; i < arr.length; i++) s += arr[i] ? '1' : '0'; return s; };
+function loadProgress(){ try{ const p = JSON.parse(localStorage.getItem('mc.progress')||'null'); return (p && typeof p === 'object') ? p : null; }catch(_){ return null; } }
+function snapshot(){
+  return { v:1, mode, runDay, runNo, seedKey: seedKeyNow, level,
+           done: maskOf(done), flips, pf: Array.from(pairFlips), elapsed: Math.round(elapsed), savedAt: Date.now() };
+}
+function saveProgress(){
+  if (!running || over || mode !== 'daily') return false;
+  localStorage.setItem('mc.progress', JSON.stringify(snapshot())); sinceSave = 0; return true;
+}
+function clearProgress(){ localStorage.removeItem('mc.progress'); }
+/* 저장본이 온전한가 — 오늘 것(runDay·★runNo)·오늘 seed·같은 난이도 ·
+   판을 seed 로 다시 만들어 「맞춘 표시가 짝 단위로 짝지어 있는가」까지 확인한다.
+   ★저장본이 스스로 말하는 숫자를 믿지 않는다(끝말잇기 codex R1 S1 계약의 이식). */
+function validSlot(s){
+  if (!s || typeof s !== 'object' || s.v !== 1 || s.mode !== 'daily' || s.level !== DAILY_LEVEL) return false;
+  if (!(typeof s.runDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.runDay)) || s.runDay !== dayKey()) return false;
+  if (!(Number.isInteger(s.runNo) && s.runNo === dailyNo())) return false;
+  if (typeof s.seedKey !== 'string' || s.seedKey !== dailySeedKey()) return false;
+  const d = LV[DAILY_LEVEL], N = d.C * d.R;
+  if (typeof s.done !== 'string' || s.done.length !== N || !/^[01]+$/.test(s.done)) return false;
+  if (!(Number.isInteger(s.flips) && s.flips >= 0)) return false;
+  if (!(typeof s.elapsed === 'number' && s.elapsed >= 0)) return false;
+  if (!Array.isArray(s.pf) || s.pf.length !== d.P) return false;
+  for (const v of s.pf) if (!(Number.isInteger(v) && v >= 0)) return false;
+  const b = buildDeck(DAILY_LEVEL, s.seedKey);
+  const cnt = new Int16Array(d.P);
+  let doneCards = 0;
+  for (let i = 0; i < N; i++) if (s.done[i] === '1'){ cnt[b.deck[i]]++; doneCards++; }
+  for (let p = 0; p < d.P; p++) if (cnt[p] === 1) return false;      /* 반쪽만 맞춘 짝은 있을 수 없다 */
+  const pairs = doneCards / 2;
+  if (pairs >= d.P) return false;                                    /* 이미 끝난 판은 이어할 것이 없다 */
+  if (s.flips < doneCards) return false;                             /* 맞춘 카드 수보다 적게 뒤집을 수는 없다 */
+  let sum = 0; for (const v of s.pf) sum += v;
+  if (sum !== s.flips) return false;                                 /* 짝별 뒤집기 합 = 총 뒤집기 */
+  return true;
+}
+function resumable(){ const s = loadProgress(); return validSlot(s) ? s : null; }
+
+/* ======================= 판 진행 ======================= */
+function resetRun(){
+  running = false; over = false; paused = false; timerOn = false;
+  elapsed = 0; sinceSave = 0; flips = 0; pairsDone = 0; lastShownSec = -1;
+  first = -1; second = -1; cursor = 0;
+  if (missTimer){ clearTimeout(missTimer); missTimer = 0; }
+}
+function allocBoard(lv){
+  const d = LV[lv]; C = d.C; R = d.R; P = d.P;
+  const N = C * R;
+  up = new Uint8Array(N); done = new Uint8Array(N); pairFlips = new Int16Array(P);
+  deck = new Array(N).fill(0); faceIds = new Array(P).fill(0);
+}
+function buildBoard(lv, seedKey){
+  const b = buildDeck(lv, seedKey);
+  deck = b.deck; faceIds = b.faceIds;
+  return b;
+}
+function logRound(){
+  roundLog.push({ seedKey: seedKeyNow, mode, level, no: runNo });
+  if (roundLog.length > LOG_MAX) roundLog.splice(0, roundLog.length - LOG_MAX);
+}
+/* seedOpt — 자유 모드 seed 를 밖에서 정해 줄 때(연기시험 하네스 전용 · 화면 배선은 넘기지 않는다). */
+function startRun(m, lv, seedOpt){
+  mode = m;
+  if (m === 'daily') level = DAILY_LEVEL; else if (LEVELS.includes(lv)) level = lv;
+  /* ★일일: 날짜·번호·seed 를 이 순간의 시계로 한 번에 고정한다 — 이후 endRun 은 시계를 다시 보지 않는다. */
+  const t0 = new Date();
+  runDay = (m === 'daily') ? dayKey(t0) : ''; runNo = (m === 'daily') ? dailyNo(t0) : 0;
+  seedKeyNow = (m === 'daily') ? dailySeedKey(t0) : (typeof seedOpt === 'string' && seedOpt ? seedOpt : ('free-' + fxRng().toString(36).slice(2, 10)));
+  resetRun();
+  allocBoard(level);
+  buildBoard(level, seedKeyNow);
+  cursor = 0;
+  running = true;
+  logRound();
+  hide('start'); hide('over');
+  renderGrid(); updateHud(); updateSubtitle();
+  say(T('srStart', C, R, P));
+  ga('game_start', { game: GA_GAME, level });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+  saveProgress();
+  prevTs = 0;
+}
+/* 저장된 일일 판을 잇는다 — 판을 seed 로 다시 만들고 맞춘 짝·뒤집기·경과를 저장 시점으로 되돌린다.
+   새 시작이 아니므로 game_start·판수는 보내지 않는다.
+   ★뒤집던 도중의 앞면 한 장은 저장하지 않는다 — 다시 덮인 상태로 이어진다(뒤집기 수는 이미 세어 두었다). */
+function resumeRun(){
+  const s = resumable(); if (!s) return false;
+  mode = 'daily'; level = DAILY_LEVEL; runDay = s.runDay; runNo = s.runNo | 0; seedKeyNow = s.seedKey;
+  resetRun();
+  allocBoard(level);
+  buildBoard(level, seedKeyNow);
+  const N = C * R;
+  for (let i = 0; i < N; i++) if (s.done[i] === '1'){ done[i] = 1; up[i] = 1; }
+  pairsDone = 0;
+  for (let i = 0; i < N; i++) if (done[i]) pairsDone++;
+  pairsDone = pairsDone / 2;
+  flips = s.flips | 0;
+  for (let p = 0; p < P; p++) pairFlips[p] = s.pf[p] | 0;
+  elapsed = Math.max(0, s.elapsed | 0);
+  timerOn = true;                                   /* 이미 시작한 판이다 — 시계는 곧바로 흐른다 */
+  running = true;
+  logRound();
+  hide('start'); hide('over');
+  renderGrid(); updateHud(); updateSubtitle();
+  say(T('srStart', C, R, P));
+  prevTs = 0;
+  return true;
+}
+/* ★짝이 아니었던 두 장을 덮는다 — 시간이 되어 저절로 불릴 수도 있고, 다음 탭이 곧바로 부를 수도 있다.
+   두 경로 어느 쪽이든 **상태는 여기서 한 번만** 정리된다. */
+function resolvePending(){
+  if (missTimer){ clearTimeout(missTimer); missTimer = 0; }
+  if (second < 0){ return false; }
+  const a = first, b = second;
+  first = -1; second = -1;
+  up[a] = 0; up[b] = 0;
+  renderCards([a, b]);
+  return true;
+}
+/* 카드 한 장 뒤집기 — ★판정은 이 함수 안에서 **즉시** 끝난다. 미루는 것은 '덮이는 화면'뿐이다.
+   그래서 아무리 빠르게 연속으로 눌러도 낡은 상태 위에서 실행되지 않는다. */
+function flipCard(i){
+  if (!running || over) return { ok:false, why:'phase' };
+  resolvePending();                                  /* 앞 차례가 남아 있으면 그 자리에서 확정한다 */
+  if (!Number.isInteger(i) || i < 0 || i >= C * R) return { ok:false, why:'range' };
+  if (done[i]) return { ok:false, why:'done' };
+  if (i === first) return { ok:false, why:'same' };   /* 같은 카드를 두 번 세지 않는다 */
+  timerOn = true;
+  up[i] = 1; flips++;
+  const p = deck[i];
+  pairFlips[p]++;
+  renderCards([i], 'popped');
+  say(T('srFlip', ((i / C) | 0) + 1, (i % C) + 1, faceName(p)));
+  if (first < 0){
+    first = i;
+    sFlip();
+    updateHud(); saveProgress();
+    return { ok:true, phase:'first' };
+  }
+  if (deck[first] === p){                            /* 짝이다 — 그대로 둔다 */
+    done[first] = 1; done[i] = 1;
+    pairsDone++;
+    const a = first; first = -1; second = -1;
+    renderCards([a, i], 'popped');
+    sMatch();
+    say(T('srMatch', faceName(p), pairsDone, P));
+    updateHud();
+    if (pairsDone >= P){ endRun(); return { ok:true, phase:'match', cleared:true }; }
+    saveProgress();
+    return { ok:true, phase:'match' };
+  }
+  /* 짝이 아니다 — ★판정은 지금 끝났고, 덮는 것만 MISS_MS 뒤로 미룬다. */
+  second = i;
+  sMiss();
+  say(T('srMiss', faceName(deck[first]), faceName(p)));
+  renderCards([first, i], 'missed');
+  updateHud(); saveProgress();
+  missTimer = setTimeout(() => { missTimer = 0; resolvePending(); }, MISS_MS);
+  return { ok:true, phase:'miss' };
+}
+function endRun(){
+  if (!running) return;
+  if (missTimer){ clearTimeout(missTimer); missTimer = 0; }
+  running = false; over = true; timerOn = false;
+  first = -1; second = -1;
+  const durS = Math.max(0, Math.round(elapsed / 1000));
+  const marks = marksOf();
+  const rec = { f: flips, t: durS };
+  const isNew = betterThan(rec, best[level]);
+  if (isNew){ best[level] = rec; saveBest(level, rec); }
+  let streak = 0;
+  if (mode === 'daily'){
+    saveDaily({ flips, duration: durS, pairs: P, marks, level });
+    streak = bumpStreak(runDay);
+    ga('daily_complete', { game: GA_GAME, streak });
+    clearProgress();
+  }
+  lastResult = { mode, level, no: (mode === 'daily' ? runNo : dailyNo()), flips, durS, pairs: P,
+                 C, R, marks, isNew, streak, perfect: flips === C * R };
+  ga('game_over', { game: GA_GAME, score: flips, moves: flips, duration_s: durS, daily: mode === 'daily', level, pairs: P });
+  renderGrid();
+  sWin();
+  updateHud();
+  renderOver();
+  refreshStart();
+  say(T('srOver', flips, fmtTime(durS)));
+}
+/* 공유 마크 — 짝마다 그 짝의 카드를 몇 번 뒤집었나: 2번(최소) 🟩 / 3~4번 🟨 / 5번 이상 🟥.
+   한 줄에 다섯 짝씩 끊는다(쉬움 6·보통 10·어려움 15짝). */
+function marksOf(){
+  const out = [];
+  for (let p = 0; p < P; p++){
+    const n = pairFlips[p];
+    out.push(n <= 2 ? '🟩' : (n <= 4 ? '🟨' : '🟥'));
+  }
+  const rows = [];
+  for (let s = 0; s < out.length; s += MARK_COLS) rows.push(out.slice(s, s + MARK_COLS).join(''));
+  return rows.join('\n');
+}
+
+/* ======================= 한 걸음(시계) ======================= */
+function step(dt){
+  if (!running || over || paused || !timerOn) return;
+  elapsed += dt * 1000; sinceSave += dt * 1000;
+  const s = Math.floor(elapsed / 1000);
+  if (s !== lastShownSec){ lastShownSec = s; $('timeNow').textContent = fmtTime(s); }
+  if (sinceSave >= SAVE_EVERY_MS) saveProgress();
+}
+function loop(ts){
+  rafId = requestAnimationFrame(loop);
+  if (!prevTs) prevTs = ts;
+  let dt = (ts - prevTs) / 1000; prevTs = ts;
+  if (dt > 0.5) dt = 0.5;
+  step(dt);
+}
+const fmtTime = s => `${Math.floor(s/60)}:${pad2(s%60)}`;
+
+/* ======================= 그리기(DOM) ======================= */
+function cardState(i){
+  const p = deck[i];
+  if (done[i]) return { open:true, cls:'up done', lbl: faceName(p) + ' · ' + T('cellDone') };
+  if (up[i]) return { open:true, cls:'up', lbl: faceName(p) };
+  return { open:false, cls:'', lbl: T('cellDown') };
+}
+function paintCard(el, i, anim){
+  const st = cardState(i);
+  el.className = 'card ' + st.cls;
+  /* ★앞면 글자는 뒤집혀 있는 동안에도 미리 넣어 둔다 — 애니메이션 중간에 빈 칸이 보이지 않는다. */
+  const fr = el.querySelector('.front');
+  if (fr) fr.textContent = FACES[faceIds[deck[i]]].e;
+  if (anim && !reduceMotion()){ el.classList.add(anim); setTimeout(() => el.classList.remove(anim), 280); }
+  el.setAttribute('aria-label', T('cardLabel', ((i / C) | 0) + 1, (i % C) + 1, st.lbl));
+  el.setAttribute('aria-disabled', done[i] ? 'true' : 'false');
+  el.tabIndex = (i === cursor) ? 0 : -1;
+}
+function renderGrid(){
+  const g = $('grid');
+  g.style.gridTemplateColumns = `repeat(${C}, 1fr)`;
+  /* 그림 글자 크기 — 칸 폭(판 폭에서 간격을 뺀 값 ÷ 열 수)의 약 55%. 360px 5열에서도 넘치지 않는다. */
+  g.style.setProperty('--fs', `calc((min(100vw - 20px, 420px) - ${(C - 1) * 6}px) / ${C} * 0.55)`);
+  g.setAttribute('aria-label', T('ariaGrid'));
+  g.setAttribute('aria-rowcount', String(R));
+  g.setAttribute('aria-colcount', String(C));
+  const N = C * R;
+  if (g.childElementCount !== N){
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < N; i++){
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'card'; b.dataset.i = String(i); b.setAttribute('role', 'gridcell');
+      const inner = document.createElement('span'); inner.className = 'inner';
+      const back = document.createElement('span'); back.className = 'face back'; back.setAttribute('aria-hidden', 'true'); back.textContent = '?';
+      const front = document.createElement('span'); front.className = 'face front'; front.setAttribute('aria-hidden', 'true');
+      inner.appendChild(back); inner.appendChild(front); b.appendChild(inner);
+      frag.appendChild(b);
+    }
+    g.textContent = ''; g.appendChild(frag);
+  }
+  for (let i = 0; i < N; i++) paintCard(g.children[i], i, '');
+}
+function renderCards(list, anim){
+  const g = $('grid');
+  for (const i of list){ const el = g.children[i]; if (el) paintCard(el, i, anim || ''); }
+}
+function updateHud(){
+  const live = running || over;
+  $('flipNow').textContent = live ? String(flips) : '–';
+  $('pairNow').textContent = live ? `${pairsDone}/${P}` : '–';
+  $('timeNow').textContent = live ? fmtTime(Math.round(elapsed / 1000)) : '–';
+  const b = best[level];
+  $('bestChip').textContent = b ? T('bestChip', b.f, fmtTime(b.t)) : '';
+}
+function updateSubtitle(){
+  const live = running || over;
+  $('modeChip').textContent = live ? (mode === 'daily' ? T('modeDaily', runNo) : T('modeFree') + ' · ' + I18N[lang].lv[level]) : '–';
+  $('subtitle').textContent = live ? I18N[lang].lvDesc[level] : T('subtitle');
+}
+function renderOver(){
+  const r = lastResult; if (!r) return;
+  $('finalFlips').textContent = String(r.flips);
+  $('finalReason').textContent = r.perfect ? T('perfect') : T('clear');
+  $('marks').textContent = r.marks;
+  $('streakLine').textContent = (r.mode === 'daily' && r.streak > 1) ? T('streak', r.streak) : '';
+  const b = best[r.level];
+  $('newBest').textContent = r.isNew ? T('newBest') : (b ? T('best', b.f, fmtTime(b.t)) : '');
+  $('nFlip').textContent = String(r.flips);
+  $('nTime').textContent = fmtTime(r.durS);
+  $('nPair').textContent = String(r.pairs);
+  $('finalSub').textContent = T('finalSub', I18N[lang].lv[r.level], r.C, r.R, r.pairs);
+  show('over');
+}
+
+/* ======================= 창(오버레이) ======================= */
+function show(id){
+  const o = $(id); o.classList.add('show');
+  setOutsideInert(true);
+  const f = o.querySelector('button:not([disabled]):not([hidden]), a[href]');
+  if (f) try { f.focus({ preventScroll:true }); } catch(e){}
+}
+function hide(id){
+  $(id).classList.remove('show');
+  if (!$('start').classList.contains('show') && !$('over').classList.contains('show')) setOutsideInert(false);
+}
+function setOutsideInert(on){
+  for (const el of document.querySelectorAll('body > header, body > main, body > section, body > footer, body > .ad-slot, body > .scores')){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+  }
+}
+function say(msg){ $('srSummary').textContent = msg; }
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600); }
+
+/* ======================= 시작 화면 ======================= */
+function setLevel(lv){
+  if (!LEVELS.includes(lv)) return false;
+  level = lv; localStorage.setItem('mc.level', lv);
+  for (const b of $('levels').querySelectorAll('button')) b.setAttribute('aria-pressed', b.dataset.lv === lv ? 'true' : 'false');
+  $('lvDesc').textContent = I18N[lang].lvDesc[lv];
+  if (!running && !over) updateHud();
+  return true;
+}
+function refreshStart(){
+  const doneToday = dailyDoneToday();
+  const no = dailyNo();
+  $('btnDaily').textContent = doneToday ? T('dailyDone', no) : T('daily', no);
+  const st = streakNow();
+  $('dailyHint').textContent = (doneToday ? T('dailyHintDone') : T('dailyHint')) + (st > 1 ? ' · ' + T('streak', st) : '');
+  $('btnDaily').disabled = false;
+  const r = doneToday ? null : resumable();
+  const b = $('btnResumeDaily');
+  b.hidden = !r;
+  if (r){
+    let cards = 0; for (let i = 0; i < r.done.length; i++) if (r.done[i] === '1') cards++;
+    b.textContent = T('resumeDaily', r.runNo || no, cards / 2, fmtTime(Math.floor((r.elapsed | 0) / 1000)));
+  }
+  setLevel(level);
+}
+/* 오늘 이미 끝냈으면 새 판을 열지 않고 저장된 결과를 보여 준다(하루 한 번). */
+function startDaily(){
+  if (dailyDoneToday()){
+    const r = dailyRec(), res = r.result || {};
+    const d = LV[DAILY_LEVEL];
+    lastResult = { mode:'daily', level: res.level || DAILY_LEVEL, no: r.no || dailyNo(), flips: res.flips | 0, durS: res.duration ?? 0,
+                   pairs: res.pairs || d.P, C: d.C, R: d.R, marks: res.marks || '', isNew:false, streak: streakNow(),
+                   perfect: (res.flips | 0) === d.C * d.R };
+    renderOver();
+    return false;
+  }
+  const s = resumable();
+  if (s) return resumeRun();
+  startRun('daily', DAILY_LEVEL);
+  return true;
+}
+
+/* ======================= 입력 배선 ======================= */
+function cardIdxFrom(ev){
+  const el = ev.target && ev.target.closest ? ev.target.closest('.card') : null;
+  return el ? (+el.dataset.i) : -1;
+}
+$('grid').addEventListener('click', ev => {
+  const i = cardIdxFrom(ev);
+  if (i < 0 || !running || over) return;
+  cursor = i;
+  flipCard(i);
+});
+$('grid').addEventListener('keydown', ev => {
+  if (!running || over) return;
+  const k = ev.key;
+  let nx = cursor % C, ny = (cursor / C) | 0, moved = true;
+  if (k === 'ArrowLeft') nx = Math.max(0, nx - 1);
+  else if (k === 'ArrowRight') nx = Math.min(C - 1, nx + 1);
+  else if (k === 'ArrowUp') ny = Math.max(0, ny - 1);
+  else if (k === 'ArrowDown') ny = Math.min(R - 1, ny + 1);
+  else moved = false;
+  if (moved){ ev.preventDefault(); const p = cursor; cursor = idx(C, nx, ny); renderCards([p, cursor]); const el = $('grid').children[cursor]; if (el) el.focus({ preventScroll:true }); return; }
+  if (k === ' ' || k === 'Spacebar' || k === 'Enter'){ ev.preventDefault(); flipCard(cursor); }
+});
+$('btnRestart').onclick = () => { if (mode === 'daily' && running && !over){ saveProgress(); } show('start'); refreshStart(); };
+
+/* ======================= UI 배선 ======================= */
+$('btnStart').onclick = () => startRun('free', level);
+$('btnDaily').onclick = () => startDaily();
+$('btnResumeDaily').onclick = () => resumeRun();
+$('btnAgain').onclick = () => { hide('over'); startRun('free', level); };
+for (const b of $('levels').querySelectorAll('button')) b.onclick = () => setLevel(b.dataset.lv);
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  $('btnLang2').textContent = T('langBtn');
+  $('lvDesc').textContent = I18N[lang].lvDesc[level];
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  if (window.hpStats) window.hpStats();
+}
+function applyA11yLabels(){
+  for (const id of ['btnSound','btnSound2']){
+    const b = $(id); if (!b) continue;
+    b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  }
+  for (const id of ['btnLang','btnLang2']){ const l = $(id); if (l) l.setAttribute('aria-label', T('ariaLang')); }
+  $('btnRestart').setAttribute('aria-label', T('ariaRestart'));
+  $('grid').setAttribute('aria-label', T('ariaGrid'));
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+}
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyLang();
+  refreshStart();
+  updateSubtitle(); updateHud();
+  /* ★진행 중이면 판은 그대로 두고 라벨만 다시 쓴다(판이 지워지면 안 된다) */
+  if (C && R) renderGrid();
+  if (over && lastResult) renderOver();
+  ga('lang_switch', { lang });
+}
+$('btnLang').onclick = toggleLang;
+$('btnLang2').onclick = toggleLang;
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('mc.sound', soundOn ? '1' : '0');
+  const face = soundOn ? '🔊' : '🔇';
+  $('btnSound').textContent = face; $('btnSound2').textContent = face;
+  applyA11yLabels();
+  if (soundOn) beep(660, .06, 'sine', .04);
+}
+$('btnSound').onclick = toggleSound;
+$('btnSound2').onclick = toggleSound;
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnSound2').textContent = soundOn ? '🔊' : '🔇';
+document.addEventListener('visibilitychange', () => {
+  paused = document.hidden;
+  if (paused) saveProgress(); else prevTs = 0;
+});
+
+/* 공유 텍스트 — "🔗 기억력 카드 #N 🔄 24번 · ⏱ 1:12" + 마크 + URL · 자유 모드엔 #N 없음(난이도 표기) */
+function shareText(r, url){
+  const t = fmtTime(r.durS);
+  return ((r.mode === 'daily') ? T('dailyShare', r.no, r.flips, t, r.marks, r.streak)
+                               : T('freeShare', r.flips, t, r.marks, I18N[lang].lv[r.level])) + url;
+}
+async function doShare(){
+  const url = location.href.split('#')[0];
+  const r = lastResult;
+  if (!r) return;
+  try{
+    if (navigator.share){
+      /* ★네이티브 공유는 text 와 url 을 분리한다 — text 에 URL 을 또 넣으면 공유 시트가 링크를 두 번 붙인다. */
+      await navigator.share({ title: T('docTitle'), text: shareText(r, '').trimEnd(), url });
+    } else { await navigator.clipboard.writeText(shareText(r, url)); toast(T('copied')); }
+  }catch(_){}
+}
+$('btnShare').onclick = doShare;
+
+/* ======================= 기동 ======================= */
+applyLang();
+refreshStart();
+allocBoard(level);
+buildBoard(level, 'preview');            /* 시작 화면 뒤에 깔리는 판 — 전부 뒷면이라 그림은 보이지 않는다 */
+renderGrid(); updateHud(); updateSubtitle();
+if ($('start').classList.contains('show')) show('start');
+rafId = requestAnimationFrame(loop);
+
+/* ======================= 검증 창구(관측 전용) ======================= */
+/* ★배포되는 이 창구에는 **읽기만 하는 getter 와 순수 함수** 만 둔다. 판을 시작하거나 카드를 뒤집거나
+   시간을 진행시키는 **상태 변경 명령은 여기에 두지 않는다** — 검증에 필요한 변경 명령은 연기시험
+   하네스가 **메모리 위에서만** 이 파일 뒤에 덧붙인다. 반환값은 전부 사본이다. 외부 전송 0. */
+const copy = o => JSON.parse(JSON.stringify(o));
+const arr = a => Array.prototype.slice.call(a);
+window.__mc = {
+  const: () => ({ LV: copy(LV), LEVELS: LEVELS.slice(), DAILY_LEVEL, MISS_MS, SAVE_EVERY_MS, MARK_COLS, LOG_MAX,
+                  DAILY_EPOCH, FACES: copy(FACES) }),
+  state: () => ({ mode, level, running, over, paused, timerOn, C, R, P, elapsed, flips, pairsDone,
+                  seedKey: seedKeyNow, runDay, runNo, first, second, cursor, pending: missTimer !== 0 }),
+  board: () => ({ C, R, P, deck: deck.slice(), faceIds: faceIds.slice(), up: arr(up), done: arr(done), pairFlips: arr(pairFlips) }),
+  upMask: () => maskOf(up),
+  doneMask: () => maskOf(done),
+  /* 순수 함수 창구 — 하네스는 이것과 별개로 자기 셈을 들고 재검한다 */
+  buildDeck: (lv, seedKey) => { const b = buildDeck(String(lv), String(seedKey)); return { deck: b.deck.slice(), faceIds: b.faceIds.slice() }; },
+  seedKey: (d) => dailySeedKey(d ? new Date(d) : new Date()),
+  boardSeedKey: k => boardSeedKey(String(k)),
+  dailyNo: (d) => dailyNo(d ? new Date(d) : new Date()),
+  seedDraws: (key, n) => { const f = mulberry32(hashStr(String(key))); return Array.from({length:n}, () => +f().toFixed(9)); },
+  marks: () => marksOf(),
+  daily: () => ({ done: dailyDoneToday(), rec: dailyRec(), no: dailyNo(), streak: streakNow() }),
+  progress: () => copy(loadProgress()),
+  validSlot: s => validSlot(s),
+  best: () => copy(best),
+  betterThan: (a, b) => betterThan(a, b),
+  log: () => copy(roundLog),
+  logMax: () => LOG_MAX,
+  transcript: () => roundLog.map(o => `${o.seedKey}|${o.mode}|${o.level}|${o.no}`).join(' '),
+  shareText: (r) => shareText(r, 'https://hanpango.com/memory/'),
+  result: () => copy(lastResult),
+  shown: (id) => $(id).classList.contains('show'),
+  reduceMotion: () => reduceMotion(),
+  sound: () => soundOn,
+  lang: () => lang
+};
+})();
+</script>
+<script>
+  /* 서비스 워커 — 사이트 공통(루트에서 한 번만 등록한다) */
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+</script>
+</body>
+</html>
