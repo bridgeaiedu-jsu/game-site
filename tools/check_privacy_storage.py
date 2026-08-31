@@ -471,6 +471,7 @@ def _skip_gap_back(text, i, start=0, spans=None):
 
 
 STORAGE_NAMES = ('localStorage', 'sessionStorage')
+BACKSLASH = chr(92)          # 소스에 직접 쓰지 않는다(편집·전달 과정에서 먹히기 쉽다)
 # ★코드 자리의 저장소 이름 문자열을 '설명되지 않으면 정지' 로 다룬다(R9 기본값 뒤집기).
 #   자기시험의 meta 변이체가 이 한 줄을 False 로 바꿔 옛 동작(무시)을 되살린다.
 STOP_UNEXPLAINED_STORAGE_STRING = True
@@ -484,7 +485,9 @@ STOP_UNEXPLAINED_STORAGE_STRING = True
 #   있는가'** 로 묻는다. 문자 목록을 다시 손보는 길로 돌아가지 마라 — 두 번 다 그 길에서 샜다.
 JS_SPACE_EXTRA = '\ufeff'          # JS 는 BOM 도 공백류로 읽는다(파이썬 isspace 는 아니다)
 # 이름 뒤가(공백류를 건너뛰고) 이 글자면 **접근·대입**이다 — 산문이 아니다.
-PROSE_ACCESS_AFTER = '.[(='
+# ★R12 — '=' 를 뺐다. `localStorage = window.localStorage in most browsers.` 같은 설명
+#   문장을 막으면서 정작 저장 모양은 아니다(저장은 '[' 또는 '.' 뒤 이름으로 일어난다).
+PROSE_ACCESS_AFTER = '.[('
 # 이름 앞이(공백류를 건너뛰고) 이 글자면 이름이 **멤버·대입 대상 자리**에 있다.
 PROSE_ACCESS_BEFORE = '.[='
 # 문자열 어딘가에 이 모양이 있으면 그 문자열은 산문이 아니라 **코드**다.
@@ -501,13 +504,19 @@ class _TaggedTemplateShape:
       실측으로 갈랐다 — ``"zzTag`localStorage`"`` 는 Node 에서 저장 1건이고,
       ``"저장은 `localStorage` 를 씁니다"`` · ``"use `localStorage` for saving"`` 은 0건이다."""
 
-    rx = re.compile(r'[A-Za-z_$][\w$]*[ \t]*`')
-    TAIL_CODE = ';,)].'
+    rx = re.compile(r'[A-Za-z_$][\w$]*([ \t]*)`')
+    TAIL_CODE = ';'
 
     def search(self, body):
         for m in self.rx.finditer(body):
             if body.count('`', 0, m.end() - 1) % 2:
                 continue                              # 이미 템플릿 안 = 인용이다
+            if m.group(1) == '':
+                return m                              # 이름과 백틱이 붙었다 — 그대로 호출이다
+            # ★R12 — 사이에 공백이 있으면 영문 문안의 인용과 구별되지 않는다
+            #   ("use `localStorage`, and it persists"). 그래서 꼬리를 함께 본다:
+            #   아무것도 없거나 ';' 면 호출, 글이 이어지면 문안이다. 마침표·쉼표·닫는 괄호를
+            #   코드 꼬리로 세던 것이 영문 문안 세 종을 통째로 막고 있었다(실측).
             close = body.find('`', m.end())
             if close < 0:
                 return m                              # 안 닫힌 백틱 — 단정하지 않고 코드로 본다
@@ -541,6 +550,13 @@ def _skip_js_space(body, i, step):
     return i
 
 
+def _is_ident_start(body, k):
+    """body[k] 가 식별자를 시작할 수 있는 글자인가 — '.' 뒤가 이름인지 가르는 데 쓴다."""
+    if k < 0 or k >= len(body):
+        return False
+    return body[k].isalpha() or body[k] in '_$' or ord(body[k]) > 127
+
+
 def storage_name_is_prose(text, span, s_at, s_end, spans=None):
     """[span] 문자열 안 [s_at, s_end) 의 저장소 이름이 **사람에게 보여 줄 문안**인가.
 
@@ -564,7 +580,11 @@ def storage_name_is_prose(text, span, s_at, s_end, spans=None):
         return (False, '문자열이 저장소 이름과 정확히 같다 — 그대로 멤버 이름이 될 수 있다')   # ①
     j = _skip_js_space(body, end, 1)                                                        # ②
     if j < len(body) and body[j] in PROSE_ACCESS_AFTER:
-        return (False, "이름 뒤에 접근·대입 모양('%s')이 온다 — 사이의 공백은 JS 가 허용한다" % body[j])
+        # ★R12 — '.' 은 **뒤에 이름이 올 때만** 멤버 접근이다. 영문 문장은 낱말 뒤에 마침표를
+        #   찍으므로("… write to localStorage.") 그것까지 접근으로 읽으면 문안이 통째로 막힌다.
+        #   한국어는 조사가 붙어 이 자리에 마침표가 오지 않아 지금까지 안 보였다(언어 편향).
+        if body[j] != '.' or _is_ident_start(body, _skip_js_space(body, j + 1, 1)):
+            return (False, "이름 뒤에 접근·대입 모양('%s')이 온다 — 사이의 공백은 JS 가 허용한다" % body[j])
     k = _skip_js_space(body, at - 1, -1)                                                    # ③
     if k >= 0 and body[k] in PROSE_ACCESS_BEFORE:
         return (False, "이름 앞이 멤버·대입 자리('%s')다" % body[k])
@@ -767,6 +787,125 @@ def classify_bracket(text, r, start=0, spans=None, open_at=None):
             return kind
         return ('unknown', "'{' 뒤인데 계산형 속성 키인지(구조분해일 수 있다) 가릴 수 없다")
     return ('unknown', '앞 토큰(%r)을 분류할 수 없다' % prev)
+
+
+# ★R12(2026-09-01 · codex REVISE) — **문자열 escape 로 쓴 이름**을 복원한다.
+#   window["\u006cocalStorage"].setItem(…) 은 소스에 'localStorage' 라는 낱말이 없어
+#   낱말 그물에도, 멤버 이름 경로에도 걸리지 않았다. rc=0 인데 Node 에서 실제로 저장된다
+#   (유니코드 네자리·hex 두자리·중괄호 형태 3종 실측).
+#   ★복원은 **단일 패스**다. 입력 오프셋이 단조 증가하므로 복원 결과를 다시 해석하는 일이
+#     없고, 그래서 무한 루프가 원리적으로 불가능하다.
+#   ★백슬래시가 escape 된 표기(\\u0041)는 복원 대상이 **아니다** — 그 자체가 백슬래시 한
+#     글자이고 뒤의 u 는 평범한 글자다. parity 를 지키지 않으면 문자열을 이름으로 오인한다.
+#   ★식별자 escape 는 여기서 다루지 않는다 — 이 함수는 **문자열 리터럴 안**만 본다.
+HEX_DIGITS = '0123456789abcdefABCDEF'
+SIMPLE_ESCAPES = {'n': chr(10), 't': chr(9), 'r': chr(13), 'b': chr(8), 'f': chr(12),
+                  'v': chr(11), '0': chr(0), BACKSLASH: BACKSLASH,
+                  chr(39): chr(39), chr(34): chr(34), chr(96): chr(96)}
+
+
+def decode_js_string(body):
+    """JS 문자열 리터럴의 escape 를 한 번의 훑기로 복원한다.
+
+    돌려주는 값 (복원값, 사유) — 복원할 수 없으면 (None, 왜 못 하는지).
+    복원하지 않고 멈추는 자리: 미완성 escape · 잘못된 hex 자릿수 · 닫히지 않은 중괄호 ·
+    범위를 벗어난 코드포인트 · **줄연속**(백슬래시 뒤 줄바꿈). 모르면 멈춘다가 이 도구의 기본값이다."""
+    out = []
+    i, n = 0, len(body)
+    while i < n:
+        c = body[i]
+        if c != BACKSLASH:
+            out.append(c)
+            i += 1
+            continue
+        if i + 1 >= n:
+            return (None, '문자열이 백슬래시로 끝난다(미완성 escape)')
+        e = body[i + 1]
+        if e in (chr(10), chr(13), chr(0x2028), chr(0x2029)):
+            return (None, '줄연속 escape 는 복원하지 않는다')
+        if e == 'u':
+            if body[i + 2:i + 3] == '{':
+                j = body.find('}', i + 3)
+                if j < 0:
+                    return (None, '중괄호 유니코드 escape 가 닫히지 않았다')
+                h = body[i + 3:j]
+                if not h or any(ch not in HEX_DIGITS for ch in h):
+                    return (None, '중괄호 유니코드 escape 의 자릿수가 16진수가 아니다')
+                try:
+                    out.append(chr(int(h, 16)))
+                except ValueError:
+                    return (None, '유니코드 코드포인트가 범위를 벗어난다')
+                i = j + 1
+                continue
+            h = body[i + 2:i + 6]
+            if len(h) < 4 or any(ch not in HEX_DIGITS for ch in h):
+                return (None, '유니코드 네자리 escape 의 자릿수가 16진수가 아니다')
+            out.append(chr(int(h, 16)))
+            i += 6
+            continue
+        if e == 'x':
+            h = body[i + 2:i + 4]
+            if len(h) < 2 or any(ch not in HEX_DIGITS for ch in h):
+                return (None, 'hex 두자리 escape 의 자릿수가 16진수가 아니다')
+            out.append(chr(int(h, 16)))
+            i += 4
+            continue
+        out.append(SIMPLE_ESCAPES.get(e, e))
+        i += 2
+        continue
+    return (_join_surrogates(out), 'ok')
+
+
+def _join_surrogates(units):
+    """서로게이트 쌍을 순서대로 결합한다 — 짝이 맞을 때만 하나의 글자로 접는다.
+
+    ★결합 결과가 저장소 이름과 일치할 때만 후보가 된다(호출부에서 정확 일치로 대조한다).
+      저장소 이름은 전부 ASCII 라 실제로는 '결합되면 이름이 아니다' 가 된다 — 그래도
+      결합을 해 두어야 '이름이 아님' 을 정확히 말할 수 있다."""
+    out = []
+    i = 0
+    while i < len(units):
+        c = units[i]
+        if 0xD800 <= ord(c) <= 0xDBFF and i + 1 < len(units) and 0xDC00 <= ord(units[i + 1]) <= 0xDFFF:
+            out.append(chr(0x10000 + ((ord(c) - 0xD800) << 10) + (ord(units[i + 1]) - 0xDC00)))
+            i += 2
+            continue
+        out.append(c)
+        i += 1
+    return ''.join(out)
+
+
+def storage_fragment_of(body, minimum=5):
+    r"""body 안에 저장소 이름의 **조각**(연속 부분문자열)이 있으면 그중 가장 긴 것을 돌려준다.
+
+    ★왜 조각인가 — escape 로 쓴 이름은 복원에 실패하면 낱말이 온전히 보이지 않는다.
+      `\u00zzocalStorage` 에는 'localStorage' 가 없지만 'ocalStorage' 가 있다. 이름 전체로만
+      찾으면 이런 자리를 그냥 지나친다(실측: 잘못된 hex 표기가 rc=0 으로 통과했다).
+    길이 하한을 두는 이유는 소음 억제다 — 'or'·'age' 같은 짧은 겹침으로 멈추면 안 된다."""
+    best = None
+    for name in STORAGE_NAMES:
+        n = len(body)
+        for i in range(n):
+            for j in range(min(n, i + len(name)), i + minimum - 1, -1):
+                frag = body[i:j]
+                if frag in name:
+                    if best is None or len(frag) > len(best):
+                        best = frag
+                    break
+    return best
+
+
+def quoted_body(inner):
+    r"""첨자 안이 **따옴표로 감싼 한 덩어리**면 그 알맹이를 돌려준다(아니면 None).
+
+    ★QUOTED 정규식은 생 줄바꿈이 든 문자열을 통짜로 못 읽는다 — 줄연속 escape(백슬래시 뒤
+      줄바꿈)가 그런 경우다. 그 자리를 정규식에 맡기면 첨자 루프가 통째로 지나쳐 버린다
+      (실측: window["local\<줄바꿈>Storage"].setItem 이 rc=0 이었고 Node 에서 저장됐다).
+      그래서 따옴표 판정만 손으로 한다."""
+    t = inner.strip()
+    if len(t) >= 2 and t[0] in (chr(39), chr(34), chr(96)) and t[-1] == t[0]:
+        return t[1:-1]
+    return None
 
 
 def bracket_mentions_storage(inner):
@@ -1061,6 +1200,28 @@ def scan_file(src, is_html, rel):
             if bkind == 'array':
                 continue                              # 배열 리터럴이다(표현식이 새로 시작한다)
             q_lit = QUOTED.fullmatch(inner.strip())
+            raw_body = q_lit.group(2) if q_lit else quoted_body(inner)
+            if raw_body is not None and BACKSLASH in raw_body and not any(nm in raw_body for nm in STORAGE_NAMES):
+                # ★R12 — 소스에 낱말이 없고 escape 만 있는 첨자다. 여기서 복원하지 않으면
+                #   낱말 그물도 멤버 이름 경로도 이 자리를 볼 수 없다(둘 다 완성된 낱말을 찾는다).
+                #   담당이 겹치지 않으므로 두 방어가 서로를 공허하게 만들지 않는다.
+                dec, why = decode_js_string(raw_body)
+                if dec is None:
+                    frag = storage_fragment_of(raw_body)
+                    if frag:
+                        stops.append('%s:%d — 첨자 문자열의 escape 를 복원할 수 없다(%s) '
+                                     '· 안에 저장소 이름 조각(%s)이 있어 무시하지 않는다'
+                                     % (rel, at(m.start()), why, frag))
+                    continue
+                if dec in STORAGE_NAMES:
+                    accd = classify_access(text, m.end(), len(text))
+                    line = at(m.start())
+                    if accd[0] == 'call':
+                        exprd, _e = first_arg(text, accd[2])
+                        calls.append((dec, '%s:%d' % (rel, line), exprd, consts))
+                    elif accd[0] == 'unknown':
+                        stops.append('%s:%d — %s' % (rel, line, accd[1]))
+                    continue
             if q_lit and not (q_lit.group(1) == chr(96) and '${' in q_lit.group(2)):
                 # ★통짜 문자열 첨자는 위(멤버 이름) 경로가 끝까지 책임진다 — 분류 불가까지
                 #   그쪽이 멈춰 준다. 여기서 같이 잡으면 한 줄에 지적이 둘 나고, 더 나쁘게는
@@ -1759,6 +1920,72 @@ def _prose_sliced_into_name(work):
                         'Reflect.get(window, zzCut).setItem("zz.cut", "1");')
 
 
+def _r12_escape_unicode(work):
+    """★유니코드 네자리 escape 로 쓴 첨자 이름 — 소스에 낱말이 없어 낱말 그물에도, 멤버 이름
+    경로에도 걸리지 않던 자리다(rc=0 인데 Node 에서 저장 1건). 이제 복원해서 키를 잡는다."""
+    _append_stats(work, 'window[' + chr(34) + chr(92) + 'u006cocalStorage' + chr(34)
+                        + '].setItem(' + chr(34) + 'zz.r12u' + chr(34) + ', ' + chr(34) + '1' + chr(34) + ');')
+
+
+def _r12_escape_hex(work):
+    """hex 두자리 escape 로 쓴 같은 자리."""
+    _append_stats(work, 'window[' + chr(34) + chr(92) + 'x6cocalStorage' + chr(34)
+                        + '].setItem(' + chr(34) + 'zz.r12x' + chr(34) + ', ' + chr(34) + '1' + chr(34) + ');')
+
+
+def _r12_escape_brace(work):
+    """중괄호 형태 유니코드 escape."""
+    _append_stats(work, 'window[' + chr(34) + chr(92) + 'u{6c}ocalStorage' + chr(34)
+                        + '].setItem(' + chr(34) + 'zz.r12b' + chr(34) + ', ' + chr(34) + '1' + chr(34) + ');')
+
+
+def _r12_escaped_backslash(work):
+    """★parity 의 짝 — 백슬래시가 escape 된 표기는 복원 대상이 아니다. 값에는 이름이 없고
+    저장도 하지 않는다(오라클 저장 0건). 여기서 복원해 버리면 문자열을 이름으로 오인한다."""
+    _append_stats(work, 'const zzR12b = ' + chr(34) + chr(92) + chr(92) + 'u006cocalStorage'
+                        + chr(34) + '; void zzR12b;')
+
+
+def _r12_bad_hex(work):
+    """★복원할 수 없는 escape — 잘못된 hex. 모르면 멈춘다(안에 이름 조각이 있을 때만)."""
+    _append_stats(work, 'window[' + chr(34) + chr(92) + 'u00zzocalStorage' + chr(34)
+                        + '].setItem(' + chr(34) + 'zz.r12bad' + chr(34) + ', ' + chr(34) + '1' + chr(34) + ');')
+
+
+def _r12_line_continuation(work):
+    """★줄연속 escape — 정규식이 통짜 문자열로 못 읽는 자리라 첨자 루프가 통째로 지나쳤다
+    (rc=0 인데 Node 에서 저장 1건). 따옴표 판정을 손으로 해서 붙잡고 멈춘다."""
+    _append_stats(work, 'window[' + chr(34) + 'local' + chr(92) + chr(10) + 'Storage' + chr(34)
+                        + '].setItem(' + chr(34) + 'zz.r12nl' + chr(34) + ', ' + chr(34) + '1' + chr(34) + ');')
+
+
+def _r12_en_backtick_comma(work):
+    """★영문 문안 · 백틱 뒤 쉼표. 한국어는 조사가 붙어 열리는데 영문만 막히던 자리다."""
+    _append_stats(work, 'const zzR12p1 = "use ' + chr(96) + 'localStorage' + chr(96)
+                        + ', and it persists"; void zzR12p1;')
+
+
+def _r12_en_backtick_period(work):
+    _append_stats(work, 'const zzR12p2 = "see ' + chr(96) + 'localStorage' + chr(96)
+                        + '."; void zzR12p2;')
+
+
+def _r12_en_sentence_period(work):
+    """★영문 문장의 마침표는 멤버 접근이 아니다 — 점 뒤에 이름이 와야 접근이다."""
+    _append_stats(work, 'const zzR12p8 = "we store it in localStorage."; void zzR12p8;')
+
+
+def _r12_en_equals(work):
+    """★영문 설명의 등호도 저장 모양이 아니다(저장은 '[' 나 점 뒤 이름으로 일어난다)."""
+    _append_stats(work, 'const zzR12p9 = "localStorage = the browser store"; void zzR12p9;')
+
+
+def _r12_tagged_comma_tail(work):
+    """★태그드 템플릿인데 꼬리가 쉼표다 — 이름과 백틱이 **붙어 있으면** 꼬리와 무관하게 호출이다
+    (오라클 저장 1건). 이 짝이 없으면 '붙어 있으면 호출' 규칙이 공허해진다."""
+    _append_stats(work, 'const zzR12t = eval; zzR12t("zzTag' + chr(96) + 'localStorage' + chr(96) + ', 0");')
+
+
 def _r11_shape_call_only(work):
     """★코드 모양 표의 '호출 모양' 항목만 홀로 책임지는 짝 — 점·대괄호·화살표·치환이 없다."""
     _append_stats(work, 'const zzEc = eval; zzEc("zzSave(localStorage)");')
@@ -2056,6 +2283,22 @@ CASES = [
     ('코드모양 · 문자열 첨자만',       _r11_shape_bracket_string_only, 2, ['uncertain-code']),
     ('코드모양 · 화살표만',           _r11_shape_arrow_only,      2, ['uncertain-code']),
     ('코드모양 · 자리표 문안(소음쪽)',  _r11_shape_mustache,        2, ['uncertain-code']),
+    # ── R12 · 문자열 escape 로 쓴 이름을 복원해 키를 잡는다(소스에 낱말이 없던 자리) ──
+    ('escape 유니코드 첨자',          _r12_escape_unicode,        1, ['missing-exact']),
+    ('escape hex 첨자',             _r12_escape_hex,            1, ['missing-exact']),
+    ('escape 중괄호 첨자',           _r12_escape_brace,          1, ['missing-exact']),
+    # ── R12 · ★그 반대편: 백슬래시가 escape 된 표기는 복원 대상이 아니다(parity) ──
+    ('escape 된 백슬래시',           _r12_escaped_backslash,     0, []),
+    # ── R12 · 복원할 수 없으면 멈춘다(조각이 보일 때만) ──
+    ('잘못된 hex escape',           _r12_bad_hex,               2, ['uncertain-code']),
+    ('줄연속 escape',               _r12_line_continuation,     2, ['uncertain-code']),
+    # ── R12 · 영문 문안 과차단을 좁혔다(한국어만 열리던 언어 편향) ──
+    ('영문 문안 · 백틱 뒤 쉼표',       _r12_en_backtick_comma,     0, []),
+    ('영문 문안 · 백틱 뒤 마침표',     _r12_en_backtick_period,    0, []),
+    ('영문 문장 · 끝 마침표',         _r12_en_sentence_period,    0, []),
+    ('영문 문장 · 등호',             _r12_en_equals,             0, []),
+    # ── R12 · ★그 반대편: 이름과 백틱이 붙었으면 꼬리와 무관하게 호출이다 ──
+    ('태그드 템플릿 · 쉼표 꼬리',      _r12_tagged_comma_tail,     2, ['uncertain-code']),
     ('배열 원소로 놓인 문자열',        _array_element_word,        0, []),
     # ── R7 · 별칭이 되는 자리와 계산형 이름(codex R6 표본) ──
     ('?? 로 꺼내 담기',              _nullish_alias,        2, ['uncertain-code']),
@@ -2142,7 +2385,7 @@ META = [
     ('meta:정확 일치 정지 제거', '정확 일치 단독 문자열(짝)',
      '    if at == 0 and end == ' + 'len(body):', '    if False:', 0),
     ('meta:이름 뒤 접근 판정 제거', '공백 뒤 대괄호 대입(짝)',
-     'PROSE_ACCESS_AFTER = ' + "'.[(='", "PROSE_ACCESS_AFTER = ''", 0),
+     'PROSE_ACCESS_AFTER = ' + "'.[('", "PROSE_ACCESS_AFTER = ''", 0),
     ('meta:이름 앞 대입 판정 제거', '이름 앞이 대입 자리(짝)',
      'PROSE_ACCESS_BEFORE = ' + "'.[='", "PROSE_ACCESS_BEFORE = ''", 0),
     ('meta:코드 모양 판정 제거', '쉼표 뒤 인자로 넘김(짝)',
@@ -2193,6 +2436,27 @@ META = [
     ('meta:코드모양 항목 제거 · 치환', '코드모양 · 자리표 문안(소음쪽)',
      r"    ('치환 템플릿', re.compile(r'\$" + r"\{')),",
      "    ('치환 템플릿(꺼짐)', re.compile(r'(?!x)x')),", 0),
+    # ── R12 · 새 가드를 하나씩 홀로 지운다(짝은 격리 실측으로 골랐다) ──
+    # ★복원을 지우면 rc 가 1(키를 잡음)에서 2(조각 때문에 정지)로 바뀐다 — 누출로 돌아가지는
+    #   않는다. 조각 정지가 뒤를 받치고 있기 때문이다. 복원의 값어치는 '멈추지 않고 키를 읽는 것'
+    #   이므로 짝의 기대값도 2 로 못박는다(0 으로 적으면 실측과 어긋난다).
+    ('meta:escape 복원 제거', 'escape 유니코드 첨자',
+     '                dec, why = ' + 'decode_js_string(raw_body)',
+     '                dec, why = (None, ' + "'(변이) 복원하지 않는다')", 2),
+    ('meta:복원 실패 조각 정지 제거', '잘못된 hex escape',
+     '                    frag = ' + 'storage_fragment_of(raw_body)', '                    frag = None', 0),
+    ('meta:손으로 따옴표 읽기 제거', '줄연속 escape',
+     '            raw_body = q_lit.group(2) if q_lit else ' + 'quoted_body(inner)',
+     '            raw_body = q_lit.group(2) if q_lit else None', 0),
+    ('meta:점 뒤 이름 조건 제거', '영문 문장 · 끝 마침표',
+     "        if body[j] != '.' or " + '_is_ident_start(body, _skip_js_space(body, j + 1, 1)):',
+     '        if True:', 2),
+    ('meta:이름 뒤 등호 되살리기', '영문 문장 · 등호',
+     "PROSE_ACCESS_AFTER = " + "'.[('", "PROSE_ACCESS_AFTER = " + "'.[(='", 2),
+    ('meta:백틱 꼬리 표 되돌리기', '영문 문안 · 백틱 뒤 쉼표',
+     "    TAIL_CODE = " + "';'", "    TAIL_CODE = ';,)].'", 2),
+    ('meta:붙은 백틱 즉시 호출 판정 제거', '태그드 템플릿 · 쉼표 꼬리',
+     "            if m.group(1) == " + "'':", '            if False:', 0),
     ('meta:제어문 머리 판정 제거', 'if 머리 뒤 배열 리터럴',
      "        head = _is_control_head_paren" + '(text, r - 1, start, spans)',
      '        head = False', 2),
