@@ -139,6 +139,10 @@
   .card h2{margin:0 0 6px;font-size:1.5rem}
   .card .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1;font-variant-numeric:tabular-nums}
   .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  /* 유일해를 보장하는 판을 만들지 못했을 때만 뜨는 알림 — 평소에는 hidden 이다.
+     [hidden] 가드를 함께 둔다(display 를 선언한 규칙이 브라우저 기본값을 덮지 못하게). */
+  .card .genwarn{color:var(--bad);font-size:.85rem;font-weight:600;margin:2px 0 8px;line-height:1.4}
+  .card .genwarn[hidden]{display:none!important}
   .card .marks{font-size:1.25rem;letter-spacing:.06em;margin:4px 0;line-height:1.3;word-break:break-all}
   .card .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
   .hp-stat[hidden]{display:none!important}
@@ -249,6 +253,7 @@
   <div class="card">
     <h2 id="startTitle" data-i18n="title2">노노그램</h2>
     <div class="sub" data-i18n="startSub">줄에 적힌 숫자만 보고 칸을 칠해 그림을 완성합니다.<br>모든 판은 답이 하나뿐 · 찍지 않고 논리로 풀립니다.</div>
+    <p class="genwarn" id="genWarn" hidden></p>
     <button class="btn primary" id="btnDaily">오늘의 도전</button>
     <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
     <button class="btn ghost" id="btnResumeDaily" hidden></button>
@@ -323,6 +328,7 @@ const I18N = {
     result:'완성!', again:'다시 하기', share:'결과 공유', start:'▶ 시작',
     home:'🏠 다른 게임',
     startSub:'줄에 적힌 숫자만 보고 칸을 칠해 그림을 완성합니다.<br>모든 판은 답이 하나뿐 · 찍지 않고 논리로 풀립니다.',
+    genFail:'답이 하나뿐인 판을 만들지 못해 이번에는 시작하지 않았습니다. 답이 여러 개인 판을 내지 않기 위해서입니다 — 판형이나 난이도를 바꿔 다시 눌러 보세요.',
     sizeLbl:'판형', levelLbl:'난이도', lvEasy:'쉬움', lvNormal:'보통', lvHard:'어려움',
     lv:{ easy:'쉬움', normal:'보통', hard:'어려움' },
     newBest:'🎉 최고 기록 갱신!',
@@ -383,6 +389,7 @@ const I18N = {
     result:'Solved!', again:'Play again', share:'Share result', start:'▶ Start',
     home:'🏠 More games',
     startSub:'Read the numbers, paint the squares, reveal the picture.<br>One solution per board — logic only, never a guess.',
+    genFail:'We could not build a board with exactly one solution, so we did not start — we never hand out a board with more than one answer. Try another size or difficulty.',
     sizeLbl:'Board', levelLbl:'Level', lvEasy:'Easy', lvNormal:'Normal', lvHard:'Hard',
     lv:{ easy:'Easy', normal:'Normal', hard:'Hard' },
     newBest:'🎉 New best!',
@@ -540,6 +547,17 @@ const HARD_ROUNDS = { 5: 3, 10: 5 };
 /* 생성 재시도 상한 — ★횟수만 센다. 시간(경과 ms)으로 끊으면 느린 기기에서만 재시도가 일어나
    '같은 seed = 같은 판' 이 기기마다 갈라진다. */
 const GEN_MAX_TRIES = 300;
+/* ★최종 보루 — 후보 생성이 상한까지 전부 실패했을 때 내보내는 **고정 판**(판형별 1개).
+   5×5 는 마름모, 10×10 은 하트다. 두 판 모두 '빈 줄 없음 · 단서 개수 상한 이내 ·
+   줄 추론만으로 완주 · 답이 정확히 하나' 를 통과함을 기계로 확인했고(tools/verify_nonogram.js ⑦),
+   fixedFallback 이 **내보내기 직전에 그 넷을 런타임에서 다시** 확인한다.
+   ★예전에는 여기서 X자 판을 관문 없이 그대로 내보냈다. 그 판은 5×5·10×10 모두 답이 20개
+   이상이라 '답이 하나뿐인 판만 냅니다' 라는 약속을 정면으로 어겼다(codex R6 지적 · 재현 확인).
+   도달 확률이 낮다는 것은 유일해 보장이 아니다 — 닿는 순간 약속이 깨진다. */
+const FALLBACK_GRID = {
+  5:  '0010001110111110111000100',
+  10: '0011001100011111111011111111111111111111111111111101111111100111111110001111110000011110000000110000'
+};
 const BANDS = 5;                 /* 공유 문구의 🟩🟨🟥 구간 수(판을 위에서 아래로 5등분) */
 const SAVE_EVERY_MS = 3000;
 const WAVE_MS = 900;
@@ -749,13 +767,28 @@ function makePuzzle(N, level, seedKey){
              filled: g.reduce((a, v) => a + v, 0), rounds: res.rounds, fallback:true, hash: gridHash(g) };
   }
   /* 여기까지 오는 일은 실측상 없다(5×5·10×10 각 난이도 전부 첫 상한 안에서 나온다).
-     그래도 판 없이 게임을 시작하지는 않는다 — 손으로 확인한 최소 판을 낸다. */
-  const g = new Array(N * N).fill(0);
-  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (r === c || c === N - 1 - r) g[r * N + c] = 1;
+     그래도 판 없이 게임을 시작하지는 않는다 — 유일해가 증명된 고정 판을 낸다.
+     ★그 고정 판마저 관문을 통과하지 못하면 **null 을 돌려준다**. 부르는 쪽은 판 없이 멈춘다.
+     답이 여럿인 판을 내보내느니 시작하지 않는 쪽이 약속을 지키는 길이다(fail-closed). */
+  return fixedFallback(N, level, seedKey);
+}
+/* 고정 판을 정상 경로와 **똑같은 관문**에 통과시킨 뒤에만 돌려준다.
+   빈 줄 없음 → 단서 개수 상한 → 줄 추론 완주 → 독립 탐색으로 센 답이 정확히 1개.
+   하나라도 어긋나면 null 이다(상수를 잘못 고쳐 넣어도 비유일 판이 새어 나가지 않는다). */
+function fixedFallback(N, level, seedKey){
+  const src = FALLBACK_GRID[N];
+  if (typeof src !== 'string' || src.length !== N * N || /[^01]/.test(src)) return null;
+  const g = src.split('').map(Number);
   const { rows, cols } = cluesOf(g, N);
-  return { N, size:N, level, seed:seedKey, attempt:0, solution:g, rows, cols,
+  if (rows.some(cl => clueLen(cl) === 0) || cols.some(cl => clueLen(cl) === 0)) return null;
+  const maxc = MAXCLUE[N] || 4;
+  if (maxClueLen(rows) > maxc || maxClueLen(cols) > maxc) return null;
+  const res = lineSolve(rows, cols, N);
+  if (!res.solved) return null;                              /* 찍기 없이 안 풀리면 내지 않는다 */
+  if (countSolutions(rows, cols, N, 2) !== 1) return null;    /* 답이 하나가 아니면 내지 않는다 */
+  return { N, size:N, level, seed:seedKey, attempt:0, solution:g.slice(), rows, cols,
            gutter: Math.max(1, Math.max(maxClueLen(rows), maxClueLen(cols))),
-           filled: g.reduce((a, v) => a + v, 0), rounds:0, fallback:true, hash: gridHash(g) };
+           filled: g.reduce((a, v) => a + v, 0), rounds: res.rounds, fallback:true, fixed:true, hash: gridHash(g) };
 }
 
 /* ======================= 상태 ======================= */
@@ -845,6 +878,17 @@ function startRun(m, sz, lv){
   else { size = SIZES.includes(sz) ? sz : pref.size; level = LEVELS.includes(lv) ? lv : pref.level; runDay = ''; runNo = 0;
          seedKeyNow = 'free-' + size + '-' + level + '-' + Math.random().toString(36).slice(2, 10); }
   genInfo = makePuzzle(size, level, seedKeyNow);
+  /* ★판을 유일해로 만들어 내지 못했다 — 시작하지 않는다(fail-closed).
+     '답이 하나뿐인 판만 냅니다' 는 약속이라, 답이 여럿인 판을 내보내는 것보다 못 내는 것이 낫다. */
+  if (!genInfo){
+    running = false;
+    const w = $('genWarn'); if (w){ w.textContent = T('genFail'); w.hidden = false; }
+    show('start'); refreshStart();
+    say(T('genFail'));
+    ga('gen_fail', { game: GA_GAME, size, level });
+    return false;
+  }
+  const w0 = $('genWarn'); if (w0){ w0.hidden = true; }
   adoptPuzzle(genInfo);
   logPuzzle(genInfo, seedKeyNow);
   resetBoardState();
@@ -1378,6 +1422,9 @@ window.__ng = {
   clueOf: (arr) => clueOf(arr.map(Number)).slice(),
   lineSolve: (rows, cols, n) => copy(lineSolve(rows, cols, Number(n))),
   countSolutions: (rows, cols, n, limit) => countSolutions(rows, cols, Number(n), limit || 2),
+  /* 최종 보루(고정 판) 창구 — 실사용에서 거의 닿지 않는 분기라 검증기가 여기로 직접 재게 한다 */
+  fallbackGrid: () => copy(FALLBACK_GRID),
+  fixedFallback: (n, lv, seed) => copy(fixedFallback(Number(n), String(lv || 'normal'), String(seed || 'fixed'))),
   marks: (bm) => marksOf(bm.slice()),
   shareText: (r) => shareText(r, 'https://hanpango.com/nonogram/'),
   shown: (id) => $(id).classList.contains('show'),
