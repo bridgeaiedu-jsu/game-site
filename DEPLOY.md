@@ -125,11 +125,14 @@ Sitemap: https://hanpango.com/sitemap.xml
          `rc=1` 은 미달, `rc=2` 는 **판정 불가**(검사할 수 없었던 자리가 있다)다 — 둘 다 배포하지
          않는다. rc=2 는 도구가 못 본 자리를 사유와 함께 적어 주니 그 자리를 사람이 보고
          해소하거나, 못 볼 수밖에 없는 것(예: `.ts` 도입)이면 wrangler 빌드를 관문으로 더해라.
-         ★`node:`·`cloudflare:` 에서 **이름을 지정해** 가져오면(`import { x } from 'node:crypto'`)
-         rc=2 가 난다 — 그 런타임이 그 이름을 정말 내보내는지 대조할 목록이 저장소에 없기
-         때문이다. 부수효과 import 와 default import 는 통과한다. 이름을 써야 하면
-         `tools/runtime-module-exports.json` 에 **쓰는 런타임 버전에 결박한** 목록을 적어라
-         (tools/README.md 의 R8 절). 데이터 모듈(`.html`·`.txt`·`.wasm`·`.bin`)의 named import 는
+         ★`node:` 모듈은 **Node 에게 직접 물어** 판정한다(module.isBuiltin → 네임스페이스 키).
+         없는 모듈(`node:totally-fake-xyz`)은 부수효과·default·named 어느 형태든 미달이고,
+         실재하는 이름은 그대로 통과한다. **단 Node 에 있다는 것이 Workers 에서 된다는 뜻은
+         아니다** — `node:crypto` 는 호환 날짜 2026-08-04 이후에야 기본 지원된다. Workers
+         지원 여부는 Cloudflare 문서와 wrangler 빌드로 따로 확인해라.
+         `cloudflare:` 처럼 이 Node 로 확인할 수 없는 접두만 `tools/runtime-module-exports.json`
+         대상이고, 목록이 없으면 rc=2 다(tools/README.md 의 R9 절).
+         데이터 모듈(`.html`·`.txt`·`.wasm`·`.bin`)의 named import 는
          Pages 계약상 성립하지 않으므로 rc=1 미달이다 — default 로 받아라.
    - [ ] `python3 tools/check_privacy_storage.py .` → 같은 규약(rc=0/1/2)이다.
          ★계산형 멤버 이름(`window[expr]`)을 정적으로 끝까지 접지 못했는데 그 결과로 저장소
