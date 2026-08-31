@@ -247,6 +247,12 @@
           <span class="body"><h2>노노그램 / Nonogram</h2>
             <p>숫자 힌트로 칸을 칠해 그림을 완성하는 논리 퍼즐 — 답이 하나뿐인 판만 냅니다<br>Paint the squares from the number clues to reveal a picture — one solution, never a guess</p></span>
         </a></li>
+        <li><a class="card" href="/tensec/">
+          <span class="thumb"><img src="/tensec/thumb.webp" alt="10초 감각 / Ten-Second Sense" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 20~30초 / 20–30 sec a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>10초 감각 / Ten-Second Sense</h2>
+            <p>시간을 보지 않고 정확히 10초를 맞히는 감각 게임 — 오차가 작을수록 좋은 기록<br>Count ten seconds in your head with no clock on screen — the smaller your miss, the better</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -415,6 +421,13 @@ const FALLBACK = [{
   thumb:'/nonogram/thumb.webp',
   playtime:{ko:'한 판 3~10분',en:'3–10 min a round'},
   daily:true, released:'2026-08-31', tags:['puzzle','logic','picture','daily']
+},{
+  id:'tensec', path:'/tensec/',
+  title:{ko:'10초 감각',en:'Ten-Second Sense'},
+  desc:{ko:'시간을 보지 않고 정확히 10초를 맞히는 감각 게임 — 오차가 작을수록 좋은 기록',en:'Count ten seconds in your head with no clock on screen — the smaller your miss, the better'},
+  thumb:'/tensec/thumb.webp',
+  playtime:{ko:'한 판 20~30초',en:'20–30 sec a round'},
+  daily:true, released:'2026-08-31', tags:['timing','sense','casual','daily']
 }];
 
 let games = FALLBACK;

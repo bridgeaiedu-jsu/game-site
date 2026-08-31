@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>10초 감각 — 시간을 보지 않고 10초를 맞히는 게임 | Ten-Second Sense</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 시간 감각 게임. 시작을 누르고 속으로 세다가 10초라고 느껴지는 순간 다시 누릅니다. 화면에는 시간이 전혀 보이지 않고, 결과는 오차와 정확도로 나옵니다. 목표는 3·7·10·15초 · 매일 새로 열리는 오늘의 도전 · 최소 오차 기록. Press start, count in your head, press again when you feel the target has passed — no clock on screen.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="10초 감각 — 시간을 보지 않고 10초를 맞히는 게임 | Ten-Second Sense">
+<meta property="og:description" content="시작을 누르고 속으로 세다가 10초라고 느끼는 순간 다시 누릅니다. 화면에 시간은 보이지 않습니다 — 오차와 정확도만 남습니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/tensec/">
+<link rel="canonical" href="https://hanpango.com/tensec/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"10초 감각","alternateName":"Ten-Second Sense","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본. 다크는 아래 @media 에서 ★같은 이름의 값만 바꿔 끼운다 — 마크업은 두 테마가 동일하다.
+     시그니처는 보라(--sig) — 사이트 기본값과 같다. 색 값은 여기 말고 어디에도 박지 않는다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#7c3aed; --sig-ink:#5b21b6; --sig-soft:#ede9fe; --on-sig:#ffffff;
+    --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
+    --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
+    --pad:#f1f0fb; --pad-line:#cfc7f3; --pad-ink:#3b2a6d;
+    --pad-run:#241f5c; --pad-run-line:#4c3fae; --pad-run-ink:#f5f3ff;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#a78bfa; --sig-ink:#c4b5fd; --sig-soft:#2e2670; --on-sig:#2e1065;
+      --good:#34d399; --good-ink:#bbf7d0; --good-soft:#14532d;
+      --warn:#fbbf24; --bad:#fca5a5; --bad-ink:#fecaca; --bad-soft:#4c1d1d;
+      --pad:#191540; --pad-line:#453da0; --pad-ink:#e9e6ff;
+      --pad-run:#0a0820; --pad-run-line:#2b2470; --pad-run-ink:#cdc8f5;
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em;flex:1 1 auto;min-width:0;line-height:1.2}
+  h1 small{display:block;color:var(--muted);font-weight:400;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-btns{display:flex;gap:6px;flex:0 0 auto}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer;white-space:nowrap}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:6px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .score b{display:block;font-size:1.2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+  .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}
+  .ad-rect{width:300px;height:250px;margin:10px auto}
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .bhead{width:100%;max-width:min(100%,420px);display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .chip{font-size:.72rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--muted-2);font-weight:600}
+  /* ---- 누르는 판 ----
+     ★이 판이 게임의 전부다. 여기에는 시간을 나타내는 것이 하나도 없다 —
+       숫자도, 진행 막대도, 주기가 있는 연출도 없다(주기가 있으면 그것이 곧 시계다). */
+  .pad{width:100%;max-width:min(100%,420px);min-height:min(52dvh,340px);border-radius:20px;
+       border:3px solid var(--pad-line);background:var(--pad);color:var(--pad-ink);
+       display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+       font-family:inherit;cursor:pointer;padding:18px;text-align:center;
+       touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  .pad .pad-main{font-size:1.9rem;font-weight:800;line-height:1.2;word-break:keep-all}
+  .pad .pad-sub{font-size:.92rem;font-weight:500;color:var(--muted-2);line-height:1.45;word-break:keep-all;max-width:22em}
+  .pad .pad-mark{font-size:2.6rem;line-height:1}
+  .pad:focus-visible{outline:3px solid var(--sig);outline-offset:3px}
+  .pad:active{transform:scale(.995)}
+  /* 재는 중 — 판만 남기고 나머지는 접는다. 색과 글만 바뀔 뿐 움직이는 것은 없다. */
+  body.running .pad{background:var(--pad-run);border-color:var(--pad-run-line);color:var(--pad-run-ink);min-height:min(60dvh,420px)}
+  body.running .pad .pad-sub{color:var(--pad-run-ink)}
+  body.running .scores,body.running .bhead,body.running .help,body.running .ad-slot{display:none}
+  /* ★재는 중에는 어떤 움직임도 없다 — 움직임에 주기가 있으면 그것을 세어 시간을 알 수 있다.
+       이 한 줄이 '시간을 보여 주지 않는다'는 약속의 마지막 빗장이라 검사기가 이 규칙의 존재를 확인한다. */
+  body.running *{animation:none!important;transition:none!important}
+  .help{color:var(--muted);font-size:.78rem;text-align:center;margin:0;max-width:30em}
+  /* ---- 목표 시간 고르기(시작 카드) ---- */
+  .targets{display:flex;gap:6px;margin:8px 0 2px}
+  .targets button{flex:1;min-height:44px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);font-weight:700;font-size:.95rem;cursor:pointer;font-variant-numeric:tabular-nums}
+  .targets button[aria-pressed="true"]{border-color:var(--sig);background:var(--sig-soft);color:var(--sig-ink)}
+  .tgdesc{color:var(--muted);font-size:.78rem;min-height:1.3em;margin:0 0 6px}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card-box h2{margin:0 0 6px;font-size:1.5rem}
+  .card-box .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1;font-variant-numeric:tabular-nums}
+  .card-box .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card-box .marks{font-size:.95rem;letter-spacing:.02em;margin:4px 0;line-height:1.5;word-break:break-word;font-variant-numeric:tabular-nums}
+  .card-box .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .hp-stat[hidden]{display:none!important}
+  .card-box .hp-stat b{font-weight:600}
+  .card-box .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .card-box .reason{font-size:.95rem;font-weight:600;margin:2px 0 6px;min-height:1.2em;color:var(--good-ink)}
+  .card-box .notice{color:var(--warn);font-size:.8rem;margin:0 0 8px}
+  .card-box .notice[hidden]{display:none}
+  .card-box .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[disabled]{opacity:.5;cursor:default}
+  .btn[hidden]{display:none}
+  .stats3{display:flex;gap:6px;margin:10px 0 4px}
+  .stats3 div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .stats3 b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums;word-break:keep-all}
+  .stats3 span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  section.content a{color:var(--muted-2)}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center;max-width:520px}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(84px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  /* ★좁은 화면에서는 머리줄 버튼의 낱말을 접고 아이콘만 남긴다 — 그러지 않으면 버튼 묶음이
+     제목의 자리를 빼앗아 영어 제목이 석 줄로 접힌다(360px 실측). 낱말을 접어도 뜻은
+     aria-label 이 지니고 있어 낭독기에는 그대로 읽힌다. */
+  @media (max-width:400px){
+    header .ibtn .lbl{display:none}
+    header .ibtn{padding:5px 8px}
+  }
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  @media (prefers-reduced-motion: reduce){
+    .toast{transition:none}
+    .btn:active,.ibtn:active,.pad:active{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">10초 감각</span> <small id="subtitle" data-i18n="subtitle">시간을 보지 않고 10초를 맞히는 게임</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 <span class="lbl">다른 게임</span></a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="bestNow">–</b><span data-i18n="bestLbl">최소 오차</span></div>
+  <div class="score"><b id="targetNow">–</b><span data-i18n="targetLbl">목표</span></div>
+  <div class="score"><b id="streakNowEl">–</b><span data-i18n="streakLbl">스트릭</span></div>
+</div>
+
+<main>
+  <div class="wrap">
+    <div class="bhead">
+      <span class="chip" id="modeChip">–</span>
+      <span class="chip" id="roundChip"></span>
+    </div>
+    <!-- ★누르는 판. data-i18n 을 붙이지 않는다 — 재는 중에 언어를 바꿔도 판의 글이 갈아엎어지면 안 된다.
+         글은 paintPad() 가 상태에 맞춰 넣는다. -->
+    <button class="pad" id="pad" type="button" aria-live="off">
+      <span class="pad-mark" id="padMark" aria-hidden="true">▶</span>
+      <span class="pad-main" id="padMain">시작</span>
+      <span class="pad-sub" id="padSub">누르면 시작합니다</span>
+    </button>
+  </div>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="help" id="help" data-i18n="hint">화면에는 시간이 나오지 않습니다 · 속으로 세다가 목표에 다다랐다고 느끼는 순간 다시 누르세요</p>
+</main>
+
+<!-- 결과 -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card-box">
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <div class="big" id="finalErr">0.00초</div>
+    <div class="reason" id="finalAcc"></div>
+    <div class="marks" id="marks"></div>
+    <div class="new" id="streakLine" style="color:var(--sig-ink)"></div>
+    <div class="new" id="newBest"></div>
+    <div class="stats3">
+      <div><b id="nElapsed">0.00</b><span data-i18n="elapsedLbl">잰 시간</span></div>
+      <div><b id="nErr">0.00</b><span data-i18n="errLbl">오차</span></div>
+      <div><b id="nAcc">0%</b><span data-i18n="accLbl">정확도</span></div>
+    </div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- 시작 -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card-box">
+    <h2 id="startTitle" data-i18n="title2">10초 감각</h2>
+    <div class="sub" data-i18n="startSub">시작을 누르고 속으로 세다가, 목표 시간이 됐다고 느끼는 순간 다시 누르세요.<br>★화면에 시간은 보이지 않습니다 — 오차가 작을수록 좋은 기록입니다.</div>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <div class="targets" id="targets" role="group" aria-label="target">
+      <button type="button" data-tg="3" aria-pressed="false">3초</button>
+      <button type="button" data-tg="7" aria-pressed="false">7초</button>
+      <button type="button" data-tg="10" aria-pressed="true">10초</button>
+      <button type="button" data-tg="15" aria-pressed="false">15초</button>
+    </div>
+    <p class="tgdesc" id="tgDesc"></p>
+    <button class="btn ghost" id="btnStart" data-i18n="start">▶ 자유 모드</button>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.tensec.today">–</b>판 · 누적 <b data-hp="plays.tensec.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">가운데의 큰 판을 한 번 누르면 재기가 시작됩니다. 그 순간부터 화면에는 시간을 알려 주는 것이 하나도 나오지 않습니다 — 숫자도, 진행 막대도, 규칙적으로 깜빡이는 것도 없습니다. 속으로 세다가 목표 시간이 지났다고 느껴지는 순간 판을 다시 누르면 한 판이 끝납니다.</p>
+  <p data-i18n="how2">점수는 <strong>오차</strong>입니다 — 목표 시간과 실제로 흐른 시간의 차이이며, 작을수록 좋습니다. 정확도는 목표를 기준으로 얼마나 가까웠는지를 백분율로 바꾼 값입니다. 목표 10초에서 9.87초에 눌렀다면 오차는 0.13초, 정확도는 98.7%입니다(오차를 목표로 나눈 만큼을 100%에서 뺍니다).</p>
+  <p data-i18n="how3">목표 시간은 3초·7초·10초·15초 중에서 고를 수 있습니다. 짧은 목표는 초를 세는 방식이 그대로 드러나고, 긴 목표는 세는 속도가 조금만 어긋나도 오차가 크게 벌어집니다. 자유 모드는 몇 번이든 다시 할 수 있고, 목표마다 가장 작았던 오차가 따로 기록됩니다.</p>
+  <p data-i18n="how4">키보드로도 됩니다 — Space 또는 Enter 를 누르면 손가락으로 누른 것과 똑같이 처리됩니다. 누르는 순간(키를 누르는 시점, 화면을 짚는 시점)을 재기 때문에 입력 방법에 따라 유리하거나 불리해지지 않습니다. 화면 낭독기를 쓰면 시작·정지와 결과를 소리로 읽어 줍니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 도전이 열립니다. 그날의 날짜로 목표 시간 세 개가 정해지고(예: 7초 → 3초 → 10초), 전 세계 모든 플레이어가 같은 순서로 같은 목표를 받습니다. 세 판을 연달아 하고 나면 세 판의 평균 오차가 그날의 기록이 됩니다. 하루에 한 번만 도전할 수 있고, 연속으로 도전하면 🔥 스트릭이 쌓입니다. 목표를 정하는 데는 날짜만 쓰입니다 — 누가 언제 누르든 그날의 목표는 달라지지 않습니다.</p>
+  <h2 data-i18n="tipsTitle">요령</h2>
+  <details><summary data-i18n="tip1q">세는 방식을 하나로 정하세요</summary><p data-i18n="tip1a">「하나 둘 셋」처럼 짧게 세면 사람마다 속도가 제각각입니다. 「일 초, 이 초」처럼 음절 수가 일정한 말이나 익숙한 노래의 박자를 정해 두고 늘 같은 방식으로 세면 오차가 눈에 띄게 줄어듭니다.</p></details>
+  <details><summary data-i18n="tip2q">긴 목표일수록 천천히</summary><p data-i18n="tip2a">긴장하면 세는 속도가 빨라져 목표보다 일찍 누르게 됩니다. 15초처럼 긴 목표에서는 특히 그렇습니다. 결과에서 「빨랐음」이 이어진다면 다음 판에서는 의식적으로 한 박자 느리게 세어 보세요.</p></details>
+  <details><summary data-i18n="tip3q">호흡을 시계처럼 쓰세요</summary><p data-i18n="tip3a">숫자를 세는 대신 편안한 호흡 한 번을 기준으로 삼는 방법도 있습니다. 들이쉬고 내쉬는 한 번이 대략 3~4초라, 10초는 세 번쯤입니다. 몸의 리듬은 머릿속 숫자보다 흔들림이 적습니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">시간이 정말 안 보이나요?</summary><p data-i18n="faq1a">네. 재는 동안에는 시간을 알려 주는 표시가 하나도 나오지 않습니다. 숫자와 진행 막대가 없는 것은 물론이고, 일정한 주기로 움직이거나 깜빡이는 연출도 넣지 않았습니다 — 주기가 있는 움직임은 그 자체가 시계이기 때문입니다. 소리도 시작과 정지의 순간에만 납니다.</p></details>
+  <details><summary data-i18n="faq2q">기기가 느리면 결과가 달라지나요?</summary><p data-i18n="faq2a">아니요. 시간은 브라우저가 주는 고정밀 시계를 두 번 읽어 그 차이를 쓰는 방식으로 잽니다. 화면을 다시 그리는 횟수나 타이머를 세는 방식은 전혀 쓰지 않기 때문에, 기기가 느리거나 다른 창이 바쁘거나 탭이 뒤에 가려져 있어도 잰 값은 같습니다.</p></details>
+  <details><summary data-i18n="faq3q">기록은 어디에 저장되나요?</summary><p data-i18n="faq3a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 보내는 것은 판수 집계뿐이고 판의 내용은 보내지 않습니다. 브라우저 데이터를 지우면 기록도 함께 지워집니다. 저장하는 항목은 <a href="/privacy/">개인정보처리방침</a>에 모두 적어 두었습니다.</p></details>
+  <details><summary data-i18n="faq4q">소리를 끌 수 있나요?</summary><p data-i18n="faq4a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 효과음은 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 「동작 줄이기」를 켜면 남아 있는 연출도 꺼집니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 10초 감각 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·판정에는 관여하지 않는다. 태그가 아직 실리지 않았거나 차단됐으면 조용히 지나간다. */
+const GA_GAME = 'tensec';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ======================= ★시계 — 이 게임의 전부 =======================
+   원칙 하나: **시각을 두 번 읽고 그 차이를 쓴다.** 더하지 않는다.
+   · performance.now() 는 페이지가 열린 순간을 0 으로 하는 단조 증가 시계다. 시스템 시계가
+     바뀌어도(사용자가 시각을 고치거나 서머타임이 넘어가도) 뒤로 가지 않는다.
+   · 화면을 다시 그리는 콜백(requestAnimationFrame)이나 setInterval 로 세지 않는다 —
+     그것들은 기기가 느리면 덜 불리고 탭이 뒤에 가려지면 아예 멈추거나 1초로 묶인다.
+     그렇게 센 값은 사람의 감각이 아니라 기기의 사정을 재게 된다.
+   · 누른 순간의 시각은 브라우저가 그 입력 사건에 찍어 준 도장(event.timeStamp)을 먼저 쓴다.
+     그것은 브라우저가 입력을 받은 순간이라, 우리 코드가 실행되기까지의 지연이 끼지 않는다.
+     같은 시간 원점을 쓰므로 performance.now() 와 그대로 뺄 수 있다. 도장이 없거나
+     터무니없는 값이면(합성 사건 등) 그 자리에서 performance.now() 로 물러선다. */
+const nowMs = () => performance.now();
+const STAMP_TOLERANCE_MS = 1000;   /* 도장이 지금과 이만큼 넘게 벌어져 있으면 믿지 않는다 */
+function stampOf(ev){
+  const t = nowMs();
+  if (!ev) return t;
+  const s = ev.timeStamp;
+  if (typeof s === 'number' && isFinite(s) && s > 0 && Math.abs(t - s) <= STAMP_TOLERANCE_MS) return s;
+  return t;
+}
+/* 잰 시간 = 두 도장의 차. 이 한 줄 말고 시간을 만들어 내는 곳은 없다. */
+const measure = (t0, t1) => t1 - t0;
+
+/* ======================= 판정(순수 함수) ======================= */
+const TARGETS = [3, 7, 10, 15];          /* 고를 수 있는 목표 시간(초) */
+const DEFAULT_TARGET = 10;
+const DAILY_ROUNDS = 3;                  /* 오늘의 도전은 세 판 연속 — 한 판 20~30초 */
+/* 오차(초) — 목표보다 빨라도 늦어도 벌어진 만큼이 오차다 */
+const errorOf = (elapsedMs, targetS) => Math.abs(elapsedMs / 1000 - targetS);
+/* 정확도(0~1) — 오차를 목표로 나눈 비율만큼 1 에서 뺀다. 두 배 넘게 어긋나면 0 에서 멈춘다.
+   목표 10초에 9.87초면 오차 0.13 → 1 - 0.013 = 0.987 (98.7%) */
+function accuracyOf(elapsedMs, targetS){
+  const a = 1 - errorOf(elapsedMs, targetS) / targetS;
+  return a > 0 ? a : 0;
+}
+const fmtSec = v => (Math.round(v * 100) / 100).toFixed(2);
+const fmtPct = a => (Math.round(a * 1000) / 10).toFixed(1);
+const mean = a => a.reduce((s, v) => s + v, 0) / a.length;
+
+/* ======================= i18n(UI) ======================= */
+const I18N = {
+  ko: {
+    docTitle:'10초 감각 — 시간을 보지 않고 10초를 맞히는 게임 | Ten-Second Sense',
+    title:'10초 감각', title2:'10초 감각', subtitle:'시간을 보지 않고 10초를 맞히는 게임',
+    home:'🏠 <span class="lbl">다른 게임</span>', langBtn:'EN',
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    bestLbl:'최소 오차', targetLbl:'목표', streakLbl:'스트릭',
+    elapsedLbl:'잰 시간', errLbl:'오차', accLbl:'정확도',
+    result:'결과', again:'다시 하기', share:'결과 공유', start:'▶ 자유 모드',
+    startSub:'시작을 누르고 속으로 세다가, 목표 시간이 됐다고 느끼는 순간 다시 누르세요.<br>★화면에 시간은 보이지 않습니다 — 오차가 작을수록 좋은 기록입니다.',
+    hint:'화면에는 시간이 나오지 않습니다 · 속으로 세다가 목표에 다다랐다고 느끼는 순간 다시 누르세요',
+    statPlays:'오늘 <b data-hp="plays.tensec.today">–</b>판 · 누적 <b data-hp="plays.tensec.total">–</b>판',
+    /* 판 위의 글 */
+    padReady:'시작', padReadySub:  t => `누르면 ${t}초 재기가 시작됩니다`,
+    padRun:'지금이다!', padRunSub:  t => `${t}초가 됐다고 느끼는 순간 다시 누르세요`,
+    padMarkReady:'▶', padMarkRun:'✋',
+    /* 칩·머리 */
+    chipFree: t => `자유 모드 · 목표 ${t}초`,
+    chipDaily: n => `오늘의 도전 #${n}`,
+    chipRound: (i, n) => `${i} / ${n} 판`,
+    chipRoundPrev: (i, n, e, d) => `${i} / ${n} 판 · 앞 판 ${d}`,
+    chipNext: t => `다음 목표 ${t}초`,
+    /* 시작 화면 */
+    dailyBtn: n => `🔥 오늘의 도전 #${n}`,
+    dailyDoneBtn: n => `오늘의 도전 #${n} 결과 보기`,
+    dailyHint: (a, b, c) => `오늘의 목표: ${a}초 → ${b}초 → ${c}초 (세 판 평균)`,
+    dailyHintDone:'오늘의 도전은 이미 마쳤습니다 · 다음 판은 자정에 열립니다',
+    tgDesc: t => ({3:'3초 — 짧아서 세는 방식이 그대로 드러납니다', 7:'7초 — 익숙한 듯 낯선 길이입니다',
+                   10:'10초 — 가장 기본이 되는 목표입니다', 15:'15초 — 조금만 어긋나도 크게 벌어집니다'})[t],
+    /* 결과 */
+    errBig: e => `오차 ${e}초`,
+    accLine: a => `정확도 ${a}%`,
+    resultSub: (el, t) => `${el}초 만에 눌렀습니다 (목표 ${t}초)`,
+    resultSubDaily: (n, r) => `오늘의 도전 #${n} · ${r}판 평균`,
+    fast:'빨랐습니다', slow:'늦었습니다', exact:'정확했습니다',
+    verdict: (d) => d === 0 ? '정확했습니다' : (d < 0 ? `${fmtSec(-d)}초 빨랐습니다` : `${fmtSec(d)}초 늦었습니다`),
+    newBest:'🎉 최고 기록 경신!',
+    streakGo: n => `🔥 ${n}일 연속 도전`,
+    roundLine: (t, e, d) => `목표 ${t}초 · 오차 ${e}초 · ${d}`,
+    nextRound:'다음 판',
+    bestOf: (t, e) => `목표 ${t}초 최소 오차 ${e}초`,
+    noBest:'–',
+    copied:'결과를 복사했습니다',
+    dailyShare: (n, e, a, marks, st) => `🔗 10초 감각 #${n}\n🎯 평균 오차 ${e}초 · 정확도 ${a}%\n${marks}${st > 1 ? `\n🔥 ${st}일 연속` : ''}\n`,
+    freeShare: (t, e, a, el) => `🔗 10초 감각 · 목표 ${t}초\n🎯 오차 ${e}초 · 정확도 ${a}% (${el}초)\n`,
+    /* 접근성 */
+    ariaSoundOn:'효과음 끄기', ariaSoundOff:'효과음 켜기', ariaLang:'영어로 바꾸기', ariaHome:'다른 게임 보기',
+    ariaPadReady: t => `시작 — 누르면 ${t}초 재기가 시작됩니다`,
+    ariaPadRun: t => `정지 — ${t}초가 됐다고 느끼는 순간 누르세요. 화면에 시간은 나오지 않습니다`,
+    sayStart: t => `시작했습니다. 목표 ${t}초. 시간은 나오지 않습니다.`,
+    sayEnd: (el, e, a) => `${el}초에 눌렀습니다. 오차 ${e}초, 정확도 ${a}퍼센트.`,
+    /* 콘텐츠 */
+    how1:'가운데의 큰 판을 한 번 누르면 재기가 시작됩니다. 그 순간부터 화면에는 시간을 알려 주는 것이 하나도 나오지 않습니다 — 숫자도, 진행 막대도, 규칙적으로 깜빡이는 것도 없습니다. 속으로 세다가 목표 시간이 지났다고 느껴지는 순간 판을 다시 누르면 한 판이 끝납니다.',
+    how2:'점수는 <strong>오차</strong>입니다 — 목표 시간과 실제로 흐른 시간의 차이이며, 작을수록 좋습니다. 정확도는 목표를 기준으로 얼마나 가까웠는지를 백분율로 바꾼 값입니다. 목표 10초에서 9.87초에 눌렀다면 오차는 0.13초, 정확도는 98.7%입니다(오차를 목표로 나눈 만큼을 100%에서 뺍니다).',
+    how3:'목표 시간은 3초·7초·10초·15초 중에서 고를 수 있습니다. 짧은 목표는 초를 세는 방식이 그대로 드러나고, 긴 목표는 세는 속도가 조금만 어긋나도 오차가 크게 벌어집니다. 자유 모드는 몇 번이든 다시 할 수 있고, 목표마다 가장 작았던 오차가 따로 기록됩니다.',
+    how4:'키보드로도 됩니다 — Space 또는 Enter 를 누르면 손가락으로 누른 것과 똑같이 처리됩니다. 누르는 순간(키를 누르는 시점, 화면을 짚는 시점)을 재기 때문에 입력 방법에 따라 유리하거나 불리해지지 않습니다. 화면 낭독기를 쓰면 시작·정지와 결과를 소리로 읽어 줍니다.',
+    dailyDesc:'매일 자정에 새 도전이 열립니다. 그날의 날짜로 목표 시간 세 개가 정해지고(예: 7초 → 3초 → 10초), 전 세계 모든 플레이어가 같은 순서로 같은 목표를 받습니다. 세 판을 연달아 하고 나면 세 판의 평균 오차가 그날의 기록이 됩니다. 하루에 한 번만 도전할 수 있고, 연속으로 도전하면 🔥 스트릭이 쌓입니다. 목표를 정하는 데는 날짜만 쓰입니다 — 누가 언제 누르든 그날의 목표는 달라지지 않습니다.',
+    tip1q:'세는 방식을 하나로 정하세요',
+    tip1a:'「하나 둘 셋」처럼 짧게 세면 사람마다 속도가 제각각입니다. 「일 초, 이 초」처럼 음절 수가 일정한 말이나 익숙한 노래의 박자를 정해 두고 늘 같은 방식으로 세면 오차가 눈에 띄게 줄어듭니다.',
+    tip2q:'긴 목표일수록 천천히',
+    tip2a:'긴장하면 세는 속도가 빨라져 목표보다 일찍 누르게 됩니다. 15초처럼 긴 목표에서는 특히 그렇습니다. 결과에서 「빨랐음」이 이어진다면 다음 판에서는 의식적으로 한 박자 느리게 세어 보세요.',
+    tip3q:'호흡을 시계처럼 쓰세요',
+    tip3a:'숫자를 세는 대신 편안한 호흡 한 번을 기준으로 삼는 방법도 있습니다. 들이쉬고 내쉬는 한 번이 대략 3~4초라, 10초는 세 번쯤입니다. 몸의 리듬은 머릿속 숫자보다 흔들림이 적습니다.',
+    faq1q:'시간이 정말 안 보이나요?',
+    faq1a:'네. 재는 동안에는 시간을 알려 주는 표시가 하나도 나오지 않습니다. 숫자와 진행 막대가 없는 것은 물론이고, 일정한 주기로 움직이거나 깜빡이는 연출도 넣지 않았습니다 — 주기가 있는 움직임은 그 자체가 시계이기 때문입니다. 소리도 시작과 정지의 순간에만 납니다.',
+    faq2q:'기기가 느리면 결과가 달라지나요?',
+    faq2a:'아니요. 시간은 브라우저가 주는 고정밀 시계를 두 번 읽어 그 차이를 쓰는 방식으로 잽니다. 화면을 다시 그리는 횟수나 타이머를 세는 방식은 전혀 쓰지 않기 때문에, 기기가 느리거나 다른 창이 바쁘거나 탭이 뒤에 가려져 있어도 잰 값은 같습니다.',
+    faq3q:'기록은 어디에 저장되나요?',
+    faq3a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 보내는 것은 판수 집계뿐이고 판의 내용은 보내지 않습니다. 브라우저 데이터를 지우면 기록도 함께 지워집니다. 저장하는 항목은 <a href="/privacy/">개인정보처리방침</a>에 모두 적어 두었습니다.',
+    faq4q:'소리를 끌 수 있나요?',
+    faq4a:'네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 효과음은 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 「동작 줄이기」를 켜면 남아 있는 연출도 꺼집니다.',
+    howTitle:'게임 방법', dailyTitle:'오늘의 도전', tipsTitle:'요령', faqTitle:'자주 묻는 질문',
+    footer:'© 2026 10초 감각 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개'
+  },
+  en: {
+    docTitle:'Ten-Second Sense — guess ten seconds with no clock on screen | 10초 감각',
+    title:'Ten-Second Sense', title2:'Ten-Second Sense', subtitle:'Guess ten seconds with no clock on screen',
+    home:'🏠 <span class="lbl">More games</span>', langBtn:'한국어',
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    bestLbl:'Best miss', targetLbl:'Target', streakLbl:'Streak',
+    elapsedLbl:'Your time', errLbl:'Miss', accLbl:'Accuracy',
+    result:'Result', again:'Play again', share:'Share result', start:'▶ Free play',
+    startSub:'Press start, count in your head, and press again the moment the target feels up.<br>★No clock is shown — the smaller your miss, the better.',
+    hint:'Nothing on screen tells you the time · press again when the target feels up',
+    statPlays:'<b data-hp="plays.tensec.today">–</b> today · <b data-hp="plays.tensec.total">–</b> all-time',
+    padReady:'Start', padReadySub: t => `Press to start timing ${t} seconds`,
+    padRun:'Now!', padRunSub: t => `Press again when ${t} seconds feel up`,
+    padMarkReady:'▶', padMarkRun:'✋',
+    chipFree: t => `Free play · ${t}s target`,
+    chipDaily: n => `Daily challenge #${n}`,
+    chipRound: (i, n) => `Round ${i} of ${n}`,
+    chipRoundPrev: (i, n, e, d) => `Round ${i} of ${n} · last: ${d}`,
+    chipNext: t => `Next target ${t}s`,
+    dailyBtn: n => `🔥 Daily challenge #${n}`,
+    dailyDoneBtn: n => `See daily #${n} result`,
+    dailyHint: (a, b, c) => `Today: ${a}s → ${b}s → ${c}s (average of three)`,
+    dailyHintDone:'You have finished today’s challenge · the next one opens at midnight',
+    tgDesc: t => ({3:'3s — short enough that your counting style shows', 7:'7s — familiar and unfamiliar at once',
+                   10:'10s — the classic target', 15:'15s — a slight drift grows into a big miss'})[t],
+    errBig: e => `${e}s off`,
+    accLine: a => `${a}% accurate`,
+    resultSub: (el, t) => `You pressed at ${el}s (target ${t}s)`,
+    resultSubDaily: (n, r) => `Daily challenge #${n} · average of ${r}`,
+    fast:'too early', slow:'too late', exact:'spot on',
+    verdict: (d) => d === 0 ? 'Spot on' : (d < 0 ? `${fmtSec(-d)}s early` : `${fmtSec(d)}s late`),
+    newBest:'🎉 New personal best!',
+    streakGo: n => `🔥 ${n}-day streak`,
+    roundLine: (t, e, d) => `${t}s target · ${e}s off · ${d}`,
+    nextRound:'Next round',
+    bestOf: (t, e) => `Best miss at ${t}s: ${e}s`,
+    noBest:'–',
+    copied:'Result copied',
+    dailyShare: (n, e, a, marks, st) => `🔗 Ten-Second Sense #${n}\n🎯 ${e}s average miss · ${a}% accurate\n${marks}${st > 1 ? `\n🔥 ${st}-day streak` : ''}\n`,
+    freeShare: (t, e, a, el) => `🔗 Ten-Second Sense · ${t}s target\n🎯 ${e}s off · ${a}% accurate (${el}s)\n`,
+    ariaSoundOn:'Turn sound off', ariaSoundOff:'Turn sound on', ariaLang:'Switch to Korean', ariaHome:'See other games',
+    ariaPadReady: t => `Start — press to begin timing ${t} seconds`,
+    ariaPadRun: t => `Stop — press when ${t} seconds feel up. No clock is shown`,
+    sayStart: t => `Started. Target ${t} seconds. No clock is shown.`,
+    sayEnd: (el, e, a) => `You pressed at ${el} seconds. Off by ${e} seconds, ${a} percent accurate.`,
+    how1:'Press the big pad once and timing begins. From that moment nothing on the screen tells you how long it has been — no numbers, no progress bar, nothing blinking on a beat. Count in your head, and press the pad again the moment the target feels up. That ends the round.',
+    how2:'Your score is the <strong>miss</strong> — the gap between the target and the time that actually passed. Smaller is better. Accuracy turns that gap into a percentage of the target: press at 9.87s against a 10s target and you are 0.13s off, which is 98.7% accurate (the miss divided by the target, subtracted from 100%).',
+    how3:'You can aim at 3, 7, 10 or 15 seconds. Short targets expose exactly how you count; long ones let a slightly wrong pace grow into a large miss. Free play is unlimited, and your smallest miss is kept separately for each target.',
+    how4:'The keyboard works too — Space or Enter does exactly what a tap does. The moment recorded is the moment you press down (key down, finger down), so no input method is faster or slower than another. With a screen reader, the start, the stop and the result are all announced.',
+    dailyDesc:'A new challenge opens at midnight. The date alone picks three targets (say 7s → 3s → 10s), and every player in the world gets the same three in the same order. Play them back to back and the average miss becomes your record for the day. One attempt a day, and playing on consecutive days builds a 🔥 streak. Only the date feeds the picker — nothing about when you press changes the targets.',
+    tip1q:'Settle on one way of counting',
+    tip1a:'Counting “one, two, three” drifts differently for everyone. Pick something with a steady number of syllables — “one thousand, two thousand” — or the beat of a song you know, and always use the same one. Your misses will shrink noticeably.',
+    tip2q:'The longer the target, the slower you should count',
+    tip2a:'Nerves speed counting up, so you press early — and the longer the target, the worse it gets. If your results keep saying “early”, deliberately count one beat slower on the next round.',
+    tip3q:'Use your breathing as a clock',
+    tip3a:'Instead of numbers, try one relaxed breath as your unit. In and out takes roughly three to four seconds, so ten seconds is about three breaths. The body keeps a steadier beat than the head does.',
+    faq1q:'Is the time really hidden?',
+    faq1a:'Yes. While the round is running, nothing on screen reports the time. There is no number and no progress bar, and there is nothing that moves or blinks on a regular beat either — anything with a period is itself a clock. Sound only plays at the start and the stop.',
+    faq2q:'Does a slow device change the result?',
+    faq2a:'No. The time is measured by reading the browser’s high-resolution clock twice and taking the difference. Nothing counts repaints or ticks a timer, so a slow device, a busy window or a tab in the background all measure exactly the same.',
+    faq3q:'Where are my records stored?',
+    faq3a:'Only in the browser on this device. The only thing sent to the server is the round count; nothing about your play is sent. Clearing your browser data clears the records too. Everything stored is listed in the <a href="/privacy/">privacy policy</a>.',
+    faq4q:'Can I turn the sound off?',
+    faq4a:'Yes. Use the speaker button at the top right; your choice is remembered next time. The effects are generated by the browser on the spot, so there are no audio files to download. Turning on “reduce motion” on your device also switches off what little animation is left.',
+    howTitle:'How to play', dailyTitle:'Daily challenge', tipsTitle:'Tips', faqTitle:'FAQ',
+    footer:'© 2026 Ten-Second Sense · Privacy: records are stored on this device only; third-party cookies (Google) may be used for ads.',
+    navPrivacy:'Privacy policy', navAbout:'About'
+  }
+};
+/* 언어 키는 사이트 공통(bp.lang) — 포털·다른 게임과 공유한다. */
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } };
+
+/* ======================= 사운드(WebAudio · 파일 없음) =======================
+   ★재는 동안에는 어떤 소리도 내지 않는다 — 규칙적인 소리는 눈을 감고도 셀 수 있는 시계다.
+     소리가 나는 자리는 셋뿐이다: 시작을 누른 순간, 정지를 누른 순간, 결과가 나온 뒤. */
+let soundOn = localStorage.getItem('ts.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0, freq2=null){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime + delay;
+    if (freq2 !== null) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq2), t + dur);
+    o.start(t);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sGo   = () => { beep(660, .07, 'triangle', .04); vib(14); };
+const sStop = () => { beep(440, .08, 'triangle', .04); vib(14); };
+const sGood = () => { beep(659, .09, 'triangle', .045); beep(880, .12, 'triangle', .04, .09); vib([20,40,20]); };
+const sMeh  = () => { beep(392, .1, 'sine', .035); };
+
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   // 2026-08-23 = #1 (다른 게임과 동일 기준일)
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const dailySeedKey = (d=new Date()) => 'hanpango-daily-tensec-' + dayKey(d);
+/* ★그날의 목표 세 개는 **날짜만** 으로 정해진다. 판을 시작할 때 한 번에 다 뽑고, 그 뒤로는
+   난수를 단 한 번도 당기지 않는다 — 플레이 행동이 난수를 소비하면 사람마다 판이 갈린다.
+   서로 다른 목표 셋을 뽑는다(같은 목표가 두 번 나오면 세 판이 한 판처럼 밋밋해진다). */
+function dailyTargets(seedKey){
+  const rnd = mulberry32(hashStr(String(seedKey)));
+  const pool = TARGETS.slice();
+  const out = [];
+  for (let i = 0; i < DAILY_ROUNDS && pool.length; i++){
+    out.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0]);
+  }
+  return out;
+}
+const fxRng = mulberry32((Math.random() * 4294967296) >>> 0);
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('ts.daily')||'null'); }catch(_){ return null; } };
+function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && r.result); }
+function saveDaily(result){
+  /* ★시작 시 고정한 runDay/runNo 로 저장한다 — 자정을 넘겨 끝내도 시작한 날짜의 기록이다. */
+  localStorage.setItem('ts.daily', JSON.stringify({ date: runDay, no: runNo, result }));
+}
+function bumpStreak(day){
+  let st; try{ st = JSON.parse(localStorage.getItem('ts.streak')||'{}'); }catch(_){ st = {}; }
+  if (st.last === day) return st.n || 1;
+  const n = (st.last === prevDayKey(day)) ? (st.n || 0) + 1 : 1;
+  localStorage.setItem('ts.streak', JSON.stringify({ last: day, n }));
+  return n;
+}
+function prevDayKey(day){ const [y, m, d] = day.split('-').map(Number); const t = new Date(y, m - 1, d); t.setDate(t.getDate() - 1); return dayKey(t); }
+const streakNow = () => { try{ const s = JSON.parse(localStorage.getItem('ts.streak')||'{}'); const today = dayKey();
+  return (s.last === today || s.last === prevDayKey(today)) ? (s.n || 0) : 0; }catch(_){ return 0; } };
+
+/* ======================= 기록(최소 오차) ======================= */
+/* 자유 모드는 목표마다 따로 남긴다 — 3초의 0.2초와 15초의 0.2초는 같은 성취가 아니다. */
+function loadBest(t){
+  try{
+    const raw = localStorage.getItem('ts.best.' + t);
+    if (!raw) return null;
+    const b = JSON.parse(raw);
+    return (b && typeof b.err === 'number' && isFinite(b.err)) ? b : null;
+  }catch(_){ return null; }
+}
+function saveBest(t, rec){ localStorage.setItem('ts.best.' + t, JSON.stringify(rec)); }
+const betterThan = (a, b) => !b || a.err < b.err;
+
+/* ======================= 상태 ======================= */
+let target = (() => { const v = parseInt(localStorage.getItem('ts.target'), 10); return TARGETS.includes(v) ? v : DEFAULT_TARGET; })();
+let mode = 'free';           /* 'free' | 'daily' */
+let phase = 'ready';         /* 'ready' | 'running' */
+let startStamp = 0;          /* 시작을 누른 순간의 도장 */
+let plan = [];               /* 이 판에서 치를 목표들(자유=1개, 일일=3개) */
+let roundIdx = 0;            /* 지금 몇 번째 판인가(0-based) */
+let rounds = [];             /* 끝낸 판들 { target, elapsedMs, err, acc } */
+let runDay = '', runNo = 0;
+let seedKeyNow = '';
+let lastResult = null;
+let overShown = false;
+
+/* ======================= 화면 ======================= */
+function paintPad(){
+  const t = plan[roundIdx] || target;
+  if (phase === 'running'){
+    $('padMark').textContent = T('padMarkRun');
+    $('padMain').textContent = T('padRun');
+    $('padSub').textContent  = T('padRunSub', t);
+    $('pad').setAttribute('aria-label', T('ariaPadRun', t));
+  } else {
+    $('padMark').textContent = T('padMarkReady');
+    $('padMain').textContent = T('padReady');
+    $('padSub').textContent  = T('padReadySub', t);
+    $('pad').setAttribute('aria-label', T('ariaPadReady', t));
+  }
+}
+function paintHud(){
+  const b = loadBest(target);
+  $('bestNow').textContent = b ? fmtSec(b.err) : T('noBest');
+  $('targetNow').textContent = (plan[roundIdx] || target) + 's';
+  const st = streakNow();
+  $('streakNowEl').textContent = st > 0 ? st : '–';
+  $('modeChip').textContent = (mode === 'daily') ? T('chipDaily', runNo) : T('chipFree', target);
+  /* 앞 판이 있으면 그 결과를 칩에 남긴다 — 가만히 있는 글이라 시계가 되지 않는다 */
+  const prev = rounds.length ? rounds[rounds.length - 1] : null;
+  $('roundChip').textContent = (mode === 'daily')
+    ? (prev ? T('chipRoundPrev', roundIdx + 1, plan.length, fmtSec(prev.err), T('verdict', prev.diff))
+            : T('chipRound', roundIdx + 1, plan.length))
+    : '';
+}
+function updateSubtitle(){ $('subtitle').textContent = T('subtitle'); }
+
+/* ======================= 한 판 ======================= */
+function beginRun(m){
+  mode = m;
+  const t0 = new Date();
+  runDay = (m === 'daily') ? dayKey(t0) : '';
+  runNo  = (m === 'daily') ? dailyNo(t0) : 0;
+  seedKeyNow = (m === 'daily') ? dailySeedKey(t0) : '';
+  plan = (m === 'daily') ? dailyTargets(seedKeyNow) : [target];
+  roundIdx = 0; rounds = []; phase = 'ready';
+  lastResult = null;
+  document.body.classList.remove('running');
+  paintPad(); paintHud();
+  ga('game_start', { game: GA_GAME, mode: m, target: plan[0] });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+}
+/* ★재기 시작 — 여기서 도장을 하나 찍는다. 타이머도 프레임 콜백도 걸지 않는다.
+   걸 것이 없다는 것이 이 게임의 설계다: 잴 것은 두 도장의 차뿐이고, 그 사이에 화면은
+   아무것도 하지 않아야 한다(무언가 하면 그 리듬이 시간을 알려 준다). */
+function pressStart(stamp){
+  startStamp = stamp;
+  phase = 'running';
+  clearToast();                       /* ★재는 동안 저절로 바뀌는 것을 하나도 남기지 않는다 */
+  document.body.classList.add('running');
+  paintPad();
+  say(T('sayStart', plan[roundIdx] || target));
+  sGo();
+}
+/* ★재기 끝 — 두 번째 도장을 찍고 차이를 낸다. */
+function pressStop(stamp){
+  const elapsedMs = measure(startStamp, stamp);
+  const t = plan[roundIdx] || target;
+  const err = errorOf(elapsedMs, t);
+  const acc = accuracyOf(elapsedMs, t);
+  phase = 'ready';
+  document.body.classList.remove('running');
+  rounds.push({ target: t, elapsedMs, err, acc, diff: elapsedMs / 1000 - t });
+  sStop();
+  if (roundIdx + 1 < plan.length){
+    roundIdx += 1;
+    paintPad(); paintHud();
+    say(T('sayEnd', fmtSec(elapsedMs / 1000), fmtSec(err), fmtPct(acc)));
+    /* ★앞 판 결과는 사라지는 토스트가 아니라 **가만히 있는 칩**에 적는다 — 사라지는 것은
+       타이머가 필요하고, 그 타이머가 다음 판을 재는 도중에 화면을 건드릴 수 있다. */
+    return;
+  }
+  finishRun();
+}
+const roundOf = i => rounds[i];
+function finishRun(){
+  const errs = rounds.map(r => r.err);
+  const accs = rounds.map(r => r.acc);
+  const avgErr = mean(errs), avgAcc = mean(accs);
+  const r = {
+    mode, target: (mode === 'daily') ? 0 : plan[0], no: runNo, day: runDay,
+    rounds: rounds.map(x => ({ target: x.target, elapsedMs: x.elapsedMs, err: x.err, acc: x.acc, diff: x.diff })),
+    err: avgErr, acc: avgAcc,
+    elapsedMs: rounds.length === 1 ? rounds[0].elapsedMs : 0,
+    streak: 0, best: false
+  };
+  if (mode === 'daily'){
+    if (!dailyDoneToday()){
+      saveDaily({ err: avgErr, acc: avgAcc, rounds: r.rounds });
+      r.streak = bumpStreak(runDay);
+    } else {
+      r.streak = streakNow();
+    }
+  } else {
+    const prev = loadBest(plan[0]);
+    const cand = { err: avgErr, elapsedMs: rounds[0].elapsedMs, date: dayKey() };
+    if (betterThan(cand, prev)){ saveBest(plan[0], cand); r.best = true; }
+  }
+  lastResult = r;
+  ga('game_end', { mode, err: Math.round(avgErr * 1000), acc: Math.round(avgAcc * 1000) });
+  (avgAcc >= 0.95 ? sGood : sMeh)();
+  paintHud();
+  renderOver();
+  show('over');
+}
+
+/* ======================= 결과 화면 ======================= */
+function renderOver(){
+  const r = lastResult; if (!r) return;
+  const rs = r.rounds || [];
+  $('finalErr').textContent = T('errBig', fmtSec(r.err));
+  $('finalAcc').textContent = T('accLine', fmtPct(r.acc));
+  $('nElapsed').textContent = (rs.length === 1) ? fmtSec(rs[0].elapsedMs / 1000) : '–';
+  $('nErr').textContent = fmtSec(r.err);
+  $('nAcc').textContent = fmtPct(r.acc) + '%';
+  /* 한 판짜리(자유 모드)에서는 큰 숫자·정확도·통계에 이미 다 나와 있어 판별 줄이 군더더기다.
+     여러 판(오늘의 도전)일 때만 판마다의 결과를 적는다. */
+  $('marks').textContent = (rs.length > 1) ? marksOf(r) : '';
+  $('finalSub').textContent = (r.mode === 'daily')
+    ? T('resultSubDaily', r.no, rs.length)
+    : T('resultSub', fmtSec(rs[0].elapsedMs / 1000), rs[0].target);
+  $('streakLine').textContent = (r.mode === 'daily' && r.streak > 0) ? T('streakGo', r.streak) : '';
+  $('newBest').textContent = r.best ? T('newBest') : '';
+  $('btnAgain').textContent = T('again');
+  $('btnShare').textContent = T('share');
+  $('overTitle').textContent = T('result');
+}
+/* 공유·결과에 들어가는 판별 줄 — 수치를 글자로 담는다(그림 문자만으로는 무엇이 좋은지 알 수 없다) */
+function marksOf(r){
+  return (r.rounds || []).map(x => T('roundLine', x.target, fmtSec(x.err), T('verdict', x.diff))).join('\n');
+}
+
+/* ======================= 창(오버레이) ======================= */
+function show(id){
+  const o = $(id); o.classList.add('show');
+  overShown = true;
+  setOutsideInert(true);
+  const f = o.querySelector('button:not([disabled]):not([hidden]), a[href]');
+  if (f) try { f.focus({ preventScroll:true }); } catch(e){}
+}
+function hide(id){
+  $(id).classList.remove('show');
+  overShown = $('start').classList.contains('show') || $('over').classList.contains('show');
+  if (!overShown){
+    setOutsideInert(false);
+    try { $('pad').focus({ preventScroll:true }); } catch(e){}   /* ★키보드로 바로 이어서 할 수 있게 판에 초점을 준다 */
+  }
+}
+function setOutsideInert(on){
+  for (const el of document.querySelectorAll('body > header, body > main, body > section, body > footer, body > .ad-slot, body > .scores')){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+  }
+}
+function say(msg){ $('srSummary').textContent = msg; }
+/* ★토스트는 시간이 지나면 사라지므로 타이머를 하나 건다. 그 타이머가 **재는 동안** 살아 있으면
+   화면이 도중에 한 번 바뀌는 셈이라, 재기를 시작할 때 반드시 걷어낸다(clearToast). */
+let toastTimer = 0;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toastTimer = 0; t.classList.remove('show'); }, 1800);
+}
+function clearToast(){
+  if (toastTimer){ clearTimeout(toastTimer); toastTimer = 0; }
+  $('toast').classList.remove('show');
+}
+
+/* ======================= 입력 =======================
+   ★누르는 순간을 잰다 — 손가락이 닿는 순간(pointerdown)과 키가 내려가는 순간(keydown)이다.
+     click 은 손을 뗄 때 나므로 쓰지 않는다(누르고 있는 동안이 통째로 오차가 된다).
+     Space 는 브라우저가 키를 뗄 때 click 을 만들어 주는데, 그러면 입력 방법마다 재는 순간이
+     달라진다 — 그래서 click 은 아예 듣지 않고 keydown 에서 기본 동작을 막는다. */
+function onPress(ev){
+  if (overShown) return;
+  const stamp = stampOf(ev);
+  if (phase === 'ready') pressStart(stamp); else pressStop(stamp);
+}
+const padEl = $('pad');
+/* ★마우스로 눌렀을 때 브라우저가 기본 동작으로 판에 초점을 옮기는 것을 막는다 —
+   정지 순간 결과 창으로 옮겨 둔 초점을 도로 빼앗아 body 로 떨어뜨리기 때문이다(실브라우저 실측).
+   초점은 우리가 관리한다: 창이 열리면 창의 첫 버튼, 창이 닫히면 판. 재는 시점은 pointerdown
+   이므로 이 한 줄은 측정에 아무 영향이 없다. */
+padEl.addEventListener('mousedown', ev => ev.preventDefault());
+if (window.PointerEvent){
+  padEl.addEventListener('pointerdown', ev => { if (ev.button != null && ev.button !== 0) return; onPress(ev); });
+} else {
+  padEl.addEventListener('touchstart', onPress, { passive:true });
+  padEl.addEventListener('mousedown', ev => { if (ev.button !== 0) return; onPress(ev); });
+}
+document.addEventListener('keydown', ev => {
+  if (ev.key !== ' ' && ev.key !== 'Spacebar' && ev.key !== 'Enter') return;
+  if (ev.repeat) return;                       /* 누르고 있으면 반복해서 들어온다 — 첫 번째만 센다 */
+  if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  if (overShown) return;                       /* 창이 떠 있으면 그 안의 버튼이 임자다 */
+  const el = ev.target;
+  if (el !== padEl && el !== document.body && el !== document.documentElement) return;
+  ev.preventDefault();                         /* Space 의 화면 스크롤과, 뒤따르는 click 을 막는다 */
+  onPress(ev);
+});
+
+/* ======================= 시작 화면 ======================= */
+function setTarget(t){
+  target = t;
+  localStorage.setItem('ts.target', String(t));
+  for (const b of $('targets').querySelectorAll('button')) b.setAttribute('aria-pressed', String(+b.dataset.tg === t));
+  $('tgDesc').textContent = T('tgDesc', t);
+  paintHud();
+  if (mode !== 'daily' && phase === 'ready'){ plan = [t]; paintPad(); }
+}
+$('targets').addEventListener('click', ev => {
+  const b = ev.target.closest('button[data-tg]'); if (!b) return;
+  setTarget(parseInt(b.dataset.tg, 10));
+});
+function refreshStart(){
+  const no = dailyNo(), done = dailyDoneToday();
+  const tg = dailyTargets(dailySeedKey());
+  $('btnDaily').textContent = done ? T('dailyDoneBtn', no) : T('dailyBtn', no);
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint', tg[0], tg[1], tg[2]);
+  $('tgDesc').textContent = T('tgDesc', target);
+  for (const b of $('targets').querySelectorAll('button')){
+    b.setAttribute('aria-pressed', String(+b.dataset.tg === target));
+    b.textContent = (lang === 'ko') ? (b.dataset.tg + '초') : (b.dataset.tg + 's');
+  }
+  $('btnStart').textContent = T('start');
+  $('startTitle').textContent = T('title2');
+}
+$('btnStart').onclick = () => { hide('start'); beginRun('free'); };
+$('btnDaily').onclick = () => {
+  if (dailyDoneToday()){
+    const rec = dailyRec();
+    lastResult = { mode:'daily', no: rec.no, day: rec.date, rounds: rec.result.rounds || [],
+                   err: rec.result.err, acc: rec.result.acc, streak: streakNow(), best:false, elapsedMs:0 };
+    hide('start'); renderOver(); show('over');
+    return;
+  }
+  hide('start'); beginRun('daily');
+};
+$('btnAgain').onclick = () => {
+  hide('over');
+  if (mode === 'daily' && dailyDoneToday()){ mode = 'free'; }
+  beginRun(mode === 'daily' ? 'daily' : 'free');
+};
+
+/* ======================= 언어·소리 ======================= */
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  $('btnLang2').textContent = T('langBtn');
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  if (window.hpStats) window.hpStats();
+}
+function applyA11yLabels(){
+  for (const id of ['btnSound','btnSound2']){
+    const b = $(id); if (!b) continue;
+    b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  }
+  for (const id of ['btnLang','btnLang2']){ const l = $(id); if (l) l.setAttribute('aria-label', T('ariaLang')); }
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+}
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyLang();
+  refreshStart();
+  updateSubtitle(); paintHud(); paintPad();
+  if (lastResult && $('over').classList.contains('show')) renderOver();
+  ga('lang_switch', { lang });
+}
+$('btnLang').onclick = toggleLang;
+$('btnLang2').onclick = toggleLang;
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('ts.sound', soundOn ? '1' : '0');
+  const face = soundOn ? '🔊' : '🔇';
+  $('btnSound').textContent = face; $('btnSound2').textContent = face;
+  applyA11yLabels();
+  if (soundOn) beep(660, .06, 'sine', .04);
+}
+$('btnSound').onclick = toggleSound;
+$('btnSound2').onclick = toggleSound;
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnSound2').textContent = soundOn ? '🔊' : '🔇';
+
+/* ======================= 공유 ======================= */
+function shareText(r, url){
+  return ((r.mode === 'daily')
+    ? T('dailyShare', r.no, fmtSec(r.err), fmtPct(r.acc), marksOf(r), r.streak)
+    : T('freeShare', r.rounds[0].target, fmtSec(r.err), fmtPct(r.acc), fmtSec(r.rounds[0].elapsedMs / 1000))) + url;
+}
+async function doShare(){
+  const url = location.href.split('#')[0];
+  const r = lastResult;
+  if (!r) return;
+  try{
+    if (navigator.share){
+      /* ★네이티브 공유는 text 와 url 을 분리한다 — text 에 URL 을 또 넣으면 공유 시트가 링크를 두 번 붙인다. */
+      await navigator.share({ title: T('docTitle'), text: shareText(r, '').trimEnd(), url });
+    } else { await navigator.clipboard.writeText(shareText(r, url)); toast(T('copied')); }
+  }catch(_){}
+}
+$('btnShare').onclick = doShare;
+
+/* ======================= 기동 ======================= */
+applyLang();
+refreshStart();
+plan = [target];
+paintPad(); paintHud(); updateSubtitle();
+if ($('start').classList.contains('show')) show('start');
+
+/* ======================= 검증 창구(관측 전용) =======================
+   ★배포되는 이 창구에는 **읽기만 하는 getter 와 순수 함수** 만 둔다. 판을 시작하거나 정지하거나
+     시간을 흐르게 하는 **상태 변경 명령은 여기에 두지 않는다** — 검증 하네스는 이 판을 진짜
+     입력 사건(pointerdown·keydown)으로 두드려서 확인한다. 반환값은 전부 사본이다. 외부 전송 0. */
+const copy = o => JSON.parse(JSON.stringify(o));
+window.__ts = {
+  const: () => ({ TARGETS: TARGETS.slice(), DEFAULT_TARGET, DAILY_ROUNDS, DAILY_EPOCH, STAMP_TOLERANCE_MS }),
+  state: () => ({ mode, phase, target, roundIdx, plan: plan.slice(), rounds: copy(rounds),
+                  runDay, runNo, seedKey: seedKeyNow, overShown, startStamp }),
+  /* 순수 함수 창구 — 하네스는 이것과 별개로 자기 셈을 들고 재검한다 */
+  measure: (a, b) => measure(a, b),
+  errorOf: (ms, t) => errorOf(ms, t),
+  accuracyOf: (ms, t) => accuracyOf(ms, t),
+  fmtSec: v => fmtSec(v),
+  fmtPct: v => fmtPct(v),
+  dailyTargets: k => dailyTargets(String(k)),
+  seedKey: d => dailySeedKey(d ? new Date(d) : new Date()),
+  dailyNo: d => dailyNo(d ? new Date(d) : new Date()),
+  seedDraws: (key, n) => { const f = mulberry32(hashStr(String(key))); return Array.from({length:n}, () => +f().toFixed(9)); },
+  daily: () => ({ done: dailyDoneToday(), rec: dailyRec(), no: dailyNo(), streak: streakNow() }),
+  best: t => copy(loadBest(t)),
+  betterThan: (a, b) => betterThan(a, b),
+  result: () => copy(lastResult),
+  marks: () => lastResult ? marksOf(lastResult) : '',
+  shareText: () => lastResult ? shareText(lastResult, 'https://hanpango.com/tensec/') : '',
+  shown: id => $(id).classList.contains('show'),
+  running: () => document.body.classList.contains('running'),
+  reduceMotion: () => reduceMotion(),
+  sound: () => soundOn,
+  lang: () => lang
+};
+})();
+</script>
+<script>
+  /* 서비스 워커 — 사이트 공통(루트에서 한 번만 등록한다) */
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+</script>
+</body>
+</html>
