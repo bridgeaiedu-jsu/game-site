@@ -606,14 +606,18 @@ const FIXTURES = {
   /* ★미달(✗)이 난 파일은 그 뒤 검사를 '수행하지 못한다' — 그것도 판정 불가(‽)로 올라간다.
      그래서 기대 rc 는 1 이 아니라 2 다: 판정 불가가 하나라도 있으면 통과로 세지 않는다는 계약이
      미달 여부보다 우선한다(tools/check_privacy_storage.py 와 같은 규약). */
+  /* ★넷째 칸(기대 원인)이 있는 케이스는 원인의 **값**까지 대조한다 — 규칙@파일 이 정확히
+     그것이어야 한다. 존재만 재면 값이 틀려도 초록이 된다(codex 지적). */
   'static-missing': ['정적 import 대상 없음(대조군 성격)',
-    st => prependF(st, 'functions/api/hit.js', "import '../definitely-missing.js';\n"), 2, ['import-path']],
+    st => prependF(st, 'functions/api/hit.js', "import '../definitely-missing.js';\n"), 2, ['import-path'],
+    ['import-path@functions/api/hit.js']],
   'dynamic-missing': ['문자열 동적 import 대상 없음 — R1 은 rc=0 이었다',
     st => appendF(st, 'functions/api/hit.js', "\nconst zz = import('../definitely-missing.js');\n"), 2, ['import-path']],
   'dynamic-variable': ['변수형 동적 import — 정적으로 못 푼다',
     st => appendF(st, 'functions/api/hit.js', '\nconst zzN = "./x.js"; const zz = import(zzN);\n'), 2, ['dynamic-import']],
   'broken-ts': ['깨진 .ts 파일 — R1 은 rc=0 이었다',
-    st => writeF(st, 'functions/api/broken.ts', 'export const onRequest: = ;\n'), 2, ['parse']],
+    st => writeF(st, 'functions/api/broken.ts', 'export const onRequest: = ;\n'), 2, ['parse'],
+    ['parse@functions/api/broken.ts']],
   'valid-ts': ['멀쩡한 .ts 도 이 도구로는 판정 불가다(정직한 한계)',
     st => writeF(st, 'functions/api/ok.ts', 'export const onRequest = (): Response => new Response("x");\n'), 2, ['parse']],
   'star-conflict-route': ['별표 재export 충돌 — 이름을 알 수 없다. R1 은 SKIP 후 rc=0 이었다',
@@ -634,7 +638,8 @@ const FIXTURES = {
   /* ★R9 — 존재하지 않는 런타임 모듈. R8 까지는 세 형태 중 둘이 rc=0 으로 샜다
      (내 실측: Node 는 셋 다 rc=1 로 실패한다 = 배포되면 깨지는 코드였다). */
   'node-missing-sideeffect': ['없는 node: 모듈 · 부수효과 import — R8 은 rc=0 이었다',
-    st => prependF(st, 'functions/api/hit.js', "import 'node:totally-fake-xyz';\n"), 2, ['import-path']],
+    st => prependF(st, 'functions/api/hit.js', "import 'node:totally-fake-xyz';\n"), 2, ['import-path'],
+    ['import-path@functions/api/hit.js']],
   'node-missing-default': ['없는 node: 모듈 · default import — R8 은 rc=0 이었다',
     st => prependF(st, 'functions/api/hit.js', "import zzF from 'node:totally-fake-xyz';\n"), 2, ['import-path']],
   'node-missing-named': ['없는 node: 모듈 · named import',
@@ -645,7 +650,8 @@ const FIXTURES = {
     st => prependF(st, 'functions/api/hit.js', "import zzC from 'node:crypto';\n"), 0, []],
   /* ★R7 fail-open 3종 — 합성 링커가 '달라는 이름' 을 만들어 주어 전부 rc=0 이었다. */
   'node-unknown-export': ['node: 의 없는 named export — R7 은 rc=0 이었다',
-    st => prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from 'node:crypto';\n"), 2, ['link']],
+    st => prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from 'node:crypto';\n"), 2, ['link'],
+    ['link@functions/api/hit.js']],
   'cloudflare-unknown-export': ['cloudflare: 의 없는 named export — R7 은 rc=0 이었다',
     st => prependF(st, 'functions/api/hit.js', "import { definitelyNotAnExport as zzB } from 'cloudflare:workers';\n"), 2, ['link']],
   'pages-text-named-export': ['데이터 모듈의 named import — Pages 는 default 만 준다. R7 은 rc=0 이었다',
@@ -704,7 +710,10 @@ function runChild(tool, root) {
     if (!m) contradiction = '파생을 보고하면서 원인 목록을 적지 않았다';
     else if (Number(m[1]) === 0 || !m[2].trim()) contradiction = '파생 ' + dm[1] + ' 건인데 원인이 0 곳이다';
   }
-  return { rc: r.status, seen, out, err: r.stderr || '', contradiction };
+  /* ★원인의 **값**을 뽑아 둔다. 존재만 재는 검사는 값이 틀려도 초록이다
+     (codex 실측: 모든 cause 를 wrong@wrong.js 로 바꿔도 자기시험 25/25 통과였다). */
+  const causes = m ? m[2].split(',').map(x => x.trim()).filter(Boolean).sort() : [];
+  return { rc: r.status, seen, out, err: r.stderr || '', contradiction, causes };
 }
 function selftest() {
   const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'hp-fngate-selftest-'));
@@ -715,7 +724,7 @@ function selftest() {
   let setupFail = 0;
   try {
     for (const [name, spec] of Object.entries(FIXTURES)) {
-      const [, mutate, wantRc, wantRules] = spec;
+      const [, mutate, wantRc, wantRules, wantCauses] = spec;
       const work = path.join(stage, name);
       copyTree(path.join(ROOT, 'functions'), path.join(work, 'functions'));
       if (mutate) {
@@ -731,10 +740,18 @@ function selftest() {
       const miss = wantRules.filter(x => !r.seen.has(x));
       /* 기대 규칙이 없는 케이스(정상이어야 하는 것)는 어떤 지적도 나오면 안 된다 */
       const noise = wantRules.length ? [] : [...r.seen];
-      const ok = r.rc === wantRc && !miss.length && !noise.length && !r.contradiction;
+      /* ★원인 값 대조 — 기대 원인을 적은 케이스는 그 값이 정확히 그것이어야 한다. */
+      let causeBad = null;
+      if (wantCauses) {
+        const want = [...wantCauses].sort().join(', ');
+        const got = r.causes.join(', ');
+        if (want !== got) causeBad = `원인이 어긋난다 — 기대 [${want}] · 실제 [${got || '없음'}]`;
+      }
+      const ok = r.rc === wantRc && !miss.length && !noise.length && !r.contradiction && !causeBad;
       if (!ok) bad++;
       rows.push({ name, wantRc, rc: r.rc, wantRules, seen: [...r.seen].sort(), miss, noise, ok,
-                  why: r.contradiction ? ('요약이 자기모순이다: ' + r.contradiction) : undefined });
+                  why: r.contradiction ? ('요약이 자기모순이다: ' + r.contradiction)
+                       : (causeBad || undefined) });
     }
     /* ★방어를 **하나씩 홀로** 지운 변이체 — 그 방어가 없으면 해당 표본이 다시 rc=0 으로
        새는가를 본다. 새지 않으면 지금의 rc 는 그 방어의 산물이 아니라는 뜻이므로 공허한
@@ -742,6 +759,9 @@ function selftest() {
        조각으로 이어 붙인다(2026-08-31 실측). */
     const toolSrc = fs.readFileSync(SELF, 'utf8');
     const METAS = [
+      /* '원인 값 오염' 변이체는 rc 를 바꾸지 않아 이 meta 틀(픽스처 rc 비교)로는
+         구조상 아무것도 재지 못한다. 그 증명은 자기시험 전체를 오염된 사본으로 돌려
+         남긴다 — evidence/check_cause_value_bites.py. */
       ['meta:판정불가→rc2 방어 제거', 'star-conflict-route',
        '  if (indets.' + 'length) {', '  if (false) {'],
       ['meta:데이터 모듈 default-only 방어 제거', 'pages-text-named-export',
