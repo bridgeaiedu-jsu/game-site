@@ -81,6 +81,39 @@ node tools/verify_nonogram.js --html nonogram/index.html --mutate no-unique-gate
 `no-clue-cap`(단서 개수 상한 제거) 셋이며, 셋 다 rc=1(FAIL)이 나와야 정상이다.
 앵커가 나와야 할 곳 수와 다르면 rc=2 로 멈춘다(앵커 노후화를 통과로 접지 않는다).
 
+## check_functions.mjs — functions/ 배포 게이트 (wrangler 가 거부하는 것을 먼저 거부한다)
+
+2026-08-31 배포 실패에서 나왔다. 병합이 `functions/_games.js` 에 `export const GAMES` 를 두 줄로
+만들었고 Cloudflare Pages 의 wrangler 빌드가 'Multiple exports with the same name GAMES' 로
+거부해 배포가 통째로 실패했다(새 경로 `/nonogram/` 만 404 · 라이브는 이전 성공분 유지).
+
+`functions/` **아래 모든 모듈**을 대상으로, 모듈을 **평가하지 않고 파싱·링크만** 한다
+(wrangler 의 번들러가 하는 일과 같은 층 · 외부 의존 0 · Node 내장 `vm.SourceTextModule` 만 쓴다).
+지적마다 규칙 id 가 붙는다 — `[parse]` 중복 export·중복 선언·문법 손상, `[import-path]` 상대
+import 대상 실재, `[bare-import]` 외부 패키지 금지(`node:`·`cloudflare:` 는 허용),
+`[link]` import 하는 이름이 대상에 실재, `[route-export]` `_` 로 시작하지 않는 파일은
+`onRequest*` 를 내보내고 `_` 로 시작하는 보조 파일은 내보내지 않는다.
+
+앞 단계가 막힌 파일의 뒷 단계는 SKIP 한다 — 한 원인을 두 규칙이 겹쳐 지적하면 '어느 규칙이
+잡았는가' 가 흐려진다.
+
+```sh
+node tools/check_functions.mjs .                          # 대조군은 rc=0
+node tools/check_functions.mjs . --list-mutations
+node tools/check_functions.mjs . --mutate dup-export       # 2026-08-31 실패를 그대로 재현
+```
+뮤테이션은 임시 폴더 사본에만 주입한다(원본 불변). 뮤테이션을 걸면 **'지정 규칙만 FAIL 인가'**
+까지 도구가 스스로 판정한다 — 의도대로 잡으면 rc=1, 못 잡거나 엉뚱한 규칙이 함께 울리면 rc=2다
+(다른 검사가 우연히 깨져 나온 실패를 검출력으로 세지 않는다).
+
+### 기존 counter/test_functions.mjs 와 무엇이 다른가
+그 시험은 이 손상을 **못 보는 것이 아니라 '이름 없이' 본다.** 대상 모듈을 진짜 `import()` 하므로
+Node 가 파싱 단계에서 SyntaxError 를 던지고 프로세스가 그 자리에서 죽는다(rc=1). 판정이 아니라
+추락이라 `PASS n · FAIL m` 요약 줄이 아예 안 찍히고, 하네스 오류와 구별되지 않으며, FAIL 줄을
+세는 쪽에는 '실패 0' 으로 보인다. 또 그 시험이 실제로 여는 모듈은 `hit.js`·`stats.js`·`_games.js`
+셋뿐이라 functions/ 에 파일이 늘면 범위 밖으로 샌다. 이 게이트는 셋을 바꾼다 — 대상이
+functions/ 전부이고, 실패가 이름 붙은 FAIL 이며, 코드를 실행시키지 않는다.
+
 ## run_mutations.py — 위 검증기의 검출력 검산
 
 `verify_word.js` 가 **고의 결함을 정말로 잡는지** 를 17종 주입으로 검산한다.
