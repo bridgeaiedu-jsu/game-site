@@ -25,6 +25,7 @@
 #   --verifier 는 이 러너의 자기검사용이다(고의로 망가뜨린 검증기 사본을 물려
 #   fail-open 이 정말 닫혔는지 증명할 때 쓴다). 기본값은 이 폴더의 verify_word.js.
 import io
+import json
 import os
 import re
 import tempfile
@@ -32,9 +33,10 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-USAGE = ("사용법: python3 run_mutations.py [--html <index.html>] [--verifier <verify_word.js>]\n"
+USAGE = ("사용법: python3 run_mutations.py [--html <index.html>] [--verifier <verify_word.js>] [--selftest]\n"
          "  --html      검사 대상 페이지(생략하면 검증기 기본값)\n"
-         "  --verifier  검증기 경로(생략하면 이 폴더의 verify_word.js) — 러너 자기검사용\n")
+         "  --verifier  검증기 경로(생략하면 이 폴더의 verify_word.js) — 러너 자기검사용\n"
+         "  --selftest  임시 사본이 정본과 같은 대상을 여는지만 확인하고 끝낸다(아래 불변식)\n")
 
 
 def die_cli(msg):
@@ -73,6 +75,69 @@ ANCHOR_OVERRIDES = {
 }
 
 
+# ── ★임시 사본의 '자기 위치' 문제 (2026-08-31 · T0831-runner-path) ──────────────
+# 사본은 %TEMP% 에 놓인다. 그런데 검증기는 대상 페이지를 **자기 파일 위치 기준**으로 푼다
+#   const HTML = argOf('--html', path.join(__dirname, '..', 'word', 'index.html'));
+# 그래서 사본에서는 __dirname 이 임시 폴더가 되어, 인자 없이 부르면 저장소가 아니라
+#   <임시폴더>/../word/index.html   (실측: C:\Users\USER\AppData\Local\word\index.html)
+# 을 찾다가 ENOENT 로 죽었다 — 17종이 전부 '예외중단'으로 떨어지고 하네스 비정상(exit 2)이 됐다.
+#
+# 고치는 자리는 '사본이 대상을 어디 기준으로 푸는가' 한 곳이다. 러너가 대상 경로를 새로
+# 적어 넣지 않는다(그러면 살아 움직이는 대상에 고정 참조를 또 박는 셈이다). 대신 사본이
+# **정본이 있던 자리에 있는 것처럼** 경로를 풀게 한다 — CommonJS 에서 __filename·__dirname 은
+# 모듈 감싸개의 매개변수라 모듈 첫머리에서 다시 묶을 수 있다. 값은 실행 시점에 정본 경로에서
+# 계산하므로 어떤 경로도 소스에 박히지 않는다.
+#
+# ★넣는 자리가 중요하다: `'use strict';` **뒤**에 넣는다. 앞에 넣으면 그 지시문이 더 이상
+#   첫 문장이 아니게 되어 사본만 조용히 비엄격 모드로 돌아간다.
+def _relocation_prelude(origin_path):
+    """사본이 origin_path 에 있는 것처럼 경로를 풀게 하는 한 토막."""
+    return (
+        "/* run_mutations.py 주입 — 이 사본은 임시 폴더에 있지만 **정본이 있던 자리에 있는 것처럼**\n"
+        "   경로를 푼다. 그러지 않으면 검증기 기본 대상(<루트>/word/index.html)을 임시 폴더\n"
+        "   기준으로 찾다가 ENOENT 로 죽는다(2026-08-31 T0831-runner-path). */\n"
+        "__filename = %s;\n"
+        "__dirname = %s;\n"
+    ) % (json.dumps(origin_path), json.dumps(os.path.dirname(origin_path)))
+
+
+def _with_relocation(src, origin_path):
+    """`'use strict';` 바로 뒤에 재배치 토막을 끼운다. 지시문을 못 찾으면 (None, 사유)."""
+    marker = "'use strict';"
+    i = src.find(marker)
+    if i < 0:
+        return None, "검증기에서 'use strict'; 지시문을 찾지 못했다 — 끼울 자리를 정할 수 없다"
+    j = i + len(marker)
+    return src[:j] + "\n" + _relocation_prelude(origin_path) + src[j:], None
+
+
+# ── 불변식을 재는 탐침 ────────────────────────────────────────────────────────
+# 계약: **인자 없이 부른 사본은 정본을 인자 없이 부른 것과 같은 파일을 연다.**
+# 경로를 문자열로 비교해 못박지 않고(고정 참조 금지), '정본이 여는 파일' 자체를 기준으로 삼는다.
+# 재는 방법은 그 계약 그대로다 — fs.readFileSync 를 가로채 **처음 여는 index.html** 을 보고한다.
+_PROBE_JS = (
+    "const fs=require('fs');const path=require('path');const real=fs.readFileSync;"
+    "fs.readFileSync=function(p,...a){const s=String(p);"
+    "if(/index\\.html$/i.test(s)){process.stdout.write('OPENED:'+path.resolve(s));process.exit(0);}"
+    "return real.call(fs,p,...a);};"
+    "require(process.argv[1]);"
+)
+
+
+def opened_target(js_path):
+    """그 검증기를 인자 없이 돌렸을 때 처음 여는 index.html 의 절대경로(못 재면 None, 사유)."""
+    try:
+        p = subprocess.run(["node", "-e", _PROBE_JS, js_path],
+                           capture_output=True, text=True, encoding="utf-8", errors="replace")
+    except OSError as e:
+        return None, "node 를 실행하지 못했다: %s" % e
+    m = re.search(r"OPENED:(.+)", p.stdout or "")
+    if not m:
+        why = ((p.stderr or "").strip().splitlines() or ["(stderr 없음)"])[0]
+        return None, "대상 파일을 여는 것을 관측하지 못했다 — %s" % why[:160]
+    return os.path.normcase(os.path.abspath(m.group(1).strip())), None
+
+
 def verifier_with_fresh_anchors(path):
     """앵커가 낡은 항목만 갈아 끼운 검증기 임시 사본 경로를 돌려준다.
     바꿀 것이 없으면 원본 경로를 그대로 돌려준다(사본을 만들지 않는다)."""
@@ -88,10 +153,18 @@ def verifier_with_fresh_anchors(path):
             skipped.append(name + "(★정본에서 옛 앵커도 새 앵커도 못 찾음)")
     if not applied:
         return path, applied, skipped
+    return _write_anchored_copy(src, path), applied, skipped
+
+
+def _write_anchored_copy(src, origin_path):
+    """사본을 임시 폴더에 쓴다 — 정본 자리에서 경로를 풀도록 재배치 토막을 끼워서."""
+    moved, why = _with_relocation(src, origin_path)
+    if moved is None:
+        die_cli(why)
     fd, tmp = tempfile.mkstemp(prefix="verify_word_anchored_", suffix=".js")
     os.close(fd)
-    io.open(tmp, "w", encoding="utf-8", newline="").write(src)
-    return tmp, applied, skipped
+    io.open(tmp, "w", encoding="utf-8", newline="").write(moved)
+    return tmp
 
 # (뮤테이션 이름, 이 결함을 잡아야 하는 검사 이름의 일부)
 MUTS = [
@@ -179,6 +252,7 @@ def exceptions(err):
 
 
 V_GIVEN = "--verifier" in sys.argv
+V_ORIGIN = V                      # 정본(사본을 만들기 전) 경로 — 불변식의 기준이다
 ANCHOR_NOTE = []
 if not V_GIVEN:
     V2, _applied, _skipped = verifier_with_fresh_anchors(V)
@@ -187,6 +261,59 @@ if not V_GIVEN:
     for m in _skipped:
         ANCHOR_NOTE.append("앵커 갱신 생략: " + m)
     V = V2
+
+
+def check_copy_opens_same_target(copy_path, origin_path):
+    """불변식 — **인자 없이 부른 사본은 정본을 인자 없이 부른 것과 같은 파일을 연다.**
+    돌려주는 값: (판정, 사본이 연 파일, 정본이 연 파일, 사유)
+      판정 True  = 같은 파일을 연다
+            False = 다른 파일을 연다(이것이 2026-08-31 에 터진 결함이다)
+            None  = 잴 수 없었다(관측 실패 — 통과로 세지 않는다)"""
+    got, why1 = opened_target(copy_path)
+    want, why2 = opened_target(origin_path)
+    if got is None or want is None:
+        return None, got, want, (why1 or why2)
+    return (got == want), got, want, None
+
+
+# ── --selftest : 이 불변식만 재고 끝낸다 ──────────────────────────────────────
+#   종료코드 0 = 불변식 성립 · 1 = 깨졌다(회귀) · 2 = 잴 수 없었다(판정 불가)
+#   ★사본이 만들어지지 않는 상태(앵커 갱신 대상 0건)에서도 **일부러 사본을 만들어** 잰다 —
+#     그러지 않으면 앵커 표가 비는 날 이 시험이 조용히 공허해진다(잴 것이 없다 ≠ 통과).
+if "--selftest" in sys.argv:
+    print("# run_mutations 자기시험 — 임시 사본이 정본과 같은 대상을 여는가")
+    print("# 정본: " + V_ORIGIN)
+    forced = False
+    probe_copy = V
+    if os.path.normcase(os.path.abspath(V)) == os.path.normcase(os.path.abspath(V_ORIGIN)):
+        probe_copy = _write_anchored_copy(
+            io.open(V_ORIGIN, encoding="utf-8", newline="").read(), V_ORIGIN)
+        forced = True
+    print("# 사본: %s%s" % (probe_copy, " (앵커 갱신 대상이 없어 시험용으로 만든 사본)" if forced else ""))
+    ok, got, want, why = check_copy_opens_same_target(probe_copy, V_ORIGIN)
+    print("  정본이 여는 대상: %s" % want)
+    print("  사본이 여는 대상: %s" % got)
+    if ok is None:
+        print("  → 판정 불가(exit 2): %s" % why)
+        sys.exit(2)
+    if not ok:
+        print("  → ★불변식이 깨졌다(exit 1): 사본이 제 위치를 기준으로 대상을 푼다 —")
+        print("     인자 없는 호출이 남의 폴더를 보게 되고 17종이 전부 예외중단으로 떨어진다.")
+        sys.exit(1)
+    print("  → 불변식 성립(exit 0): 사본의 위치가 대상 해석에 영향을 주지 않는다.")
+    sys.exit(0)
+
+# ── 실제 검산에서도 같은 불변식을 먼저 건다(값이 나온 뒤에 의심하지 않기 위해서다) ──
+#   깨져 있으면 검출력 수치가 의미를 잃으므로 **하네스 비정상(exit 2)** 으로 멈춘다.
+#   ENOENT 를 통과로 접는 것이 아니라, ENOENT 가 날 조건을 미리 붙잡아 정직하게 세우는 것이다.
+if not V_GIVEN and os.path.normcase(os.path.abspath(V)) != os.path.normcase(os.path.abspath(V_ORIGIN)):
+    _ok, _got, _want, _why = check_copy_opens_same_target(V, V_ORIGIN)
+    if _ok is None:
+        die_cli("임시 사본이 어떤 대상을 여는지 관측하지 못했다 — %s" % _why)
+    if not _ok:
+        die_cli("임시 사본이 정본과 다른 대상을 연다(사본=%s · 정본=%s) — 사본의 위치가 대상 해석에 "
+                "새어 들어갔다" % (_got, _want))
+    ANCHOR_NOTE.append("사본 대상 확인: 정본과 같은 파일을 연다 (%s)" % _want)
 
 print("# 오늘의 낱말 뮤테이션 검산")
 print("# 검증기: " + V)
