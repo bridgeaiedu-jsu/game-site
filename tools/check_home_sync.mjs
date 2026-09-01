@@ -33,6 +33,8 @@
  *   [noscript-content]  양쪽에 다 있는 id 의 카드 내용이 games.json 과 같다
  *                       (경로 · 썸네일 · 이미지 크기 · 제목 ko/en · 설명 ko/en · 플레이타임 · 오늘의 도전 배지)
  *   [fallback-content]  양쪽에 다 있는 id 의 FALLBACK 항목이 games.json 항목과 **완전히 같다**(깊은 비교)
+ *   [about-count]       /about/ 이 적은 게임 수(국문·영문·meta)와 오늘의 도전 종수가 games.json 과 같다
+ *   [about-names]       /about/ 이 나열한 게임 이름이 games.json 의 title.ko / title.en 과 같다(양방향)
  *
  * ★이 도구가 못 보는 것(정직한 한계)
  *   · 자바스크립트가 실제로 무엇을 그리는지는 보지 않는다. 이 도구는 **원본 HTML 의 마크업**과
@@ -43,6 +45,12 @@
  *     본다(상수를 이 파일에 박지 않기 위해서다).
  *   · FALLBACK 리터럴은 텍스트로 잘라 내어 값으로 평가한다. 그 자리에 데이터가 아닌 코드가
  *     들어오면 이 도구는 그것을 실행하게 된다 — 데이터 리터럴로 유지하라.
+ *   · /about/ 는 **수와 게임 이름만** 본다. 그 페이지의 나머지 산문(한 판 길이·설명 문구)은
+ *     games.json 에서 파생되지 않으므로 대조하지 않는다 — 여기도 낡을 수 있는 자리다.
+ *   · /about/ 이름 대조는 **순서까지** 본다(대문 세 자리와 같은 계약). 산문에서 정본과 다른 순서로
+ *     쓸 이유가 생기면 이 규칙을 먼저 고쳐야 한다 — 게이트를 끄지 말고.
+ *   · 영문 이름 목록의 마지막 접속은 ' and ' 하나라고 가정한다. 옥스퍼드 쉼표를 쓰거나 접속사를
+ *     바꾸면 앵커가 어긋나고, 그때 이 도구는 통과가 아니라 **판정 불가**를 낸다.
  *
  * 사용법:
  *   node tools/check_home_sync.mjs [저장소 경로]
@@ -141,6 +149,34 @@ function readFunctions(root){
   if (!ids.length) return { err: 'GAMES 배열이 비어 있다' };
   return { list: ids };
 }
+/* /about/ 는 게임 수와 이름을 **정적으로** 들고 있다 — 17번째 게임이 나면 대문 noscript·FALLBACK 이
+   stop 출고 때 그랬던 것처럼 조용히 낡는 자리다. 수도 이름도 이 파일에 박지 않고 games.json 에서만 읽는다.
+   ★앵커를 하나라도 못 찾으면 '위반 0' 이 아니라 판정 불가다(설계 원칙 3) — 무엇을 못 찾았는지 이름으로 돌려준다. */
+function readAbout(root){
+  const raw = readText(root, path.join('about', 'index.html'));
+  if (raw === null) return { err: 'about/index.html 을 읽지 못했다' };
+  const miss = [];
+  const pick = (re, what) => { const m = re.exec(raw); if (!m) miss.push(what); return m; };
+  const mMeta    = pick(/<meta name="description" content="[^"]*?현재 (\d+)종을 서비스하며/, 'meta description 의 종수');
+  const mKo      = pick(/<a href="\/">(\d+)종<\/a>/, '국문 본문의 종수');
+  const mEn      = pick(/<a href="\/">(\d+) games<\/a>/, '영문 본문의 게임 수');
+  const mDailyKo = pick(/오늘의 도전<\/strong> — (\d+)종 가운데 (\d+)종에서/, '국문 오늘의 도전 종수');
+  const mDailyEn = pick(/Daily challenge<\/strong> — (\d+) of the (\d+) games/, '영문 오늘의 도전 종수');
+  const mNameKo  = pick(/<a href="\/">\d+종<\/a>입니다\. ([\s\S]*?)\. 한 판은/, '국문 게임 이름 목록');
+  const mNameEn  = pick(/<a href="\/">\d+ games<\/a> live today: ([\s\S]*?)\. A round takes/, '영문 게임 이름 목록');
+  if (miss.length) return { err: 'about/index.html 에서 다음을 읽지 못했다 — ' + miss.join(' · ') };
+  /* 영문 목록은 마지막만 ', ' 가 아니라 ' and ' 로 잇는다 — 그 하나만 쉼표로 바꿔 같은 방법으로 자른다. */
+  let en = mNameEn[1];
+  const k = en.lastIndexOf(' and ');
+  if (k >= 0) en = en.slice(0, k) + ', ' + en.slice(k + 5);
+  return {
+    countMeta: +mMeta[1], countKo: +mKo[1], countEn: +mEn[1],
+    dailyKoOf: +mDailyKo[1], dailyKo: +mDailyKo[2],
+    dailyEn: +mDailyEn[1], dailyEnOf: +mDailyEn[2],
+    namesKo: mNameKo[1].split(' · ').map(x => x.trim()).filter(Boolean),
+    namesEn: en.split(', ').map(x => x.trim()).filter(Boolean)
+  };
+}
 
 /* ── 대조 ────────────────────────────────────────────────────────────────── */
 /* ★양방향으로 센다 — 한 방향만 보면 '뺐는데 대문에 남은 유령' 을 못 잡는다. */
@@ -168,10 +204,11 @@ function run(root){
   console.log('대문 동기 게이트 — 대상 ' + root);
   const html = readText(root, 'index.html');
   const G = readGames(root), N = readNoscript(html), F = readFallback(html), U = readFunctions(root);
+  const A = readAbout(root);
 
   /* 정본을 못 읽으면 아무 자리도 판정할 수 없다 — 통과로 접지 않고 전부 판정 불가로 올린다. */
   if (G.err){
-    for (const r of ['noscript-ids', 'fallback-ids', 'functions-ids', 'noscript-content', 'fallback-content']) indet(r, G.err);
+    for (const r of ['noscript-ids', 'fallback-ids', 'functions-ids', 'noscript-content', 'fallback-content', 'about-count', 'about-names']) indet(r, G.err);
     return 2;
   }
   const wantIds = G.list.map(g => g.id);
@@ -220,6 +257,24 @@ function run(root){
   if (U.err) indet('functions-ids', U.err);
   else compareIds('functions-ids', 'functions/_games.js GAMES', wantIds, U.list);
 
+  if (A.err){ indet('about-count', A.err); indet('about-names', A.err); }
+  else {
+    const nDaily = G.list.filter(g => !!g.daily).length;
+    const problems = [];
+    const eq = (what, got, want) => { if (got !== want) problems.push(what + ' ' + got + ' ≠ games.json ' + want); };
+    eq('meta description 의 종수', A.countMeta, wantIds.length);
+    eq('국문 본문의 종수', A.countKo, wantIds.length);
+    eq('영문 본문의 게임 수', A.countEn, wantIds.length);
+    eq('국문 오늘의 도전이 말하는 전체 종수', A.dailyKoOf, wantIds.length);
+    eq('영문 오늘의 도전이 말하는 전체 종수', A.dailyEnOf, wantIds.length);
+    eq('국문 오늘의 도전 종수', A.dailyKo, nDaily);
+    eq('영문 오늘의 도전 종수', A.dailyEn, nDaily);
+    if (problems.length) bad('about-count', '/about/ 이 적은 수가 games.json 과 다르다 — ' + problems.join(' · '));
+    else good('about-count', '/about/ 의 종수 5자리와 오늘의 도전 종수 2자리가 games.json 과 같다(' + wantIds.length + '종 · 오늘의 도전 ' + nDaily + '종)');
+    compareIds('about-names', '/about/ 국문 게임 이름', G.list.map(g => g.title.ko), A.namesKo);
+    compareIds('about-names', '/about/ 영문 게임 이름', G.list.map(g => g.title.en), A.namesEn);
+  }
+
   console.log('결과: 통과 ' + passCount + ' · 미달 ' + failCount + ' · 판정 불가 ' + indetCount);
   if (indetCount) return 2;
   return failCount ? 1 : 0;
@@ -230,8 +285,8 @@ function run(root){
    다른 규칙이 대신 붉으면 무임승차다. games.json 은 정본이므로 거기서 빼면 세 자리가 함께 붉는다. */
 const MUTATIONS = {
   'drop-json': {
-    why: 'games.json 에서 마지막 항목을 뺀다(정본이 줄면 세 자리가 함께 어긋난다)',
-    rules: ['noscript-ids', 'fallback-ids', 'functions-ids'],
+    why: 'games.json 에서 마지막 항목을 뺀다(정본이 줄면 대문 세 자리와 /about/ 두 자리가 함께 어긋난다)',
+    rules: ['noscript-ids', 'fallback-ids', 'functions-ids', 'about-count', 'about-names'],
     apply(stage){
       const p = path.join(stage, 'games.json');
       const v = JSON.parse(fs.readFileSync(p, 'utf8'));
@@ -318,8 +373,56 @@ const MUTATIONS = {
       fs.writeFileSync(p, s.slice(0, i) + block.replace(last, changed) + s.slice(j), 'utf8');
       return true;
     }
+  },
+  'about-count': {
+    why: '/about/ 국문 본문의 종수만 하나 줄인다',
+    rules: ['about-count'],
+    apply(stage){
+      const p = path.join(stage, 'about', 'index.html');
+      const s = fs.readFileSync(p, 'utf8');
+      const re = /(<a href="\/">)(\d+)(종<\/a>)/;
+      const m = re.exec(s);
+      if (!m) return false;
+      fs.writeFileSync(p, s.replace(re, () => m[1] + (+m[2] - 1) + m[3]), 'utf8');
+      return true;
+    }
+  },
+  'about-daily': {
+    why: '/about/ 국문 오늘의 도전 종수만 하나 줄인다',
+    rules: ['about-count'],
+    apply(stage){
+      const p = path.join(stage, 'about', 'index.html');
+      const s = fs.readFileSync(p, 'utf8');
+      const re = /(오늘의 도전<\/strong> — \d+종 가운데 )(\d+)(종에서)/;
+      const m = re.exec(s);
+      if (!m) return false;
+      fs.writeFileSync(p, s.replace(re, () => m[1] + (+m[2] - 1) + m[3]), 'utf8');
+      return true;
+    }
+  },
+  'drop-about-name': {
+    why: '/about/ 국문 이름 목록에서 마지막 게임 이름만 뺀다(정본에 있는데 about 에 없다)',
+    rules: ['about-names'],
+    apply(stage){ return editAboutNames(stage, list => { list.pop(); return list.length > 0; }); }
+  },
+  'add-about-name': {
+    why: '/about/ 국문 이름 목록에 games.json 에 없는 이름을 더한다(반대 방향)',
+    rules: ['about-names'],
+    apply(stage){ return editAboutNames(stage, list => { list.push('없는 게임'); return true; }); }
   }
 };
+/* /about/ 국문 이름 목록만 고쳐 쓴다 — 수 표기는 건드리지 않는다(이름 규칙만 붉어야 귀속이 선다). */
+function editAboutNames(stage, mut){
+  const p = path.join(stage, 'about', 'index.html');
+  const s = fs.readFileSync(p, 'utf8');
+  const re = /(<a href="\/">\d+종<\/a>입니다\. )([\s\S]*?)(\. 한 판은)/;
+  const m = re.exec(s);
+  if (!m) return false;
+  const list = m[2].split(' · ').map(x => x.trim()).filter(Boolean);
+  if (!mut(list)) return false;
+  fs.writeFileSync(p, s.replace(re, () => m[1] + list.join(' · ') + m[3]), 'utf8');
+  return true;
+}
 function writeBack(p, s, from, to, text){
   fs.writeFileSync(p, s.slice(0, from) + text + s.slice(to), 'utf8');
   return true;
@@ -328,7 +431,8 @@ function writeBack(p, s, from, to, text){
 function stage(root){
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'home-sync-'));
   fs.mkdirSync(path.join(dir, 'functions'), { recursive: true });
-  for (const rel of ['games.json', 'index.html', path.join('functions', '_games.js')]){
+  fs.mkdirSync(path.join(dir, 'about'), { recursive: true });
+  for (const rel of ['games.json', 'index.html', path.join('functions', '_games.js'), path.join('about', 'index.html')]){
     fs.copyFileSync(path.join(root, rel), path.join(dir, rel));
   }
   return dir;
