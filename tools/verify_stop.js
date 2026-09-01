@@ -608,25 +608,98 @@ function shorthandItem(item){
   }
   return { name, dur, iter, unreadable };
 }
-/* 규칙 블록 = 중괄호 안에 다시 중괄호가 없는 가장 안쪽 블록(@media·@keyframes 안쪽도 그렇게 잡힌다)
-   ★CSS 는 **animation-name 목록이 애니메이션의 개수를 정하고**, 나머지 목록은 그 길이에 맞춰
+/* ------------------------------------------------------------ 규칙 읽기(선택자·미디어 문맥·source order)
+   ★R3 까지는 규칙 블록 하나가 곧 판정 단위였다. 그래서 같은 선택자에 **앞 규칙이 이름**을,
+   **뒤 규칙이 주기·반복**을 주면 앞은 주기가 없어 무해하고 뒤는 이름이 없어 제외되어, 실제로는
+   도는 10Hz 애니메이션이 통째로 빠져나갔다(codex R3 가 fixture_split_cascade 로 재현).
+   그래서 이제는 규칙을 읽어 두었다가 **선택자별로 캐스케이드를 먼저 합성**하고 그 결과를 잰다.
+   중괄호를 직접 세므로 @media 안팎을 구분할 수 있다(안쪽 규칙은 그 미디어 문맥을 달고 나온다). */
+function cssRules(html){
+  const css = cssTextOf(html).replace(/\/\*[\s\S]*?\*\//g, ' ');   /* 주석 안의 중괄호가 문맥을 흔들지 않게 */
+  const rules = [];
+  const stack = [];
+  let buf = '', order = 0;
+  for (let i = 0; i < css.length; i++){
+    const c = css[i];
+    if (c === '{'){
+      const prelude = buf.trim().split('\n').map(s => s.trim()).filter(Boolean).join(' ');
+      buf = '';
+      if (prelude.startsWith('@')){ stack.push(prelude); continue; }   /* @media·@supports·@keyframes */
+      let j = css.indexOf('}', i);
+      if (j < 0) j = css.length;
+      const decls = [];
+      for (const d of css.slice(i + 1, j).split(';')){
+        const k = d.indexOf(':');
+        if (k < 0) continue;
+        let value = d.slice(k + 1).trim(), important = false;
+        const im = /!\s*important$/i.exec(value);
+        if (im){ important = true; value = value.slice(0, im.index).trim(); }
+        decls.push({ prop: d.slice(0, k).trim().toLowerCase(), value, important, order: order++ });
+      }
+      rules.push({ media: stack.join(' '), sel: prelude, decls });
+      i = j;
+      continue;
+    }
+    if (c === '}'){ stack.pop(); buf = ''; continue; }
+    buf += c;
+  }
+  return rules;
+}
+/* 한 선택자에 쌓인 animation 선언들을 CSS 순서대로 겹쳐 최종 선언을 만든다.
+   ★축약형은 나머지를 초기값으로 되돌리므로 앞서 쓰인 longhand 를 지운다.
+   ★!important 는 순서를 이기므로 보통 선언을 먼저 다 겹친 뒤에 덧씌운다(같은 선택자라 특이도는 같다). */
+function cascadeAnimation(decls){
+  const out = {};
+  const apply = list => {
+    for (const d of list.slice().sort((a, b) => a.order - b.order)){
+      if (d.prop === 'animation'){
+        out['animation'] = d.value;
+        delete out['animation-name']; delete out['animation-duration']; delete out['animation-iteration-count'];
+      } else if (d.prop === 'animation-name' || d.prop === 'animation-duration' || d.prop === 'animation-iteration-count'){
+        out[d.prop] = d.value;
+      }
+    }
+  };
+  apply(decls.filter(d => !d.important));
+  apply(decls.filter(d => d.important));
+  return out;
+}
+/* 한 선택자가 실제로 겪는 상황들 — 미디어 밖(기본)과, 각 미디어가 맞을 때(기본 + 그 미디어).
+   ★미디어끼리 합치지 않는다(서로 배타일 수 있다). ★미디어를 통째로 섞지도 않는다 —
+   섞으면 reduced-motion 의 안전망이 기본 상황의 위험을 덮어 fail-open 이 된다. */
+function selectorContexts(rules){
+  const bySel = new Map();
+  for (const r of rules){
+    const animDecls = r.decls.filter(d => /^animation(-name|-duration|-iteration-count)?$/.test(d.prop));
+    if (!animDecls.length) continue;
+    if (!bySel.has(r.sel)) bySel.set(r.sel, []);
+    bySel.get(r.sel).push({ media: r.media, decls: animDecls });
+  }
+  const out = [];
+  for (const [sel, parts] of bySel){
+    const medias = [...new Set(parts.map(p => p.media))];
+    const contexts = medias.indexOf('') >= 0 ? medias : ['', ...medias];
+    for (const m of contexts){
+      const decls = parts.filter(p => p.media === '' || p.media === m).reduce((a, p) => a.concat(p.decls), []);
+      if (!decls.length) continue;
+      out.push({ sel, media: m, decl: cascadeAnimation(decls) });
+    }
+  }
+  return out;
+}
+/* ★CSS 는 **animation-name 목록이 애니메이션의 개수를 정하고**, 나머지 목록은 그 길이에 맞춰
    되풀이된다. 그래서 세 longhand 를 통짜로 읽지 않고 쉼표별로 갈라 같은 index 끼리 짝짓는다 —
    통짜로 읽으면 '1s,.2s' 는 시간으로 안 읽히고 '1,infinite' 는 첫 1 만 취해져, 목록의 **둘째**
    애니메이션이 그물 밖으로 빠져나간다(codex R2 가 표본으로 재현).
    ★그리고 이름이 없거나 none 이면 그 자리는 실제로 아무것도 애니메이트하지 않으므로 판정 대상이
-   아니다 — 여기서 걸러 내지 않으면 duration 만 남은 inert 선언이 붉어진다(같은 라운드의 반대편). */
+   아니다 — 여기서 걸러 내지 않으면 duration 만 남은 inert 선언이 붉어진다(같은 라운드의 반대편).
+   ★못 보는 것(관측서에도 한계로 적었다): 선택자 문자열이 다르지만 같은 요소를 가리키는 규칙
+   (`.padcap` 과 `#padCap`), 상속, 특이도, 서로 배타인 미디어의 조합. 그래서 이 모델이 판정할 수
+   없는 형태는 통과로 접지 않고 cascadeUnresolved() 가 **판정 불가**로 올린다. */
 function animationUnits(html){
-  const css = cssTextOf(html);
   const out = [];
-  for (const m of css.matchAll(/([^{}]*)\{([^{}]*)\}/g)){
-    const sel = (m[1] || '').trim().split('\n').pop().trim();
-    const body = m[2] || '';
-    const decl = {};
-    for (const d of body.split(';')){
-      const i = d.indexOf(':');
-      if (i < 0) continue;
-      decl[d.slice(0, i).trim().toLowerCase()] = d.slice(i + 1).trim();
-    }
+  for (const ctx of selectorContexts(cssRules(html))){
+    const sel = ctx.sel, decl = ctx.decl;
     let from = null, items = [];
     if (decl['animation']){
       from = 'shorthand';
@@ -652,7 +725,7 @@ function animationUnits(html){
       if (dur === undefined) dur = null;
       let iter = iters.length ? iters[i % iters.length] : null;
       if (iter === null || iter === undefined || isNaN(iter)) iter = 1;       /* CSS 기본값 */
-      out.push({ sel, name, duration: dur, iterations: iter, from });
+      out.push({ sel, media: ctx.media, name, duration: dur, iterations: iter, from });
     }
   }
   return out;
@@ -660,9 +733,44 @@ function animationUnits(html){
 /* 초당 3회를 넘는 깜빡임(WCAG 2.3.1/2.3.2): 한 주기가 0.334초 미만이면서 **네 번 넘게** 반복하는 것.
    ★반복하지 않는(또는 세 번 이하) 빠른 연출은 '1초 안에 세 번 넘게' 를 만들지 못하므로 잡지 않는다 —
    여기서 넓히면 멀쩡한 연출이 붉어지고, 사람이 게이트를 끄게 된다. */
+const isFlash = u => u.duration !== null && u.duration > 0 && u.duration < 0.334 && u.iterations > 3;
 function flashOffenders(html){
-  return animationUnits(html).filter(u =>
-    u.duration !== null && u.duration > 0 && u.duration < 0.334 && u.iterations > 3);
+  const seenKey = new Set();
+  return animationUnits(html).filter(isFlash).filter(u => {
+    /* 한 선택자가 미디어 밖·안 두 상황에서 같은 위반을 내면 한 건으로 센다 */
+    const k = u.sel + '|' + u.name + '|' + u.duration + '|' + u.iterations;
+    if (seenKey.has(k)) return false;
+    seenKey.add(k); return true;
+  });
+}
+/* ★(나) 이 모델이 판정할 수 없는 형태 — 통과로 접지 않고 판정 불가로 올린다.
+   선택자 문자열이 달라도 같은 요소를 가리킬 수 있으므로(`.padcap` 과 `#padCap`, 상속, 특이도),
+   **이름 없이 위험한 주기·반복만 주는 자리**는 다른 규칙의 이름과 만나 실제로 깜빡일 수 있다.
+   ★단, 시트 어디에도 실제 이름이 없으면 아무것도 애니메이트되지 않으므로 판정 불가가 아니다 —
+   그 경우까지 올리면 reduced-motion 안전망 한 줄만 있는 멀쩡한 페이지가 영영 판정 불가가 된다. */
+function cascadeUnresolved(html){
+  const named = animationUnits(html).some(u => u.name && !/^none$/i.test(u.name));
+  if (!named) return [];
+  const out = [];
+  for (const ctx of selectorContexts(cssRules(html))){
+    const d = ctx.decl;
+    const nameless = !d['animation-name'] &&
+      (!d['animation'] || splitTopLevel(d['animation']).every(s => shorthandItem(s).name === null));
+    if (!nameless) continue;
+    const durs = d['animation-duration'] ? splitTopLevel(d['animation-duration']).map(timeToSec) : [];
+    const iters = d['animation-iteration-count']
+      ? splitTopLevel(d['animation-iteration-count']).map(v => /^infinite$/i.test(v) ? Infinity : parseFloat(v)) : [];
+    if (!durs.length || !iters.length) continue;
+    const n = Math.max(durs.length, iters.length);
+    for (let i = 0; i < n; i++){
+      const du = durs[i % durs.length], it = iters[i % iters.length];
+      if (du !== null && du > 0 && du < 0.334 && it > 3){
+        out.push({ sel: ctx.sel, media: ctx.media, duration: du, iterations: it });
+        break;
+      }
+    }
+  }
+  return out;
 }
 
 /* ------------------------------------------------------------ 함수 본문 떼어내기(정적 검사용)
@@ -979,6 +1087,14 @@ section('7. 동작 줄이기는 연출만 줄인다 (판정·속도·허용폭·
   ok('초당 3회를 넘는 깜빡임이 없다', flashOffenders(HTML_TEXT).length === 0,
      JSON.stringify(flashOffenders(HTML_TEXT).map(u => ({ sel: u.sel, name: u.name, duration: u.duration,
        iterations: (u.iterations === Infinity ? 'infinite' : u.iterations), from: u.from }))));
+  /* ★(나) '검사 못 함' 을 통과로 세지 않는다 — 이름 없이 위험한 주기·반복만 주는 자리가 있으면
+     다른 규칙의 이름과 만나 실제로 깜빡일 수 있고, 이 모델은 그 만남을 볼 수 없다. */
+  {
+    const unres = cascadeUnresolved(HTML_TEXT);
+    const NAME = '깜빡임 판정 — 이름 없이 위험한 주기·반복만 주는 선언이 없다';
+    if (unres.length) cannot(NAME, '이 자리는 다른 규칙의 animation-name 과 만나면 깜빡인다(캐스케이드 미해소): ' + JSON.stringify(unres));
+    else ok(NAME, true);
+  }
   {
     const all = animationUnits(HTML_TEXT);
     note('애니메이션 선언 ' + all.length + '건(축약형 ' + all.filter(u => u.from === 'shorthand').length +
@@ -1006,6 +1122,19 @@ section('7. 동작 줄이기는 연출만 줄인다 (판정·속도·허용폭·
     /* ★이징 함수 안의 쉼표까지 가르면 안전한 선언 하나가 여러 애니메이션으로 쪼개진다 — 그건
        offender 수로는 드러나지 않으므로 **단위 개수**로 잰다(쪼개지면 1 이 아니라 3 이 된다). */
     const ONEUNIT_easing = '.e{animation:bl 1s steps(4, end) infinite}';
+    /* ★R3 가 남긴 캐스케이드 fail-open 의 짝 — 같은 선택자에 이름과 주기·반복이 **다른 규칙으로**
+       갈려 있어도 합성 뒤에는 하나의 애니메이션이다(codex R3 가 fixture_split_cascade 로 재현). */
+    const RED_casc = '.p{animation-name:bl}.p{animation-duration:.1s;animation-iteration-count:infinite}';
+    const RED_casc_rev = '.p{animation-duration:.1s;animation-iteration-count:infinite}.p{animation-name:bl}';
+    const RED_casc_imp = '.p{animation-name:bl}.p{animation-duration:.1s!important;animation-iteration-count:infinite!important}.p{animation-duration:1s;animation-iteration-count:1}';
+    const RED_casc_media = '.p{animation-duration:.1s;animation-iteration-count:infinite}@media (max-width:400px){.p{animation-name:bl}}';
+    /* ★미디어 안의 안전망이 **기본 상황의 위험을 덮으면** 그것이 곧 fail-open 이다 — 미디어를
+       통째로 섞지 않는다는 것을 이 표본이 못박는다(reduce 를 켜지 않은 사람은 그대로 겪는다). */
+    const RED_media_not_masked = '.p{animation:bl .1s linear infinite}@media (prefers-reduced-motion: reduce){.p{animation-duration:.01ms;animation-iteration-count:1}}';
+    const GREEN_casc_2hz = '.p{animation-name:bl}.p{animation-duration:.5s;animation-iteration-count:infinite}';
+    /* ★선택자가 실제로 다른 두 규칙은 합성하지 않는다. 다만 같은 요소를 가리킬 수도 있으므로
+       통과로 접지 않고 판정 불가로 올린다(위 (나)). */
+    const INDET_diff_sel = '.a{animation-name:bl}.b{animation-duration:.1s;animation-iteration-count:infinite}';
     const wrap = css => '<style>' + css + '</style>';
     ok('깜빡임 검사 — longhand 5Hz 무한을 잡는다(RED 표본)', flashOffenders(wrap(RED_longhand)).length === 1);
     ok('깜빡임 검사 — 축약형 5Hz 무한을 잡는다(RED 표본)', flashOffenders(wrap(RED_shorthand)).length === 1);
@@ -1035,6 +1164,24 @@ section('7. 동작 줄이기는 연출만 줄인다 (판정·속도·허용폭·
     ok('깜빡임 검사 — 이징 함수 안의 쉼표로는 애니메이션을 쪼개지 않는다',
        animationUnits(wrap(ONEUNIT_easing)).length === 1 && animationUnits(wrap(ONEUNIT_easing))[0].name === 'bl',
        JSON.stringify(animationUnits(wrap(ONEUNIT_easing))));
+    ok('깜빡임 검사 — 같은 선택자에 이름과 주기·반복이 갈려 있어도 합성해 잡는다(RED 표본)',
+       flashOffenders(wrap(RED_casc)).length === 1, JSON.stringify(flashOffenders(wrap(RED_casc))));
+    ok('깜빡임 검사 — 규칙 순서를 뒤집어도 합성해 잡는다(RED 표본)',
+       flashOffenders(wrap(RED_casc_rev)).length === 1, JSON.stringify(flashOffenders(wrap(RED_casc_rev))));
+    ok('깜빡임 검사 — !important 가 뒤의 보통 선언을 이기는 것을 반영해 잡는다(RED 표본)',
+       flashOffenders(wrap(RED_casc_imp)).length === 1, JSON.stringify(flashOffenders(wrap(RED_casc_imp))));
+    ok('깜빡임 검사 — 이름이 @media 안에 있어도 합성해 잡는다(RED 표본)',
+       flashOffenders(wrap(RED_casc_media)).length === 1, JSON.stringify(flashOffenders(wrap(RED_casc_media))));
+    ok('깜빡임 검사 — 미디어 안의 안전망이 기본 상황의 위반을 덮지 않는다(RED 표본)',
+       flashOffenders(wrap(RED_media_not_masked)).length === 1, JSON.stringify(flashOffenders(wrap(RED_media_not_masked))));
+    ok('깜빡임 검사 — 갈려 있어도 2Hz 면 통과시킨다(GREEN 표본)',
+       flashOffenders(wrap(GREEN_casc_2hz)).length === 0, JSON.stringify(flashOffenders(wrap(GREEN_casc_2hz))));
+    ok('깜빡임 검사 — 선택자가 다른 두 규칙은 합성하지 않고 판정 불가로 올린다(GREEN·INDET 표본)',
+       flashOffenders(wrap(INDET_diff_sel)).length === 0 && cascadeUnresolved(wrap(INDET_diff_sel)).length === 1,
+       'offenders=' + JSON.stringify(flashOffenders(wrap(INDET_diff_sel))) +
+       ' unresolved=' + JSON.stringify(cascadeUnresolved(wrap(INDET_diff_sel))));
+    ok('깜빡임 검사 — 시트에 이름이 하나도 없으면 판정 불가로 올리지 않는다(GREEN 표본)',
+       cascadeUnresolved(wrap(GREEN_no_name)).length === 0, JSON.stringify(cascadeUnresolved(wrap(GREEN_no_name))));
   }
   ok('동작 줄이기 미디어 블록이 있다', /@media \(prefers-reduced-motion: reduce\)/.test(HTML_TEXT));
 }
