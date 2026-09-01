@@ -372,5 +372,30 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "stop",
+    "path": "/stop/",
+    "title": {
+      "ko": "멈춰!",
+      "en": "Stop!"
+    },
+    "desc": {
+      "ko": "점·원·막대가 목표와 겹치는 순간을 잡는 시각 감각 게임 — 5라운드 평균 점수",
+      "en": "Tap the moment the moving mark lines up with the target — five rounds, averaged"
+    },
+    "thumb": "/stop/thumb.webp",
+    "playtime": {
+      "ko": "한 판 20~40초",
+      "en": "20–40 sec a round"
+    },
+    "daily": true,
+    "released": "2026-09-02",
+    "tags": [
+      "timing",
+      "sense",
+      "casual",
+      "daily"
+    ]
   }
 ]

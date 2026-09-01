@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>멈춰! — 움직이는 대상이 목표와 겹치는 순간을 잡는 게임 | Stop!</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 시각 감각 게임. 점이 지나가고, 원이 커지고, 막대가 돌아갑니다. 목표와 가장 정확히 겹쳤다고 느끼는 순간 화면을 한 번 누르세요. 5라운드 평균으로 점수가 나오고, 목표에서 몇 px·몇 도 벗어났는지 원래 값도 함께 보여 줍니다. 매일 새로 열리는 오늘의 판. Tap the moment the moving mark lines up with the target — five rounds, averaged.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="멈춰! — 움직이는 대상이 목표와 겹치는 순간을 잡는 게임 | Stop!">
+<meta property="og:description" content="점·원·막대가 움직입니다. 목표와 가장 정확히 겹쳤다고 느끼는 순간 한 번 누르세요 — 5라운드 평균 점수로 겨룹니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/stop/">
+<link rel="canonical" href="https://hanpango.com/stop/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"멈춰!","alternateName":"Stop!","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본. 다크는 아래 @media 에서 ★같은 이름의 값만 바꿔 끼운다 — 마크업은 두 테마가 동일하다.
+     시그니처는 보라(--sig) — 사이트 기본값과 같다. 색 값은 여기 말고 어디에도 박지 않는다.
+     ★구별은 색만으로 하지 않는다: 목표는 점선 + 삼각 표식, 움직이는 대상은 꽉 찬 도형이다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#7c3aed; --sig-ink:#5b21b6; --sig-soft:#ede9fe; --on-sig:#ffffff;
+    --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
+    --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
+    --field:#f1f0fb; --field-line:#8b7ad6;
+    --mark:#1f2937;          /* 움직이는 대상 — 진한 먹색(양 테마에서 채움 대비를 맡는다) */
+    --target:#b91c1c;        /* 목표 표식 — 붉은 점선 + 삼각 */
+    --grid:#d7d3ee;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#a78bfa; --sig-ink:#c4b5fd; --sig-soft:#2e2670; --on-sig:#2e1065;
+      --good:#34d399; --good-ink:#bbf7d0; --good-soft:#14532d;
+      --warn:#fbbf24; --bad:#fca5a5; --bad-ink:#fecaca; --bad-soft:#4c1d1d;
+      --field:#151138; --field-line:#7d70dd;
+      --mark:#f4f2ff;
+      --target:#fca5a5;
+      --grid:#2b2470;
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em;flex:1 1 auto;min-width:0;line-height:1.2}
+  h1 small{display:block;color:var(--muted);font-weight:400;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-btns{display:flex;gap:6px;flex:0 0 auto}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer;white-space:nowrap}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:6px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .score b{display:block;font-size:1.2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+  .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}
+  .ad-rect{width:300px;height:250px;margin:10px auto}
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .bhead{width:100%;max-width:320px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .chip{font-size:.72rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--muted-2);font-weight:600}
+  /* ---- 누르는 판 ----
+     ★판의 크기는 **고정 300×300 CSS px** 이다. 화면 폭에 따라 늘어나면 '목표에서 몇 px' 이라는
+       원값이 기기마다 달라지고, 같은 seed 의 오늘의 판이 사람마다 다른 난이도가 된다.
+       320px 폭 화면에서도 좌우 여백 안에 들어간다. */
+  .pad{width:300px;height:300px;max-width:100%;border-radius:20px;
+       border:3px solid var(--field-line);background:var(--field);color:var(--text);
+       display:block;position:relative;padding:0;margin:0 auto;
+       font-family:inherit;cursor:pointer;
+       touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  .pad canvas{display:block;width:300px;height:300px;border-radius:17px}
+  .pad:focus-visible{outline:3px solid var(--sig);outline-offset:3px}
+  .padcap{width:300px;max-width:100%;margin:0 auto;text-align:center;font-size:.9rem;font-weight:700;line-height:1.35;min-height:2.7em;display:flex;flex-direction:column;justify-content:center;word-break:keep-all}
+  .padcap .sub{display:block;font-size:.78rem;font-weight:500;color:var(--muted-2)}
+  .help{color:var(--muted);font-size:.78rem;text-align:center;margin:0;max-width:30em}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card-box h2{margin:0 0 6px;font-size:1.5rem}
+  .card-box .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1;font-variant-numeric:tabular-nums}
+  .card-box .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card-box .reason{font-size:.95rem;color:var(--muted-2);margin-bottom:6px}
+  .rounds{text-align:left;font-size:.82rem;line-height:1.6;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0;font-variant-numeric:tabular-nums}
+  .rounds div{display:flex;justify-content:space-between;gap:8px}
+  .rounds .rv{color:var(--muted-2)}
+  .new{font-weight:700;margin:4px 0}
+  .stats3{display:flex;gap:6px;margin:10px 0 4px}
+  .stats3 div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:6px 2px}
+  .stats3 b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums}
+  .stats3 span{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .btn{width:100%;min-height:46px;border-radius:12px;border:1px solid var(--line);font-size:1rem;font-weight:700;cursor:pointer;margin-top:8px;display:block}
+  .btn.primary{background:var(--sig);border-color:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text)}
+  .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .toast{position:fixed;left:50%;bottom:calc(16px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .hp-stat[hidden]{display:none!important}
+  section.content{width:100%;max-width:520px;padding:8px 16px 24px;color:var(--muted-2);font-size:.9rem;line-height:1.7}
+  section.content h2{font-size:1.05rem;color:var(--text);margin:18px 0 6px}
+  section.content details{margin:6px 0;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--panel)}
+  section.content summary{cursor:pointer;font-weight:600;color:var(--text)}
+  footer{width:100%;max-width:520px;padding:10px 16px calc(18px + var(--safe-b));color:var(--muted);font-size:.72rem;text-align:center}
+  footer a{color:var(--muted-2)}
+  /* ── ★동작 줄이기(prefers-reduced-motion: reduce) ─────────────────────────
+     표준 근거(원문): CSS MQ5 는 이 설정을 "minimizes the amount of **non-essential** motion" 으로
+     정의하고, WCAG 2.2 는 2.2.2 에서 "unless the movement … is part of an activity where it is
+     essential", 2.3.3 에서 "unless the animation is essential to the functionality" 라고 예외를 둔다.
+     이 게임에서 대상의 움직임은 장식이 아니라 **판정 대상 그 자체**이므로 필수 모션이다 —
+     그래서 ★속도·판정·허용폭·점수는 하나도 건드리지 않는다.
+     여기서 끄는 것은 **비필수 연출뿐**이다: 잔상(꼬리) · 판 눌림 · 결과 카드 전환 · 토스트 서서히.
+     ★깜빡임: 이 페이지에는 초당 3회를 넘는 깜빡임이 없다(WCAG 2.3.1/2.3.2). 아래 규칙은
+     그 조항을 대신하는 것이 아니라 별개다. */
+  .pad:active{transform:scale(.995)}
+  .overlay{transition:opacity .18s ease}
+  .toast{transition:opacity .25s ease}
+  @media (prefers-reduced-motion: reduce){
+    .pad:active{transform:none}
+    .overlay{transition:none}
+    .toast{transition:none}
+    *{animation-duration:.01ms!important;animation-iteration-count:1!important}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">멈춰!</span> <small id="subtitle" data-i18n="subtitle">겹치는 순간을 잡는 시각 감각 게임</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 <span class="lbl">다른 게임</span></a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="bestNow">–</b><span data-i18n="bestLbl">최고 평균</span></div>
+  <div class="score"><b id="roundNow">–</b><span data-i18n="roundLbl">라운드</span></div>
+  <div class="score"><b id="streakNowEl">–</b><span data-i18n="streakLbl">스트릭</span></div>
+</div>
+
+<main>
+  <div class="wrap">
+    <div class="bhead">
+      <span class="chip" id="modeChip">–</span>
+      <span class="chip" id="kindChip"></span>
+    </div>
+    <!-- ★누르는 판. data-i18n 을 붙이지 않는다 — 판이 도는 중에 언어를 바꿔도 판의 글이
+         갈아엎어지면 안 된다(진행 중 내용은 paintCap() 이 상태에 맞춰 넣는다). -->
+    <button class="pad" id="pad" type="button" aria-live="off" aria-label="판">
+      <canvas id="cv" width="300" height="300"></canvas>
+    </button>
+    <p class="padcap" id="padCap"><span id="capMain">시작</span><span class="sub" id="capSub">누르면 시작합니다</span></p>
+  </div>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="help" id="help" data-i18n="hint">목표(빨간 점선·삼각 표식)와 가장 정확히 겹쳤다고 느끼는 순간 한 번 누르세요</p>
+</main>
+
+<!-- 결과 -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card-box">
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <div class="big" id="finalAvg">0.0점</div>
+    <div class="reason" id="finalSub"></div>
+    <div class="rounds" id="roundList"></div>
+    <div class="new" id="streakLine" style="color:var(--sig-ink)"></div>
+    <div class="new" id="newBest"></div>
+    <div class="stats3">
+      <div><b id="nAvg">0.0</b><span data-i18n="avgLbl">평균 점수</span></div>
+      <div><b id="nTop">0.0</b><span data-i18n="topLbl">최고 라운드</span></div>
+      <div><b id="nMiss">0</b><span data-i18n="missLbl">놓친 라운드</span></div>
+    </div>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center;line-height:44px">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- 시작 -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card-box">
+    <h2 id="startTitle" data-i18n="title2">멈춰!</h2>
+    <div class="sub" data-i18n="startSub">점이 지나가고, 원이 커지고, 막대가 돌아갑니다.<br>목표와 가장 정확히 겹쳤다고 느끼는 순간 <strong>한 번</strong> 누르세요 — 5라운드 평균으로 점수가 나옵니다.</div>
+    <div class="sub" data-i18n="motionNote" style="margin-top:-6px">※ 화면 속 대상이 계속 움직입니다 — 그 움직임이 이 게임의 판정 대상이라 「동작 줄이기」에서도 멈추지 않습니다.</div>
+    <button class="btn primary" id="btnDaily">오늘의 판</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnStart" data-i18n="start">▶ 연습 모드</button>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.stop.today">–</b>판 · 누적 <b data-hp="plays.stop.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">가운데 판에서 대상 하나가 움직입니다. 점이 좌우로 지나가거나, 원이 커졌다 작아지거나, 막대가 돌아갑니다. 판에는 빨간 점선과 삼각 표식으로 목표가 함께 그려져 있습니다. 대상이 목표와 가장 정확히 겹쳤다고 느껴지는 순간 판을 한 번 누르면 그 라운드가 끝납니다.</p>
+  <p data-i18n="how2">한 판은 다섯 라운드입니다. 지점 맞추기 두 번, 크기 맞추기 두 번, 각도 맞추기 한 번이 나오고, 어떤 종류가 몇 번째에 오는지는 판을 시작할 때 이미 정해집니다. 라운드마다 목표에서 얼마나 벗어났는지를 <strong>원래 값</strong>(몇 px 또는 몇 도)으로 보여 주고, 그 라운드에 허용된 폭을 기준으로 0점에서 100점 사이로 환산합니다. 다섯 라운드의 평균이 그 판의 점수입니다.</p>
+  <p data-i18n="how3">허용된 폭은 라운드마다 다르고, 판을 시작할 때 이미 정해져 있습니다. 여러분이 어떻게 누르든 그 폭은 달라지지 않습니다 — 그래서 「오늘의 판」은 전 세계 누구에게나 같은 다섯 라운드, 같은 채점 기준으로 열립니다.</p>
+  <p data-i18n="how4">키보드로도 됩니다 — Space 또는 Enter 가 손가락으로 누른 것과 똑같이 처리됩니다. 누르는 순간(키가 내려가는 시점, 화면에 손이 닿는 시점)을 기준으로 판정하기 때문에 입력 방법에 따라 유리하거나 불리해지지 않습니다. 한 라운드에서 10초가 지나도록 누르지 않으면 그 라운드는 0점으로 넘어갑니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 판</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 판이 열립니다. 그날의 날짜만으로 다섯 라운드가 통째로 정해집니다 — 종류의 차례, 목표 값, 속도, 방향, 허용된 폭까지 전부입니다. 판을 시작하는 순간 다섯 라운드가 이미 확정되어 있고, 여러분이 언제 누르든 그 판은 달라지지 않습니다. 그래서 같은 날에는 누구나 똑같은 판을 받습니다. 하루에 한 번 기록되고, 연달아 도전하면 🔥 스트릭이 쌓입니다.</p>
+  <h2 data-i18n="tipsTitle">요령</h2>
+  <details><summary data-i18n="tip1q">되돌아오는 지점을 기억하세요</summary><p data-i18n="tip1a">점과 원은 끝에 닿으면 방향을 바꿔 돌아옵니다. 한 번 지나칠 때 목표를 얼마나 빗나갔는지 기억해 두면, 돌아올 때 그만큼 앞당겨 누를 수 있습니다. 첫 번째 통과는 관찰에 쓰고 두 번째 통과에서 누르는 것이 대체로 낫습니다.</p></details>
+  <details><summary data-i18n="tip2q">누르기 직전이 아니라 조금 앞을 노리세요</summary><p data-i18n="tip2a">사람은 보고 나서 손이 움직이기까지 시간이 걸립니다. 대상이 목표에 닿은 것을 확인하고 누르면 이미 지나간 뒤입니다. 목표에 닿기 조금 전에 누르기 시작한다는 느낌으로 하면 오차가 줄어듭니다.</p></details>
+  <details><summary data-i18n="tip3q">각도는 한 라운드뿐입니다</summary><p data-i18n="tip3a">막대가 도는 각도 맞추기는 다섯 라운드 중 한 번만 나옵니다. 대신 한 바퀴를 계속 돌기 때문에 놓쳐도 다음 바퀴가 옵니다. 서두르지 말고 한 바퀴를 보내며 속도를 익힌 다음 노려도 늦지 않습니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">기기가 느리면 손해인가요?</summary><p data-i18n="faq1a">아니요. 대상의 위치는 화면을 몇 번 다시 그렸는지가 아니라, 브라우저가 주는 고정밀 시계를 읽어 계산합니다. 누른 순간도 브라우저가 그 입력에 찍어 준 시각을 씁니다. 그래서 화면이 버벅이거나 다른 창이 바쁘더라도 판정에 쓰이는 값은 달라지지 않습니다.</p></details>
+  <details><summary data-i18n="faq2q">점수는 어떻게 계산되나요?</summary><p data-i18n="faq2a">먼저 목표에서 얼마나 벗어났는지를 원래 단위로 잽니다 — 지점과 크기는 픽셀(px), 각도는 도(°)입니다. 그 값을 그 라운드에 허용된 폭으로 나눠 100점 만점으로 환산합니다. 허용된 폭만큼 벗어나면 0점이고, 정확히 겹치면 100점입니다. 결과 화면에는 환산 점수와 원래 값이 항상 함께 나옵니다.</p></details>
+  <details><summary data-i18n="faq3q">「동작 줄이기」를 켜면 어떻게 되나요?</summary><p data-i18n="faq3a">대상의 움직임은 그대로 남습니다. 이 게임에서 움직임은 꾸밈이 아니라 판정 대상 그 자체여서, 없애면 게임이 성립하지 않기 때문입니다. 대신 판정과 무관한 연출(움직이는 자취, 판 눌림, 화면 전환)은 꺼집니다. 속도와 채점 기준은 설정과 상관없이 똑같습니다. 움직임 자체가 불편하다면 대문의 다른 게임을 권합니다.</p></details>
+  <details><summary data-i18n="faq4q">기록은 어디에 저장되나요?</summary><p data-i18n="faq4a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 보내는 것은 판수 집계뿐이고 판의 내용은 보내지 않습니다. 브라우저 데이터를 지우면 기록도 함께 지워집니다. 저장하는 항목은 <a href="/privacy/">개인정보처리방침</a>에 모두 적어 두었습니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 멈춰! · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·판정에는 관여하지 않는다. 태그가 아직 실리지 않았거나 차단됐으면 조용히 지나간다. */
+const GA_GAME = 'stop';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ======================= ★시계 — 판정의 유일한 기준 =======================
+   · 대상의 위치는 **경과 시간의 함수**다: pos = f(누른 시각 − 라운드 시작 시각).
+     화면을 몇 번 그렸는지(프레임 수)나 setInterval 이 몇 번 울렸는지로 위치를 만들지 않는다 —
+     그렇게 만든 위치는 사람의 눈이 아니라 기기의 사정을 재게 된다.
+   · 누른 순간의 시각은 브라우저가 그 입력 사건에 찍어 준 도장(event.timeStamp)을 먼저 쓴다.
+     performance.now() 와 같은 원점을 쓰므로 그대로 뺄 수 있다. 도장이 없거나 지금과 크게
+     벌어져 있으면(합성 사건 등) 그 자리에서 performance.now() 로 물러선다. */
+const nowMs = () => performance.now();
+const STAMP_TOLERANCE_MS = 1000;
+function stampOf(ev){
+  const t = nowMs();
+  if (!ev) return t;
+  const s = ev.timeStamp;
+  if (typeof s === 'number' && isFinite(s) && s > 0 && Math.abs(t - s) <= STAMP_TOLERANCE_MS) return s;
+  return t;
+}
+
+/* ======================= 판 모양(고정 좌표계) =======================
+   ★판은 300×300 CSS px 로 **고정**이다. 화면 폭에 따라 늘어나면 '목표에서 몇 px' 이라는 원값이
+     기기마다 달라져, 같은 오늘의 판이 사람마다 다른 난이도가 된다. */
+const FIELD = 300;
+const TRACK_X0 = 30, TRACK_X1 = 270, TRACK_LEN = TRACK_X1 - TRACK_X0;   /* 지점: 가로 궤도 */
+const TRACK_Y = 150;
+const CX = 150, CY = 150;                                              /* 크기·각도: 가운데 */
+const RMIN = 22, RMAX = 124;                                           /* 크기: 반지름 범위 */
+const BAR_LEN = 112;                                                   /* 각도: 막대 길이 */
+const ROUNDS = 5;
+const KINDS = ['spot', 'spot', 'size', 'size', 'angle'];               /* ★지점2 · 크기2 · 각도1 */
+const ROUND_LIMIT_MS = 10000;   /* 이 시간 안에 안 누르면 0점으로 넘어간다 */
+const GAP_MS = 800;             /* 라운드 사이 쉼 — 결과를 읽을 틈 */
+/* ★허용폭(0점이 되는 지점)의 범위 — **기획안 예시에서 역산한 값이다.**
+   기획안 3쪽 결과 예시는 "목표에서 3px 차이 / 정확도 97점" 이라고 적는다. 허용폭 대비 정규화
+   (1 − 벗어난양/허용폭)에 그 두 값을 넣으면 1 − 3/tol = 0.97, 곧 **tol ≈ 100px** 이다.
+   그래서 지점 라운드의 허용폭을 100px 언저리에 둔다(궤도 240px 의 약 40%). 크기·각도는 각자의
+   범위(반지름 폭 102px · 360°)에 같은 비율로 맞춘 값이다. 임의로 고른 숫자가 아니라
+   **원문 예시가 정한 눈금**이다 — 이 값을 좁히면 기획안 예시가 재현되지 않는다. */
+const TOL_SPOT = [88, 112];     /* px — 궤도 240px 기준 */
+const TOL_SIZE = [44, 60];      /* px — 반지름 범위 102px 기준 */
+const TOL_ANGLE = [42, 58];     /* 도 */
+/* 시작 위치를 목표에서 떨어뜨리는 최소 거리 — 판의 크기에 매단다(허용폭과 무관하게 둔다) */
+const GAP_SPOT = 0.35;          /* 궤도 비율(=84px) */
+const GAP_SIZE = 40;            /* px */
+const GAP_ANGLE = 90;           /* 도 */
+
+/* ======================= 판정(순수 함수) =======================
+   ★여기 있는 함수들은 상태를 읽지 않는다 — 라운드 정의와 경과 시간만 받아 값을 낸다.
+     그래서 검증기가 같은 셈을 따로 들고 와 대조할 수 있다. */
+/* 왕복(ping-pong) 사상: 실수 p 를 [0,1] 안에서 접는다. 0→1→0→1… */
+function tri(p){
+  const q = ((p % 2) + 2) % 2;
+  return q <= 1 ? q : 2 - q;
+}
+/* 경과 t(ms) 에서의 대상 값. 종류마다 단위가 다르다(지점=궤도 비율 0~1 · 크기=반지름 px · 각도=도) */
+function valueAt(r, t){
+  const sec = (t > 0 ? t : 0) / 1000;
+  if (r.kind === 'spot')  return tri(r.start + r.dir * r.speed * sec / TRACK_LEN);
+  if (r.kind === 'size')  return RMIN + tri((r.start - RMIN) / (RMAX - RMIN) + r.dir * r.speed * sec / (RMAX - RMIN)) * (RMAX - RMIN);
+  return ((r.start + r.dir * r.speed * sec) % 360 + 360) % 360;
+}
+/* 목표에서 벗어난 양 — ★원래 단위 그대로다(지점·크기는 px, 각도는 도). */
+function diffAt(r, t){
+  const v = valueAt(r, t);
+  if (r.kind === 'spot'){ return Math.abs(v - r.target) * TRACK_LEN; }
+  if (r.kind === 'size'){ return Math.abs(v - r.target); }
+  const d = Math.abs(v - r.target) % 360;
+  return d > 180 ? 360 - d : d;
+}
+/* 환산 점수(0~100) — ★라운드마다 정해진 허용폭(tol) 대비 정규화다.
+   tol 은 판을 짤 때 확정되고 플레이 결과로 바뀌지 않는다. 딱 맞으면 100, 허용폭만큼 벗어나면 0. */
+function scoreOf(diff, tol){
+  if (!(tol > 0)) return 0;
+  if (diff >= tol) return 0;
+  return Math.round((1 - diff / tol) * 1000) / 10;
+}
+const fmt1 = v => (Math.round(v * 10) / 10).toFixed(1);
+const fmt2 = v => (Math.round(v * 100) / 100).toFixed(2);
+const mean = a => a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0;
+const unitOf = kind => kind === 'angle' ? '°' : 'px';
+
+/* ======================= i18n(UI) ======================= */
+const I18N = {
+  ko: {
+    docTitle:'멈춰! — 움직이는 대상이 목표와 겹치는 순간을 잡는 게임 | Stop!',
+    title:'멈춰!', title2:'멈춰!', subtitle:'겹치는 순간을 잡는 시각 감각 게임',
+    home:'🏠 <span class="lbl">다른 게임</span>', langBtn:'EN',
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    bestLbl:'최고 평균', roundLbl:'라운드', streakLbl:'스트릭',
+    avgLbl:'평균 점수', topLbl:'최고 라운드', missLbl:'놓친 라운드',
+    result:'결과', again:'다시 하기', share:'결과 공유', start:'▶ 연습 모드',
+    startSub:'점이 지나가고, 원이 커지고, 막대가 돌아갑니다.<br>목표와 가장 정확히 겹쳤다고 느끼는 순간 <strong>한 번</strong> 누르세요 — 5라운드 평균으로 점수가 나옵니다.',
+    motionNote:'※ 화면 속 대상이 계속 움직입니다 — 그 움직임이 이 게임의 판정 대상이라 「동작 줄이기」에서도 멈추지 않습니다.',
+    hint:'목표(빨간 점선·삼각 표식)와 가장 정확히 겹쳤다고 느끼는 순간 한 번 누르세요',
+    statPlays:'오늘 <b data-hp="plays.stop.today">–</b>판 · 누적 <b data-hp="plays.stop.total">–</b>판',
+    kindSpot:'지점 맞추기', kindSize:'크기 맞추기', kindAngle:'각도 맞추기',
+    capReady:'시작', capReadySub:'누르면 첫 라운드가 시작됩니다',
+    capRun: k => `${k} — 지금이다!`,
+    capRunSub:'목표와 겹치는 순간 한 번 누르세요',
+    capGap: (d, u, s) => `목표에서 ${d}${u} 차이 · ${s}점`,
+    capGapSub:'다음 라운드가 곧 시작됩니다',
+    capMiss:'놓쳤습니다 · 0점',
+    capMissSub:'10초가 지나 다음 라운드로 넘어갑니다',
+    chipPractice:'연습 모드', chipDaily: n => `오늘의 판 #${n}`,
+    chipRound: (i, n, k) => `${i} / ${n} · ${k}`,
+    dailyBtn: n => `🔥 오늘의 판 #${n}`,
+    dailyDoneBtn: n => `오늘의 판 #${n} 결과 보기`,
+    dailyHint: ks => `오늘의 차례: ${ks}`,
+    dailyHintDone:'오늘의 판은 이미 마쳤습니다 · 다음 판은 자정에 열립니다',
+    avgBig: v => `${v}점`,
+    resultSubDaily: (n) => `오늘의 판 #${n} · 5라운드 평균`,
+    resultSubPractice:'연습 모드 · 5라운드 평균',
+    roundLine: (i, k) => `${i} ${k}`,
+    roundVal: (d, u, s) => `${d}${u} · ${s}점`,
+    roundValMiss:'놓침 · 0점',
+    newBest:'🎉 최고 기록 경신!',
+    streakGo: n => `🔥 ${n}일 연속 도전`,
+    noBest:'–',
+    copied:'결과를 복사했습니다',
+    dailyShare: (n, avg, lines, st) => `🔗 멈춰! #${n}\n🎯 5라운드 평균 ${avg}점\n${lines}${st > 1 ? `\n🔥 ${st}일 연속` : ''}\n`,
+    practiceShare: (avg, lines) => `🔗 멈춰! · 연습 모드\n🎯 5라운드 평균 ${avg}점\n${lines}\n`,
+    ariaSoundOn:'효과음 끄기', ariaSoundOff:'효과음 켜기', ariaLang:'영어로 바꾸기', ariaHome:'다른 게임 보기',
+    ariaPadReady:'시작 — 누르면 첫 라운드가 시작됩니다',
+    ariaPadRun: k => `${k} — 목표와 겹치는 순간 누르세요`,
+    sayStart: (i, k) => `${i}라운드 ${k} 시작.`,
+    sayEnd: (d, u, s) => `목표에서 ${d}${u} 차이, ${s}점.`,
+    sayMiss:'놓쳤습니다. 0점.',
+    sayDone: v => `한 판이 끝났습니다. 5라운드 평균 ${v}점.`,
+    how1:'가운데 판에서 대상 하나가 움직입니다. 점이 좌우로 지나가거나, 원이 커졌다 작아지거나, 막대가 돌아갑니다. 판에는 빨간 점선과 삼각 표식으로 목표가 함께 그려져 있습니다. 대상이 목표와 가장 정확히 겹쳤다고 느껴지는 순간 판을 한 번 누르면 그 라운드가 끝납니다.',
+    how2:'한 판은 다섯 라운드입니다. 지점 맞추기 두 번, 크기 맞추기 두 번, 각도 맞추기 한 번이 나오고, 어떤 종류가 몇 번째에 오는지는 판을 시작할 때 이미 정해집니다. 라운드마다 목표에서 얼마나 벗어났는지를 <strong>원래 값</strong>(몇 px 또는 몇 도)으로 보여 주고, 그 라운드에 허용된 폭을 기준으로 0점에서 100점 사이로 환산합니다. 다섯 라운드의 평균이 그 판의 점수입니다.',
+    how3:'허용된 폭은 라운드마다 다르고, 판을 시작할 때 이미 정해져 있습니다. 여러분이 어떻게 누르든 그 폭은 달라지지 않습니다 — 그래서 「오늘의 판」은 전 세계 누구에게나 같은 다섯 라운드, 같은 채점 기준으로 열립니다.',
+    how4:'키보드로도 됩니다 — Space 또는 Enter 가 손가락으로 누른 것과 똑같이 처리됩니다. 누르는 순간(키가 내려가는 시점, 화면에 손이 닿는 시점)을 기준으로 판정하기 때문에 입력 방법에 따라 유리하거나 불리해지지 않습니다. 한 라운드에서 10초가 지나도록 누르지 않으면 그 라운드는 0점으로 넘어갑니다.',
+    dailyDesc:'매일 자정에 새 판이 열립니다. 그날의 날짜만으로 다섯 라운드가 통째로 정해집니다 — 종류의 차례, 목표 값, 속도, 방향, 허용된 폭까지 전부입니다. 판을 시작하는 순간 다섯 라운드가 이미 확정되어 있고, 여러분이 언제 누르든 그 판은 달라지지 않습니다. 그래서 같은 날에는 누구나 똑같은 판을 받습니다. 하루에 한 번 기록되고, 연달아 도전하면 🔥 스트릭이 쌓입니다.',
+    tip1q:'되돌아오는 지점을 기억하세요',
+    tip1a:'점과 원은 끝에 닿으면 방향을 바꿔 돌아옵니다. 한 번 지나칠 때 목표를 얼마나 빗나갔는지 기억해 두면, 돌아올 때 그만큼 앞당겨 누를 수 있습니다. 첫 번째 통과는 관찰에 쓰고 두 번째 통과에서 누르는 것이 대체로 낫습니다.',
+    tip2q:'누르기 직전이 아니라 조금 앞을 노리세요',
+    tip2a:'사람은 보고 나서 손이 움직이기까지 시간이 걸립니다. 대상이 목표에 닿은 것을 확인하고 누르면 이미 지나간 뒤입니다. 목표에 닿기 조금 전에 누르기 시작한다는 느낌으로 하면 오차가 줄어듭니다.',
+    tip3q:'각도는 한 라운드뿐입니다',
+    tip3a:'막대가 도는 각도 맞추기는 다섯 라운드 중 한 번만 나옵니다. 대신 한 바퀴를 계속 돌기 때문에 놓쳐도 다음 바퀴가 옵니다. 서두르지 말고 한 바퀴를 보내며 속도를 익힌 다음 노려도 늦지 않습니다.',
+    faq1q:'기기가 느리면 손해인가요?',
+    faq1a:'아니요. 대상의 위치는 화면을 몇 번 다시 그렸는지가 아니라, 브라우저가 주는 고정밀 시계를 읽어 계산합니다. 누른 순간도 브라우저가 그 입력에 찍어 준 시각을 씁니다. 그래서 화면이 버벅이거나 다른 창이 바쁘더라도 판정에 쓰이는 값은 달라지지 않습니다.',
+    faq2q:'점수는 어떻게 계산되나요?',
+    faq2a:'먼저 목표에서 얼마나 벗어났는지를 원래 단위로 잽니다 — 지점과 크기는 픽셀(px), 각도는 도(°)입니다. 그 값을 그 라운드에 허용된 폭으로 나눠 100점 만점으로 환산합니다. 허용된 폭만큼 벗어나면 0점이고, 정확히 겹치면 100점입니다. 결과 화면에는 환산 점수와 원래 값이 항상 함께 나옵니다.',
+    faq3q:'「동작 줄이기」를 켜면 어떻게 되나요?',
+    faq3a:'대상의 움직임은 그대로 남습니다. 이 게임에서 움직임은 꾸밈이 아니라 판정 대상 그 자체여서, 없애면 게임이 성립하지 않기 때문입니다. 대신 판정과 무관한 연출(움직이는 자취, 판 눌림, 화면 전환)은 꺼집니다. 속도와 채점 기준은 설정과 상관없이 똑같습니다. 움직임 자체가 불편하다면 대문의 다른 게임을 권합니다.',
+    faq4q:'기록은 어디에 저장되나요?',
+    faq4a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 보내는 것은 판수 집계뿐이고 판의 내용은 보내지 않습니다. 브라우저 데이터를 지우면 기록도 함께 지워집니다. 저장하는 항목은 <a href="/privacy/">개인정보처리방침</a>에 모두 적어 두었습니다.',
+    howTitle:'게임 방법', dailyTitle:'오늘의 판', tipsTitle:'요령', faqTitle:'자주 묻는 질문',
+    footer:'© 2026 멈춰! · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개'
+  },
+  en: {
+    docTitle:'Stop! — tap the moment the moving mark lines up with the target | 멈춰!',
+    title:'Stop!', title2:'Stop!', subtitle:'A visual-timing game about the moment things line up',
+    home:'🏠 <span class="lbl">More games</span>', langBtn:'한국어',
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    bestLbl:'Best average', roundLbl:'Round', streakLbl:'Streak',
+    avgLbl:'Average', topLbl:'Best round', missLbl:'Missed',
+    result:'Result', again:'Play again', share:'Share result', start:'▶ Practice',
+    startSub:'A dot slides, a circle grows, a bar spins.<br>Tap <strong>once</strong> the moment it lines up with the target — five rounds, averaged.',
+    motionNote:'※ Something on screen is always moving — that motion is what the game judges, so it keeps moving even with “reduce motion” on.',
+    hint:'Tap once the moment the mark lines up with the target (red dashed line and triangle)',
+    statPlays:'<b data-hp="plays.stop.today">–</b> today · <b data-hp="plays.stop.total">–</b> all-time',
+    kindSpot:'Spot', kindSize:'Size', kindAngle:'Angle',
+    capReady:'Start', capReadySub:'Tap to begin round one',
+    capRun: k => `${k} — now!`,
+    capRunSub:'Tap the moment it lines up',
+    capGap: (d, u, s) => `${d}${u} off · ${s} pts`,
+    capGapSub:'Next round starts in a moment',
+    capMiss:'Missed · 0 pts',
+    capMissSub:'Ten seconds passed — moving on',
+    chipPractice:'Practice', chipDaily: n => `Daily board #${n}`,
+    chipRound: (i, n, k) => `${i} of ${n} · ${k}`,
+    dailyBtn: n => `🔥 Daily board #${n}`,
+    dailyDoneBtn: n => `See daily #${n} result`,
+    dailyHint: ks => `Today: ${ks}`,
+    dailyHintDone:'You have finished today’s board · the next one opens at midnight',
+    avgBig: v => `${v} pts`,
+    resultSubDaily: (n) => `Daily board #${n} · average of five`,
+    resultSubPractice:'Practice · average of five',
+    roundLine: (i, k) => `${i} ${k}`,
+    roundVal: (d, u, s) => `${d}${u} · ${s} pts`,
+    roundValMiss:'missed · 0 pts',
+    newBest:'🎉 New personal best!',
+    streakGo: n => `🔥 ${n}-day streak`,
+    noBest:'–',
+    copied:'Result copied',
+    dailyShare: (n, avg, lines, st) => `🔗 Stop! #${n}\n🎯 ${avg} pts over five rounds\n${lines}${st > 1 ? `\n🔥 ${st}-day streak` : ''}\n`,
+    practiceShare: (avg, lines) => `🔗 Stop! · practice\n🎯 ${avg} pts over five rounds\n${lines}\n`,
+    ariaSoundOn:'Turn sound off', ariaSoundOff:'Turn sound on', ariaLang:'Switch to Korean', ariaHome:'See other games',
+    ariaPadReady:'Start — tap to begin round one',
+    ariaPadRun: k => `${k} — tap the moment it lines up with the target`,
+    sayStart: (i, k) => `Round ${i}, ${k}. Go.`,
+    sayEnd: (d, u, s) => `${d}${u} off, ${s} points.`,
+    sayMiss:'Missed. Zero points.',
+    sayDone: v => `Board finished. ${v} points over five rounds.`,
+    how1:'One thing moves inside the pad: a dot slides left and right, a circle grows and shrinks, or a bar spins. The target is drawn on the same pad as a red dashed line with a triangle marker. Tap the pad once the moment the moving mark lines up with the target, and the round ends.',
+    how2:'A board is five rounds — two spot rounds, two size rounds and one angle round. Which kind comes in which position is fixed the moment the board is dealt. Each round reports how far you were from the target in its <strong>original unit</strong> (pixels or degrees), then converts that into 0–100 points against the tolerance allowed for that round. The average of the five is your score.',
+    how3:'The tolerance differs per round and is fixed when the board is dealt. Nothing you do while playing changes it — which is why the daily board is the same five rounds, scored the same way, for everyone in the world.',
+    how4:'The keyboard works too — Space or Enter does exactly what a tap does. The moment recorded is the moment you press down, so no input method is faster or slower. If ten seconds pass without a tap, that round scores zero and the board moves on.',
+    dailyDesc:'A new board opens at midnight. The date alone fixes all five rounds — the order of the kinds, the targets, the speeds, the directions and the tolerances. The whole board exists before you tap once, and nothing you do changes it, so everyone plays the same board on the same day. It records once a day, and playing on consecutive days builds a 🔥 streak.',
+    tip1q:'Remember where it turned around',
+    tip1a:'The dot and the circle bounce back when they hit the end. If you note how far you overshot on the way out, you can start your tap that much earlier on the way back. Spending the first pass watching and tapping on the second usually scores better.',
+    tip2q:'Aim slightly ahead, not at the moment itself',
+    tip2a:'There is a delay between seeing something and your hand moving. If you wait until you can see the mark on the target, it has already gone past. Start the tap a fraction before it arrives and your misses shrink.',
+    tip3q:'Angle only comes once',
+    tip3a:'The spinning bar appears in just one of the five rounds. It does keep going round, though, so a missed pass is not the end — let one full turn go by to learn the speed, then take the next one.',
+    faq1q:'Does a slow device put me at a disadvantage?',
+    faq1a:'No. The position of the mark is computed from the browser’s high-resolution clock, not from how many times the screen was redrawn, and your tap is timed by the stamp the browser puts on the input event. A stuttering screen or a busy window does not change the numbers the judging uses.',
+    faq2q:'How is the score calculated?',
+    faq2a:'First the gap from the target is measured in its own unit — pixels for spot and size, degrees for angle. That gap is divided by the tolerance allowed for the round and turned into a score out of 100. Missing by the full tolerance scores zero; landing exactly on the target scores 100. The result screen always shows the converted score next to the original value.',
+    faq3q:'What happens if I turn on “reduce motion”?',
+    faq3a:'The mark keeps moving. In this game the motion is not decoration — it is the thing being judged, so removing it would remove the game. What does switch off is everything the judging does not need: the moving trail, the press bounce, the screen transitions. Speed and scoring are identical either way. If motion itself is a problem for you, the other games on the front page are a better fit.',
+    faq4q:'Where are my records stored?',
+    faq4a:'Only in the browser on this device. The only thing sent to the server is the round count; nothing about your play is sent. Clearing your browser data clears the records too. Everything stored is listed in the <a href="/privacy/">privacy policy</a>.',
+    howTitle:'How to play', dailyTitle:'Daily board', tipsTitle:'Tips', faqTitle:'FAQ',
+    footer:'© 2026 Stop! · Privacy: records are stored on this device only; third-party cookies (Google) may be used for ads.',
+    navPrivacy:'Privacy policy', navAbout:'About'
+  }
+};
+/* 언어 키는 사이트 공통(bp.lang) — 포털·다른 게임과 공유한다. */
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+const kindName = k => T(k === 'spot' ? 'kindSpot' : (k === 'size' ? 'kindSize' : 'kindAngle'));
+
+/* ★동작 줄이기 판정 — 이 함수의 반환값은 **그리기(연출)에서만** 쓴다.
+   판정·속도·허용폭·점수 어디에도 닿지 않는다(검증기가 그것을 정적으로 확인한다). */
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } };
+
+/* ======================= 사운드(WebAudio · 파일 없음) ======================= */
+let soundOn = localStorage.getItem('st.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = gain;
+    o.connect(g); g.connect(actx.destination);
+    const t = actx.currentTime + delay;
+    o.start(t);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.stop(t+dur);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sGo   = () => { beep(660, .06, 'triangle', .04); vib(12); };
+const sHit  = () => { beep(880, .07, 'triangle', .045); vib(14); };
+const sMiss = () => { beep(220, .12, 'sine', .04); vib([10,40,10]); };
+const sDone = () => { beep(659, .09, 'triangle', .045); beep(988, .12, 'triangle', .04, .09); vib([20,40,20]); };
+
+/* ======================= 오늘의 판(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   // 2026-08-23 = #1 (다른 게임과 동일 기준일)
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const dailySeedKey = (d=new Date()) => 'hanpango-daily-stop-' + dayKey(d);
+
+/* ★난수를 몇 번 당겼는지 센다 — '플레이가 판을 바꾸지 않는다' 를 검증기가 **관측**으로 확인한다.
+   판을 짤 때만 늘고, 플레이 중에는 단 한 번도 늘지 않아야 한다. */
+let drawCount = 0;
+function counted(fn){ return () => { drawCount++; return fn(); }; }
+
+/* ★판 짜기 — 다섯 라운드를 **여기서 통째로 확정**한다.
+   종류의 차례 · 목표 · 속도 · 방향 · 시작 위치 · 허용폭까지 전부 여기서 나온다.
+   이 함수가 끝난 뒤에는 플레이가 무엇을 하든 난수를 당기지 않는다. */
+function dealBoard(seedKey){
+  const rnd = counted(mulberry32(hashStr(String(seedKey))));
+  const rf = (a, b) => a + rnd() * (b - a);
+  /* 종류의 차례도 seed 로 정한다 — 플레이 중에 정해지면 그것도 난수 소비다(피셔-예이츠) */
+  const kinds = KINDS.slice();
+  for (let i = kinds.length - 1; i > 0; i--){
+    const j = Math.floor(rnd() * (i + 1));
+    const tmp = kinds[i]; kinds[i] = kinds[j]; kinds[j] = tmp;
+  }
+  const out = [];
+  for (let i = 0; i < ROUNDS; i++){
+    const kind = kinds[i];
+    const dir = rnd() < 0.5 ? -1 : 1;
+    let target, tol, speed, start, gap;
+    if (kind === 'spot'){
+      target = rf(0.18, 0.82);
+      tol    = rf(TOL_SPOT[0], TOL_SPOT[1]);
+      speed  = rf(110, 190);
+      /* 시작 위치는 목표에서 충분히 떨어져 있어야 한다 — 시작하자마자 겹쳐 있으면 판정이 아니라 운이다.
+         ★떨어뜨리는 거리는 허용폭이 아니라 **판의 크기**에 매단다(허용폭에 매달면 허용폭을 넓힐 때
+           시작점이 판 밖으로 밀려난다). ★되풀이는 **횟수로만** 끊는다 — 시간 예산으로 끊으면
+           느린 기기에서만 다른 판이 나온다. */
+      gap = GAP_SPOT;
+      start = rf(0, 1);
+      for (let k = 0; k < 40 && Math.abs(start - target) < gap; k++) start = rf(0, 1);
+      if (Math.abs(start - target) < gap) start = target > 0.5 ? 0.02 : 0.98;
+    } else if (kind === 'size'){
+      target = rf(RMIN + 18, RMAX - 18);
+      tol    = rf(TOL_SIZE[0], TOL_SIZE[1]);
+      speed  = rf(70, 120);
+      gap = GAP_SIZE;
+      start = rf(RMIN, RMAX);
+      for (let k = 0; k < 40 && Math.abs(start - target) < gap; k++) start = rf(RMIN, RMAX);
+      if (Math.abs(start - target) < gap) start = target > (RMIN + RMAX) / 2 ? RMIN : RMAX;
+    } else {
+      target = rf(0, 360);
+      tol    = rf(TOL_ANGLE[0], TOL_ANGLE[1]);
+      speed  = rf(90, 170);
+      gap = GAP_ANGLE;
+      start = rf(0, 360);
+      for (let k = 0; k < 40 && angDist(start, target) < gap; k++) start = rf(0, 360);
+      if (angDist(start, target) < gap) start = (target + 180) % 360;
+    }
+    out.push({ kind, target, tol, speed, dir, start });
+  }
+  return out;
+}
+function angDist(a, b){ const d = Math.abs(a - b) % 360; return d > 180 ? 360 - d : d; }
+
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('st.daily')||'null'); }catch(_){ return null; } };
+function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && r.result); }
+function saveDaily(result){
+  /* ★시작할 때 고정한 runDay/runNo 로 저장한다 — 자정을 넘겨 끝내도 시작한 날짜의 기록이다. */
+  localStorage.setItem('st.daily', JSON.stringify({ date: runDay, no: runNo, result }));
+}
+function bumpStreak(day){
+  let st; try{ st = JSON.parse(localStorage.getItem('st.streak')||'{}'); }catch(_){ st = {}; }
+  if (st.last === day) return st.n || 1;
+  const n = (st.last === prevDayKey(day)) ? (st.n || 0) + 1 : 1;
+  localStorage.setItem('st.streak', JSON.stringify({ last: day, n }));
+  return n;
+}
+function prevDayKey(day){ const [y, m, d] = day.split('-').map(Number); const t = new Date(y, m - 1, d); t.setDate(t.getDate() - 1); return dayKey(t); }
+const streakNow = () => { try{ const s = JSON.parse(localStorage.getItem('st.streak')||'{}'); const today = dayKey();
+  return (s.last === today || s.last === prevDayKey(today)) ? (s.n || 0) : 0; }catch(_){ return 0; } };
+
+/* ======================= 기록(최고 평균) ======================= */
+function loadBest(){
+  try{
+    const b = JSON.parse(localStorage.getItem('st.best')||'null');
+    return (b && typeof b.avg === 'number' && isFinite(b.avg)) ? b : null;
+  }catch(_){ return null; }
+}
+function saveBest(rec){ localStorage.setItem('st.best', JSON.stringify(rec)); }
+const betterThan = (a, b) => !b || a.avg > b.avg;
+
+/* ======================= 상태 ======================= */
+let mode = 'practice';      /* 'practice' | 'daily' */
+let phase = 'idle';         /* 'idle' | 'running' | 'gap' | 'done' */
+let board = [];             /* 이 판의 다섯 라운드(확정본) */
+let roundIdx = 0;
+let results = [];           /* 끝낸 라운드 { kind, diff, score, tol, unit, missed } */
+let roundT0 = 0;            /* 이 라운드가 시작한 시각(performance.now 원점) */
+let runDay = '', runNo = 0;
+let seedKeyNow = '';
+let lastResult = null;
+let overShown = false;
+let limitTimer = 0, gapTimer = 0, rafId = 0;
+
+/* ======================= 그리기(연출 전용) =======================
+   ★여기서 나오는 값은 화면에만 쓴다. 판정은 누른 시각으로 그 자리에서 끝난다 —
+     프레임이 몇 번 돌았는지는 점수에 아무 영향이 없다. */
+const cv = $('cv');
+const ctx = (cv && cv.getContext) ? cv.getContext('2d') : null;
+function fitCanvas(){
+  if (!cv || !ctx) return;
+  const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+  cv.width = Math.round(FIELD * dpr);
+  cv.height = Math.round(FIELD * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function css(name){ try{ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888'; }catch(e){ return '#888'; } }
+function drawFrame(t){
+  if (!ctx) return;
+  const r = board[roundIdx];
+  ctx.clearRect(0, 0, FIELD, FIELD);
+  if (!r) return;
+  const colMark = css('--mark'), colTarget = css('--target'), colGrid = css('--grid');
+  ctx.lineCap = 'round';
+  if (r.kind === 'spot'){
+    /* 궤도 */
+    ctx.strokeStyle = colGrid; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(TRACK_X0, TRACK_Y); ctx.lineTo(TRACK_X1, TRACK_Y); ctx.stroke();
+    const tx = TRACK_X0 + r.target * TRACK_LEN;
+    targetLine(colTarget, tx, TRACK_Y - 52, tx, TRACK_Y + 52);
+    triMark(colTarget, tx, TRACK_Y - 58, 1);
+    /* 잔상(비필수 연출) → 동작 줄이기에서 끈다 */
+    if (!reduceMotion()){
+      for (let k = 1; k <= 4; k++){
+        const u = valueAt(r, t - k * 45);
+        ctx.globalAlpha = 0.16 - k * 0.03;
+        dot(colMark, TRACK_X0 + u * TRACK_LEN, TRACK_Y, 13 - k);
+      }
+      ctx.globalAlpha = 1;
+    }
+    dot(colMark, TRACK_X0 + valueAt(r, t) * TRACK_LEN, TRACK_Y, 13);
+  } else if (r.kind === 'size'){
+    ctx.strokeStyle = colGrid; ctx.lineWidth = 2;
+    ring(colGrid, CX, CY, RMAX, 2, false);
+    ring(colTarget, CX, CY, r.target, 3, true);
+    triMark(colTarget, CX, CY - r.target - 8, 1);
+    if (!reduceMotion()){
+      for (let k = 1; k <= 3; k++){
+        ctx.globalAlpha = 0.14 - k * 0.035;
+        ring(colMark, CX, CY, valueAt(r, t - k * 45), 6, false);
+      }
+      ctx.globalAlpha = 1;
+    }
+    ring(colMark, CX, CY, valueAt(r, t), 7, false);
+    dot(colMark, CX, CY, 4);
+  } else {
+    ring(colGrid, CX, CY, BAR_LEN + 10, 2, false);
+    const ta = r.target * Math.PI / 180;
+    targetLine(colTarget, CX, CY, CX + Math.cos(ta) * (BAR_LEN + 16), CY + Math.sin(ta) * (BAR_LEN + 16));
+    triMark(colTarget, CX + Math.cos(ta) * (BAR_LEN + 24), CY + Math.sin(ta) * (BAR_LEN + 24), 1);
+    if (!reduceMotion()){
+      for (let k = 1; k <= 3; k++){
+        const a = valueAt(r, t - k * 45) * Math.PI / 180;
+        ctx.globalAlpha = 0.14 - k * 0.035;
+        bar(colMark, a, 8);
+      }
+      ctx.globalAlpha = 1;
+    }
+    bar(colMark, valueAt(r, t) * Math.PI / 180, 9);
+    dot(colMark, CX, CY, 5);
+  }
+}
+function dot(c, x, y, r){ if (!ctx) return; ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, Math.max(1, r), 0, Math.PI*2); ctx.fill(); }
+function ring(c, x, y, r, w, dashed){
+  if (!ctx) return;
+  ctx.strokeStyle = c; ctx.lineWidth = w;
+  ctx.setLineDash(dashed ? [7, 6] : []);
+  ctx.beginPath(); ctx.arc(x, y, Math.max(1, r), 0, Math.PI*2); ctx.stroke();
+  ctx.setLineDash([]);
+}
+function targetLine(c, x0, y0, x1, y1){
+  if (!ctx) return;
+  ctx.strokeStyle = c; ctx.lineWidth = 3; ctx.setLineDash([7, 6]);
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  ctx.setLineDash([]);
+}
+/* ★색만으로 구별하지 않기 위한 삼각 표식 — 목표에는 언제나 이 모양이 붙는다 */
+function triMark(c, x, y, s){
+  if (!ctx) return;
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.moveTo(x, y + 9*s); ctx.lineTo(x - 7*s, y - 3*s); ctx.lineTo(x + 7*s, y - 3*s); ctx.closePath(); ctx.fill();
+}
+function bar(c, a, w){
+  if (!ctx) return;
+  ctx.strokeStyle = c; ctx.lineWidth = w;
+  ctx.beginPath(); ctx.moveTo(CX, CY); ctx.lineTo(CX + Math.cos(a) * BAR_LEN, CY + Math.sin(a) * BAR_LEN); ctx.stroke();
+}
+function loop(){
+  rafId = 0;
+  if (phase !== 'running') return;
+  drawFrame(nowMs() - roundT0);
+  rafId = requestAnimationFrame(loop);
+}
+function startLoop(){ if (!rafId) rafId = requestAnimationFrame(loop); }
+function stopLoop(){ if (rafId){ cancelAnimationFrame(rafId); rafId = 0; } }
+
+/* ======================= 화면 글 ======================= */
+function paintCap(){
+  const r = board[roundIdx];
+  if (phase === 'running' && r){
+    $('capMain').textContent = T('capRun', kindName(r.kind));
+    $('capSub').textContent  = T('capRunSub');
+    $('pad').setAttribute('aria-label', T('ariaPadRun', kindName(r.kind)));
+  } else if (phase === 'gap'){
+    const last = results[results.length - 1];
+    if (last && last.missed){ $('capMain').textContent = T('capMiss'); $('capSub').textContent = T('capMissSub'); }
+    else if (last){ $('capMain').textContent = T('capGap', fmt2(last.diff), last.unit, fmt1(last.score)); $('capSub').textContent = T('capGapSub'); }
+  } else {
+    $('capMain').textContent = T('capReady');
+    $('capSub').textContent  = T('capReadySub');
+    $('pad').setAttribute('aria-label', T('ariaPadReady'));
+  }
+}
+function paintHud(){
+  const b = loadBest();
+  $('bestNow').textContent = b ? fmt1(b.avg) : T('noBest');
+  $('roundNow').textContent = (phase === 'idle' || phase === 'done') ? T('noBest') : (Math.min(roundIdx + 1, ROUNDS) + '/' + ROUNDS);
+  const st = streakNow();
+  $('streakNowEl').textContent = st > 0 ? st : '–';
+  $('modeChip').textContent = (mode === 'daily') ? T('chipDaily', runNo) : T('chipPractice');
+  const r = board[roundIdx];
+  $('kindChip').textContent = (phase === 'idle' || phase === 'done' || !r) ? '' : T('chipRound', Math.min(roundIdx + 1, ROUNDS), ROUNDS, kindName(r.kind));
+}
+function updateSubtitle(){ $('subtitle').textContent = T('subtitle'); }
+
+/* ======================= 한 판 ======================= */
+function beginRun(m){
+  mode = m;
+  const t0 = new Date();
+  runDay = (m === 'daily') ? dayKey(t0) : '';
+  runNo  = (m === 'daily') ? dailyNo(t0) : 0;
+  /* ★연습 모드는 매번 다른 판이어도 된다 — 단 같은 계약이 적용된다:
+       판을 시작할 때 다섯 라운드를 전부 굴려 확정하고, 그 뒤로는 난수를 당기지 않는다. */
+  seedKeyNow = (m === 'daily') ? dailySeedKey(t0) : ('practice-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36));
+  board = dealBoard(seedKeyNow);
+  roundIdx = 0; results = []; lastResult = null;
+  phase = 'idle';
+  clearTimers(); stopLoop();
+  fitCanvas();
+  paintCap(); paintHud();
+  drawFrame(0);
+  ga('game_start', { game: GA_GAME, mode: m });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+  startRound();
+}
+function clearTimers(){
+  if (limitTimer){ clearTimeout(limitTimer); limitTimer = 0; }
+  if (gapTimer){ clearTimeout(gapTimer); gapTimer = 0; }
+}
+function startRound(){
+  clearTimers();
+  phase = 'running';
+  roundT0 = nowMs();
+  paintCap(); paintHud();
+  say(T('sayStart', roundIdx + 1, kindName(board[roundIdx].kind)));
+  sGo();
+  /* 시간 제한은 타이머로 건다 — 그 타이머는 **판정 값을 만들지 않는다**(0점으로 넘길 뿐이다). */
+  limitTimer = setTimeout(() => { limitTimer = 0; endRound(null); }, ROUND_LIMIT_MS);
+  startLoop();
+  drawFrame(0);
+}
+/* ★누른 순간 — 논리는 여기서 즉시 확정한다. 미루는 것은 화면뿐이다.
+   (연출 때문에 판정을 미루면 빠른 연타가 낡은 상태 위에서 실행된다.) */
+function endRound(stamp){
+  if (phase !== 'running') return;
+  const r = board[roundIdx];
+  const missed = (stamp === null);
+  const t = missed ? ROUND_LIMIT_MS : Math.max(0, stamp - roundT0);
+  const diff = diffAt(r, t);
+  const score = missed ? 0 : scoreOf(diff, r.tol);
+  /* 상태 전이를 먼저 끝낸다 — 이 줄들이 끝난 뒤에 들어오는 입력은 이미 다음 국면의 입력이다. */
+  phase = 'gap';
+  results.push({ kind: r.kind, diff, score, tol: r.tol, unit: unitOf(r.kind), missed, atMs: t });
+  clearTimers();
+  stopLoop();
+  /* 여기부터는 화면 — 값은 위에서 이미 확정됐다. */
+  drawFrame(t);
+  paintCap(); paintHud();
+  if (missed){ sMiss(); say(T('sayMiss')); }
+  else { sHit(); say(T('sayEnd', fmt2(diff), unitOf(r.kind), fmt1(score))); }
+  if (roundIdx + 1 >= ROUNDS){ gapTimer = setTimeout(() => { gapTimer = 0; finishRun(); }, GAP_MS); return; }
+  gapTimer = setTimeout(() => { gapTimer = 0; roundIdx += 1; startRound(); }, GAP_MS);
+}
+function finishRun(){
+  phase = 'done';
+  const scores = results.map(x => x.score);
+  const avg = mean(scores);
+  const r = {
+    mode, no: runNo, day: runDay, seedKey: seedKeyNow,
+    rounds: results.map(x => ({ kind: x.kind, diff: x.diff, score: x.score, tol: x.tol, unit: x.unit, missed: x.missed })),
+    avg, top: scores.length ? Math.max.apply(null, scores) : 0,
+    miss: results.filter(x => x.missed).length,
+    streak: 0, best: false
+  };
+  if (mode === 'daily'){
+    if (!dailyDoneToday()){ saveDaily({ avg, rounds: r.rounds }); r.streak = bumpStreak(runDay); }
+    else { r.streak = streakNow(); }
+  } else {
+    const prev = loadBest();
+    const cand = { avg, date: dayKey() };
+    if (betterThan(cand, prev)){ saveBest(cand); r.best = true; }
+  }
+  lastResult = r;
+  ga('game_end', { mode, avg: Math.round(avg * 10) });
+  sDone();
+  say(T('sayDone', fmt1(avg)));
+  paintHud();
+  renderOver();
+  show('over');
+}
+
+/* ======================= 결과 화면 ======================= */
+function renderOver(){
+  const r = lastResult; if (!r) return;
+  const rs = r.rounds || [];
+  $('finalAvg').textContent = T('avgBig', fmt1(r.avg));
+  $('finalSub').textContent = (r.mode === 'daily') ? T('resultSubDaily', r.no) : T('resultSubPractice');
+  /* ★환산 점수 옆에 반드시 **원값**(몇 px · 몇 도)을 함께 적는다 — 무엇을 근거로 점수가 나왔는지
+     보이지 않으면 점수는 그냥 주어진 숫자가 된다. */
+  const box = $('roundList');
+  box.textContent = '';
+  rs.forEach((x, i) => {
+    const row = document.createElement('div');
+    const a = document.createElement('span'); a.textContent = T('roundLine', i + 1, kindName(x.kind));
+    const b = document.createElement('span'); b.className = 'rv';
+    b.textContent = x.missed ? T('roundValMiss') : T('roundVal', fmt2(x.diff), x.unit, fmt1(x.score));
+    row.appendChild(a); row.appendChild(b); box.appendChild(row);
+  });
+  $('nAvg').textContent = fmt1(r.avg);
+  $('nTop').textContent = fmt1(r.top);
+  $('nMiss').textContent = String(r.miss);
+  $('streakLine').textContent = (r.mode === 'daily' && r.streak > 0) ? T('streakGo', r.streak) : '';
+  $('newBest').textContent = r.best ? T('newBest') : '';
+  $('btnAgain').textContent = T('again');
+  $('btnShare').textContent = T('share');
+  $('overTitle').textContent = T('result');
+}
+function marksOf(r){
+  return (r.rounds || []).map((x, i) => T('roundLine', i + 1, kindName(x.kind)) + ' — ' +
+    (x.missed ? T('roundValMiss') : T('roundVal', fmt2(x.diff), x.unit, fmt1(x.score)))).join('\n');
+}
+
+/* ======================= 창(오버레이) ======================= */
+function show(id){
+  const o = $(id); o.classList.add('show');
+  overShown = true;
+  setOutsideInert(true);
+  const f = o.querySelector('button:not([disabled]):not([hidden]), a[href]');
+  if (f) try { f.focus({ preventScroll:true }); } catch(e){}
+}
+function hide(id){
+  $(id).classList.remove('show');
+  overShown = $('start').classList.contains('show') || $('over').classList.contains('show');
+  if (!overShown){
+    setOutsideInert(false);
+    try { $('pad').focus({ preventScroll:true }); } catch(e){}
+  }
+}
+function setOutsideInert(on){
+  for (const el of document.querySelectorAll('body > header, body > main, body > section, body > footer, body > .ad-slot, body > .scores')){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+  }
+}
+function say(msg){ $('srSummary').textContent = msg; }
+let toastTimer = 0;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toastTimer = 0; t.classList.remove('show'); }, 1800);
+}
+
+/* ======================= 입력 =======================
+   ★누르는 순간을 잰다 — 손가락이 닿는 순간(pointerdown)과 키가 내려가는 순간(keydown)이다.
+     click 은 손을 뗄 때 나므로 쓰지 않는다(누르고 있는 동안이 통째로 오차가 된다). */
+function onPress(ev){
+  if (overShown) return;
+  if (phase !== 'running') return;      /* 라운드 사이·결과 중의 연타는 다음 라운드를 앞당기지 않는다 */
+  endRound(stampOf(ev));
+}
+const padEl = $('pad');
+/* 마우스로 눌렀을 때 브라우저 기본 동작이 초점을 도로 가져가는 것을 막는다(초점은 우리가 관리한다).
+   재는 시점은 pointerdown 이므로 이 한 줄은 판정에 영향이 없다. */
+padEl.addEventListener('mousedown', ev => ev.preventDefault());
+if (window.PointerEvent){
+  padEl.addEventListener('pointerdown', ev => { if (ev.button != null && ev.button !== 0) return; onPress(ev); });
+} else {
+  padEl.addEventListener('touchstart', onPress, { passive:true });
+  padEl.addEventListener('mousedown', ev => { if (ev.button !== 0) return; onPress(ev); });
+}
+document.addEventListener('keydown', ev => {
+  if (ev.key !== ' ' && ev.key !== 'Spacebar' && ev.key !== 'Enter') return;
+  if (ev.repeat) return;
+  if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  if (overShown) return;
+  const el = ev.target;
+  if (el !== padEl && el !== document.body && el !== document.documentElement) return;
+  ev.preventDefault();
+  onPress(ev);
+});
+
+/* ======================= 시작 화면 ======================= */
+function kindsLine(b){ return b.map(r => kindName(r.kind)).join(' → '); }
+function refreshStart(){
+  const no = dailyNo(), done = dailyDoneToday();
+  $('btnDaily').textContent = done ? T('dailyDoneBtn', no) : T('dailyBtn', no);
+  /* ★시작 화면에서 보여 주는 '오늘의 차례' 도 seed 로만 정해진다 — 여기서 짠 판은 버리고,
+       실제 판은 시작할 때 같은 seed 로 다시 짠다(같은 seed 는 같은 판이다). */
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint', kindsLine(dealBoard(dailySeedKey())));
+  $('btnStart').textContent = T('start');
+  $('startTitle').textContent = T('title2');
+}
+$('btnStart').onclick = () => { hide('start'); beginRun('practice'); };
+$('btnDaily').onclick = () => {
+  if (dailyDoneToday()){
+    const rec = dailyRec();
+    const rs = (rec.result.rounds) || [];
+    const scores = rs.map(x => x.score);
+    lastResult = { mode:'daily', no: rec.no, day: rec.date, rounds: rs, avg: rec.result.avg,
+                   top: scores.length ? Math.max.apply(null, scores) : 0,
+                   miss: rs.filter(x => x.missed).length, streak: streakNow(), best:false };
+    hide('start'); renderOver(); show('over');
+    return;
+  }
+  hide('start'); beginRun('daily');
+};
+$('btnAgain').onclick = () => {
+  hide('over');
+  /* 오늘의 판을 이미 마쳤으면 다시 하기는 연습 모드로 간다(기록은 하루 한 번이다) */
+  beginRun((mode === 'daily' && !dailyDoneToday()) ? 'daily' : 'practice');
+};
+
+/* ======================= 언어·소리 ======================= */
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  $('btnLang2').textContent = T('langBtn');
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  if (window.hpStats) window.hpStats();
+}
+function applyA11yLabels(){
+  for (const id of ['btnSound','btnSound2']){
+    const b = $(id); if (!b) continue;
+    b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  }
+  for (const id of ['btnLang','btnLang2']){ const l = $(id); if (l) l.setAttribute('aria-label', T('ariaLang')); }
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+}
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyLang();
+  refreshStart();
+  updateSubtitle(); paintHud(); paintCap();
+  if (lastResult && $('over').classList.contains('show')) renderOver();
+  ga('lang_switch', { lang });
+}
+$('btnLang').onclick = toggleLang;
+$('btnLang2').onclick = toggleLang;
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('st.sound', soundOn ? '1' : '0');
+  const face = soundOn ? '🔊' : '🔇';
+  $('btnSound').textContent = face; $('btnSound2').textContent = face;
+  applyA11yLabels();
+  if (soundOn) beep(660, .06, 'sine', .04);
+}
+$('btnSound').onclick = toggleSound;
+$('btnSound2').onclick = toggleSound;
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnSound2').textContent = soundOn ? '🔊' : '🔇';
+
+/* ======================= 공유 ======================= */
+function shareText(r, url){
+  return ((r.mode === 'daily')
+    ? T('dailyShare', r.no, fmt1(r.avg), marksOf(r), r.streak)
+    : T('practiceShare', fmt1(r.avg), marksOf(r))) + url;
+}
+async function doShare(){
+  const url = location.href.split('#')[0];
+  const r = lastResult;
+  if (!r) return;
+  try{
+    if (navigator.share){
+      await navigator.share({ title: T('docTitle'), text: shareText(r, '').trimEnd(), url });
+    } else { await navigator.clipboard.writeText(shareText(r, url)); toast(T('copied')); }
+  }catch(_){}
+}
+$('btnShare').onclick = doShare;
+
+/* ======================= 기동 ======================= */
+window.addEventListener('resize', () => { fitCanvas(); if (phase !== 'running') drawFrame(0); });
+applyLang();
+refreshStart();
+fitCanvas();
+paintCap(); paintHud(); updateSubtitle();
+if ($('start').classList.contains('show')) show('start');
+
+/* ======================= 검증 창구(관측 전용) =======================
+   ★배포되는 이 창구에는 **읽기만 하는 getter 와 순수 함수** 만 둔다. 라운드를 시작하거나
+     끝내거나 시계를 흐르게 하는 **상태 변경 명령은 여기에 두지 않는다** — 검증 하네스는 이 판을
+     진짜 입력 사건(pointerdown·keydown)으로 두드려 확인한다. 반환값은 전부 사본이다. 외부 전송 0. */
+const copy = o => JSON.parse(JSON.stringify(o));
+window.__st = {
+  const: () => ({ FIELD, TRACK_X0, TRACK_X1, TRACK_LEN, TRACK_Y, CX, CY, RMIN, RMAX, BAR_LEN,
+                  ROUNDS, KINDS: KINDS.slice(), ROUND_LIMIT_MS, GAP_MS, DAILY_EPOCH, STAMP_TOLERANCE_MS,
+                  TOL_SPOT: TOL_SPOT.slice(), TOL_SIZE: TOL_SIZE.slice(), TOL_ANGLE: TOL_ANGLE.slice() }),
+  state: () => ({ mode, phase, roundIdx, board: copy(board), results: copy(results),
+                  runDay, runNo, seedKey: seedKeyNow, overShown, roundT0 }),
+  /* 순수 함수 창구 — 하네스는 이것과 별개로 자기 셈을 들고 재검한다 */
+  tri: p => tri(p),
+  valueAt: (r, t) => valueAt(r, t),
+  diffAt: (r, t) => diffAt(r, t),
+  scoreOf: (d, tol) => scoreOf(d, tol),
+  angDist: (a, b) => angDist(a, b),
+  dealBoard: k => copy(dealBoard(String(k))),
+  seedKey: d => dailySeedKey(d ? new Date(d) : new Date()),
+  dailyNo: d => dailyNo(d ? new Date(d) : new Date()),
+  seedDraws: (key, n) => { const f = mulberry32(hashStr(String(key))); return Array.from({length:n}, () => +f().toFixed(9)); },
+  draws: () => drawCount,
+  daily: () => ({ done: dailyDoneToday(), rec: dailyRec(), no: dailyNo(), streak: streakNow() }),
+  best: () => copy(loadBest()),
+  betterThan: (a, b) => betterThan(a, b),
+  result: () => copy(lastResult),
+  marks: () => lastResult ? marksOf(lastResult) : '',
+  shareText: () => lastResult ? shareText(lastResult, 'https://hanpango.com/stop/') : '',
+  shown: id => $(id).classList.contains('show'),
+  reduceMotion: () => reduceMotion(),
+  sound: () => soundOn,
+  lang: () => lang
+};
+})();
+</script>
+<script>
+  /* 서비스 워커 — 사이트 공통(루트에서 한 번만 등록한다) */
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+</script>
+</body>
+</html>
