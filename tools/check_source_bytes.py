@@ -8,6 +8,15 @@
 형제 단언이 초록을 대신 내 주어 실행 검사로는 영원히 안 잡혔다. 눈으로만(cat -A) 찾을 수
 있었고 그것은 재현 가능한 검사가 아니다. 그래서 바이트를 세는 검사를 따로 세운다.
 
+★이 도구를 고칠 때 새겨 둘 두 문장(2026-09-01 T0901-02 에서 실측으로 얻었다):
+  ① **검사의 기대 목록을 피검사 대상에서 가져오면 그 검사는 규칙 소실을 영원히 못 잡는다.**
+     자기참조는 검사를 공허하게 만든다 — 무결성 연결을 저장본과 다른 파일에 두는 이유,
+     자기시험을 쓴 사람과 코드를 쓴 사람을 가르는 이유가 모두 같은 병의 다른 층이다.
+     그래서 EXPECTED_CODES 는 FORBIDDEN 에서 파생시키지 않고 독립으로 쥐며 **양방향**으로
+     대조한다(한 방향만 보면 반대편이 조용히 샌다).
+  ② **종료코드는 파이프 없이 잰다.** 파이프는 마지막 명령의 rc 를 준다 — 이 검사의 rc=2 가
+     파이프 뒤에서 rc=0 으로 둔갑한 적이 있다(실측).
+
 무엇을 보나(범위를 여기서 닫는다 — 이번 사고가 실제로 지나온 경로만 막는다):
   · 금지 제어 바이트 6종: 0x00 0x07 0x08 0x0b 0x0c 0x1b
   · BOM(파일 첫머리 EF BB BF)
@@ -192,8 +201,18 @@ def selftest(root):
 
 def main():
     argv = sys.argv[1:]
-    root = argv[0] if argv and not argv[0].startswith('--') else '.'
+    positional = [a for a in argv if not a.startswith('--')]
+    # ★빈 문자열·공백만인 대상을 조용히 '현재 폴더' 로 바꾸지 않는다.
+    #   abspath('') 는 현재 폴더가 되어, 대상을 주지 않은 호출이 rc=0 초록을 받는다(실측).
+    #   빈 대상은 통과가 아니라 판정 불가다.
+    if positional and not positional[0].strip():
+        print('대상 경로가 비어 있다(공백뿐) — 통과가 아니라 판정 불가다(rc=2)')
+        sys.exit(2)
+    root = positional[0] if positional else '.'
     root = os.path.abspath(root)
+    if not os.path.isdir(root):
+        print('대상 폴더가 없다: %s — 판정 불가(rc=2)' % root)
+        sys.exit(2)
     if '--selftest' in argv:
         selftest(root)
     print('대상 루트: %s' % root)
