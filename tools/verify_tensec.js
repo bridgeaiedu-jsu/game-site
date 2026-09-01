@@ -867,8 +867,8 @@ section('8. 정적 마크업과 문안');
   /* ★주석에 적힌 이름은 호출이 아니다 — 이 게임은 그 둘을 '쓰지 않는다'고 주석으로 설명하고 있어서,
      이름만 세면 그 설명 자체가 미달로 잡힌다. 주석을 걷어낸 뒤 **부르는 자리**(이름 뒤 여는 괄호)를 센다.
      이 정적 검사는 곁들이고, 결정적인 것은 위 2절의 실측(호출 수 0)이다. */
-  eq('스크립트에 setInterval 호출이 없다', (stripComments(SRC).match(/setInterval\s*\(/g) || []), []);
-  eq('스크립트에 requestAnimationFrame 호출이 없다', (stripComments(SRC).match(/requestAnimationFrame\s*\(/g) || []), []);
+  eq('스크립트에 setInterval 호출이 없다', (stripComments(SRC).match(/\bsetInterval\s*\(/g) || []), []);
+  eq('스크립트에 requestAnimationFrame 호출이 없다', (stripComments(SRC).match(/\brequestAnimationFrame\s*\(/g) || []), []);
   eq('경과 시간을 더해 나가는 자리가 없다', (SRC.match(/elapsed\s*\+=/g) || []), []);
 
   /* 접근성 — 낭독기가 읽을 자리와 이름 */

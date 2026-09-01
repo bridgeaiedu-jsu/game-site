@@ -143,6 +143,13 @@ Sitemap: https://hanpango.com/sitemap.xml
          실행되는 저장 호출이 그 틈으로 빠져나간다. 지적문이 어느 줄인지·왜 못 가렸는지 적어
          주니, 그 줄을 흔한 표기로 고쳐 쓰면 된다(`window["localStorage"]` 또는
          `window.localStorage`). 검사기의 표를 넓히는 것은 그다음 선택지다.
+   - [ ] `python3 tools/check_source_bytes.py .` → **rc=0 일 때만** 통과다. rc=2 는 **적발(판정 불가)** 이다 — 소스에 눈에 보이지 않는 금지 바이트(0x00 0x07 0x08 0x0b 0x0c 0x1b) · BOM · lone CR 이 섞였다는 뜻이다.
+         ★왜 있나: `tools/verify_tensec.js` 870·871 행에 원시 0x08 이 2개 있었다(커밋 `32df830` 이후 계속). 정규식 낱말경계를 쓰려다 셸 heredoc·파이썬 리터럴 층에서
+         백슬래시가 먹힌 것인데, 0x08 은 정규식 안에서 **합법이라 문법오류가 나지 않고**
+         형제 단언이 초록을 대신 내 주어 **실행 검사로는 영원히 안 잡혔다**. 눈으로만(`cat -A`) 찾을 수 있었고 그것은 재현 가능한 검사가 아니다.
+         ★고칠 때 백슬래시를 리터럴로 타이핑하지 마라 — 같은 층을 또 지난다. 문자코드 조립(`chr(92)`)이나 바이트 치환으로 고치고 **쓰고 난 뒤 바이트를 다시 세라**.
+         ★검출력은 `--selftest` 로 잰다: 임시 사본에 0x08·BOM·lone CR 을 각각 주입해 세 규칙이 모두 발화하는지 본다(rc=0 확인 · rc=1 검출 실패 · rc=2 주입 실패).
+         범위는 여기서 닫혀 있다 — 제로폭·혼동 글자까지 넓히지 않는다(이번 사고가 지나온 경로만 막는다).
    - [ ] `node tools/counter/test_functions.mjs .` · `node tools/counter/test_pages.mjs .`
    각 레인(브랜치)에서 초록이었다는 것은 **병합 결과가 초록이라는 뜻이 아니다**. 2026-08-31 에
    노노그램 병합이 `functions/_games.js` 의 `export const GAMES` 를 두 줄로 만들어 Cloudflare
