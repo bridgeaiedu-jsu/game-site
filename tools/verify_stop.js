@@ -579,7 +579,42 @@ function timeToSec(v){
   if (!isFinite(n)) return null;
   return m[2] === 'ms' ? n / 1000 : n;
 }
-/* 규칙 블록 = 중괄호 안에 다시 중괄호가 없는 가장 안쪽 블록(@media·@keyframes 안쪽도 그렇게 잡힌다) */
+/* 쉼표로 나열된 목록을 항목별로 가른다 — 괄호 안의 쉼표(cubic-bezier(…)·steps(4, end))는 가르지 않는다 */
+function splitTopLevel(v){
+  const out = [];
+  let depth = 0, cur = '';
+  for (const c of String(v)){
+    if (c === '(') depth++;
+    else if (c === ')') depth = depth > 0 ? depth - 1 : 0;
+    else if (c === ',' && depth === 0){ out.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  out.push(cur);
+  return out.map(s => s.trim());
+}
+const ANIM_KEYWORD = /^(linear|ease|ease-in|ease-out|ease-in-out|infinite|normal|reverse|alternate|alternate-reverse|none|forwards|backwards|both|running|paused|step-start|step-end)$/i;
+/* 축약형 한 항목(쉼표로 가른 뒤의 하나)을 이름·주기·반복으로 읽는다.
+   ★못 읽은 토큰이 있으면 unreadable 로 표시해 **통과로 접지 않는다**(이름 없음으로 오해하지 않게). */
+function shorthandItem(item){
+  let dur = null, iter = null, name = null, unreadable = false;
+  for (const p of item.split(/\s+/).filter(Boolean)){
+    const t = timeToSec(p);
+    if (t !== null){ if (dur === null) dur = t; continue; }         /* 첫 시간값이 duration 이다 */
+    if (/^infinite$/i.test(p)){ iter = Infinity; continue; }
+    if (/^[\d.]+$/.test(p)){ if (iter === null) iter = parseFloat(p); continue; }
+    if (ANIM_KEYWORD.test(p)) continue;                            /* none 을 포함한 키워드는 이름이 아니다 */
+    if (/^[a-zA-Z_-][\w-]*$/.test(p)){ if (name === null) name = p; continue; }
+    unreadable = true;
+  }
+  return { name, dur, iter, unreadable };
+}
+/* 규칙 블록 = 중괄호 안에 다시 중괄호가 없는 가장 안쪽 블록(@media·@keyframes 안쪽도 그렇게 잡힌다)
+   ★CSS 는 **animation-name 목록이 애니메이션의 개수를 정하고**, 나머지 목록은 그 길이에 맞춰
+   되풀이된다. 그래서 세 longhand 를 통짜로 읽지 않고 쉼표별로 갈라 같은 index 끼리 짝짓는다 —
+   통짜로 읽으면 '1s,.2s' 는 시간으로 안 읽히고 '1,infinite' 는 첫 1 만 취해져, 목록의 **둘째**
+   애니메이션이 그물 밖으로 빠져나간다(codex R2 가 표본으로 재현).
+   ★그리고 이름이 없거나 none 이면 그 자리는 실제로 아무것도 애니메이트하지 않으므로 판정 대상이
+   아니다 — 여기서 걸러 내지 않으면 duration 만 남은 inert 선언이 붉어진다(같은 라운드의 반대편). */
 function animationUnits(html){
   const css = cssTextOf(html);
   const out = [];
@@ -592,33 +627,33 @@ function animationUnits(html){
       if (i < 0) continue;
       decl[d.slice(0, i).trim().toLowerCase()] = d.slice(i + 1).trim();
     }
-    let dur = null, iter = null, name = null, from = null;
+    let from = null, items = [];
     if (decl['animation']){
       from = 'shorthand';
-      const parts = decl['animation'].split(/\s+/);
-      for (const p of parts){
-        const t = timeToSec(p);
-        if (t !== null && dur === null){ dur = t; continue; }      /* 첫 시간값이 duration 이다 */
-        if (/^infinite$/i.test(p)){ iter = Infinity; continue; }
-        if (/^[\d.]+$/.test(p) && iter === null && timeToSec(p) === null){ iter = parseFloat(p); continue; }
-        if (/^[a-zA-Z_-][\w-]*$/.test(p) && !/^(linear|ease|ease-in|ease-out|ease-in-out|infinite|normal|reverse|alternate|alternate-reverse|none|forwards|backwards|both|running|paused|step-start|step-end)$/i.test(p) && name === null) name = p;
-      }
+      items = splitTopLevel(decl['animation']).map(shorthandItem);
     }
-    if (decl['animation-name'] || decl['animation-duration'] || decl['animation-iteration-count']){
-      from = from || 'longhand';
-      if (decl['animation-name'] && name === null) name = decl['animation-name'];
-      if (decl['animation-duration']){
-        const t = timeToSec(decl['animation-duration']);
-        if (t !== null) dur = t;
-      }
-      if (decl['animation-iteration-count']){
-        const v = decl['animation-iteration-count'].trim();
-        iter = /^infinite$/i.test(v) ? Infinity : parseFloat(v);
-      }
-    }
+    if (decl['animation-name'] || decl['animation-duration'] || decl['animation-iteration-count']) from = from || 'longhand';
     if (!from) continue;
-    if (iter === null || isNaN(iter)) iter = 1;                    /* CSS 기본값 */
-    out.push({ sel, name, duration: dur, iterations: iter, from });
+    /* 이름 목록: longhand 가 있으면 그것이 이긴다. 축약형에서 이름이 안 잡힌 항목은 none(=애니메이션
+       아님)으로 보되, 못 읽은 토큰이 있던 항목만 null(=모름)로 남겨 판정 대상에 그대로 둔다. */
+    const names = decl['animation-name']
+      ? splitTopLevel(decl['animation-name'])
+      : items.map(it => it.name !== null ? it.name : (it.unreadable ? null : 'none'));
+    const durs = decl['animation-duration']
+      ? splitTopLevel(decl['animation-duration']).map(timeToSec)
+      : items.map(it => it.dur);
+    const iters = decl['animation-iteration-count']
+      ? splitTopLevel(decl['animation-iteration-count']).map(v => /^infinite$/i.test(v) ? Infinity : parseFloat(v))
+      : items.map(it => it.iter);
+    for (let i = 0; i < names.length; i++){
+      const name = names[i];
+      if (name !== null && (name === '' || /^none$/i.test(name))) continue;   /* 이 자리는 애니메이션이 아니다 */
+      let dur = durs.length ? durs[i % durs.length] : null;
+      if (dur === undefined) dur = null;
+      let iter = iters.length ? iters[i % iters.length] : null;
+      if (iter === null || iter === undefined || isNaN(iter)) iter = 1;       /* CSS 기본값 */
+      out.push({ sel, name, duration: dur, iterations: iter, from });
+    }
   }
   return out;
 }
@@ -958,6 +993,19 @@ section('7. 동작 줄이기는 연출만 줄인다 (판정·속도·허용폭·
     const GREEN_2hz = '.z{animation:bl .5s linear infinite}';
     const GREEN_once = '.w{animation-name:bl;animation-duration:0.1s;animation-iteration-count:1}';
     const GREEN_none = '.v{color:red}';
+    /* ★R2 가 연 반대편 두 구멍의 짝 — 쉼표 목록의 **둘째** 항목과, animation-name 이 없어
+       실제로는 아무것도 애니메이트하지 않는 선언. 한쪽만 막으면 다른 쪽이 열린다. */
+    const RED_list_2nd = '.a{animation-name:sp,bl;animation-duration:1s,0.2s;animation-iteration-count:1,infinite}';
+    const RED_list_short = '.b{animation:sp 1s linear 1, bl .2s linear infinite}';
+    const GREEN_no_name = '.c{animation-duration:0.2s;animation-iteration-count:infinite}';
+    const GREEN_list_2hz = '.d{animation-name:sp,bl;animation-duration:.5s,.6s;animation-iteration-count:infinite,infinite}';
+    /* ★이름이 **적혀 있는데 none** 인 경우 — 두 문법 모두. 위의 GREEN_no_name 은 이름 선언이
+       아예 없는 경우라 이 자리를 잠그지 못한다(둘은 코드에서 서로 다른 길로 걸러진다). */
+    const GREEN_name_none = '.f{animation-name:none;animation-duration:0.2s;animation-iteration-count:infinite}';
+    const GREEN_short_noname = '.g{animation:.2s linear infinite}';
+    /* ★이징 함수 안의 쉼표까지 가르면 안전한 선언 하나가 여러 애니메이션으로 쪼개진다 — 그건
+       offender 수로는 드러나지 않으므로 **단위 개수**로 잰다(쪼개지면 1 이 아니라 3 이 된다). */
+    const ONEUNIT_easing = '.e{animation:bl 1s steps(4, end) infinite}';
     const wrap = css => '<style>' + css + '</style>';
     ok('깜빡임 검사 — longhand 5Hz 무한을 잡는다(RED 표본)', flashOffenders(wrap(RED_longhand)).length === 1);
     ok('깜빡임 검사 — 축약형 5Hz 무한을 잡는다(RED 표본)', flashOffenders(wrap(RED_shorthand)).length === 1);
@@ -966,6 +1014,27 @@ section('7. 동작 줄이기는 연출만 줄인다 (판정·속도·허용폭·
     ok('깜빡임 검사 — 빠르지만 반복하지 않는 것은 통과시킨다(GREEN 표본)', flashOffenders(wrap(GREEN_once)).length === 0,
        JSON.stringify(flashOffenders(wrap(GREEN_once))));
     ok('깜빡임 검사 — 애니메이션이 없으면 통과시킨다(GREEN 표본)', flashOffenders(wrap(GREEN_none)).length === 0);
+    ok('깜빡임 검사 — longhand 쉼표 목록의 둘째 5Hz 무한을 잡는다(RED 표본)',
+       flashOffenders(wrap(RED_list_2nd)).length === 1,
+       JSON.stringify(flashOffenders(wrap(RED_list_2nd)).map(u => u.name)));
+    ok('깜빡임 검사 — 축약형 쉼표 목록의 둘째 5Hz 무한을 잡는다(RED 표본)',
+       flashOffenders(wrap(RED_list_short)).length === 1,
+       JSON.stringify(flashOffenders(wrap(RED_list_short)).map(u => u.name)));
+    ok('깜빡임 검사 — animation-name 이 없는 선언은 애니메이션이 아니므로 통과시킨다(GREEN 표본)',
+       flashOffenders(wrap(GREEN_no_name)).length === 0 && animationUnits(wrap(GREEN_no_name)).length === 0,
+       JSON.stringify(animationUnits(wrap(GREEN_no_name))));
+    ok('깜빡임 검사 — 쉼표 목록이 전부 2Hz 이하면 통과시킨다(GREEN 표본)',
+       flashOffenders(wrap(GREEN_list_2hz)).length === 0,
+       JSON.stringify(flashOffenders(wrap(GREEN_list_2hz))));
+    ok('깜빡임 검사 — animation-name 이 none 이면 통과시킨다(GREEN 표본)',
+       flashOffenders(wrap(GREEN_name_none)).length === 0,
+       JSON.stringify(animationUnits(wrap(GREEN_name_none))));
+    ok('깜빡임 검사 — 이름 없는 축약형은 애니메이션이 아니므로 통과시킨다(GREEN 표본)',
+       flashOffenders(wrap(GREEN_short_noname)).length === 0,
+       JSON.stringify(animationUnits(wrap(GREEN_short_noname))));
+    ok('깜빡임 검사 — 이징 함수 안의 쉼표로는 애니메이션을 쪼개지 않는다',
+       animationUnits(wrap(ONEUNIT_easing)).length === 1 && animationUnits(wrap(ONEUNIT_easing))[0].name === 'bl',
+       JSON.stringify(animationUnits(wrap(ONEUNIT_easing))));
   }
   ok('동작 줄이기 미디어 블록이 있다', /@media \(prefers-reduced-motion: reduce\)/.test(HTML_TEXT));
 }
