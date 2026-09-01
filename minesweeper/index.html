@@ -21,6 +21,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="hp-ga-disclosure" content="game_start:game,level; daily_complete:game,streak; game_over:game,score,moves,duration_s,daily,level,win,mines,flags; lang_switch:lang">
 <!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
 <!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
@@ -277,7 +278,7 @@
   <details><summary data-i18n="tip3q">코드 열기로 빨라집니다</summary><p data-i18n="tip3a">깃발을 정확히 꽂았다면 숫자 두 번 탭으로 주변을 한꺼번에 열 수 있습니다. 시간을 크게 줄여 주지만, 깃발이 하나라도 틀리면 그대로 지뢰를 밟습니다.</p></details>
   <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
   <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
-  <details><summary data-i18n="faq2q">기록은 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 보내는 것은 판수 집계뿐이고 판의 내용은 보내지 않습니다. 브라우저 데이터를 지우면 진행과 기록도 함께 지워집니다.</p></details>
+  <details><summary data-i18n="faq2q">기록은 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로는 판수 집계와 함께 점수·연 칸 수·걸린 시간·난이도·승패·지뢰 수·깃발 수·오늘의 도전 여부와 연속 일수 같은 플레이 통계가, 그리고 언어를 바꾸면 그 사실이 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 브라우저 데이터를 지우면 진행과 기록도 함께 지워집니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a>에 최신 목록으로 유지합니다.</p></details>
   <details><summary data-i18n="faq3q">첫 탭에서 지뢰를 밟을 수 있나요?</summary><p data-i18n="faq3a">아니요. 자유 모드는 처음 탭한 칸과 그 이웃 여덟 칸에 지뢰를 두지 않도록 배치를 다시 합니다. 오늘의 도전은 시작 칸이 미리 정해져 있고 그 자리는 언제나 안전합니다.</p></details>
   <details><summary data-i18n="faq4q">소리를 끌 수 있나요?</summary><p data-i18n="faq4a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 효과음은 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 「동작 줄이기」를 켜면 펼침·흔들림 연출도 꺼집니다.</p></details>
 </section>
@@ -340,6 +341,7 @@ const I18N = {
     navPrivacy:'개인정보처리방침', navAbout:'소개'
   },
   en: {
+    faq2a:'Only in the browser on the device you are using. Alongside the games-played tally, the server also receives play statistics such as your score, the number of squares opened, the time taken, the difficulty, whether you won, the mine count, the flag count, whether it was the daily challenge and your streak, plus the fact that you switched language — without information that directly identifies you. Clearing your browser data also clears your progress and records. The items we store and send are kept as an up-to-date list in the <a href="/privacy/">privacy policy</a>.',
     docTitle:'Minesweeper — logic boards that never need a guess',
     title:'Minesweeper', title2:'Minesweeper', subtitle:'No-guess logic puzzle',
     home:'🏠 More games', langBtn:'한국어',
