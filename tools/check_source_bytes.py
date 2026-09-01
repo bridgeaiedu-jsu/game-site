@@ -139,11 +139,28 @@ def selftest(root):
         print('자기시험: 주입 앵커를 찾지 못했다 — 주입 실패(rc=2)')
         sys.exit(2)
 
-    cases = [
-        ('0x08(백스페이스)', lambda d: d.replace(anchor, bytes([8]) + anchor, 1), bytes([8]), '0x08'),
-        ('BOM(파일 첫머리)', lambda d: BOM + d, BOM, 'BOM'),
-        ('lone CR', lambda d: d.replace(anchor, CR + anchor, 1), None, 'lone CR'),
-    ]
+    # ★기대 목록은 이 자기시험이 독립으로 쥔다 — 피검사 대상(FORBIDDEN)에서 파생시키면
+    #   규칙을 지울 때 그 규칙의 시험도 함께 사라져 자기시험이 조용히 줄고 통과한다(실측).
+    EXPECTED_CODES = [0x00, 0x07, 0x08, 0x0b, 0x0c, 0x1b]
+    missing = [c for c in EXPECTED_CODES if c not in FORBIDDEN]
+    extra = [c for c in sorted(FORBIDDEN) if c not in EXPECTED_CODES]
+    if missing:
+        print('★규칙 소실 — 기대 목록에 있는데 FORBIDDEN 에 없다: %s (rc=1)'
+              % ' '.join('0x%02x' % c for c in missing))
+        sys.exit(1)
+    if extra:
+        print('★시험 미작성 — FORBIDDEN 에만 있는 규칙: %s. 규칙을 넓혔으면 자기시험도 넓혀라 (rc=1)'
+              % ' '.join('0x%02x' % c for c in extra))
+        sys.exit(1)
+    cases = []
+    for code in EXPECTED_CODES:
+        token = bytes([code])
+        cases.append(('0x%02x' % code,
+                      (lambda t: (lambda d: d.replace(anchor, t + anchor, 1)))(token),
+                      token,
+                      '0x%02x' % code))
+    cases.append(('BOM(파일 첫머리)', lambda d: BOM + d, BOM, 'BOM'))
+    cases.append(('lone CR', lambda d: d.replace(anchor, CR + anchor, 1), None, 'lone CR'))
     tmpdir = tempfile.mkdtemp(prefix='srcbytes-')
     print('자기시험 표본: %s (%d바이트) → %s' % (victim, len(clean), tmpdir))
     failed = []
@@ -169,7 +186,7 @@ def selftest(root):
     if failed:
         print('★검출 실패 — 주입했는데 잡지 못한 규칙: %s (rc=1)' % ' / '.join(failed))
         sys.exit(1)
-    print('검출력 확인 — 규칙 3종 모두 주입본을 잡았고 원본은 깨끗하다 (rc=0)')
+    print('검출력 확인 — 규칙 %d종 모두 주입본을 잡았고 원본은 깨끗하다 (rc=0)' % len(cases))
     sys.exit(0)
 
 
