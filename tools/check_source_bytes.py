@@ -32,8 +32,12 @@
   2 = **적발**(통과가 아니라 판정 불가) 또는 스캔 불가(git 미가용·파일 읽기 실패)
   ※ 1 은 쓰지 않는다 — 이 검사에 '미달' 이라는 중간 상태가 없다. 있으면 배포하지 않는다.
 
-자기시험(--selftest): 임시 사본에 0x08 을 일부러 주입해 이 검사가 붉어지는지 잰다.
-  0 = 검출력 확인(주입본을 잡았고 원본은 통과)
+자기시험(--selftest): 임시 **Git 저장소**에 규칙 8종(금지 바이트 6종 + BOM + lone CR)을 각각
+  주입한 표본을 만들고, 이 파일을 **자식 프로세스로 다시 불러 CLI 경로 전체**(tracked_files →
+  scan_tree → main)를 밟게 해 rc=2 와 그 규칙 이름이 지적문에 나오는지 본다.
+  ★내부 함수(scan_bytes)를 직접 부르지 않는다 — 그렇게 하면 집계 반복문이 죽어도 자기시험이
+  전부 초록이었다(실측: 그 변이에서 게이트 자신은 오염 저장소를 rc=0 으로 통과시켰다).
+  0 = 검출력 확인(8종 전부를 CLI 경로로 잡았고 깨끗한 대조군은 rc=0)
   1 = ★검출 실패(주입했는데 못 잡았다 — 이 검사가 공허하다)
   2 = 주입 실패·하네스 이상(통과로 세지 않는다)
 
@@ -42,6 +46,7 @@
   python3 tools/check_source_bytes.py . --selftest
 """
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -61,16 +66,22 @@ LF = b'\n'
 
 def tracked_files(root):
     """git 이 추적하는 파일만 본다 — 대상 집합을 결정론으로 고정한다."""
-    p = subprocess.run(['git', '-C', root, 'ls-files'],
-                       capture_output=True, text=True, encoding='utf-8', errors='replace')
+    # ★-z 로 받아 **바이너리**로 읽는다. 개행·따옴표 모드로 읽으면 core.quotePath 가 인용한
+    #   비ASCII 경로가 "\355\225\234.js" 처럼 와서 확장자 판정이 빗나가고, 그 파일이
+    #   **검사 대상에서 조용히 빠진다**(정상 JS 가 하나라도 있으면 '대상 0건' 방어도 발화하지
+    #   않아 오염 파일을 빼고 rc=0 으로 통과한다 — codex R1 이슈1 실측).
+    p = subprocess.run(['git', '-C', root, 'ls-files', '-z'], capture_output=True)
     if p.returncode != 0:
         print('git ls-files 실패 — 대상을 셀 수 없다(rc=2)')
-        print((p.stderr or '')[-500:])
+        print((p.stderr or b'').decode('utf-8', 'replace')[-500:])
         sys.exit(2)
     out = []
-    for rel in (p.stdout or '').splitlines():
-        rel = rel.strip()
-        if not rel:
+    for raw in (p.stdout or b'').split(b'\x00'):
+        if not raw:
+            continue
+        # 경로 바이트를 손실 없이 문자열로 — 디코드할 수 없는 바이트도 버리지 않는다.
+        rel = raw.decode('utf-8', 'surrogateescape')
+        if not rel.strip():
             continue
         ext = os.path.splitext(rel)[1].lower()
         in_tools = rel.startswith('tools/')
@@ -122,86 +133,123 @@ def scan_tree(root, quiet=False):
     return len(files), total
 
 
-def selftest(root):
-    """이 검사가 공허하지 않은지 잰다 — 규칙 3종을 각각 일부러 주입해 붉어지는지 본다.
+def _git(repo, *a):
+    return subprocess.run(["git", "-C", repo] + list(a), capture_output=True)
 
-    규칙을 셋 넣고 하나만 재면 나머지 둘은 '어떤 입력에도 발화하지 않는 규칙' 으로 남는다.
-    그것이 이 티켓이 잡은 공허한 단언과 같은 모양이라, 세 규칙을 전수로 잰다.
+
+def _fixture(tmp, name, payload):
+    """추적 파일이 있는 임시 Git 저장소를 만든다 — 깨끗한 ASCII 한 개 + 오염 표본 한 개.
+
+    ★깨끗한 파일을 함께 두는 이유: 오염 파일만 두면 그것이 검사에서 빠져도 "대상 0건"
+      방어가 대신 붉어져, 빠진 것을 못 본 채 초록이 아닌 결과에 속는다(무임승차 방지).
     """
-    files = tracked_files(root)
-    if not files:
-        print('자기시험: 대상 0건 — 주입할 자리가 없다(rc=2)')
-        sys.exit(2)
-    victim = 'tools/verify_tensec.js' if 'tools/verify_tensec.js' in files else files[0]
-    src = os.path.join(root, victim)
-    try:
-        clean = open(src, 'rb').read()
-    except OSError as e:
-        print('자기시험: 표본을 읽지 못했다 (%s) — rc=2' % e)
-        sys.exit(2)
-    if scan_bytes(clean):
-        print('자기시험: 표본 %s 가 이미 적발 상태다 — 깨끗한 기준선을 세울 수 없다(rc=2)' % victim)
-        sys.exit(2)
+    repo = os.path.join(tmp, "repo-" + name.replace(" ", "-").replace("/", "-"))
+    os.makedirs(os.path.join(repo, "tools"))
+    _git(repo, "init", "-q")
+    _git(repo, "config", "user.email", "selftest@example.com")
+    _git(repo, "config", "user.name", "selftest")
+    # ★quotePath 를 켠 채로 만든다 — 비ASCII 경로가 인용되는 실제 조건을 재현한다.
+    _git(repo, "config", "core.quotePath", "true")
+    with open(os.path.join(repo, "tools", "clean.js"), "wb") as f:
+        f.write(b"export const ok = 1;\n")
+    # 비ASCII 이름 — 경로가 인용돼도 확장자 판정이 살아 있는지 함께 잰다.
+    victim = os.path.join(repo, "\ud55c\uae00\uc774\ub984.js")
+    with open(victim, "wb") as f:
+        f.write(payload)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "fixture")
+    return repo
 
-    anchor = b'const MUTATIONS = {'
-    if clean.count(anchor) < 1:
-        print('자기시험: 주입 앵커를 찾지 못했다 — 주입 실패(rc=2)')
-        sys.exit(2)
 
-    # ★기대 목록은 이 자기시험이 독립으로 쥔다 — 피검사 대상(FORBIDDEN)에서 파생시키면
-    #   규칙을 지울 때 그 규칙의 시험도 함께 사라져 자기시험이 조용히 줄고 통과한다(실측).
-    EXPECTED_CODES = [0x00, 0x07, 0x08, 0x0b, 0x0c, 0x1b]
-    missing = [c for c in EXPECTED_CODES if c not in FORBIDDEN]
-    extra = [c for c in sorted(FORBIDDEN) if c not in EXPECTED_CODES]
+def selftest(root):
+    """이 검사가 공허하지 않은지 잰다 — 규칙마다 오염 표본을 만들어 **CLI 를 그대로 밟는다**.
+
+    ★예전 판본은 scan_bytes 를 직접 불러 tracked_files·scan_tree·main 을 하나도 지나지
+      않았다. 그래서 **집계 반복문을 지워도 자기시험 8종이 전부 초록**이었다(codex 실측:
+      그 변이에서 게이트 자신은 오염 저장소를 rc=0 으로 통과시켰다). 검사가 계약이 아니라
+      그 대리물을 보면, 통과하는 검사와 살아 있는 결함이 나란히 존재한다.
+
+    ★기대 목록은 여기서 **독립 리터럴로** 쥔다. 피검사 대상(FORBIDDEN·cases)에서 파생시키면
+      규칙을 지울 때 그 시험도 함께 사라져 자기시험이 조용히 줄고 통과한다.
+    """
+    # ── 규칙 이름을 독립으로 적는다(8종) ──
+    EXPECTED_RULES = ["0x00", "0x07", "0x08", "0x0b", "0x0c", "0x1b", "BOM", "lone CR"]
+    implemented = ["0x%02x" % c for c in sorted(FORBIDDEN)] + ["BOM", "lone CR"]
+    missing = [r for r in EXPECTED_RULES if r not in implemented]
+    extra = [r for r in implemented if r not in EXPECTED_RULES]
     if missing:
-        print('★규칙 소실 — 기대 목록에 있는데 FORBIDDEN 에 없다: %s (rc=1)'
-              % ' '.join('0x%02x' % c for c in missing))
+        print("★규칙 소실 — 기대 목록에 있는데 구현에 없다: %s (rc=1)" % " ".join(missing))
         sys.exit(1)
     if extra:
-        print('★시험 미작성 — FORBIDDEN 에만 있는 규칙: %s. 규칙을 넓혔으면 자기시험도 넓혀라 (rc=1)'
-              % ' '.join('0x%02x' % c for c in extra))
+        print("★시험 미작성 — 구현에만 있는 규칙: %s. 규칙을 넓혔으면 기대 목록도 넓혀라 (rc=1)"
+              % " ".join(extra))
         sys.exit(1)
-    cases = []
-    for code in EXPECTED_CODES:
-        token = bytes([code])
-        cases.append(('0x%02x' % code,
-                      (lambda t: (lambda d: d.replace(anchor, t + anchor, 1)))(token),
-                      token,
-                      '0x%02x' % code))
-    cases.append(('BOM(파일 첫머리)', lambda d: BOM + d, BOM, 'BOM'))
-    cases.append(('lone CR', lambda d: d.replace(anchor, CR + anchor, 1), None, 'lone CR'))
-    tmpdir = tempfile.mkdtemp(prefix='srcbytes-')
-    print('자기시험 표본: %s (%d바이트) → %s' % (victim, len(clean), tmpdir))
+
+    base = b"const ok = 1;\n"
+    payloads = {}
+    for c in sorted(FORBIDDEN):
+        payloads["0x%02x" % c] = b"const re = /" + bytes([c]) + b"x/;\n"
+    payloads["BOM"] = BOM + base
+    payloads["lone CR"] = b"const ok = 1;" + CR + b"const two = 2;\n"
+
+    me = os.path.abspath(__file__)
+    tmp = tempfile.mkdtemp(prefix="srcbytes-selftest-")
+    print("자기시험: 임시 Git 저장소에 오염 표본을 넣고 **CLI 를 자식 프로세스로** 밟는다 → %s" % tmp)
     failed = []
-    for name, inject, token, expect in cases:
-        tainted = inject(clean)
-        path = os.path.join(tmpdir, 'tainted-%s.bin' % expect.replace(' ', '-'))
-        open(path, 'wb').write(tainted)
-        got = open(path, 'rb').read()
-        # 주입이 실제로 됐는지 먼저 확인한다 — 주입 실패를 통과로 세지 않는다
-        if token is not None:
-            delta = got.count(token) - clean.count(token)
-        else:
-            delta = (got.count(CR) - got.count(CR + LF)) - (clean.count(CR) - clean.count(CR + LF))
-        if delta != 1:
-            print('  %s: 주입이 실제로 되지 않았다(증가 %d) — 주입 실패(rc=2)' % (name, delta))
+    try:
+        # ── 대조군: 깨끗한 저장소는 rc=0 이어야 한다(붉기만 하면 되는 검사가 아니다) ──
+        clean_repo = _fixture(tmp, "clean", base)
+        p = subprocess.run([sys.executable, me, clean_repo], capture_output=True)
+        out = (p.stdout or b"").decode("utf-8", "replace")
+        print("  대조군(깨끗): rc=%d" % p.returncode)
+        if p.returncode != 0:
+            print("  ★대조군이 붉다 — 기준선을 세울 수 없다(rc=2)")
+            print(out[-400:])
             sys.exit(2)
-        hits = [w for w, _ in scan_bytes(got)]
-        caught = any(expect in w for w in hits)
-        print('  %s: 주입 1건 · 적발 %d건 · 해당 규칙 발화 %s' % (name, len(hits), '예' if caught else '★아니오'))
-        if not caught:
-            failed.append(name)
+
+        for rule in EXPECTED_RULES:
+            repo = _fixture(tmp, rule, payloads[rule])
+            # 주입이 실제로 파일에 들어갔는지 바이트로 먼저 확인한다(주입 실패를 통과로 세지 않는다).
+            victim = os.path.join(repo, "\ud55c\uae00\uc774\ub984.js")
+            got = open(victim, "rb").read()
+            if got != payloads[rule]:
+                print("  %s: 표본이 쓰인 대로가 아니다 — 주입 실패(rc=2)" % rule)
+                sys.exit(2)
+            p = subprocess.run([sys.executable, me, repo], capture_output=True)
+            out = (p.stdout or b"").decode("utf-8", "replace")
+            named = any(("적발" in ln and rule in ln) for ln in out.splitlines())
+            ok = (p.returncode == 2) and named
+            print("  %-8s rc=%d · 그 규칙 이름이 지적문에 %s" %
+                  (rule, p.returncode, "있다" if named else "★없다"))
+            if not ok:
+                failed.append(rule)
+                print(out[-400:])
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
     if failed:
-        print('★검출 실패 — 주입했는데 잡지 못한 규칙: %s (rc=1)' % ' / '.join(failed))
+        print("★검출 실패 — 오염을 넣었는데 CLI 가 잡지 못한 규칙: %s (rc=1)" % " / ".join(failed))
         sys.exit(1)
-    print('검출력 확인 — 규칙 %d종 모두 주입본을 잡았고 원본은 깨끗하다 (rc=0)' % len(cases))
+    print("검출력 확인 — 규칙 %d종 전부를 **CLI 경로**로 잡았고 대조군은 rc=0 이다 (rc=0)"
+          % len(EXPECTED_RULES))
     sys.exit(0)
-
 
 def main():
     argv = sys.argv[1:]
+    # ★모르는 옵션과 남는 위치인자를 거부한다 — 예전에는 '--selftes' 오타가 그냥 무시돼
+    #   본검사가 돌고 rc=0 이 나왔다. 오타 하나로 검출력 검사가 통과로 둔갑한다
+    #   (codex R1 이슈3 실측). 검사 못 한 것은 통과가 아니다.
+    ALLOWED = ('--selftest',)
+    unknown = [a for a in argv if a.startswith('--') and a not in ALLOWED]
+    if unknown:
+        print('모르는 옵션이다: %s — 허용 옵션은 %s 뿐이다(rc=2)'
+              % (' '.join(unknown), ' '.join(ALLOWED)))
+        sys.exit(2)
     positional = [a for a in argv if not a.startswith('--')]
+    if len(positional) > 1:
+        print('대상 경로는 0개나 1개여야 한다 — %d개를 받았다: %s (rc=2)'
+              % (len(positional), ' '.join(positional)))
+        sys.exit(2)
     # ★빈 문자열·공백만인 대상을 조용히 '현재 폴더' 로 바꾸지 않는다.
     #   abspath('') 는 현재 폴더가 되어, 대상을 주지 않은 호출이 rc=0 초록을 받는다(실측).
     #   빈 대상은 통과가 아니라 판정 불가다.
