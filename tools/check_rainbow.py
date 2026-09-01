@@ -36,11 +36,71 @@ RAINBOW = ['--r%d' % i for i in range(1, 8)]
 RAINBOW_EDGE = ['--r%d-edge' % i for i in range(1, 8)]
 RAINBOW_KO = ['빨', '주', '노', '초', '파', '남', '보']
 
-PAGES = {
+# ★대상 페이지는 games.json(제품 정본)에서 파생한다 (T0901-08 결함B).
+#   전에는 이 자리에 3쪽이 박혀 있어 ★games.json 에 새로 등록된 무지개 페이지를
+#   아무 말 없이 건너뛰었다(미래형 결함 — 오늘의 오염을 통과시키고 있지는 않았다).
+# ★표면 토큰은 넓히지 않는다: 기존 3쪽은 현행 매핑을 그대로 쓴다.
+#   block-drop · 2048 은 --panel 을 정의하고 있어서, 표면 집합까지 파생으로 바꾸면
+#   오늘의 판정이 바뀜다 — 그건 이 티켓의 범위가 아니다(별건).
+SURFACE_OVERRIDE = {
     'block-drop/index.html':   ['--cell', '--board', '--bg'],
     'block-puzzle/index.html': ['--cell', '--panel', '--bg'],
     '2048/index.html':         ['--cell', '--board', '--bg'],
 }
+DEFAULT_SURFACES = ['--cell', '--board', '--panel', '--bg']   # 새로 발견된 페이지의 기본값
+
+
+def discover_pages(root):
+    """games.json 에 등록된 게임 중 ★무지개 토큰을 실제로 정의한 페이지를 찾는다.
+
+    반환 (pages, err). err 가 있으면 ★판정 불가(rc=2)다 — 통과가 아니다.
+    ★등록됐는데 파일이 없는 경우가 그것이다. 목록을 데이터에서 파생시키면
+    '데이터엔 있는데 파일이 없는' 새 추락 경로가 열리므로 그 자리를 명시해서 막는다.
+    """
+    gj = os.path.join(root, 'games.json')
+    try:
+        data = json.loads(io.open(gj, encoding='utf-8').read())
+    except (OSError, ValueError) as exc:
+        return None, 'games.json 을 읽지 못했다: %s' % exc, []
+    if not isinstance(data, list):
+        return None, 'games.json 의 최상위가 목록이 아니다', []
+    pages = {}
+    skipped = []
+    for g in data:
+        if not isinstance(g, dict):
+            return None, 'games.json 항목이 객체가 아니다', []
+        path = (g.get('path') or '').strip('/')
+        if not path:
+            return None, 'games.json 항목에 path 가 없다: %s' % g.get('id'), []
+        rel = path + '/index.html'
+        full = os.path.join(root, rel.replace('/', os.sep))
+        if not os.path.exists(full):
+            return None, ('games.json 에 등록됐는데 파일이 없다: %s '
+                          '(★못 읽은 것을 통과로 세지 않는다)' % rel), []
+        try:
+            body = io.open(full, encoding='utf-8', errors='replace').read()
+        except OSError as exc:
+            return None, '%s 를 읽지 못했다: %s' % (rel, exc), []
+        defines = all(re.search(r'(?<![\w-])' + re.escape(t) + r'\s*:', body)
+                      for t in RAINBOW + RAINBOW_EDGE)
+        if not defines:
+            continue                      # 무지개 토큰 자체가 없다 — 이 검사기의 대상이 아니다
+        # ★정의한 것만으로는 부족하다 — ★실제로 일곱 색을 다 쓰는 페이지만 무지개 페이지다.
+        #   (기준은 임의 임계가 아니라 정의다: 무지개는 일곱 색이고 이 검사기는 일곱 쌍을 판정한다.)
+        #   캔버스 게임은 테마 블록을 복사해 토큰만 가지고 있고 그림은 스크립트로 그린다 —
+        #   그 쪽의 #ffffff 는 무지개 색이 아니라서 여기서 판정할 것이 아니다.
+        uses = sum(1 for i in range(1, 8)
+                   if re.search(r'var\(\s*--r%d\s*\)' % i, body))
+        uses_e = sum(1 for i in range(1, 8)
+                     if re.search(r'var\(\s*--r%d-edge\s*\)' % i, body))
+        if uses < 7 or uses_e < 7:
+            # ★건너뛰는 것을 ★조용히 하지 않는다 — 조용한 누락이 이 결함의 본체였다.
+            skipped.append('%s (채움 %d/7 · 테두리 %d/7 만 쓴다)' % (rel, uses, uses_e))
+            continue
+        pages[rel] = SURFACE_OVERRIDE.get(rel, list(DEFAULT_SURFACES))
+    if not pages:
+        return None, '무지개 팔레트를 실제로 쓰는 등록 페이지가 하나도 없다', []
+    return pages, None, skipped
 TILE_VALUES = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
 
 
@@ -223,6 +283,17 @@ def main():
     if injects:
         print('    ★고의 결함 주입: %s' % ', '.join(injects))
     print()
+
+    PAGES, perr, pskip = discover_pages(root)
+    if perr:
+        print('  (판정 불가) ' + perr)
+        return 2
+    print('    검사 대상 %d쪽(games.json 에서 파생): %s' % (len(PAGES), ', '.join(sorted(PAGES))))
+    # ★숫자로도 찍는다 — 목록은 읽힐 때만 방벽이고, 수치는 ★변하면 눈에 띄다.
+    print('    범위 밖 %d쪽(무지개 토큰을 정의만 하고 일곱 쌍을 다 쓰지는 않는다)'
+          % len(pskip))
+    for s_ in pskip:
+        print('      · %s' % s_)
 
     for page in PAGES:
         full = os.path.join(root, page.replace('/', os.sep))

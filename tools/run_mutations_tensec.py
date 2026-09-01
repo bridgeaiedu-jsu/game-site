@@ -43,6 +43,51 @@ HTML = arg_of('--html', os.path.join(ROOT, 'tensec', 'index.html'))
 SUMMARY_RE = re.compile(r'^PASS (\d+) · FAIL (\d+)$', re.M)
 FAIL_RE = re.compile(r'^  FAIL  (.+?)(?: — |$)', re.M)
 
+# ══ ★러너가 쥐는 기대 목록 (T0901-08) ════════════════════════════
+# 이 목록을 ★대상에게 물어보지 않는다. 물어보면 문제도 정답도 채점 기준도 피검사자가 낸다 —
+# 대상에서 뮤테이션이 사라지면 목록도 함께 줄어 ★19→18 이 초록으로 통과했다(결함A).
+# 같은 저장소의 run_mutations.py 가 MUTS 를 독립 리터럴로 쥐는 것이 정답 형태고 그 형태에 맞추었다.
+# ★정직 고지: 이 목록은 2026-09-01 f9bdc7c 시점의 정본에서 ★한 번 옮겨 적어 얄렸다.
+#   진리를 독립으로 유도한 것이 아니라 ★이후의 어긋남을 드러내는 것이 목적이다.
+# (뮤테이션 이름, ★이 결함을 잡아야 하는 검사 = 채점 기준)
+MUTS = [
+    ('m-frame-clock', '기기 사정이 달라도 잰 값이 같다'),
+    ('m-show-time', '화면이 시계의 함수가 아니다'),
+    ('m-poll-time', '재는 동안 걸린 타이머가 없다'),
+    ('m-read-clock', '재는 동안 시계를 읽지 않는다'),
+    ('m-no-anim-guard', '재는 동안 움직임을 끄는 규칙이 있다'),
+    ('m-interval', 'setInterval 을 쓰지 않는다'),
+    ('m-raf', 'requestAnimationFrame 을 쓰지 않는다'),
+    ('m-click-listener', '판은 click 을 듣지 않는다'),
+    ('m-repeat', '키 반복 입력은 세지 않는다'),
+    ('m-epoch-mix', '잰 값은 두 도장의 차와 정확히 같다'),
+    ('m-acc-formula', '정확도 산식이 기획안의 예와 일치한다'),
+    ('m-seed-random', '같은 seed 는 같은 목표를 낸다'),
+    ('m-seed-repeat', '오늘의 목표 세 개는 서로 다르다'),
+    ('m-best-any', '최고 기록은 오차가 줄었을 때만 바뀐다'),
+    ('m-best-shared', '기록은 목표마다 따로 남는다'),
+    ('m-streak-always', '스트릭은 하루를 건너뛰면 끊긴다'),
+    ('m-daily-twice', '오늘의 도전은 하루 한 번만 기록된다'),
+    ('m-motion-uncovered', '움직이는 규칙이 모두 동작 줄이기에 덮여 있다'),
+    ('m-overlay-press', '창이 떠 있으면 판은 눌리지 않는다'),
+]
+
+EXPECTED_COUNT = 19          # ★tools/README.md 의 '사본 19종' 과 같은 수여야 한다(아래에서 대조한다)
+README_COUNT_RE = re.compile(r'방어를 하나씩 지운 사본 (\d+)종')
+
+
+def readme_declared_count():
+    """★문서가 선언한 종수를 읽어 코드와 대조한다 — 숫자가 문서에만 있고 대조가 없던 것이 결함이었다."""
+    p = os.path.join(ROOT, 'tools', 'README.md')
+    try:
+        txt = open(p, encoding='utf-8', errors='replace').read()
+    except OSError as exc:
+        return None, 'README 를 읽지 못했다(%s)' % exc
+    m = README_COUNT_RE.search(txt)
+    if not m:
+        return None, 'README 에서 종수 선언 문장을 찾지 못했다'
+    return int(m.group(1)), None
+
 
 def run(extra):
     p = subprocess.run([node_bin(), VERIFIER, '--html', HTML] + extra,
@@ -89,10 +134,38 @@ def main():
         sys.exit(2)
     print('원본 정상 — PASS %s · FAIL %s (rc=0)\n' % (s0[0][0], s0[0][1]))
 
-    muts = list_mutations()
-    if not muts:
-        print('뮤테이션이 하나도 없다')
+    # ★기대 목록은 러너가 쥐다. 대상이 내놓는 목록은 ★대조 상대이지 근거가 아니다.
+    declared = list_mutations()
+    mine = dict(MUTS)
+    theirs = dict((n, c) for n, _w, c in declared)
+    why_of = dict((n, w) for n, w, _c in declared)
+
+    problems = []
+    n_readme, rerr = readme_declared_count()
+    if rerr:
+        problems.append('★' + rerr)
+    elif n_readme != EXPECTED_COUNT:
+        problems.append('★문서와 코드의 종수가 다르다 — README %d종 · 러너 %d종'
+                        % (n_readme, EXPECTED_COUNT))
+    if len(MUTS) != EXPECTED_COUNT:
+        problems.append('★러너 목록이 %d종인데 선언은 %d종이다' % (len(MUTS), EXPECTED_COUNT))
+    gone = sorted(set(mine) - set(theirs))
+    unknown = sorted(set(theirs) - set(mine))
+    bad_catcher = sorted(n for n in (set(mine) & set(theirs)) if mine[n] != theirs[n])
+    if gone:
+        problems.append('★대상에서 사라진 뮤테이션 %d종: %s' % (len(gone), ', '.join(gone)))
+    if unknown:
+        problems.append('★러너가 모르는 뮤테이션 %d종: %s' % (len(unknown), ', '.join(unknown)))
+    if bad_catcher:
+        problems.append('★잡아야 하는 검사가 어긋난다 %d종: %s'
+                        % (len(bad_catcher), ', '.join(bad_catcher)))
+    if problems:
+        print('판정 불가 — 기대 목록과 대상이 어긋난다(이 대조가 없으면 19→18 이 초록으로 지나간다)')
+        for p_ in problems:
+            print('  · ' + p_)
         sys.exit(2)
+
+    muts = [(n, why_of.get(n, ''), mine[n]) for n, _c in MUTS]
 
     detected, missed, stray, inject_fail, harness = [], [], [], [], []
     rows = []
