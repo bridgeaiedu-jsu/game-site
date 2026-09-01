@@ -45,6 +45,8 @@ const PRECACHE = [
   '/nonogram/thumb.webp',
   '/tensec/',
   '/tensec/thumb.webp',
+  '/stop/',
+  '/stop/thumb.webp',
   '/privacy/',
   '/about/',
   '/icon.svg',
