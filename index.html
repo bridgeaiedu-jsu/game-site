@@ -253,6 +253,12 @@
           <span class="body"><h2>10초 감각 / Ten-Second Sense</h2>
             <p>시간을 보지 않고 정확히 10초를 맞히는 감각 게임 — 오차가 작을수록 좋은 기록<br>Count ten seconds in your head with no clock on screen — the smaller your miss, the better</p></span>
         </a></li>
+        <li><a class="card" href="/stop/">
+          <span class="thumb"><img src="/stop/thumb.webp" alt="멈춰! / Stop!" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 20~40초 / 20–40 sec a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>멈춰! / Stop!</h2>
+            <p>점·원·막대가 목표와 겹치는 순간을 잡는 시각 감각 게임 — 5라운드 평균 점수<br>Tap the moment the moving mark lines up with the target — five rounds, averaged</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -428,6 +434,13 @@ const FALLBACK = [{
   thumb:'/tensec/thumb.webp',
   playtime:{ko:'한 판 20~30초',en:'20–30 sec a round'},
   daily:true, released:'2026-08-31', tags:['timing','sense','casual','daily']
+},{
+  id:'stop', path:'/stop/',
+  title:{ko:'멈춰!',en:'Stop!'},
+  desc:{ko:'점·원·막대가 목표와 겹치는 순간을 잡는 시각 감각 게임 — 5라운드 평균 점수',en:'Tap the moment the moving mark lines up with the target — five rounds, averaged'},
+  thumb:'/stop/thumb.webp',
+  playtime:{ko:'한 판 20~40초',en:'20–40 sec a round'},
+  daily:true, released:'2026-09-02', tags:['timing','sense','casual','daily']
 }];
 
 let games = FALLBACK;
