@@ -809,9 +809,17 @@ section('6. 기록과 스트릭');
   other.pressPointer(1000); other.pressPointer(3900);
   other.pressPointer(5000); other.pressPointer(11800);
   other.pressPointer(13000); other.pressPointer(22900);
-  const otherErr = JSON.parse(s2b.getItem('ts.daily')).result.err;
+  /* ★계약을 직접 잰다 — 저장된 기록 자체가 덮이지 않았는가. 예전에는 대리물(평균 오차 값)을 봤고,
+     그 값은 그날 목표 조합의 함수라 특정 날짜(실측 61일 중 9일)에는 두 탭의 평균이 우연히 같아져
+     방어를 지워도 값이 안 변했다 — 검사가 날짜에 따라 공허해졌다. 기록 원문을 통째로 비교하면
+     판 기록(elapsedMs)이 두 탭에서 항상 다르므로 어떤 날짜에서도 덮어쓰기가 드러난다. */
+  const otherRec = s2b.getItem('ts.daily');
   tab.pressPointer(13000); tab.pressPointer(23000); /* 이제 이 탭이 마지막 판을 끝낸다 */
-  eq('오늘의 도전은 하루 한 번만 기록된다', JSON.parse(s2b.getItem('ts.daily')).result.err, otherErr);
+  /* ★이 검사가 공허해지지 않는 근거를 함께 못박는다 — 두 탭의 판 기록이 실제로 다르다는 것.
+     나중에 두 탭의 누름이 같아지면 여기가 먼저 붉어져 알려 준다(조용한 공허화 방지). */
+  eq('먼저 끝낸 탭의 판 기록이 남아 있다',
+     JSON.parse(otherRec).result.rounds.map(r => r.elapsedMs), [2900, 6800, 9900]);
+  eq('오늘의 도전은 하루 한 번만 기록된다', s2b.getItem('ts.daily'), otherRec);
   note('두 탭 시나리오 — 먼저 끝낸 기록이 나중 기록에 덮이지 않는다');
 
   /* 스트릭 — 어제 했으면 잇고, 하루 건너뛰면 끊는다 */
