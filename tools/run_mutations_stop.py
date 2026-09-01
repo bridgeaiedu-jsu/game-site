@@ -55,7 +55,7 @@ MUTS = [
     ('m-tol-drift', '허용폭은 판을 짤 때 확정되고 플레이로 바뀌지 않는다'),
     ('m-board-drift', '판 자체가 처음 그대로다(허용폭 포함)'),
     ('m-tol-narrow', '기획안 예시대로 지점 3px 차이가 97점 언저리다(≥95점)'),
-    ('m-kind-runtime', '한 판의 구성이 지점2·크기2·각도1 이다'),
+    ('m-composition-count', '한 판의 구성이 지점2·크기2·각도1 이다'),
     ('m-order-fixed', '종류의 차례도 seed 가 정한다'),
     ('m-score-not-normalized', '환산 점수가 허용폭 대비 정규화다(독립 재계산과 일치)'),
     ('m-avg-not-mean', '최종 점수가 다섯 라운드의 평균이다'),
@@ -67,9 +67,18 @@ MUTS = [
     ('m-slider', '슬라이더·수치 입력이 없다'),
     ('m-no-again', '결과 화면에서 한 번의 조작으로 다음 판이 시작된다'),
     ('m-field-scale', '판 크기가 300 으로 고정이다'),
+    # ── R2 신설(codex R1 지적 수리분) ─────────────────────────────
+    ('m-limit-by-callback', '10초 뒤 입력은 타이머 콜백 전이어도 놓침이다'),
+    ('m-daily-const-seed', '실제 daily 배선의 seedKey 가 그 날짜의 key 다'),
+    ('m-longhand-blink', '초당 3회를 넘는 깜빡임이 없다'),
+    ('m-observer-counts', '관측 API dealBoard 는 draws 상태를 바꾸지 않는다'),
+    ('m-disclosure-drops-event', '기계가 읽는 전송 목록이 실제 호출과 일치한다'),
+    ('m-stale-notice', '고지 문구가 앵커의 항목을 실제로 말한다(ko·en)'),
+    ('m-closed-notice', '전송 고지 문안이 닫혀 있지 않다(ko·en)'),
+    ('m-kind-at-round-start', '라운드가 시작될 때 보이는 종류가 판을 짤 때 정한 종류와 같다'),
 ]
 
-EXPECTED_COUNT = 18          # ★tools/README.md 의 '사본 N종' 과 같은 수여야 한다(아래에서 대조한다)
+EXPECTED_COUNT = 26          # ★tools/README.md 의 '사본 N종' 과 같은 수여야 한다(아래에서 대조한다)
 README_COUNT_RE = re.compile(r'멈춰! 의 계약을 하나씩 깨뜨린 사본 (\d+)종')
 
 

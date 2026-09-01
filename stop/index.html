@@ -9,6 +9,13 @@
 <meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 시각 감각 게임. 점이 지나가고, 원이 커지고, 막대가 돌아갑니다. 목표와 가장 정확히 겹쳤다고 느끼는 순간 화면을 한 번 누르세요. 5라운드 평균으로 점수가 나오고, 목표에서 몇 px·몇 도 벗어났는지 원래 값도 함께 보여 줍니다. 매일 새로 열리는 오늘의 판. Tap the moment the moving mark lines up with the target — five rounds, averaged.">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<!-- 기계가 읽는 전송 목록 — 사람이 읽는 고지는 FAQ 와 /privacy/ 에 있다.
+     형식: 이벤트:인자,인자; ... · 검사기가 소스의 ga() 호출과 양방향 대조한다. -->
+<meta name="hp-ga-disclosure" content="game_start:game,mode; game_end:mode,avg; lang_switch:lang">
+<!-- 파라미터의 사람 낱말 — 형식: 인자=한국어 낱말|english word; ...
+     검사기가 이 낱말이 각 언어 고지 문구에 실제로 있는지 본다(문구와 앵커가 함께 늙게).
+     문구에 인자 이름을 리터럴로 박으라는 뜻은 아니다 — 산문은 열린 채로 둔다. -->
+<meta name="hp-ga-labels" content="game=어느 게임인지|which game; mode=모드|mode; avg=평균 점수|average score; lang=언어|language">
 <meta property="og:title" content="멈춰! — 움직이는 대상이 목표와 겹치는 순간을 잡는 게임 | Stop!">
 <meta property="og:description" content="점·원·막대가 움직입니다. 목표와 가장 정확히 겹쳤다고 느끼는 순간 한 번 누르세요 — 5라운드 평균 점수로 겨룹니다.">
 <meta property="og:type" content="website">
@@ -249,7 +256,7 @@
   <details><summary data-i18n="faq1q">기기가 느리면 손해인가요?</summary><p data-i18n="faq1a">아니요. 대상의 위치는 화면을 몇 번 다시 그렸는지가 아니라, 브라우저가 주는 고정밀 시계를 읽어 계산합니다. 누른 순간도 브라우저가 그 입력에 찍어 준 시각을 씁니다. 그래서 화면이 버벅이거나 다른 창이 바쁘더라도 판정에 쓰이는 값은 달라지지 않습니다.</p></details>
   <details><summary data-i18n="faq2q">점수는 어떻게 계산되나요?</summary><p data-i18n="faq2a">먼저 목표에서 얼마나 벗어났는지를 원래 단위로 잽니다 — 지점과 크기는 픽셀(px), 각도는 도(°)입니다. 그 값을 그 라운드에 허용된 폭으로 나눠 100점 만점으로 환산합니다. 허용된 폭만큼 벗어나면 0점이고, 정확히 겹치면 100점입니다. 결과 화면에는 환산 점수와 원래 값이 항상 함께 나옵니다.</p></details>
   <details><summary data-i18n="faq3q">「동작 줄이기」를 켜면 어떻게 되나요?</summary><p data-i18n="faq3a">대상의 움직임은 그대로 남습니다. 이 게임에서 움직임은 꾸밈이 아니라 판정 대상 그 자체여서, 없애면 게임이 성립하지 않기 때문입니다. 대신 판정과 무관한 연출(움직이는 자취, 판 눌림, 화면 전환)은 꺼집니다. 속도와 채점 기준은 설정과 상관없이 똑같습니다. 움직임 자체가 불편하다면 대문의 다른 게임을 권합니다.</p></details>
-  <details><summary data-i18n="faq4q">기록은 어디에 저장되나요?</summary><p data-i18n="faq4a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 보내는 것은 판수 집계뿐이고 판의 내용은 보내지 않습니다. 브라우저 데이터를 지우면 기록도 함께 지워집니다. 저장하는 항목은 <a href="/privacy/">개인정보처리방침</a>에 모두 적어 두었습니다.</p></details>
+  <details><summary data-i18n="faq4q">기록은 어디에 저장되나요?</summary><p data-i18n="faq4a">기록은 사용 중인 기기의 브라우저에만 저장됩니다. 서버로는 판수 집계와 함께, 판을 시작하고 끝낼 때와 언어를 바꿀 때 방문 통계용 이벤트가 갑니다 — 어느 게임인지와 어떤 모드로 했는지, 5라운드 평균 점수 같은 요약 값이 함께 실립니다. 개인을 직접 알아볼 수 있는 정보는 넣지 않으며, 보내는 항목의 최신 목록은 <a href="/privacy/">개인정보처리방침</a>에 유지합니다. 브라우저 데이터를 지우면 기기에 저장된 기록도 함께 지워집니다.</p></details>
 </section>
 
 <footer>
@@ -409,7 +416,7 @@ const I18N = {
     faq3q:'「동작 줄이기」를 켜면 어떻게 되나요?',
     faq3a:'대상의 움직임은 그대로 남습니다. 이 게임에서 움직임은 꾸밈이 아니라 판정 대상 그 자체여서, 없애면 게임이 성립하지 않기 때문입니다. 대신 판정과 무관한 연출(움직이는 자취, 판 눌림, 화면 전환)은 꺼집니다. 속도와 채점 기준은 설정과 상관없이 똑같습니다. 움직임 자체가 불편하다면 대문의 다른 게임을 권합니다.',
     faq4q:'기록은 어디에 저장되나요?',
-    faq4a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 보내는 것은 판수 집계뿐이고 판의 내용은 보내지 않습니다. 브라우저 데이터를 지우면 기록도 함께 지워집니다. 저장하는 항목은 <a href="/privacy/">개인정보처리방침</a>에 모두 적어 두었습니다.',
+    faq4a:'기록은 사용 중인 기기의 브라우저에만 저장됩니다. 서버로는 판수 집계와 함께, 판을 시작하고 끝낼 때와 언어를 바꿀 때 방문 통계용 이벤트가 갑니다 — 어느 게임인지와 어떤 모드로 했는지, 5라운드 평균 점수 같은 요약 값이 함께 실립니다. 개인을 직접 알아볼 수 있는 정보는 넣지 않으며, 보내는 항목의 최신 목록은 <a href="/privacy/">개인정보처리방침</a>에 유지합니다. 브라우저 데이터를 지우면 기기에 저장된 기록도 함께 지워집니다.',
     howTitle:'게임 방법', dailyTitle:'오늘의 판', tipsTitle:'요령', faqTitle:'자주 묻는 질문',
     footer:'© 2026 멈춰! · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
     navPrivacy:'개인정보처리방침', navAbout:'소개'
@@ -477,7 +484,7 @@ const I18N = {
     faq3q:'What happens if I turn on “reduce motion”?',
     faq3a:'The mark keeps moving. In this game the motion is not decoration — it is the thing being judged, so removing it would remove the game. What does switch off is everything the judging does not need: the moving trail, the press bounce, the screen transitions. Speed and scoring are identical either way. If motion itself is a problem for you, the other games on the front page are a better fit.',
     faq4q:'Where are my records stored?',
-    faq4a:'Only in the browser on this device. The only thing sent to the server is the round count; nothing about your play is sent. Clearing your browser data clears the records too. Everything stored is listed in the <a href="/privacy/">privacy policy</a>.',
+    faq4a:'Records are stored only in the browser on this device. Along with the round count, the server also receives visit-statistics events when a board starts and ends and when you switch language, carrying summary values such as which game it was, which mode you played and your five-round average score. Anything that would directly identify you is left out, and the current list of what is sent is kept in the <a href="/privacy/">privacy policy</a>. Clearing your browser data also clears the records stored on this device.',
     howTitle:'How to play', dailyTitle:'Daily board', tipsTitle:'Tips', faqTitle:'FAQ',
     footer:'© 2026 Stop! · Privacy: records are stored on this device only; third-party cookies (Google) may be used for ads.',
     navPrivacy:'Privacy policy', navAbout:'About'
@@ -532,8 +539,13 @@ function counted(fn){ return () => { drawCount++; return fn(); }; }
 /* ★판 짜기 — 다섯 라운드를 **여기서 통째로 확정**한다.
    종류의 차례 · 목표 · 속도 · 방향 · 시작 위치 · 허용폭까지 전부 여기서 나온다.
    이 함수가 끝난 뒤에는 플레이가 무엇을 하든 난수를 당기지 않는다. */
-function dealBoard(seedKey){
-  const rnd = counted(mulberry32(hashStr(String(seedKey))));
+/* count=true 일 때만 난수 당김을 센다 — 셈은 '실제로 플레이할 판' 에만 매단다.
+   시작 화면 미리보기(refreshStart)나 바깥 관측(__st.dealBoard)이 같은 셈을 건드리면
+   '플레이가 난수를 당기지 않았다' 는 관측량이 관측 행위 자체로 오염된다(codex R1).
+   이름이 read-only 인 것과 행위가 read-only 인 것은 다르다. */
+function dealBoard(seedKey, count){
+  const base = mulberry32(hashStr(String(seedKey)));
+  const rnd = count ? counted(base) : base;
   const rf = (a, b) => a + rnd() * (b - a);
   /* 종류의 차례도 seed 로 정한다 — 플레이 중에 정해지면 그것도 난수 소비다(피셔-예이츠) */
   const kinds = KINDS.slice();
@@ -761,7 +773,7 @@ function beginRun(m){
   /* ★연습 모드는 매번 다른 판이어도 된다 — 단 같은 계약이 적용된다:
        판을 시작할 때 다섯 라운드를 전부 굴려 확정하고, 그 뒤로는 난수를 당기지 않는다. */
   seedKeyNow = (m === 'daily') ? dailySeedKey(t0) : ('practice-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36));
-  board = dealBoard(seedKeyNow);
+  board = dealBoard(seedKeyNow, true);   /* 실제로 치를 판 — 여기서만 센다 */
   roundIdx = 0; results = []; lastResult = null;
   phase = 'idle';
   clearTimers(); stopLoop();
@@ -793,8 +805,13 @@ function startRound(){
 function endRound(stamp){
   if (phase !== 'running') return;
   const r = board[roundIdx];
-  const missed = (stamp === null);
-  const t = missed ? ROUND_LIMIT_MS : Math.max(0, stamp - roundT0);
+  /* ★제한 시간은 **흐른 시간**으로 정한다 — 타이머 콜백이 실제로 돌았는가로 정하지 않는다.
+     그 둘은 다르다: 브라우저 일감이 밀리면 setTimeout 콜백이 늦게 오고, 그 사이에 들어온
+     10초 넘은 입력이 '아직 제한에 안 걸렸다' 는 이유로 정상 채점된다(codex R1 이 독립 표본으로
+     재현했다). 콜백은 알림일 뿐이고, 계약은 'roundT0 로부터 10초' 다. */
+  const elapsed = (stamp === null) ? ROUND_LIMIT_MS : Math.max(0, stamp - roundT0);
+  const missed = (stamp === null) || (elapsed >= ROUND_LIMIT_MS);
+  const t = missed ? ROUND_LIMIT_MS : elapsed;
   const diff = diffAt(r, t);
   const score = missed ? 0 : scoreOf(diff, r.tol);
   /* 상태 전이를 먼저 끝낸다 — 이 줄들이 끝난 뒤에 들어오는 입력은 이미 다음 국면의 입력이다. */
@@ -934,7 +951,7 @@ function refreshStart(){
   $('btnDaily').textContent = done ? T('dailyDoneBtn', no) : T('dailyBtn', no);
   /* ★시작 화면에서 보여 주는 '오늘의 차례' 도 seed 로만 정해진다 — 여기서 짠 판은 버리고,
        실제 판은 시작할 때 같은 seed 로 다시 짠다(같은 seed 는 같은 판이다). */
-  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint', kindsLine(dealBoard(dailySeedKey())));
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint', kindsLine(dealBoard(dailySeedKey(), false)));
   $('btnStart').textContent = T('start');
   $('startTitle').textContent = T('title2');
 }
@@ -1046,7 +1063,7 @@ window.__st = {
   diffAt: (r, t) => diffAt(r, t),
   scoreOf: (d, tol) => scoreOf(d, tol),
   angDist: (a, b) => angDist(a, b),
-  dealBoard: k => copy(dealBoard(String(k))),
+  dealBoard: k => copy(dealBoard(String(k), false)),   /* 관측은 셈을 건드리지 않는다 */
   seedKey: d => dailySeedKey(d ? new Date(d) : new Date()),
   dailyNo: d => dailyNo(d ? new Date(d) : new Date()),
   seedDraws: (key, n) => { const f = mulberry32(hashStr(String(key))); return Array.from({length:n}, () => +f().toFixed(9)); },

@@ -106,12 +106,73 @@ const MUTATIONS = {
     where: 'js',
     apply: s => s.replace('const TOL_SPOT = [88, 112];', 'const TOL_SPOT = [10, 18];')
   },
-  'm-kind-runtime': {
-    why: '라운드 종류를 판을 짤 때가 아니라 라운드를 시작할 때 고른다(유형 배치가 난수 소비가 된다)',
+  /* ★이름이 하는 말과 변이가 하는 일을 맞췄다(codex R1 minor 2).
+     예전 m-kind-runtime 은 이름과 달리 '라운드 시작 때 고르기' 를 만들지 않고 dealBoard 안에서
+     마지막 kind 를 바꿨다 — 구성 검사는 붉어졌지만 그것은 **주장한 결함의 검출력 증거가 아니었다**.
+     그래서 둘로 나눈다: 구성 수를 깨는 변이(m-composition-count)와, 실제로 라운드 시작 시점에
+     종류를 다시 고르는 변이(m-kind-at-round-start). */
+  'm-composition-count': {
+    why: '판의 구성 수를 깨뜨린다(지점을 하나 더 만들어 지점3·크기2·각도0 이 되게 한다)',
     catcher: '한 판의 구성이 지점2·크기2·각도1 이다',
     where: 'js',
     apply: s => s.replace('    out.push({ kind, target, tol, speed, dir, start });',
                           '    out.push({ kind: (i === 4 ? \'spot\' : kind), target, tol, speed, dir, start });')
+  },
+  'm-kind-at-round-start': {
+    why: '라운드 종류를 판을 짤 때가 아니라 ★라운드를 시작할 때 다시 고른다(유형 배치가 플레이 중에 정해진다)',
+    catcher: '라운드가 시작될 때 보이는 종류가 판을 짤 때 정한 종류와 같다',
+    where: 'js',
+    apply: s => s.replace('  phase = \'running\';\n  roundT0 = nowMs();',
+                          '  phase = \'running\';\n  board[roundIdx].kind = KINDS[Math.floor(Math.random() * KINDS.length)];\n  roundT0 = nowMs();')
+  },
+  'm-limit-by-callback': {
+    why: '제한 시간을 흐른 시간이 아니라 ★타이머 콜백이 돌았는가로 정한다(콜백이 늦으면 10초 넘은 입력이 정상 채점된다)',
+    catcher: '10초 뒤 입력은 타이머 콜백 전이어도 놓침이다',
+    where: 'js',
+    apply: s => s.replace('  const missed = (stamp === null) || (elapsed >= ROUND_LIMIT_MS);',
+                          '  const missed = (stamp === null);')
+  },
+  'm-daily-const-seed': {
+    why: '오늘의 판 seed 를 날짜와 무관한 상수로 묶는다(부품은 멀쩡한데 배선이 날짜를 안 쓴다)',
+    catcher: '실제 daily 배선의 seedKey 가 그 날짜의 key 다',
+    where: 'js',
+    apply: s => s.replace("  seedKeyNow = (m === 'daily') ? dailySeedKey(t0) :",
+                          "  seedKeyNow = (m === 'daily') ? 'hanpango-daily-stop-FIXED' :")
+  },
+  'm-longhand-blink': {
+    why: '축약형이 아니라 longhand 로 0.2초 무한 깜빡임을 넣는다(한 문법만 보는 그물을 빠져나간다)',
+    catcher: '초당 3회를 넘는 깜빡임이 없다',
+    where: 'html',
+    apply: s => s.replace('  .pad:active{transform:scale(.995)}',
+                          '  .pad:active{transform:scale(.995)}\n  @keyframes blx{0%{opacity:1}50%{opacity:0}100%{opacity:1}}\n  .padcap{animation-name:blx;animation-duration:0.2s;animation-iteration-count:infinite}')
+  },
+  'm-observer-counts': {
+    why: '관측 창구(__st.dealBoard)가 난수 당김 셈을 다시 건드리게 한다(관측이 관측 대상을 바꾼다)',
+    catcher: '관측 API dealBoard 는 draws 상태를 바꾸지 않는다',
+    where: 'js',
+    apply: s => s.replace('  dealBoard: k => copy(dealBoard(String(k), false)),',
+                          '  dealBoard: k => copy(dealBoard(String(k), true)),')
+  },
+  'm-disclosure-drops-event': {
+    why: '기계가 읽는 전송 목록에서 실제로 보내는 이벤트 하나를 지운다(고지가 실제보다 적어진다)',
+    catcher: '기계가 읽는 전송 목록이 실제 호출과 일치한다',
+    where: 'html',
+    apply: s => s.replace('content="game_start:game,mode; game_end:mode,avg; lang_switch:lang"',
+                          'content="game_start:game,mode; game_end:mode,avg"')
+  },
+  'm-stale-notice': {
+    why: '앵커는 그대로 두고 사람 문구에서 항목 하나(평균 점수)를 빠뜨린다 — 검사는 초록인데 사용자는 낡은 고지를 읽는 상태',
+    catcher: '고지 문구가 앵커의 항목을 실제로 말한다(ko·en)',
+    where: 'js',
+    apply: s => s.replace('어떤 모드로 했는지, 5라운드 평균 점수 같은 요약 값이 함께 실립니다.',
+                          '어떤 모드로 했는지 같은 요약 값이 함께 실립니다.')
+  },
+  'm-closed-notice': {
+    why: '사람이 읽는 전송 고지를 다시 닫는다(항목이 늘면 그 문장이 그 순간 거짓이 되는 형태)',
+    catcher: '전송 고지 문안이 닫혀 있지 않다(ko·en)',
+    where: 'js',
+    apply: s => s.replace('브라우저 데이터를 지우면 기기에 저장된 기록도 함께 지워집니다.',
+                          '그 밖에는 아무것도 보내지 않습니다. 브라우저 데이터를 지우면 기기에 저장된 기록도 함께 지워집니다.')
   },
   'm-order-fixed': {
     why: '종류의 차례를 seed 로 섞지 않고 늘 같은 순서로 둔다',
@@ -503,6 +564,72 @@ function xScore(diff, tol){
 }
 const xMean = a => a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0;
 
+/* ------------------------------------------------------------ CSS 애니메이션 단위 모으기
+   ★한 문법만 보면 다른 문법으로 쓴 같은 결함이 통과한다(codex R1 이 longhand 표본으로 증명).
+   그래서 규칙 블록마다 축약형과 longhand 를 **하나의 단위**로 합쳐 주기와 반복 횟수를 낸다.
+   완전한 CSS 파서가 아니라 이 저장소의 <style> 하나를 읽기 위한 최소한의 것이고,
+   못 읽은 블록은 통과로 접지 않고 그대로 단위 목록에 남긴다. */
+function cssTextOf(html){
+  return [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+}
+function timeToSec(v){
+  const m = /^([\d.]+)(ms|s)$/.exec(String(v).trim());
+  if (!m) return null;
+  const n = parseFloat(m[1]);
+  if (!isFinite(n)) return null;
+  return m[2] === 'ms' ? n / 1000 : n;
+}
+/* 규칙 블록 = 중괄호 안에 다시 중괄호가 없는 가장 안쪽 블록(@media·@keyframes 안쪽도 그렇게 잡힌다) */
+function animationUnits(html){
+  const css = cssTextOf(html);
+  const out = [];
+  for (const m of css.matchAll(/([^{}]*)\{([^{}]*)\}/g)){
+    const sel = (m[1] || '').trim().split('\n').pop().trim();
+    const body = m[2] || '';
+    const decl = {};
+    for (const d of body.split(';')){
+      const i = d.indexOf(':');
+      if (i < 0) continue;
+      decl[d.slice(0, i).trim().toLowerCase()] = d.slice(i + 1).trim();
+    }
+    let dur = null, iter = null, name = null, from = null;
+    if (decl['animation']){
+      from = 'shorthand';
+      const parts = decl['animation'].split(/\s+/);
+      for (const p of parts){
+        const t = timeToSec(p);
+        if (t !== null && dur === null){ dur = t; continue; }      /* 첫 시간값이 duration 이다 */
+        if (/^infinite$/i.test(p)){ iter = Infinity; continue; }
+        if (/^[\d.]+$/.test(p) && iter === null && timeToSec(p) === null){ iter = parseFloat(p); continue; }
+        if (/^[a-zA-Z_-][\w-]*$/.test(p) && !/^(linear|ease|ease-in|ease-out|ease-in-out|infinite|normal|reverse|alternate|alternate-reverse|none|forwards|backwards|both|running|paused|step-start|step-end)$/i.test(p) && name === null) name = p;
+      }
+    }
+    if (decl['animation-name'] || decl['animation-duration'] || decl['animation-iteration-count']){
+      from = from || 'longhand';
+      if (decl['animation-name'] && name === null) name = decl['animation-name'];
+      if (decl['animation-duration']){
+        const t = timeToSec(decl['animation-duration']);
+        if (t !== null) dur = t;
+      }
+      if (decl['animation-iteration-count']){
+        const v = decl['animation-iteration-count'].trim();
+        iter = /^infinite$/i.test(v) ? Infinity : parseFloat(v);
+      }
+    }
+    if (!from) continue;
+    if (iter === null || isNaN(iter)) iter = 1;                    /* CSS 기본값 */
+    out.push({ sel, name, duration: dur, iterations: iter, from });
+  }
+  return out;
+}
+/* 초당 3회를 넘는 깜빡임(WCAG 2.3.1/2.3.2): 한 주기가 0.334초 미만이면서 **네 번 넘게** 반복하는 것.
+   ★반복하지 않는(또는 세 번 이하) 빠른 연출은 '1초 안에 세 번 넘게' 를 만들지 못하므로 잡지 않는다 —
+   여기서 넓히면 멀쩡한 연출이 붉어지고, 사람이 게이트를 끄게 된다. */
+function flashOffenders(html){
+  return animationUnits(html).filter(u =>
+    u.duration !== null && u.duration > 0 && u.duration < 0.334 && u.iterations > 3);
+}
+
 /* ------------------------------------------------------------ 함수 본문 떼어내기(정적 검사용)
    중괄호를 세어 함수 하나의 본문만 꺼낸다. 완전한 파서가 아니라 이 파일 하나를 읽기 위한
    최소한의 것이고, 머리글이 안 보이면 **통과가 아니라 판정 불가**로 올린다. */
@@ -795,7 +922,7 @@ section('7. 동작 줄이기는 연출만 줄인다 (판정·속도·허용폭·
 
   /* ③ 정적 — 판정 함수 어디에도 reduceMotion 이 없다 */
   const JUDGE = ['function tri(p){', 'function valueAt(r, t){', 'function diffAt(r, t){',
-                 'function scoreOf(diff, tol){', 'function dealBoard(seedKey){',
+                 'function scoreOf(diff, tol){', 'function dealBoard(seedKey, count){',
                  'function startRound(){', 'function endRound(stamp){', 'function finishRun(){'];
   let missing = [], touched = [];
   for (const h of JUDGE){
@@ -806,17 +933,40 @@ section('7. 동작 줄이기는 연출만 줄인다 (판정·속도·허용폭·
   if (missing.length) cannot('판정 함수에 동작 줄이기 분기가 없다', '함수 머리글을 찾지 못했다(앵커 노후화): ' + missing.join(' | '));
   else ok('판정 함수에 동작 줄이기 분기가 없다', touched.length === 0, '닿은 함수: ' + touched.join(' | '));
 
-  /* ④ 깜빡임 — 반복되는 애니메이션의 주기가 3Hz 를 넘지 않는다(WCAG 2.3.1/2.3.2) */
-  const anims = [...HTML_TEXT.matchAll(/animation\s*:\s*([^;}]+)/g)].map(m => m[1].trim());
-  const fast = anims.filter(a => {
-    if (!/infinite/.test(a)) return false;
-    const t = /([\d.]+)m?s/.exec(a);
-    if (!t) return false;
-    const sec = /ms/.test(a) ? parseFloat(t[1]) / 1000 : parseFloat(t[1]);
-    return sec > 0 && sec < 0.334;     /* 한 주기 0.334초 미만 = 초당 3회 초과 */
-  });
-  ok('초당 3회를 넘는 깜빡임이 없다', fast.length === 0, JSON.stringify(fast));
-  note('반복 애니메이션 선언 ' + anims.filter(a => /infinite/.test(a)).length + '건 · 전체 animation 선언 ' + anims.length + '건');
+  /* ④ 깜빡임 — 반복되는 애니메이션의 주기가 3Hz 를 넘지 않는다(WCAG 2.3.1/2.3.2)
+     ★예전 규칙은 `animation:` 축약형만 정규식으로 훑었다. 그래서 같은 것을 longhand
+     (`animation-name`/`animation-duration`/`animation-iteration-count`)로 적은 0.2초 무한
+     깜빡임이 **그물 밖으로 빠져나가 70/0/0 으로 통과했다**(codex R1 이 표본으로 재현).
+     한 문법만 보는 것은 계약이 아니라 그 계약의 **대리물**을 보는 것이다. 그래서 이제는
+     규칙 블록 단위로 축약형과 longhand 를 **같은 computed 단위로 합쳐** 주기와 반복을 잰다. */
+  /* ★JSON.stringify 는 Infinity 를 null 로 찍는다 — 그대로 두면 '반복 무한' 이 '반복 횟수 없음'
+     처럼 읽혀 라벨이 값과 어긋난다. 사람 말로 바꿔 적는다. */
+  ok('초당 3회를 넘는 깜빡임이 없다', flashOffenders(HTML_TEXT).length === 0,
+     JSON.stringify(flashOffenders(HTML_TEXT).map(u => ({ sel: u.sel, name: u.name, duration: u.duration,
+       iterations: (u.iterations === Infinity ? 'infinite' : u.iterations), from: u.from }))));
+  {
+    const all = animationUnits(HTML_TEXT);
+    note('애니메이션 선언 ' + all.length + '건(축약형 ' + all.filter(u => u.from === 'shorthand').length +
+         ' · longhand ' + all.filter(u => u.from === 'longhand').length + ') · 반복 무한 ' +
+         all.filter(u => u.iterations === Infinity).length + '건');
+  }
+  /* ★탐지 범위를 넓히면 반대편(오탐)이 열린다 — 그래서 붉어야 하는 표본과 초록이어야 하는
+     표본을 **짝으로** 고정한다. 한쪽만 두면 '전부 잡는' 규칙도 통과한다. */
+  {
+    const RED_longhand = '.x{animation-name:bl;animation-duration:0.2s;animation-iteration-count:infinite}';
+    const RED_shorthand = '.y{animation:bl .2s linear infinite}';
+    const GREEN_2hz = '.z{animation:bl .5s linear infinite}';
+    const GREEN_once = '.w{animation-name:bl;animation-duration:0.1s;animation-iteration-count:1}';
+    const GREEN_none = '.v{color:red}';
+    const wrap = css => '<style>' + css + '</style>';
+    ok('깜빡임 검사 — longhand 5Hz 무한을 잡는다(RED 표본)', flashOffenders(wrap(RED_longhand)).length === 1);
+    ok('깜빡임 검사 — 축약형 5Hz 무한을 잡는다(RED 표본)', flashOffenders(wrap(RED_shorthand)).length === 1);
+    ok('깜빡임 검사 — 2Hz 무한은 통과시킨다(GREEN 표본)', flashOffenders(wrap(GREEN_2hz)).length === 0,
+       JSON.stringify(flashOffenders(wrap(GREEN_2hz))));
+    ok('깜빡임 검사 — 빠르지만 반복하지 않는 것은 통과시킨다(GREEN 표본)', flashOffenders(wrap(GREEN_once)).length === 0,
+       JSON.stringify(flashOffenders(wrap(GREEN_once))));
+    ok('깜빡임 검사 — 애니메이션이 없으면 통과시킨다(GREEN 표본)', flashOffenders(wrap(GREEN_none)).length === 0);
+  }
   ok('동작 줄이기 미디어 블록이 있다', /@media \(prefers-reduced-motion: reduce\)/.test(HTML_TEXT));
 }
 
@@ -923,6 +1073,203 @@ section('11. 정적 마크업 — 계약이 문서에 남아 있는가');
   ok('관측 창구에 상태를 바꾸는 명령이 없다',
      !/__st\s*=\s*\{[\s\S]*?(start|press|stop|set[A-Z])\w*\s*:/.test(SRC.slice(SRC.indexOf('window.__st'))),
      '창구는 읽기 전용이어야 한다');
+}
+
+/* ============================================================ 12. R1 지적 수리분 — 대리물이 아니라 계약을 잰다
+   codex R1 이 잡은 네 건은 모두 '계약이 아니라 그 옆의 무언가' 를 재고 있었다:
+     · 제한 시간을 '타이머 콜백이 돌았는가' 로 (계약은 '흐른 시간')
+     · 오늘의 판을 '부품이 옳은가' 로 (계약은 '배선이 그 부품을 쓰는가')
+     · 관측 창구를 '메서드 이름' 으로 (계약은 '행위가 상태를 안 바꾼다')
+     · 전송 고지를 사람 눈으로 (계약은 '닫힌 목록이 실제 호출과 같다')
+   그래서 아래는 전부 **계약 쪽**을 직접 잰다. */
+section('12. 제한 시간 — 콜백이 아니라 흐른 시간이 정한다');
+{
+  /* ★타이머 콜백을 일부러 보류한 채(flush 하지 않은 채) 경계 세 지점을 두드린다.
+     콜백이 아직 안 돌았다고 해서 10초가 안 지난 것이 아니다. */
+  const at = ms => {
+    const g = boot({});
+    startPractice(g);
+    const t0 = g.st.state().roundT0;
+    g.pressPointer(t0 + ms, { stamp: t0 + ms });   /* flush 없음 = 콜백 보류 */
+    const r = g.st.state().results[0];
+    return r ? { missed: r.missed, score: r.score, atMs: Math.round(r.atMs) } : null;
+  };
+  const a = at(9999), b = at(10000), c = at(10001), d2 = at(15000);
+  ok('9999ms 입력은 정상 채점된다(경계 안쪽)', !!a && a.missed === false && a.atMs === 9999, JSON.stringify(a));
+  ok('10000ms 입력은 놓침이다(경계)', !!b && b.missed === true && b.score === 0 && b.atMs === EXP.ROUND_LIMIT_MS, JSON.stringify(b));
+  ok('10초 뒤 입력은 타이머 콜백 전이어도 놓침이다', !!c && c.missed === true && c.score === 0 && c.atMs === EXP.ROUND_LIMIT_MS, JSON.stringify(c));
+  ok('한참 뒤(15000ms) 입력도 놓침이고 시간은 제한값으로 정규화된다', !!d2 && d2.missed === true && d2.atMs === EXP.ROUND_LIMIT_MS, JSON.stringify(d2));
+}
+
+section('13. 오늘의 판 — 부품이 아니라 배선을 잰다');
+{
+  const D1 = new Date(2026, 8, 2, 10, 30, 0).getTime();
+  const D2 = new Date(2026, 8, 3, 10, 30, 0).getTime();
+  const open = ms => {
+    const g = boot({ Date: fixedDate(ms), store: makeStore([['bp.lang','ko']]) });
+    startDaily(g);
+    const s = g.st.state();
+    return { g, s, key: g.st.seedKey(ms), deal: g.st.dealBoard(g.st.seedKey(ms)) };
+  };
+  const o1 = open(D1), o2 = open(D2);
+  /* ★실제 btnDaily 경로가 만든 판을, 그 날짜 seed 로 짠 판과 직접 맞댄다 */
+  eq('실제 daily 배선의 seedKey 가 그 날짜의 key 다', o1.s.seedKey, o1.key);
+  eq('실제 daily 배선의 판이 그 날짜 key 의 판이다', JSON.stringify(o1.s.board), JSON.stringify(o1.deal));
+  eq('다른 날짜도 마찬가지다(같은 방식으로 한 번 더)', o2.s.seedKey, o2.key);
+  eq('그 날짜의 판도 그 key 의 판이다', JSON.stringify(o2.s.board), JSON.stringify(o2.deal));
+  /* ★양방향 — 날짜가 다르면 실제로 판이 달라져야 한다(상수 seed 면 여기서 걸린다) */
+  ok('날짜가 다르면 실제 daily 판도 다르다', JSON.stringify(o1.s.board) !== JSON.stringify(o2.s.board),
+     'seedKey1=' + o1.s.seedKey + ' seedKey2=' + o2.s.seedKey);
+  ok('두 날짜의 seedKey 자체도 다르다', o1.s.seedKey !== o2.s.seedKey, o1.s.seedKey + ' vs ' + o2.s.seedKey);
+}
+
+section('14. 라운드 종류는 판을 짤 때 정해진다 (플레이가 다시 고르지 않는다)');
+{
+  const ms = new Date(2026, 8, 2, 10, 30, 0).getTime();
+  const g = boot({ Date: fixedDate(ms) });
+  /* ★기대값은 실제로 돌아가는 판이 아니라 **그 날짜 seed 로 따로 짠 판**에서 가져온다 —
+     상태에서 가져오면 라운드 시작 때 종류를 갈아치우는 결함이 첫 라운드에서는 드러나지 않는다. */
+  const dealt = g.st.dealBoard(g.st.seedKey(ms)).map(r => r.kind);
+  startDaily(g);
+  const seenAtStart = [];
+  const randBefore = g.rand(), drawsBefore = g.st.draws();
+  for (let i = 0; i < EXP.ROUNDS; i++){
+    const s = g.st.state();
+    if (s.phase !== 'running') break;
+    seenAtStart.push(s.board[s.roundIdx].kind);
+    playRound(g, 1000 + i * 70);
+  }
+  g.flush();
+  eq('라운드가 시작될 때 보이는 종류가 판을 짤 때 정한 종류와 같다', seenAtStart, dealt);
+  eq('끝난 라운드에 기록된 종류도 같다', g.st.result().rounds.map(r => r.kind), dealt);
+  eq('그 사이 Math.random 호출 0', g.rand(), randBefore);
+  eq('그 사이 seed 난수 당김 0', g.st.draws(), drawsBefore);
+}
+
+section('15. 관측 창구 — 이름이 아니라 행위를 잰다');
+{
+  const g = boot({ store: makeStore([['bp.lang','ko']]) });
+  startPractice(g);
+  playRound(g, 1200);
+  const before = { state: JSON.stringify(g.st.state()), draws: g.st.draws(), rand: g.rand(),
+                   store: JSON.stringify(g.store.keys().sort().map(k => [k, g.store.getItem(k)])),
+                   dom: g.snapshot() };
+  /* ★모든 관측 메서드를 한 번씩 부른다 — 하나라도 상태를 건드리면 아래 대조가 붉어진다 */
+  const called = [];
+  for (const k of Object.keys(g.st)){
+    const f = g.st[k];
+    if (typeof f !== 'function') continue;
+    try {
+      if (k === 'dealBoard' || k === 'seedDraws') f('probe-key', 3);
+      else if (k === 'tri') f(0.4);
+      else if (k === 'valueAt' || k === 'diffAt') f(g.st.state().board[0], 500);
+      else if (k === 'scoreOf' || k === 'angDist') f(3, 12);
+      else if (k === 'betterThan') f({ avg: 1 }, { avg: 2 });
+      else if (k === 'shown') f('over');
+      else f();
+      called.push(k);
+    } catch (e){ called.push(k + '(throw)'); }
+  }
+  const after = { state: JSON.stringify(g.st.state()), draws: g.st.draws(), rand: g.rand(),
+                  store: JSON.stringify(g.store.keys().sort().map(k => [k, g.store.getItem(k)])),
+                  dom: g.snapshot() };
+  ok('관측 메서드를 빠짐없이 불렀다', called.length >= 20, called.length + '개: ' + called.join(','));
+  eq('관측 API 는 게임 상태를 바꾸지 않는다', after.state === before.state, true);
+  eq('관측 API dealBoard 는 draws 상태를 바꾸지 않는다', after.draws, before.draws);
+  eq('관측 API 는 Math.random 을 소비하지 않는다', after.rand, before.rand);
+  eq('관측 API 는 저장소를 바꾸지 않는다', after.store === before.store, true);
+  eq('관측 API 는 화면을 바꾸지 않는다', after.dom === before.dom, true);
+}
+
+section('16. 전송 고지 — 기계 목록은 실제 호출과 같고, 사람 문안은 닫히지 않았는가');
+{
+  /* ★고지를 두 층으로 나눈다(worker-3 와 합의한 형식).
+     (가) 사람이 읽는 FAQ 산문 — 무엇이 가는지 적되 '이것이 전부' 로 닫지 않고 /privacy/ 를 가리킨다.
+          닫아 말하면 게임이 늘거나 값이 늘 때마다 그 문장이 그 순간 거짓이 된다.
+     (나) 기계가 읽는 목록 — head 의 meta[name=hp-ga-disclosure].
+     한 층에 둘을 다 맡기면 '기계가 읽게 하려고 산문을 닫는' 모순이 생긴다. */
+  const calls = [...SRC.matchAll(/\bga\('([a-z_]+)',\s*\{([^}]*)\}/g)].map(m => ({
+    event: m[1],
+    keys: m[2].split(',').map(s => s.split(':')[0].trim()).filter(Boolean).sort()
+  }));
+  ok('소스에서 GA 호출을 찾았다', calls.length > 0, JSON.stringify(calls.map(c => c.event)));
+
+  const meta = /<meta name="hp-ga-disclosure" content="([^"]*)">/.exec(HTML_TEXT);
+  if (!meta) cannot('기계가 읽는 전송 목록이 실제 호출과 일치한다', 'meta[name=hp-ga-disclosure] 를 찾지 못했다');
+  else {
+    const declared = {};
+    for (const item of meta[1].split(';')){
+      const s = item.trim();
+      if (!s) continue;
+      const i = s.indexOf(':');
+      if (i < 0){ declared[s] = []; continue; }
+      declared[s.slice(0, i).trim()] = s.slice(i + 1).split(',').map(x => x.trim()).filter(Boolean).sort();
+    }
+    const bad = [];
+    /* → 방향: 실제로 보내는 것이 전부 고지돼 있는가 */
+    for (const c of calls){
+      if (!(c.event in declared)){ bad.push('고지누락:' + c.event); continue; }
+      for (const k of c.keys) if (declared[c.event].indexOf(k) < 0) bad.push('인자누락:' + c.event + '.' + k);
+    }
+    /* ← 방향: 고지한 것이 실제로 존재하는가(없는 것을 고지하는 것도 거짓이다) */
+    for (const e of Object.keys(declared)){
+      const c = calls.find(x => x.event === e);
+      if (!c){ bad.push('없는이벤트를고지:' + e); continue; }
+      for (const k of declared[e]) if (c.keys.indexOf(k) < 0) bad.push('없는인자를고지:' + e + '.' + k);
+    }
+    ok('기계가 읽는 전송 목록이 실제 호출과 일치한다', bad.length === 0, bad.join(' | '));
+    note('실제 전송 ' + calls.map(c => c.event + '(' + c.keys.join(',') + ')').join(' · '));
+  }
+
+  /* 사람 문안 — 언어별로 따로 본다(한쪽 언어에서만 닫히는 일이 실제로 있었다) */
+  const BANNED_KO = ['전부입니다', '뿐입니다', '만 보냅니다', '판의 내용은 보내지 않습니다', '아무것도 보내지 않습니다'];
+  const BANNED_EN = ['the only thing', 'only the round count', 'nothing about your play', 'this is everything', 'that is all'];
+  const faqs = [...SRC.matchAll(/faq4a:'([\s\S]*?)',\n/g)].map(m => m[1]);
+  if (faqs.length !== 2) cannot('전송 고지 문안이 닫혀 있지 않다(ko·en)', 'faq4a 문안 2개를 못 읽었다(' + faqs.length + '개)');
+  else {
+    const hits = [];
+    BANNED_KO.forEach(p => { if (faqs[0].indexOf(p) >= 0) hits.push('ko:' + p); });
+    BANNED_EN.forEach(p => { if (faqs[1].toLowerCase().indexOf(p) >= 0) hits.push('en:' + p); });
+    ok('전송 고지 문안이 닫혀 있지 않다(ko·en)', hits.length === 0, hits.join(' | '));
+    ok('전송 고지 문안이 최신 목록의 소재를 가리킨다(ko·en 모두 /privacy/)',
+       faqs[0].indexOf('/privacy/') >= 0 && faqs[1].indexOf('/privacy/') >= 0);
+
+    /* ★(나) 축 — 앵커와 문구가 따로 늙지 않게 묶는다.
+       앵커만 갱신되고 문구가 낡으면 **검사는 초록인데 사용자는 거짓을 읽는다.** 그래서 파라미터마다
+       언어별 '사람 낱말' 을 선언하게 하고, 그 낱말이 각 언어 문구에 실제로 있는지 본다.
+       문구에 인자 이름을 리터럴로 박으라는 요구가 아니다 — 산문은 열린 채로 둔다. */
+    const lm = /<meta name="hp-ga-labels" content="([^"]*)">/.exec(HTML_TEXT);
+    const dm = /<meta name="hp-ga-disclosure" content="([^"]*)">/.exec(HTML_TEXT);
+    if (!lm || !dm) cannot('고지 문구가 앵커의 항목을 실제로 말한다(ko·en)', 'hp-ga-labels 또는 hp-ga-disclosure 를 찾지 못했다');
+    else {
+      const labels = {};
+      for (const item of lm[1].split(';')){
+        const s = item.trim(); if (!s) continue;
+        const i = s.indexOf('=');
+        if (i < 0) continue;
+        const parts = s.slice(i + 1).split('|');
+        labels[s.slice(0, i).trim()] = [ (parts[0] || '').trim(), (parts[1] || '').trim() ];
+      }
+      const params = new Set();
+      for (const item of dm[1].split(';')){
+        const s = item.trim(); if (!s) continue;
+        const i = s.indexOf(':');
+        if (i < 0) continue;
+        for (const k of s.slice(i + 1).split(',')) if (k.trim()) params.add(k.trim());
+      }
+      const miss = [];
+      for (const p of params){
+        if (!labels[p]){ miss.push('라벨없음:' + p); continue; }
+        if (!labels[p][0] || faqs[0].indexOf(labels[p][0]) < 0) miss.push('ko문구에없음:' + p + '(' + labels[p][0] + ')');
+        if (!labels[p][1] || faqs[1].toLowerCase().indexOf(labels[p][1].toLowerCase()) < 0) miss.push('en문구에없음:' + p + '(' + labels[p][1] + ')');
+      }
+      /* 반대 방향 — 고지하지도 않는 항목의 라벨이 남아 있으면 그것도 낡은 것이다 */
+      for (const k of Object.keys(labels)) if (!params.has(k)) miss.push('고지에없는라벨:' + k);
+      ok('고지 문구가 앵커의 항목을 실제로 말한다(ko·en)', miss.length === 0, miss.join(' | '));
+      note('앵커 파라미터 ' + [...params].join(',') + ' · 라벨 ' +
+           Object.keys(labels).map(k => k + '=' + labels[k][0] + '|' + labels[k][1]).join(' · '));
+    }
+  }
 }
 
 /* ============================================================ 결과 */
