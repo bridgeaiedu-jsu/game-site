@@ -631,7 +631,8 @@ BRACKET_ARRAY_CHARS = set('=(,:;}[+-*/%<>!&|^~?')
 BRACKET_KEYWORDS = {'return', 'yield', 'case', 'throw', 'typeof', 'in', 'of', 'new',
                     'delete', 'await', 'void', 'instanceof', 'do', 'else',
                     'default', 'export', 'extends', 'as', 'from', 'static'}
-SUBSCRIPT = re.compile(r'\[([^\[\]]{1,160})\]')
+SUBSCRIPT_MAX = 160          # ★첨자 순회가 볼 수 있는 소스 길이 상한
+SUBSCRIPT = re.compile(r'\[([^\[\]]{1,%d})\]' % SUBSCRIPT_MAX)
 # ★위 정규식은 대괄호 안에 대괄호가 없을 때만 맞는다 — `window[zzA[0]]` 는 통째로 안 보인다.
 #   전역 객체를 첨자로 여는 자리는 **괄호를 세어** 따로 훑는다(중첩이 있어도 끝을 찾는다).
 GLOBAL_SUBSCRIPT_OPEN = re.compile(r'(?<![\w$.])(window|globalThis|self)\s*(?:\?\.)?\s*\[')
@@ -798,6 +799,7 @@ def classify_bracket(text, r, start=0, spans=None, open_at=None):
 #   ★백슬래시가 escape 된 표기(\\u0041)는 복원 대상이 **아니다** — 그 자체가 백슬래시 한
 #     글자이고 뒤의 u 는 평범한 글자다. parity 를 지키지 않으면 문자열을 이름으로 오인한다.
 #   ★식별자 escape 는 여기서 다루지 않는다 — 이 함수는 **문자열 리터럴 안**만 본다.
+OCTAL_DIGITS = '01234567'
 HEX_DIGITS = '0123456789abcdefABCDEF'
 SIMPLE_ESCAPES = {'n': chr(10), 't': chr(9), 'r': chr(13), 'b': chr(8), 'f': chr(12),
                   'v': chr(11), '0': chr(0), BACKSLASH: BACKSLASH,
@@ -832,8 +834,10 @@ def decode_js_string(body):
                 if not h or any(ch not in HEX_DIGITS for ch in h):
                     return (None, '중괄호 유니코드 escape 의 자릿수가 16진수가 아니다')
                 try:
+                    # ★큰 정수는 ValueError 가 아니라 OverflowError 로 터진다 —
+                    #   추락은 판정이 아니므로(요약 줄이 안 찍힌다) 여기서 판정 불가로 접는다.
                     out.append(chr(int(h, 16)))
-                except ValueError:
+                except (ValueError, OverflowError):
                     return (None, '유니코드 코드포인트가 범위를 벗어난다')
                 i = j + 1
                 continue
@@ -849,6 +853,18 @@ def decode_js_string(body):
                 return (None, 'hex 두자리 escape 의 자릿수가 16진수가 아니다')
             out.append(chr(int(h, 16)))
             i += 4
+            continue
+        if e in OCTAL_DIGITS:
+            # ★Annex B legacy octal — sloppy classic script 에서 실행된다.
+            #   복원하지 않으면 '\\154ocalStorage' 가 '154ocalStorage' 로 보여 무관함이 된다
+            #   (codex R12: rc=0 인데 Node 오라클 저장 1건).
+            j, val = i + 1, 0
+            limit = 3 if e in '0123' else 2
+            while j < n and body[j] in OCTAL_DIGITS and (j - i) <= limit:
+                val = val * 8 + int(body[j])
+                j += 1
+            out.append(chr(val))
+            i = j
             continue
         out.append(SIMPLE_ESCAPES.get(e, e))
         i += 2
@@ -936,17 +952,32 @@ def fold_subscript(expr, consts):
     for part in parts:
         m = STR_LIT.match(part)
         if m and not (m.group(1) == '`' and '${' in m.group(2)):
-            folded.append(m.group(2)); continue
+            # ★조각마다 복원한다 — 통짜 리터럴에서만 복원하면 escape 를 평문과 **결합**하거나
+            #   상수에 담아 꺼내는 순간 그대로 샌다(codex R12 · 둘 다 저장 1건 관측).
+            dec, _why = decode_js_string(m.group(2))
+            if dec is None:
+                ok = False
+                break
+            folded.append(dec); continue
         if IDENT.match(part) and part in consts:
-            folded.append(consts[part]); continue
+            dec, _why = decode_js_string(consts[part])
+            if dec is None:
+                ok = False
+                break
+            folded.append(dec); continue
         ok = False
         break
     if ok:
         name = ''.join(folded)
         return ('name', name) if name in STORAGE_NAMES else ('other', None)
     # 끝까지 못 접었다 — 저장소 이름의 조각이 섞여 있으면 '모른다'로 멈춰야 한다.
-    seen = [q.group(2) for q in QUOTED.finditer(expr)]
-    seen += [consts[x.strip()] for x in parts if IDENT.match(x.strip()) and x.strip() in consts]
+    def _decoded_or_raw(raw):
+        d, _w = decode_js_string(raw)
+        return d if d is not None else raw
+    seen = [_decoded_or_raw(q.group(2)) for q in QUOTED.finditer(expr)]
+    seen += [_decoded_or_raw(consts[x.strip()]) for x in parts
+             if IDENT.match(x.strip()) and x.strip() in consts]
+    seen += [q.group(2) for q in QUOTED.finditer(expr)]   # 원문도 함께 본다(복원 실패분)
     for frag in seen:
         if len(frag) >= 4 and any(frag in n for n in STORAGE_NAMES):
             return ('fragment', frag)
@@ -1105,7 +1136,7 @@ def scan_file(src, is_html, rel):
         if _in(noncode, m.start()):
             ignored.append('%s:%d' % (rel, _line(src, m.start())))
             continue
-        stops.append('%s:%d — 코드인지 아닌지 가릴 수 없는 자리의 저장소 언급%s'
+        stops.append('%s:%d — [noncode-mention] 코드인지 아닌지 가릴 수 없는 자리의 저장소 언급%s'
                      % (rel, _line(src, m.start()),
                         ('(앞 %d행에서 %s)' % (_line(src, html_bad[0]), html_bad[1]))
                         if html_bad and m.start() >= html_bad[0] else ''))
@@ -1113,7 +1144,7 @@ def scan_file(src, is_html, rel):
     for u in units:
         text = u['text']
         if u.get('undecoded'):
-            stops.append('%s:%d — 이벤트 핸들러 속성에 풀지 못한 엔티티가 남아 무슨 코드인지 단정할 수 없다'
+            stops.append('%s:%d — [handler-entity] 이벤트 핸들러 속성에 풀지 못한 엔티티가 남아 무슨 코드인지 단정할 수 없다'
                          % (rel, _line(src, u['s'])))
         a, b, first_bad = js_verdicts(text)
 
@@ -1129,12 +1160,12 @@ def scan_file(src, is_html, rel):
         for m in ESCAPED_IDENT.finditer(text):
             ca, cb = certainly_code(m.start())
             if ca and cb:
-                stops.append('%s:%d — 유니코드 이스케이프가 섞인 식별자라 이름을 단정할 수 없다(%s)'
+                stops.append('%s:%d — [escaped-ident] 유니코드 이스케이프가 섞인 식별자라 이름을 단정할 수 없다(%s)'
                              % (rel, at(m.start()), m.group(0)))
         for m in DYNAMIC_EXEC.finditer(text):
             ca, cb = certainly_code(m.start())
             if ca and cb:
-                stops.append('%s:%d — %s 로 만들어 실행하는 코드가 있어 무엇이 실행될지 단정할 수 없다'
+                stops.append('%s:%d — [dynamic-exec] %s 로 만들어 실행하는 코드가 있어 무엇이 실행될지 단정할 수 없다'
                              % (rel, at(m.start()), m.group(0).strip()))
 
         consts = {}
@@ -1166,12 +1197,14 @@ def scan_file(src, is_html, rel):
                         cb = j; break
                 j += 1
             if cb < 0:
-                stops.append('%s:%d — %s[ 의 닫는 대괄호를 찾지 못해 무엇을 꺼내는지 판정할 수 없다'
+                stops.append('%s:%d — [unclosed-bracket] %s[ 의 닫는 대괄호를 찾지 못해 무엇을 꺼내는지 판정할 수 없다'
                              % (rel, at(gm.start()), gm.group(1)))
                 continue
             inner = text[ob + 1:cb]
-            if '[' not in inner:
+            if '[' not in inner and len(inner) <= SUBSCRIPT_MAX:
                 continue                           # 중첩이 없으면 아래 SUBSCRIPT 순회가 이미 본다
+            # ★상한을 넘으면 아래 순회는 이 자리를 **볼 수 없다** — 넘기면 그대로 샌다
+            #   (codex R12: 줄연속을 반복해 소스 첨자를 160자 너머로 늘린 표본이 rc=0·저장 1건).
             kindg, valg = fold_subscript(inner, consts)
             if kindg == 'other':
                 continue
@@ -1181,11 +1214,11 @@ def scan_file(src, is_html, rel):
                     exprg, _e = first_arg(text, accg[2])
                     calls.append((valg, '%s:%d' % (rel, at(gm.start())), exprg, consts))
                 elif accg[0] == 'unknown':
-                    stops.append('%s:%d — %s' % (rel, at(gm.start()), accg[1]))
+                    stops.append('%s:%d — [access-unknown] %s' % (rel, at(gm.start()), accg[1]))
                 continue
             # 접히지 않았다 — 그 결과로 저장소 메서드를 부르면 무엇을 저장하는지 알 수 없다
             if accg[0] == 'call' or (accg[0] == 'safe' and accg[1] in SAFE_MEMBERS):
-                stops.append('%s:%d — %s[…] 의 계산형 이름을 끝까지 접지 못했는데 그 결과로 '
+                stops.append('%s:%d — [global-subscript-unfolded] %s[…] 의 계산형 이름을 끝까지 접지 못했는데 그 결과로 '
                              '저장소 메서드(.%s)를 부른다 — 무슨 키를 다루는지 판정할 수 없다'
                              % (rel, at(gm.start()), gm.group(1), accg[1]))
 
@@ -1209,7 +1242,7 @@ def scan_file(src, is_html, rel):
                 if dec is None:
                     frag = storage_fragment_of(raw_body)
                     if frag:
-                        stops.append('%s:%d — 첨자 문자열의 escape 를 복원할 수 없다(%s) '
+                        stops.append('%s:%d — [escape-undecodable-fragment] 첨자 문자열의 escape 를 복원할 수 없다(%s) '
                                      '· 안에 저장소 이름 조각(%s)이 있어 무시하지 않는다'
                                      % (rel, at(m.start()), why, frag))
                     continue
@@ -1220,7 +1253,7 @@ def scan_file(src, is_html, rel):
                         exprd, _e = first_arg(text, accd[2])
                         calls.append((dec, '%s:%d' % (rel, line), exprd, consts))
                     elif accd[0] == 'unknown':
-                        stops.append('%s:%d — %s' % (rel, line, accd[1]))
+                        stops.append('%s:%d — [access-unknown] %s' % (rel, line, accd[1]))
                     continue
             if q_lit and not (q_lit.group(1) == chr(96) and '${' in q_lit.group(2)):
                 # ★통짜 문자열 첨자는 위(멤버 이름) 경로가 끝까지 책임진다 — 분류 불가까지
@@ -1236,7 +1269,7 @@ def scan_file(src, is_html, rel):
                 # ★무시하지 않는다. 다만 **저장소가 걸린 자리에만** 멈춘다 — 무관한 대괄호까지
                 #   멈추면 소음이 폭발해 아무도 게이트를 안 본다.
                 if bracket_mentions_storage(inner):
-                    stops.append('%s:%d — 이 대괄호가 멤버 첨자인지 배열 리터럴인지 가릴 수 없다(%s) '
+                    stops.append('%s:%d — [bracket-ambiguous] 이 대괄호가 멤버 첨자인지 배열 리터럴인지 가릴 수 없다(%s) '
                                  '· 안에 저장소 이름이 있어 무시하지 않는다'
                                  % (rel, at(m.start()), bwhy))
                 continue
@@ -1245,7 +1278,7 @@ def scan_file(src, is_html, rel):
                 continue
             line = at(m.start())
             if kindf == 'fragment':
-                stops.append('%s:%d — 계산형 멤버 이름에 저장소 이름 조각(%s)이 있는데 끝까지 접지 못했다'
+                stops.append('%s:%d — [computed-fragment] 계산형 멤버 이름에 저장소 이름 조각(%s)이 있는데 끝까지 접지 못했다'
                              % (rel, line, val))
                 continue
             if kindf == 'unresolved':
@@ -1255,12 +1288,12 @@ def scan_file(src, is_html, rel):
                 #   그것이 저장소임을 부인할 수 없고, 우리는 무슨 키인지 모른다 → 판정 불가.
                 acc0 = classify_access(text, m.end(), len(text))
                 if acc0[0] == 'call' or (acc0[0] == 'safe' and acc0[1] in SAFE_MEMBERS):
-                    stops.append('%s:%d — 계산형 멤버 이름을 끝까지 접지 못했는데 그 결과로 저장소 메서드(.%s)를 부른다 — 무슨 키를 다루는지 판정할 수 없다'
+                    stops.append('%s:%d — [computed-unresolved-call] 계산형 멤버 이름을 끝까지 접지 못했는데 그 결과로 저장소 메서드(.%s)를 부른다 — 무슨 키를 다루는지 판정할 수 없다'
                                  % (rel, line, acc0[1]))
                 continue
             acc = classify_access(text, m.end(), len(text))
             if acc[0] == 'unknown':
-                stops.append('%s:%d — %s' % (rel, line, acc[1]))
+                stops.append('%s:%d — [access-unknown] %s' % (rel, line, acc[1]))
                 continue
             if acc[0] == 'safe':
                 continue
@@ -1271,11 +1304,11 @@ def scan_file(src, is_html, rel):
             off, line = m.start(), at(m.start())
             code_a, code_b = certainly_code(off)
             if code_a != code_b:
-                stops.append('%s:%d — 정규식인지 나눗셈인지에 따라 코드 여부가 갈린다(둘 중 하나로 단정하지 않는다)'
+                stops.append('%s:%d — [regex-or-division] 정규식인지 나눗셈인지에 따라 코드 여부가 갈린다(둘 중 하나로 단정하지 않는다)'
                              % (rel, line))
                 continue
             if first_bad and off >= first_bad[0]:
-                stops.append('%s:%d — 앞에서 %s 라 이 자리가 코드인지 단정할 수 없다' % (rel, line, first_bad[1]))
+                stops.append('%s:%d — [earlier-ambiguity] 앞에서 %s 라 이 자리가 코드인지 단정할 수 없다' % (rel, line, first_bad[1]))
                 continue
             after = m.end()
             if not code_a:
@@ -1323,7 +1356,7 @@ def scan_file(src, is_html, rel):
                     if is_prose:
                         ignored.append('%s:%d' % (rel, line))
                         continue
-                    stops.append('%s:%d — 코드 자리에 저장소 이름 문자열이 있는데 그것이 저장과 '
+                    stops.append('%s:%d — [name-string-in-code] 코드 자리에 저장소 이름 문자열이 있는데 그것이 저장과 '
                                  '무관하다고 확신할 수 없다%s — 무시하지 않는다'
                                  % (rel, line,
                                     '(감싼 대괄호가 첨자인지 배열인지 가릴 수 없다)' if nxt == -2
@@ -1332,7 +1365,7 @@ def scan_file(src, is_html, rel):
                 after = nxt
             kind = classify_access(text, after, len(text))
             if kind[0] == 'unknown':
-                stops.append('%s:%d — %s' % (rel, line, kind[1]))
+                stops.append('%s:%d — [access-unknown] %s' % (rel, line, kind[1]))
                 continue
             if kind[0] == 'safe':
                 ignored.append('%s:%d' % (rel, line))
@@ -1946,6 +1979,62 @@ def _r12_escaped_backslash(work):
                         + chr(34) + '; void zzR12b;')
 
 
+def _r13_oversized_brace(work):
+    """★추락은 판정이 아니다 — 중괄호 escape 의 16진수가 너무 커서 파이썬 chr 가
+    OverflowError 로 터졌고, 게이트가 요약 줄도 없이 rc=1 로 죽었다(codex R12).
+    죽지 않고 판정 불가(rc=2)로 멈추는 것이 계약이다."""
+    _append_stats(work, 'void window[' + chr(34) + chr(92) + 'u{' + ('F' * 100) + '}ocalStorage'
+                        + chr(34) + '];')
+
+
+def _r13_concat_escaped(work):
+    """★escape 리터럴과 평문 리터럴을 **결합**한 첨자 — 통짜에서만 복원하면 이 자리로 샌다
+    (codex R12: rc=0 인데 Node 오라클 저장 1건)."""
+    _append_stats(work, 'window[' + chr(34) + chr(92) + 'u006cocal' + chr(34) + ' + ' + chr(34)
+                        + 'Storage' + chr(34) + '].setItem(' + chr(34) + 'zz.r13cat' + chr(34)
+                        + ', ' + chr(34) + '1' + chr(34) + ');')
+
+
+def _r13_const_escaped(work):
+    """★escape 문자열을 상수에 담아 첨자로 꺼내는 자리 — 상수 수집이 원문을 담아 두면 샌다."""
+    _append_stats(work, 'const zzR13k = ' + chr(34) + chr(92) + 'u006cocalStorage' + chr(34)
+                        + '; window[zzR13k].setItem(' + chr(34) + 'zz.r13const' + chr(34)
+                        + ', ' + chr(34) + '1' + chr(34) + ');')
+
+
+def _r13_long_continuation(work):
+    """★소스 첨자가 길이 상한(SUBSCRIPT_MAX)을 넘으면 첨자 순회가 볼 수 없다 —
+    전역 첨자 선행 순회가 아래로 넘겨 버리면 아무도 안 본다(저장 1건)."""
+    _append_stats(work, 'window[' + chr(34) + (chr(92) + chr(10)) * 82 + chr(92) + 'u006cocalStorage'
+                        + chr(34) + '].setItem(' + chr(34) + 'zz.r13long' + chr(34)
+                        + ', ' + chr(34) + '1' + chr(34) + ');')
+
+
+def _r13_legacy_octal(work):
+    """★Annex B legacy octal — sloppy classic script 에서 실제로 실행된다.
+    복원하지 않으면 이름이 아닌 것으로 보여 무관함으로 접힌다(저장 1건)."""
+    _append_stats(work, 'window[' + chr(34) + chr(92) + '154ocalStorage' + chr(34)
+                        + '].setItem(' + chr(34) + 'zz.r13oct' + chr(34)
+                        + ', ' + chr(34) + '1' + chr(34) + ');')
+
+
+def _r13_escaped_data_property(work):
+    """★소음을 못박는 케이스 — 저장하지 않는데도 멈춘다(오라클 저장 0건 · rc=2).
+    escape 로 쓴 **설명용 데이터 키**다. 여는 선이 receiver 의미라 휴리스틱으로 열면
+    실제 저장 표본이 함께 열린다(codex R12 [설계 판단] · master 판단 = 그대로 둔다).
+    이 시험은 안전 속성이 아니라 **현재 동작의 못**이다 — 열려면 의도해서 열어라."""
+    _append_stats(work, 'const zzGloss = {}; zzGloss[' + chr(34) + chr(92)
+                        + 'u006cocalStorage' + chr(34) + '] = ' + chr(34) + 'Browser storage'
+                        + chr(34) + ';')
+
+
+def _r13_escaped_object_key(work):
+    """★같은 부류의 둘째 모양(계산형 객체 키) — codex 는 인용하지 않았고 내가 찾았다.
+    역시 저장 0건인데 rc=2 다."""
+    _append_stats(work, 'const zzDocs = {[' + chr(34) + chr(92) + 'u006cocalStorage' + chr(34)
+                        + ']: ' + chr(34) + 'Browser storage' + chr(34) + '}; void zzDocs;')
+
+
 def _r12_bad_hex(work):
     """★복원할 수 없는 escape — 잘못된 hex. 모르면 멈춘다(안에 이름 조각이 있을 때만)."""
     _append_stats(work, 'window[' + chr(34) + chr(92) + 'u00zzocalStorage' + chr(34)
@@ -2291,6 +2380,16 @@ CASES = [
     ('escape 된 백슬래시',           _r12_escaped_backslash,     0, []),
     # ── R12 · 복원할 수 없으면 멈춘다(조각이 보일 때만) ──
     ('잘못된 hex escape',           _r12_bad_hex,               2, ['uncertain-code']),
+    # ── R13 · ★추락(traceback rc=1)을 판정 불가로 접었다(codex R12 [필수 수정]) ──
+    ('과대 중괄호 escape',           _r13_oversized_brace,       2, ['uncertain-code']),
+    # ── R13 · codex R12 가 연 fail-open 넷을 닫았다(넷 다 Node 오라클 저장 1건) ──
+    ('결합 리터럴 escape',           _r13_concat_escaped,        1, ['missing-exact']),
+    ('상수 경유 escape',            _r13_const_escaped,         1, ['missing-exact']),
+    ('상한 밖 줄연속 첨자',          _r13_long_continuation,     2, ['uncertain-code']),
+    ('legacy octal escape',       _r13_legacy_octal,          1, ['missing-exact']),
+    # ── R13 · ★소음을 못박는다 — 저장 0건인데 멈추는 자리다(열지 않기로 한 판단의 못) ──
+    ('설명용 데이터 키 escape',       _r13_escaped_data_property, 2, ['uncertain-code']),
+    ('계산형 객체 키 escape',        _r13_escaped_object_key,    2, ['uncertain-code']),
     ('줄연속 escape',               _r12_line_continuation,     2, ['uncertain-code']),
     # ── R12 · 영문 문안 과차단을 좁혔다(한국어만 열리던 언어 편향) ──
     ('영문 문안 · 백틱 뒤 쉼표',       _r12_en_backtick_comma,     0, []),
@@ -2355,117 +2454,136 @@ CASES = [
 META = [
     ('meta:못 접은 첨자→정지 방어 제거', '계산형 첨자 · join 결합',
      "                if acc0[0] == 'call' or (acc0[0] == " + "'safe' and acc0[1] in SAFE_MEMBERS):",
-     '                if False:', 0),
+     '                if False:', 0, []),
     ('meta:못 접었다/무관하다 구분 제거', '계산형 첨자 · join 결합',
-     "    return ('unresolved', " + 'expr)', "    return ('other', None)", 0),
+     "    return ('unresolved', " + 'expr)', "    return ('other', None)", 0, []),
     ('meta:치환 템플릿 상수 배제 제거', '계산형 첨자 · 치환 템플릿',
-     "            if m.group(2) == '`' and '${' in " + 'm.group(3):', '            if False:', 0),
+     "            if m.group(2) == '`' and '${' in " + 'm.group(3):', '            if False:', 0, []),
     ('meta:키워드 토큰 판정 제거', 'return 뒤 배열 리터럴',
-     '    if word not in ' + 'BRACKET_KEYWORDS:', '    if True:', 2),
+     '    if word not in ' + 'BRACKET_KEYWORDS:', '    if True:', 2, ['access-unknown']),
     # ── R9 · 새 원칙(분류 불가 → 정지)을 경로별로 홀로 지워 본다 ──
     # ★첫 짝짓기를 틀렸다 — 옵셔널 첨자가 잡히는 것은 -2 정지가 아니라 '?.[…] 를 첨자로
     #   알아보는 줄' 덕분이다. 뭐가 잡는지를 못박지 않으면 무임승차를 방어로 착각한다.
     ('meta:옵셔널 첨자 인식 제거', '옵셔널 체이닝 첨자',
-     "        if r - 2 >= start and text[r - 2] == " + "'?':", '        if False:', 2),
+     "        if r - 2 >= start and text[r - 2] == " + "'?':", '        if False:', 2, ['name-string-in-code']),
     # ★'분류 불가 대괄호 전용 가드' 는 포괄 규칙에 흡수돼 공허해졌으므로 변이체도 지웠다.
     #   대신 포괄 규칙 자체를 홀로 지워 본다 — 이걸 끄면 오늘의 누출들이 통째로 되살아난다.
     ('meta:코드 자리 문자열 정지 제거', '분류 불가 대괄호 · 통짜 첨자',
-     'STOP_UNEXPLAINED_STORAGE_STRING' + ' = True', 'STOP_UNEXPLAINED_STORAGE_STRING = False', 0),
+     'STOP_UNEXPLAINED_STORAGE_STRING' + ' = True', 'STOP_UNEXPLAINED_STORAGE_STRING = False', 0, []),
     ('meta:계산형 첨자 분류불가 정지 제거', '분류 불가 대괄호 · 계산형',
-     '                if bracket_mentions_storage' + '(inner):', '                if False:', 0),
+     '                if bracket_mentions_storage' + '(inner):', '                if False:', 0, []),
     ('meta:키워드 표 확장 되돌리기', 'export default 뒤 배열',
      "'default', 'export', " + "'extends', 'as', 'from', " + "'static'}",
-     "'extends', 'as', 'from', " + "'static'}", 2),
+     "'extends', 'as', 'from', " + "'static'}", 2, ['access-unknown']),
     ('meta:중첩 전역 첨자 훑기 제거', '배열에 담았다 꺼내기(중첩)',
-     "        for gm in GLOBAL_SUBSCRIPT_OPEN" + '.finditer(text):', '        for gm in ():', 0),
+     "        for gm in GLOBAL_SUBSCRIPT_OPEN" + '.finditer(text):', '        for gm in ():', 0, []),
     # ── R10 · 새 축의 가드 일곱을 **하나씩 홀로** 지운다 ──
     # ★짝은 격리 실측으로 골랐다(_round/evidence/T0831-R10-prose/guard-isolation.json) —
     #   그 가드만 지웠을 때 실제로 열리는 표본이 있는 것만 짝으로 삼았다. R9 에서 세운 변이체
     #   둘 중 하나(앞쪽 연산 가드)는 짝이 없어 **공허**했고, 그래서 그 구멍을 못 봤다.
     ('meta:정확 일치 정지 제거', '정확 일치 단독 문자열(짝)',
-     '    if at == 0 and end == ' + 'len(body):', '    if False:', 0),
+     '    if at == 0 and end == ' + 'len(body):', '    if False:', 0, []),
     ('meta:이름 뒤 접근 판정 제거', '공백 뒤 대괄호 대입(짝)',
-     'PROSE_ACCESS_AFTER = ' + "'.[('", "PROSE_ACCESS_AFTER = ''", 0),
+     'PROSE_ACCESS_AFTER = ' + "'.[('", "PROSE_ACCESS_AFTER = ''", 0, []),
     ('meta:이름 앞 대입 판정 제거', '이름 앞이 대입 자리(짝)',
-     'PROSE_ACCESS_BEFORE = ' + "'.[='", "PROSE_ACCESS_BEFORE = ''", 0),
+     'PROSE_ACCESS_BEFORE = ' + "'.[='", "PROSE_ACCESS_BEFORE = ''", 0, []),
     ('meta:코드 모양 판정 제거', '쉼표 뒤 인자로 넘김(짝)',
-     '    for why, rx in ' + 'PROSE_CODE_SHAPES:', '    for why, rx in ():', 0),
+     '    for why, rx in ' + 'PROSE_CODE_SHAPES:', '    for why, rx in ():', 0, []),
     ('meta:뒤쪽 연산 가드 제거', '산문을 잘라 이름으로(짝)',
-     'PROSE_BLOCKING_AFTER = ' + "'.+['", "PROSE_BLOCKING_AFTER = ''", 0),
+     'PROSE_BLOCKING_AFTER = ' + "'.+['", "PROSE_BLOCKING_AFTER = ''", 0, []),
     # ★R9 에서 이 가드는 짝이 없어 지워도 자기시험이 초록이었다(worker-3 지적 F2).
     ('meta:앞쪽 연산 가드 제거', '이어붙인 뒤 잘라 이름으로(짝)',
-     'PROSE_BLOCKING_BEFORE = ' + "'+'", "PROSE_BLOCKING_BEFORE = ''", 0),
+     'PROSE_BLOCKING_BEFORE = ' + "'+'", "PROSE_BLOCKING_BEFORE = ''", 0, []),
     # ★F1 을 낳은 바로 그 지점 — 이름과 접근 사이의 공백류를 건너뛰지 않으면 다시 샌다.
     ('meta:공백류 건너뛰기 제거', '공백 뒤 대괄호 대입(짝)',
-     '    while 0 <= i < len(body) and ' + '_js_space(body[i]):', '    while False:', 0),
+     '    while 0 <= i < len(body) and ' + '_js_space(body[i]):', '    while False:', 0, []),
     # ── R11 · 새로 연 자리와 새로 닫은 자리를 **하나씩 홀로** 지운다 ──
     ('meta:중괄호 뒤 대괄호 판정 제거', '계산형 객체키 · 값이 리터럴',
-     "    if prev == " + "'{':", '    if False:', 2),
+     "    if prev == " + "'{':", '    if False:', 2, ['name-string-in-code']),
     # ★안전핀 — 이걸 지우면 구조분해가 함께 열려 실제 저장이 새 나간다.
     ('meta:구조분해 안전핀 제거', '계산형 키 구조분해(리터럴 키)',
      '    return None                                       # 값이 식별자 = ' + '구조분해와 구별할 수 없다',
-     "    return ('array', '(변이) 값이 식별자여도 연다')", 0),
+     "    return ('array', '(변이) 값이 식별자여도 연다')", 0, []),
     ('meta:static 키워드 제거', '클래스 정적 계산형 키',
-     "'from', " + "'static'}", "'from'}", 2),
+     "'from', " + "'static'}", "'from'}", 2, ['access-unknown']),
     ('meta:태그드 템플릿 모양 제거', '문자열 안 태그드 템플릿',
      "    ('태그드 템플릿 호출', " + '_TaggedTemplateShape()),',
-     "    ('태그드 템플릿 호출(꺼짐)', re.compile(r'(?!x)x')),", 0),
+     "    ('태그드 템플릿 호출(꺼짐)', re.compile(r'(?!x)x')),", 0, []),
     # ★조건 ⓐ 를 지키는 두 규칙 — 지우면 백틱 인용 문안이 함께 막힌다(오탐 방향).
     ('meta:백틱 홀짝 판정 제거', '문안 · 백틱 인용(한국어)',
-     "            if body.count('" + chr(96) + "', 0, m.end() - 1) % 2:", '            if False:', 2),
+     "            if body.count('" + chr(96) + "', 0, m.end() - 1) % 2:", '            if False:', 2, ['name-string-in-code']),
     ('meta:백틱 꼬리 판정 제거', '문안 · 백틱 인용(영문)',
-     '            if rest == ' + "'' or rest[0] in self.TAIL_CODE:", '            if True:', 2),
+     '            if rest == ' + "'' or rest[0] in self.TAIL_CODE:", '            if True:', 2, ['name-string-in-code']),
     # ★치환 템플릿을 '통짜 문자열' 로 접어 손을 떼면 그 첨자는 아무도 안 잡는다.
     ('meta:치환 템플릿 첨자 예외 제거', '치환 템플릿 첨자',
      "            if q_lit and not (q_lit.group(1) == chr(96) and " + "'${' in q_lit.group(2)):",
-     '            if q_lit:', 0),
+     '            if q_lit:', 0, []),
     # ★코드 모양 표는 **항목마다** 짝이 있어야 한다 — 표를 통째로 지워야만 붉어지면
     #   그 줄은 언제든 조용히 사라진다(worker-3 잔여 지적 · 격리 실측으로 짝을 골랐다).
     ('meta:코드모양 항목 제거 · 호출', '코드모양 · 호출만',
      r"    ('호출 모양', re.compile(r'[A-Za-z_$]" + r"[\w$]*\s*\(')),",
-     "    ('호출 모양(꺼짐)', re.compile(r'(?!x)x')),", 0),
+     "    ('호출 모양(꺼짐)', re.compile(r'(?!x)x')),", 0, []),
     ('meta:코드모양 항목 제거 · 점접근', '코드모양 · 점 접근만',
      r"    ('점 접근',   re.compile(r'\.\s*" + r"[A-Za-z_$]')),",
-     "    ('점 접근(꺼짐)', re.compile(r'(?!x)x')),", 0),
+     "    ('점 접근(꺼짐)', re.compile(r'(?!x)x')),", 0, []),
     ('meta:코드모양 항목 제거 · 문자열첨자', '코드모양 · 문자열 첨자만',
      "    ('문자열 첨자', re.compile(r'" + chr(92) + "[" + chr(92) + "s*[" + chr(92) + chr(39) + chr(34) + chr(96) + "]')),",
-     "    ('문자열 첨자(꺼짐)', re.compile(r'(?!x)x')),", 0),
+     "    ('문자열 첨자(꺼짐)', re.compile(r'(?!x)x')),", 0, []),
     ('meta:코드모양 항목 제거 · 화살표', '코드모양 · 화살표만',
      "    ('화살표 함수', re.compile(r'" + "=>')),",
-     "    ('화살표 함수(꺼짐)', re.compile(r'(?!x)x')),", 0),
+     "    ('화살표 함수(꺼짐)', re.compile(r'(?!x)x')),", 0, []),
     ('meta:코드모양 항목 제거 · 치환', '코드모양 · 자리표 문안(소음쪽)',
      r"    ('치환 템플릿', re.compile(r'\$" + r"\{')),",
-     "    ('치환 템플릿(꺼짐)', re.compile(r'(?!x)x')),", 0),
+     "    ('치환 템플릿(꺼짐)', re.compile(r'(?!x)x')),", 0, []),
     # ── R12 · 새 가드를 하나씩 홀로 지운다(짝은 격리 실측으로 골랐다) ──
     # ★복원을 지우면 rc 가 1(키를 잡음)에서 2(조각 때문에 정지)로 바뀐다 — 누출로 돌아가지는
     #   않는다. 조각 정지가 뒤를 받치고 있기 때문이다. 복원의 값어치는 '멈추지 않고 키를 읽는 것'
     #   이므로 짝의 기대값도 2 로 못박는다(0 으로 적으면 실측과 어긋난다).
     ('meta:escape 복원 제거', 'escape 유니코드 첨자',
      '                dec, why = ' + 'decode_js_string(raw_body)',
-     '                dec, why = (None, ' + "'(변이) 복원하지 않는다')", 2),
+     '                dec, why = (None, ' + "'(변이) 복원하지 않는다')", 2, ['escape-undecodable-fragment']),
     ('meta:복원 실패 조각 정지 제거', '잘못된 hex escape',
-     '                    frag = ' + 'storage_fragment_of(raw_body)', '                    frag = None', 0),
+     '                    frag = ' + 'storage_fragment_of(raw_body)', '                    frag = None', 0, []),
     ('meta:손으로 따옴표 읽기 제거', '줄연속 escape',
      '            raw_body = q_lit.group(2) if q_lit else ' + 'quoted_body(inner)',
-     '            raw_body = q_lit.group(2) if q_lit else None', 0),
+     '            raw_body = q_lit.group(2) if q_lit else None', 2, ['computed-unresolved-call']),
     ('meta:점 뒤 이름 조건 제거', '영문 문장 · 끝 마침표',
      "        if body[j] != '.' or " + '_is_ident_start(body, _skip_js_space(body, j + 1, 1)):',
-     '        if True:', 2),
+     '        if True:', 2, ['name-string-in-code']),
     ('meta:이름 뒤 등호 되살리기', '영문 문장 · 등호',
-     "PROSE_ACCESS_AFTER = " + "'.[('", "PROSE_ACCESS_AFTER = " + "'.[(='", 2),
+     "PROSE_ACCESS_AFTER = " + "'.[('", "PROSE_ACCESS_AFTER = " + "'.[(='", 2, ['name-string-in-code']),
     ('meta:백틱 꼬리 표 되돌리기', '영문 문안 · 백틱 뒤 쉼표',
-     "    TAIL_CODE = " + "';'", "    TAIL_CODE = ';,)].'", 2),
+     "    TAIL_CODE = " + "';'", "    TAIL_CODE = ';,)].'", 2, ['name-string-in-code']),
     ('meta:붙은 백틱 즉시 호출 판정 제거', '태그드 템플릿 · 쉼표 꼬리',
-     "            if m.group(1) == " + "'':", '            if False:', 0),
+     "            if m.group(1) == " + "'':", '            if False:', 0, []),
+    # ★짝 — 이 방어를 지우면 게이트가 다시 **추락**한다(요약 줄 없이 rc=1).
+    #   사유 키가 하나도 안 나오는 것이 추락의 지문이다.
+    # ★fail-open 넷을 닫은 가드의 짝 — 하나씩 홀로 지우면 그 자리가 다시 열린다(rc=0).
+    ('meta:조각 리터럴 복원 제거', '결합 리터럴 escape',
+     '            dec, _why = decode_js_string(m.' + "group(2))",
+     '            dec, _why = (m.group(2), ' + "'(변이) 복원하지 않는다')", 0, []),
+    ('meta:상수값 복원 제거', '상수 경유 escape',
+     '            dec, _why = decode_js_string(consts' + "[part])",
+     '            dec, _why = (consts[part], ' + "'(변이) 복원하지 않는다')", 0, []),
+    ('meta:길이 상한 밖 인계 제거', '상한 밖 줄연속 첨자',
+     "            if '[' not in inner and len(inner) <= " + 'SUBSCRIPT_MAX:',
+     "            if '[' not in inner:", 0, []),
+    ('meta:legacy octal 복원 제거', 'legacy octal escape',
+     '        if e in ' + 'OCTAL_DIGITS:', '        if False:', 0, []),
+    ('meta:큰 코드포인트 추락 방지 제거', '과대 중괄호 escape',
+     '                except (ValueError, ' + 'OverflowError):', '                except ValueError:', 1, []),
     ('meta:제어문 머리 판정 제거', 'if 머리 뒤 배열 리터럴',
      "        head = _is_control_head_paren" + '(text, r - 1, start, spans)',
-     '        head = False', 2),
+     '        head = False', 2, ['access-unknown']),
 ]
 
 
 def selftest():
     stage = tempfile.mkdtemp(prefix='privstore-')
     rows, bad = [], 0
+    # ★케이스마다 **변이 전** 사유 키를 적어 둔다 — META 가 '그 사유는 원래도 있었다'
+    #   (무임승차)를 구조적으로 배제하는 데 쓴다.
+    base_keys = {}
     # ★하네스 오류(주입 실패)와 결함 탐지를 같은 칸에 뭉치지 않는다 — 주입도 안 된 케이스를
     #   '탐지됨'으로 세면 검출력이 부풀려진다.
     setup_fail = 0
@@ -2498,6 +2616,7 @@ def selftest():
             r = subprocess.run([sys.executable, os.path.abspath(__file__), work],
                                capture_output=True, text=True, encoding='utf-8')
             seen = set(re.findall(r'[✗‽]\s*\[([a-z-]+)\]', r.stdout or ''))
+            base_keys[name] = sorted(set(re.findall(r'— \[([a-z0-9-]+)\]', r.stdout or '')))
             miss = [x for x in want_rules if x not in seen]
             noise = seen if not want_rules else set()
             ok = (r.returncode == want_rc) and not miss and not noise
@@ -2508,7 +2627,12 @@ def selftest():
         # ── 방어 홀로 제거 변이체 ────────────────────────────────────────
         tool_src = _read(os.path.abspath(__file__))
         by_name = {c[0]: c for c in CASES}
-        for mname, case_name, anchor, replaced, want_rc in META:
+        for _row in META:
+            mname, case_name, anchor, replaced, want_rc = _row[:5]
+            # ★rc 만 보면 무관한 정지가 같은 rc 를 내어 무임승차한다(codex R12 지적).
+            #   그래서 '어느 사유가 그 rc 를 냈는가'까지 못박는다. 선언이 없으면
+            #   통과가 아니라 **판정 불가**다 — 못 박지 않은 자리를 초록으로 세지 않는다.
+            want_keys = _row[5] if len(_row) > 5 else None
             n = tool_src.count(anchor)
             if n != 1 or case_name not in by_name:
                 setup_fail += 1
@@ -2533,10 +2657,30 @@ def selftest():
                 continue
             mr = subprocess.run([sys.executable, mutated, work],
                                 capture_output=True, text=True, encoding='utf-8')
-            ok = mr.returncode == want_rc
+            got_keys = sorted(set(re.findall(r'— \[([a-z0-9-]+)\]', mr.stdout or '')))
+            rc_ok = mr.returncode == want_rc
+            if want_keys is None:
+                setup_fail += 1
+                rows.append((mname, want_rc, mr.returncode, ['(미선언)'], got_keys, [], [], False,
+                             '기대 사유 키를 선언하지 않았다 — 판정 불가(통과로 세지 않는다)'))
+                continue
+            miss = [k for k in want_keys if k not in got_keys]
+            noise = [k for k in got_keys if k not in want_keys]
+            # ★변이 전에도 있던 사유를 기대값으로 적으면 그것은 방어의 산물이 아니다.
+            base = base_keys.get(case_name)
+            rode = bool(want_keys) and base is not None and sorted(want_keys) == base
+            ok = rc_ok and not miss and not noise and not rode
             bad += 0 if ok else 1
-            rows.append((mname, want_rc, mr.returncode, [], [], [], [], ok,
-                         None if ok else '방어를 지웠는데 rc 가 그대로다 — 지금의 판정은 이 방어의 산물이 아니다(공허한 통과)'))
+            why = None
+            if not rc_ok:
+                why = '방어를 지웠는데 rc 가 그대로다 — 지금의 판정은 이 방어의 산물이 아니다(공허한 통과)'
+            elif rode:
+                why = ('기대한 사유 %s 는 변이 전에도 있었다 — 이 방어의 산물이 아니다(무임승차)'
+                       % want_keys)
+            elif miss or noise:
+                why = ('rc 는 맞지만 **다른 사유**가 냈다(무임승차) — 없어야 할 사유 %s · 있어야 할 사유 %s'
+                       % (noise or '없음', miss or '없음'))
+            rows.append((mname, want_rc, mr.returncode, want_keys, got_keys, miss, noise, ok, why))
     finally:
         shutil.rmtree(stage, ignore_errors=True)
 
