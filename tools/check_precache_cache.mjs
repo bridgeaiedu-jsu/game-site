@@ -8,8 +8,15 @@
  *   sw.js 는 스스로 "파일을 추가/변경하면 CACHE 문자열을 올려라" 고 주석에 적어 두었다.
  *   규약은 있었고 그것을 지키는 장치가 없었다 — 이 도구가 그 장치다.
  *
- * 무엇을 재는가 (계약 한 줄)
- *   **base..head 가 PRECACHE 에 실린 자원을 바꿨다면, 같은 구간에서 CACHE 문자열도 바뀌어 있어야 한다.**
+ * 무엇을 재는가 (계약 한 줄 · 2026-09-03 R2 에서 참계약으로 갈아끼웠다)
+ *   **구간 끝 나무가 싣는 CACHE 값이, 그 구간에서 바뀐 모든 PRECACHE 대상의 마지막 변경보다
+ *   나중에 정해져 있어야 한다.** — 순서를 본다.
+ *
+ * ★왜 '구간 어딘가에서 CACHE 가 바뀌었는가' 로는 모자란가 (R1 의 대리물 · master 실측)
+ *   `--base 6a0c502 --head 8d65c60` 구간은 abdbedf(대문 변경) → da5624d(v35→v36) → 8d65c60(about 변경·안 올림)
+ *   이다. 양끝만 보면 CACHE 가 v35→v36 으로 달라져 있어 초록이 나왔다. 그러나 **구간 끝 나무는
+ *   v36 + 고쳐진 about** 이라, v36 을 가진 재방문자는 낡은 소개를 그대로 본다. 올린 뒤에 또 바꾼 것을
+ *   보려면 값의 같고 다름이 아니라 **정해진 시점의 앞뒤**를 재야 한다.
  *
  * ★설계 원칙 1 — 비교 기준은 git 이다
  *   파일 내용을 추측하지 않는다. `git diff --name-only base..head` 로 바뀐 파일을 얻고,
@@ -26,23 +33,28 @@
  *   git 호출이 실패해도 마찬가지다. (`tools/check_home_sync.mjs` · `tools/check_functions.mjs` 와 같은 계약)
  *
  * 규칙
- *   [precache-cache-bump]  PRECACHE 대상이 바뀌었으면 CACHE 문자열도 바뀌어 있다
- *                          (지적문은 어떤 파일이 어떤 PRECACHE 항목에 걸렸는지 이름을 댄다)
+ *   [precache-cache-bump]  PRECACHE 대상이 마지막으로 바뀐 커밋보다 CACHE 가 ★나중(또는 같은 커밋)에 정해져 있다
+ *                          (지적문은 어느 커밋의 어느 파일이 어느 PRECACHE 항목에 걸렸고
+ *                           CACHE 가 어느 커밋에서 어떤 값으로 정해졌는지를 이름으로 댄다)
  *
  * ★이 도구가 못 보는 것(정직한 한계)
  *   · **실브라우저에서 구버전 캐시가 실제로 지워지는지는 못 본다.** 이 도구가 재는 것은
  *     '버전 문자열이 올랐는가' 뿐이고, 재방문자의 캐시가 갈아 끼워지는 것은 실브라우저로만 확인된다.
  *   · CACHE 가 **의미 있게** 올랐는지는 안 본다. 값이 달라지기만 하면 통과다(v37→v36 도 통과다).
  *   · PRECACHE 에 없는 자원(예: /nonogram/thumb 이 아닌 내부 스크립트)은 애초에 이 계약 밖이다.
- *   · 커밋 하나가 아니라 base..head **구간**을 잰다. 구간 안에서 올렸다 내렸다 하면 양끝만 본다.
+ *   · 순서는 **first-parent 선을 따라** 본다. 병합 커밋은 첫 부모 대비 차이로 한 번에 세고,
+ *     병합해 들어온 옆가지의 커밋들을 하나씩 걷지는 않는다.
+ *   · base 와 head 가 조상관계인지는 검사하지 않는다(rev-list 가 주는 것을 그대로 센다).
  *
  * 사용법:
  *   node tools/check_precache_cache.mjs [저장소 경로] [--base <ref>] [--head <ref>]
  *        기본값 base=HEAD^ · head=HEAD
  *   node tools/check_precache_cache.mjs [저장소 경로] --mutate <이름>   (검출력 확인 · 아래 MUTATIONS)
  *   node tools/check_precache_cache.mjs [저장소 경로] --selftest        (뮤테이션 전량 자동 확인)
+ *   ★모르는 플래그·값 없는 플래그는 **조용히 무시하지 않는다** — rc=2 로 거부하고 사용법을 찍는다.
+ *     사용법 출력에 rc=0 을 쓰지 않는다(사용법 rc 를 판정 rc 로 오독하는 사고를 막는다).
  *
- * 종료코드: 0 미달 0 · 1 미달 발견 · 2 판정 불가(또는 뮤테이션 주입 실패)
+ * 종료코드: 0 미달 0 · 1 미달 발견 · 2 판정 불가(모르는 플래그·값 누락·뮤테이션 주입 실패 포함)
  *           ★--mutate 일 때는 형제 도구와 다르다 — 뮤테이션마다 기대 rc 가 다르기 때문이다(오탐 0 을
  *           증명하는 뮤테이션은 rc=0 이 정답이다). 0 기대대로 · 3 기대와 어긋남 · 2 주입 실패.
  */
@@ -50,12 +62,43 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
+const SELF = fileURLToPath(import.meta.url);
 const argv = process.argv.slice(2);
 const has = n => argv.indexOf(n) >= 0;
 const argOf = (n, d) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : d; };
-const MUTATE = argOf('--mutate', null);
 const FLAGS_WITH_VALUE = ['--mutate', '--base', '--head'];
+const FLAGS_BARE = ['--selftest'];
+
+/* ★모르는 플래그를 조용히 무시하면 오타 하나가 초록을 만든다 — 그건 게이트가 아니다.
+   사용법은 stderr 로 찍고 ★rc=2(판정 불가) 로 끝낸다. rc=0 을 쓰지 않는다. */
+const USAGE = [
+  '사용법:',
+  '  node tools/check_precache_cache.mjs [저장소 경로] [--base <ref>] [--head <ref>]',
+  '  node tools/check_precache_cache.mjs [저장소 경로] --mutate <이름>',
+  '  node tools/check_precache_cache.mjs [저장소 경로] --selftest',
+  '종료코드: 0 미달 0 · 1 미달 발견 · 2 판정 불가(모르는 플래그·값 누락 포함)'
+].join('\n');
+function refuseFlags(why){
+  console.error('  ‽ [precache-cache-bump] 판정 불가 — ' + why);
+  console.error(USAGE);
+  process.exit(2);
+}
+for (let i = 0; i < argv.length; i++){
+  const a = argv[i];
+  if (!a.startsWith('--')) continue;
+  if (FLAGS_BARE.indexOf(a) >= 0) continue;
+  if (FLAGS_WITH_VALUE.indexOf(a) >= 0){
+    const v = argv[i + 1];
+    if (v === undefined || v.startsWith('--')) refuseFlags(a + ' 에 값이 없다');
+    i++;                                  /* 값 자리는 플래그로 읽지 않는다 */
+    continue;
+  }
+  refuseFlags('모르는 플래그: ' + a);
+}
+
+const MUTATE = argOf('--mutate', null);
 const positional = argv.filter((a, i) => !a.startsWith('--') && FLAGS_WITH_VALUE.indexOf(argv[i - 1]) < 0);
 const ROOT = positional[0] || process.cwd();
 const BASE = argOf('--base', 'HEAD^');
@@ -128,29 +171,55 @@ function run(root, base, head){
   const cBase = parseCache(swBase.text, base);
   if (cBase.err){ indet('precache-cache-bump', cBase.err); return 2; }
 
-  const d = git(root, ['diff', '--name-only', base + '..' + head]);
-  if (d.err){ indet('precache-cache-bump', d.err); return 2; }
-  const changed = d.out.split('\n').map(x => x.trim()).filter(Boolean);
+  /* ★참계약(순서) — 구간을 커밋 단위로 걸으면서 두 시점을 따로 잡는다.
+     ① 프리캐시 대상이 마지막으로 바뀐 커밋  ② CACHE 값이 마지막으로 정해진 커밋
+     ②가 ①보다 앞이면, 구간 끝 나무는 '옛 CACHE + 새 파일' 이다 — 재방문자가 낡은 사본을 본다. */
+  const rl = git(root, ['rev-list', '--reverse', '--first-parent', base + '..' + head]);
+  if (rl.err){ indet('precache-cache-bump', rl.err); return 2; }
+  const commits = rl.out.split('\n').map(x => x.trim()).filter(Boolean);
 
   const precache = new Set(P.items);
   console.log('  · ' + head + ' 의 PRECACHE ' + P.items.length + '항목 · CACHE ' + cBase.value + ' → ' + cHead.value);
-  console.log('  · 바뀐 파일 ' + changed.length + '개');
+  console.log('  · 구간 커밋 ' + commits.length + '개(first-parent 선)');
 
-  const hits = [];
-  for (const f of changed){
-    for (const u of urlCandidates(f)){
-      if (precache.has(u)){ hits.push({ file: f, url: u }); break; }
+  let prevCache = cBase.value;
+  let lastTouch = null, lastBump = null, touchCount = 0;
+  for (let i = 0; i < commits.length; i++){
+    const c = commits[i];
+    const swC = swAt(root, c);
+    if (swC.err){ indet('precache-cache-bump', swC.err); return 2; }
+    const cc = parseCache(swC.text, c);
+    if (cc.err){ indet('precache-cache-bump', cc.err); return 2; }
+
+    const d = git(root, ['diff', '--name-only', c + '~1', c]);
+    if (d.err){ indet('precache-cache-bump', d.err); return 2; }
+    const changed = d.out.split('\n').map(x => x.trim()).filter(Boolean);
+
+    const hits = [];
+    for (const f of changed){
+      for (const u of urlCandidates(f)){
+        if (precache.has(u)){ hits.push({ file: f, url: u }); break; }
+      }
     }
+    if (hits.length){ touchCount += hits.length; lastTouch = { i, sha: c.slice(0, 7), hits }; }
+    if (cc.value !== prevCache){ lastBump = { i, sha: c.slice(0, 7), from: prevCache, to: cc.value }; }
+    prevCache = cc.value;
   }
 
-  if (!hits.length){
-    good('precache-cache-bump', '이 구간은 PRECACHE 대상 자원을 바꾸지 않았다 — CACHE 를 올릴 의무가 없다(바뀐 파일 ' + changed.length + '개 중 0개가 프리캐시 대상)');
-  } else if (cBase.value === cHead.value){
-    bad('precache-cache-bump', 'PRECACHE 대상이 바뀌었는데 CACHE 가 그대로다(' + cHead.value + ') — 재방문자는 낡은 사본을 계속 본다. 걸린 것: '
-      + hits.map(h => h.file + ' → PRECACHE 항목 ' + h.url).join(' · '));
+  const nameHits = t => t.hits.map(h => h.file + ' → PRECACHE 항목 ' + h.url).join(' · ');
+
+  if (!lastTouch){
+    good('precache-cache-bump', '이 구간은 PRECACHE 대상 자원을 바꾸지 않았다 — CACHE 를 올릴 의무가 없다(구간 커밋 ' + commits.length + '개 중 0개가 프리캐시 대상을 건드렸다)');
+  } else if (!lastBump){
+    bad('precache-cache-bump', 'PRECACHE 대상이 바뀌었는데 CACHE 가 구간 내내 그대로다(' + cHead.value + ') — 재방문자는 낡은 사본을 계속 본다. 마지막으로 바꾼 곳: '
+      + lastTouch.sha + ' 의 ' + nameHits(lastTouch));
+  } else if (lastBump.i >= lastTouch.i){
+    good('precache-cache-bump', 'PRECACHE 대상 ' + touchCount + '건이 바뀌었고 CACHE 는 그 뒤(또는 같은 커밋)에 정해졌다 — 마지막 변경 '
+      + lastTouch.sha + '(' + nameHits(lastTouch) + ') · CACHE 확정 ' + lastBump.sha + '(' + lastBump.from + ' → ' + lastBump.to + ')');
   } else {
-    good('precache-cache-bump', 'PRECACHE 대상 ' + hits.length + '건이 바뀌었고 CACHE 도 올랐다(' + cBase.value + ' → ' + cHead.value + '). 걸린 것: '
-      + hits.map(h => h.file + ' → ' + h.url).join(' · '));
+    bad('precache-cache-bump', '★CACHE 를 올린 뒤에 프리캐시 대상을 또 바꿨다 — CACHE 는 ' + lastBump.sha + ' 에서 ' + lastBump.from + ' → ' + lastBump.to
+      + ' 로 정해졌는데, 그 뒤 ' + lastTouch.sha + ' 이 ' + nameHits(lastTouch) + ' 를 바꿨다. 구간 끝 나무 = ' + cHead.value
+      + ' + 고쳐진 그 파일 ⇒ ' + cHead.value + ' 를 가진 재방문자는 낡은 사본을 계속 본다.');
   }
 
   console.log('결과: 통과 ' + passCount + ' · 미달 ' + failCount + ' · 판정 불가 ' + indetCount);
@@ -207,8 +276,61 @@ const MUTATIONS = {
       appendLine(path.join(dir, 'about', 'index.html'), '<!-- 변이 -->');
       return commit(dir, 'CACHE 를 읽을 수 없게 만든다');
     }
+  },
+  /* ── R2 에서 더한 4종 ─────────────────────────────────────────────────── */
+  'bump-then-touch': {
+    why: '★순서 축 — 프리캐시 대상을 바꾸고 CACHE 를 올린 뒤 ★같은 대상을 또 바꾼다. 구간 양끝만 보면 CACHE 가 달라 보여 초록이었다(R1 대리물이 놓치던 8d65c60 형태)',
+    range: { base: 'HEAD~2', head: 'HEAD' },
+    expect: { rc: 1, fail: ['precache-cache-bump'], indet: [] },
+    apply(dir){
+      appendLine(path.join(dir, 'about', 'index.html'), '<!-- 변이 1 -->');
+      if (!bumpCache(path.join(dir, 'sw.js'))) return false;
+      if (!commit(dir, 'about 을 고치고 CACHE 도 올린다')) return false;
+      appendLine(path.join(dir, 'about', 'index.html'), '<!-- 변이 2 -->');
+      return commit(dir, '★올린 뒤에 about 을 또 고친다');
+    }
+  },
+  'touch-then-bump': {
+    why: '★순서 축의 반대편 — 바꾼 뒤에 올린다. 정상 출고의 모양이므로 붉으면 안 된다(순서 규칙의 오탐 0)',
+    range: { base: 'HEAD~2', head: 'HEAD' },
+    expect: { rc: 0, fail: [], indet: [] },
+    apply(dir){
+      appendLine(path.join(dir, 'about', 'index.html'), '<!-- 변이 -->');
+      if (!commit(dir, 'about 을 고친다')) return false;
+      if (!bumpCache(path.join(dir, 'sw.js'))) return false;
+      return commit(dir, '그 뒤에 CACHE 를 올린다');
+    }
+  },
+  'unreadable-precache': {
+    why: 'head 의 sw.js 에서 PRECACHE 배열을 못 읽게 만든다 — ★프리캐시 대상을 함께 바꿔 두었으므로 읽혔다면 rc=1 이 나와야 한다. 공허하지 않게 rc=2(판정 불가)여야 한다(설계 원칙 3)',
+    expect: { rc: 2, fail: [], indet: ['precache-cache-bump'] },
+    apply(dir){
+      const p = path.join(dir, 'sw.js');
+      const s = fs.readFileSync(p, 'utf8');
+      const next = s.replace(/const PRECACHE/, 'const ASSET_LIST');
+      if (next === s) return false;
+      fs.writeFileSync(p, next, 'utf8');
+      appendLine(path.join(dir, 'about', 'index.html'), '<!-- 변이 -->');
+      return commit(dir, 'PRECACHE 선언 이름을 바꿔 못 읽게 만든다');
+    }
+  },
+  'unknown-flag': {
+    why: '모르는 플래그를 준다 — 조용히 무시하고 기본 구간을 재서 초록을 주면 안 된다. ★이 항목만은 실제 CLI 를 그대로 띄워 잰다(플래그 해석은 run() 안이 아니라 진입부에 있어, 저장소 변이로는 닿지 않는다)',
+    spawn: ['--그런플래그는없다'],
+    expect: { rc: 2, fail: [], indet: [] }
   }
 };
+/* ★spawn 항목 전용 — 이 파일 자신을 자식 프로세스로 띄워 진짜 종료코드를 받는다.
+   종료코드를 못 받으면(실행 자체 실패) 2 로 접지 않는다 — 그러면 기대 rc=2 와 구별되지 않아
+   ★추락이 판정으로 위장한다. -1 을 돌려 어긋남으로 드러나게 한다. */
+function spawnCli(root, args){
+  try {
+    execFileSync(process.execPath, [SELF, root, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    return 0;
+  } catch (e){
+    return typeof e.status === 'number' ? e.status : -1;
+  }
+}
 function appendLine(p, line){
   fs.writeFileSync(p, fs.readFileSync(p, 'utf8') + line + '\r\n', 'utf8');
 }
@@ -256,6 +378,14 @@ if (has('--selftest')){
   let bads = 0, setupFail = 0;
   const rows = [];
   for (const [name, m] of Object.entries(MUTATIONS)){
+    if (m.spawn){                                   /* 저장소 변이가 아니라 실제 CLI 호출로 잰다 */
+      resetScore();
+      const rcS = spawnCli(ROOT, m.spawn);
+      const vS = judge(m, rcS);
+      if (!vS.ok) bads++;
+      rows.push({ name, why: m.why, ...vS });
+      continue;
+    }
     const dir = stageRepo(ROOT);
     if (dir === null){ setupFail++; rows.push({ name, ok: false, why: '임시 저장소를 만들지 못했다' }); continue; }
     let injected = false;
@@ -264,7 +394,8 @@ if (has('--selftest')){
     resetScore();
     const silent = console.log; console.log = () => {};
     let rc;
-    try { rc = run(dir, 'HEAD^', 'HEAD'); } finally { console.log = silent; fs.rmSync(dir, { recursive: true, force: true }); }
+    const rg = m.range || { base: 'HEAD^', head: 'HEAD' };
+    try { rc = run(dir, rg.base, rg.head); } finally { console.log = silent; fs.rmSync(dir, { recursive: true, force: true }); }
     const v = judge(m, rc);
     if (!v.ok) bads++;
     rows.push({ name, why: m.why, ...v });
@@ -285,13 +416,21 @@ if (has('--selftest')){
 if (MUTATE){
   const m = MUTATIONS[MUTATE];
   if (!m){ console.error('그런 뮤테이션이 없다: ' + MUTATE); process.exit(2); }
+  if (m.spawn){
+    resetScore();
+    const rcS = spawnCli(ROOT, m.spawn);
+    const vS = judge(m, rcS);
+    console.log('  검출력 판정: rc=' + rcS + '(기대 ' + m.expect.rc + ') → ' + (vS.ok ? '기대대로' : '★어긋남'));
+    process.exit(vS.ok ? 0 : 3);
+  }
   const dir = stageRepo(ROOT);
   if (dir === null){ console.error('임시 저장소를 만들지 못했다'); process.exit(2); }
   let injected = false;
   try { injected = m.apply(dir); } catch (e){ console.error('주입 중 오류: ' + e.message); injected = false; }
   if (!injected){ fs.rmSync(dir, { recursive: true, force: true }); console.error('주입 실패(앵커 노후화): ' + MUTATE); process.exit(2); }
   let rc;
-  try { rc = run(dir, 'HEAD^', 'HEAD'); } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  const rg = m.range || { base: 'HEAD^', head: 'HEAD' };
+  try { rc = run(dir, rg.base, rg.head); } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   const v = judge(m, rc);
   console.log('  검출력 판정: rc=' + rc + '(기대 ' + m.expect.rc + ')'
     + ' · 미달 [' + (v.seenFail.join(',') || '없음') + '](기대 [' + (v.wantFail.join(',') || '없음') + '])'
