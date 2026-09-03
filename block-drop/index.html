@@ -1529,8 +1529,13 @@ window.addEventListener('orientationchange', () => setTimeout(() => { draw(); dr
 rafId = requestAnimationFrame(loop);
 
 /* ======================= 검증 훅 ======================= */
-/* 게임 로직에 영향을 주지 않는 읽기·주입 창구다. 점수는 기기에만 저장되고 순위표가 없으므로
-   외부에 영향이 없다(2048 의 window.__g2048 과 같은 취지). */
+/* 검증 훅 — 읽기·주입 창구다(2048 의 window.__g2048 과 같은 취지).
+   ★게임 로직을 바꾼다 — newGame·setBoard·setLevel·startDaily 는 판을 실제로 갈아끼운다.
+   점수는 기기에만 저장되고 순위표가 없다(둘 다 사실이다). ★그러나 '외부에 영향이 없다' 는
+   거짓이다 — newGame 은 hpHit('play') 로 이어져 판수 1 이 /api/hit 으로 나가고, 그 숫자는
+   공개 /api/stats 에 보인다(점수는 안 나간다 — 횟수 1 만 더해진다).
+   ★단 그것은 이 훅이 열어 준 것이 아니다 — window.hpHit 은 js/hp-stats.js 가 전역으로 두어
+   훅을 떼도 콘솔에서 같은 일이 된다. 훅을 막는 것으로는 닫지 않는다. */
 window.__bd = {
   const: () => ({ COLS, ROWS, LOCK_MS, LOCK_RESET_MAX, TICK, SCORE_TABLE:SCORE_TABLE.slice(),
                   HARD_DROP_PER_CELL, TYPES:TYPES.slice(), SPAWN_COL:{...SPAWN_COL} }),

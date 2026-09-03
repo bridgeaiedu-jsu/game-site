@@ -1341,7 +1341,14 @@ try{
 }catch(_){}
 
 /* ======================= 검증 훅 ======================= */
-/* 게임 로직에 영향을 주지 않는 읽기·주입 창구다(다른 게임의 __bd 와 같은 취지). */
+/* 검증 훅 — tools/verify_word.js 가 이것을 창구로 쓴다(다른 게임의 __bd 와 같은 취지).
+   ★읽기만 하는 창구가 아니다 — feed·back·clear·type·submit 은 판의 상태를 바꾸고,
+   submit 은 localStorage 의 연승·통계까지 쓴다. 정답도 준다(answerFor · state().answer) — 다만
+   정답 목록 ANSWERS_RAW 가 이미 이 파일에 평문으로 있어 훅이 새로 여는 것은 없다.
+   ★공개 카운터도 손란다 — newFree·startDaily·resume 은 hpHit('play') 로 이어져 판수 1 이
+   /api/hit 으로 나가고 그 숫자는 /api/stats 로 누구나 본다(점수는 안 나간다 — 횟수 1 만).
+   ★그러나 그것은 이 훅이 열어 준 것이 아니다. window.hpHit 은 js/hp-stats.js 가 전역으로 두고
+   17개 페이지에 실리므로, 훅을 떼도 콘솔에서 같은 일이 된다. ★훅을 막으면 된다고 오해하지 마라. */
 window.__wd = {
   ovStack: () => ovStack.map(s => ({ id: s.id, opener: s.opener ? (s.opener.id || s.opener.tagName) : null })),
   jamo: () => ({ CHO: CHO.slice(), JUNG: JUNG.slice(), JONG: JONG.slice(), EMPTY }),

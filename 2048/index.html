@@ -877,7 +877,8 @@ if ($('start').classList.contains('show')) showOverlay('start', 'btnDaily');
 window.addEventListener('resize', () => { if (grid) render(); });
 window.addEventListener('orientationchange', () => setTimeout(() => { if (grid) render(); }, 150));
 
-/* 검증 훅 — 스폰 결정성·상태 확인용. 게임 로직에 영향 없음. */
+/* 검증 훅 — 스폰 결정성·상태 확인용. ★게임 로직을 바꾼다 — move·newGame·setGrid 는
+   판을 실제로 움직인다. 읽기 전용이 아니다. */
 window.__g2048 = {
   spawns: () => spawnLog.slice(),
   state: () => ({ mode, score, max: maxTile(), over, won,
@@ -887,7 +888,11 @@ window.__g2048 = {
   move: (dir) => move(dir),
   newGame: (m) => newGame(m),
   /* 판을 특정 배치로 세팅한다 — 승리(2048)·게임오버 경로를 검증하기 위한 것.
-     점수는 기기에만 저장되고 순위표가 없으므로 외부 영향이 없다. */
+     점수는 기기에만 저장되고 순위표가 없다(둘 다 사실이다). ★그러나 '외부 영향이 없다' 는
+     거짓이다 — newGame 은 hpHit('play') 로 이어져 판수 1 이 /api/hit 으로 나가고, 그 숫자는
+     공개 /api/stats 에 보인다(점수는 안 나간다 — 횟수 1 만 더해진다).
+     ★단 그것은 이 훅이 열어 준 것이 아니다 — window.hpHit 은 js/hp-stats.js 가 전역으로 두어
+     훅을 떼도 콘솔에서 같은 일이 된다. 훅을 막는 것으로는 닫지 않는다. */
   setGrid: (vals) => {
     grid = Array.from({length:N}, () => Array(N).fill(null));
     tiles = []; tileSeq = 0;
