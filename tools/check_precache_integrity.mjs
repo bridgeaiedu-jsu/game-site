@@ -20,8 +20,8 @@
  *   **PRECACHE 에 실린 모든 항목은 배포 산출물에서 실제로 서빙 가능한 자원에 대응해야 한다.**
  *
  * 규칙 (지적마다 [규칙id] 가 붙는다 — 뮤테이션이 이 id 로 귀속을 대조한다)
- *   [precache-url-shape]      항목이 '/' 로 시작하는 절대 경로다(질의·조각·'..'·'//' 없음)
- *   [precache-dir-form]       디렉터리 자원을 **파일 형태**(…/index.html)로 적지 않았다
+ *   [precache-url-shape]      항목이 '/' 로 시작하는 절대 경로다(질의·조각·'..'·'//'·공백·제어문자·백슬래시 없음)
+ *   [precache-dir-form]       디렉터리 자원의 표기가 성하다(파일 형태 …/index.html 도, 후행 슬래시 누락도 308 이다)
  *   [precache-target-exists]  항목이 저장소의 실제 파일에 대응한다(디렉터리 형태는 그 안의 index.html)
  *   [precache-duplicate]      같은 URL 이 두 번 이상 실려 있지 않다
  *
@@ -63,6 +63,17 @@
  *   · **런타임 cacheFirst 하위 자산은 보지 않는다**(축7). `/stop/` 이 초록이어도 `stop/game.js` 는
  *     PRECACHE 항목이 아니다 — 이 게이트의 계약이 아니다.
  *   · 자원의 **내용**은 보지 않는다. 빈 파일도 실재하면 통과한다.
+ *   · ★**유니코드 정규화(NFC/NFD)를 하지 않는다 — 하지 않기로 정한 것이다**(R2 축3·축6).
+ *     근거 셋: ①이 저장소의 경로와 PRECACHE 항목은 실측으로 **전부 ASCII 다**(비-ASCII 0/45 · 추적 파일 0건).
+ *     ②존재 검사가 이미 **바이트 그대로** 대조하므로, 정규화가 다른 이름은 '없다' 로 **닫히는 쪽**으로 틀린다.
+ *     ③정규화를 넣으면 오히려 **느슨해진다**(NFD 로 적힌 항목을 NFC 파일로 통과시킨다) — 배포처는
+ *     바이트로 판정하므로 그것은 거짓 초록이다. 비-ASCII 경로를 쓰기 시작하면 이 결정을 다시 봐야 한다.
+ *   · ★**심볼릭 링크를 따로 다루지 않는다 — 하지 않기로 정한 것이다**(R2 축8 · gemini 도 미재현 라벨).
+ *     근거: ①이 저장소에 심볼릭 링크는 **0건**이다(`git ls-files -s` 의 120000 모드 0건 실측).
+ *     ②표본을 만들 수 없으면 그 분기는 **검사할 수 없는 코드**가 되고, 검사되지 않는 방어는
+ *     다음 사람이 조용히 되돌려도 아무도 모른다. 재현되지 않은 것을 근거로 코드를 늘리지 않는다.
+ *     ③지금은 `statSync` 가 링크를 따라가므로 **링크가 가리키는 실물이 있으면 통과**한다 —
+ *     배포처가 링크를 어떻게 다루는지 확인되지 않았으니, 링크가 생기면 이 줄을 먼저 다시 읽어라.
  *
  * 사용법:
  *   node tools/check_precache_integrity.mjs [저장소 경로]
@@ -131,19 +142,48 @@ function readSw(root){
   catch (e){ return { err: 'sw.js 를 읽지 못했다: ' + e.message }; }
 }
 
-/* PRECACHE 리터럴이 차지하는 구간. 끝을 '];' 라는 붙어 있는 두 글자로 찾으면 사이에 공백·줄바꿈이
-   하나만 들어와도 못 찾고 '판정 불가' 가 된다 — 공백을 허용하는 모양으로 찾는다
-   (`tools/check_home_sync.mjs` 가 뮤테이션이 배열을 예쁘게 다시 쓰자 실제로 그 일을 겪었다). */
+/* ★배열의 끝은 정규식으로 찾지 않는다 — 괄호 짝을 맞춘다(R2 · 축1·축5는 같은 뿌리다).
+   왜: 원문에서 /\]\s*;/ 로 끝을 찾으면
+     ①배열 안 주석에 '];' 가 있으면 거기서 잘린다 — master 재현에서 45항목 중 ★36개만 읽고
+       없는 항목이 검사 대상 밖으로 빠진 채 rc=0 이 났다(거짓 통과).
+     ②세미콜론을 생략한 정상 자바스크립트(ASI)를 '끝을 못 찾았다' 며 거부한다(거짓 판정 불가).
+   문자열·주석을 건너뛰며 깊이를 세면 ★세미콜론과 무관하게 끝이 정해지고 둘 다 닫힌다. */
 function precacheSpan(text){
   const head = /const\s+PRECACHE\s*=\s*/.exec(text);
   if (!head) return null;
   const open = text.indexOf('[', head.index);
   if (open < 0) return null;
-  const re = /\]\s*;/g;
-  re.lastIndex = open;
-  const m = re.exec(text);
-  if (!m) return null;
-  return { open, close: m.index };            /* text[open] === '[' · text[close] === ']' */
+  let depth = 0;
+  for (let i = open; i < text.length; i++){
+    const c = text[i];
+    if (c === '/' && text[i + 1] === '/'){ const nl = text.indexOf('\n', i); if (nl < 0) return null; i = nl; continue; }
+    if (c === '/' && text[i + 1] === '*'){ const e = text.indexOf('*/', i + 2); if (e < 0) return null; i = e + 1; continue; }
+    if (c === '\'' || c === '"' || c === '`'){
+      const e = endOfString(text, i);
+      if (e < 0) return null;
+      i = e;
+      continue;
+    }
+    if (c === '[' || c === '{' || c === '(') depth++;
+    else if (c === ']' || c === '}' || c === ')'){
+      depth--;
+      if (depth === 0) return c === ']' ? { open, close: i } : null;   /* 짝이 어긋나면 판정 불가 */
+      if (depth < 0) return null;
+    }
+  }
+  return null;                                  /* 끝을 못 찾았다 → 판정 불가(통과 아님) */
+}
+/* 따옴표 문자열의 닫는 위치. ★이스케이프를 센다(\' 로 끝난 것처럼 보이는 자리에서 끊기지 않게).
+   줄바꿈으로 닫히지 않는 따옴표는 자바스크립트 문법 오류이므로 -1 을 돌려 판정 불가로 보낸다. */
+function endOfString(text, start){
+  const q = text[start];
+  for (let i = start + 1; i < text.length; i++){
+    const c = text[i];
+    if (c === '\\'){ i++; continue; }
+    if (c === q) return i;
+    if (c === '\n' && q !== '`') return -1;
+  }
+  return -1;
 }
 
 /* 배열 리터럴에서 항목을 뽑는다.
@@ -159,7 +199,7 @@ function parsePrecache(text){
   while (i < lit.length){
     const c = lit[i];
     if (c === '\'' || c === '"' || c === '`'){
-      const end = lit.indexOf(c, i + 1);
+      const end = endOfString(lit, i);          /* ★종결 탐색과 같은 규칙을 쓴다(이스케이프 포함) */
       if (end < 0) return { err: 'PRECACHE 배열 안의 문자열이 닫히지 않았다(' + (i + 1) + '번째 글자 부근)' };
       if (c === '`' && lit.slice(i, end).indexOf('${') >= 0) return { err: 'PRECACHE 항목에 템플릿 보간이 있다 — 값을 정적으로 읽을 수 없다' };
       items.push(lit.slice(i + 1, end));
@@ -175,6 +215,23 @@ function parsePrecache(text){
   if (leftover.length) return { err: 'PRECACHE 배열에 문자열이 아닌 것이 섞여 있다 — ' + JSON.stringify(leftover.slice(0, 40)) };
   if (!items.length) return { err: 'PRECACHE 배열이 비어 있다' };
   return { items };
+}
+
+/* ★파스 온전성의 독립 확인 — 분모는 분자와 ★다른 출처에서 와야 방어가 된다.
+   R2 가 가르쳐 준 것: 파스가 잘리면 '잰 건수 36 = 전체 36' 처럼 ★자기일관되게 거짓을 말한다.
+   분자도 분모도 같은 망가진 파스에서 나오기 때문이다. 그래서 파스 결과와 무관한 방법으로
+   한 번 더 센다 — 파일 전체를 ★줄 단위로 훑어 '항목처럼 생긴 줄'(따옴표로 감싼 / 로 시작하는
+   값이 그 줄의 전부)을 센다. 이 수가 파스한 항목 수보다 ★많으면 파스가 무언가를 빠뜨린 것이다.
+   (적을 때는 배열을 한 줄에 쓴 경우가 있어 '교차 확인 미적용' 으로만 알린다 — 잘림의 지문은
+    언제나 B > A 다. 잘리면 A 가 줄고 남은 항목 줄은 그대로 남아 B 에 잡힌다.) */
+const ITEM_LINE = /^\s*(['"])(\/[^'"]*)\1\s*,?\s*$/;
+function lineShapedItems(text){
+  const out = [];
+  for (const line of text.split('\n')){
+    const m = ITEM_LINE.exec(line.replace(/\r$/, ''));
+    if (m) out.push(m[2]);
+  }
+  return out;
 }
 
 /* ── 매핑 ────────────────────────────────────────────────────────────────── */
@@ -195,6 +252,18 @@ function listDir(abs){
     dirCache.set(abs, names);
   }
   return dirCache.get(abs);
+}
+/* 그 자리가 ★실제로 디렉터리인가(대소문자까지 정확히). 이름 규칙으로 짐작하지 않기 위해 쓴다. */
+function isDirExact(root, rel){
+  const parts = rel.split('/').filter(Boolean);
+  if (!parts.length) return false;
+  let abs = root;
+  for (const seg of parts){
+    const names = listDir(abs);
+    if (names === null || names.indexOf(seg) < 0) return false;
+    abs = path.join(abs, seg);
+  }
+  try { return fs.statSync(abs).isDirectory(); } catch { return false; }
 }
 function resolveExact(root, rel){
   const parts = rel.split('/').filter(Boolean);
@@ -231,7 +300,24 @@ function run(root, swTextOverride){
   const P = parsePrecache(text);
   if (P.err){ for (const rule of RULES) indet(rule, P.err); return 2; }
   const items = P.items;
-  console.log('  · PRECACHE ' + items.length + '개 항목(sw.js 에서 읽었다 · 이 도구에 목록·개수를 박지 않는다)');
+
+  /* ★파스 온전성 — 분모를 분자와 다른 출처에서 한 번 더 센다(R2 blocker 의 처방).
+     잘림의 지문은 언제나 'B > A' 다: 파스가 중간에서 끊기면 A 만 줄고, 뒤에 남은 항목 줄은
+     그대로 남아 줄 단위 계수 B 에 잡힌다. 그 상태에서는 통과를 주지 않는다. */
+  const byLine = lineShapedItems(text);
+  if (byLine.length > items.length){
+    const extra = byLine.filter(u => items.indexOf(u) < 0);
+    for (const rule of RULES) indet(rule, '파스가 배열의 일부만 읽었을 수 있다 — 파스 ' + items.length + '항목인데 '
+      + '줄 단위 독립 계수는 ' + byLine.length + '항목이다'
+      + (extra.length ? ' (파스가 못 본 것 예: ' + extra.slice(0, 3).map(x => JSON.stringify(x)).join(', ') + (extra.length > 3 ? ' 외 ' + (extra.length - 3) + '건' : '') + ')' : '')
+      + ' · ★두 수가 어긋나면 통과를 주지 않는다');
+    console.log('결과: 통과 ' + passCount + ' · 미달 ' + failCount + ' · 판정 불가 ' + indetCount);
+    return 2;
+  }
+  const crossNote = byLine.length === items.length
+    ? '줄 단위 독립 계수 ' + byLine.length + '와 일치'
+    : '★교차 확인 미적용(줄 단위 계수 ' + byLine.length + ' — 배열이 줄 단위로 적혀 있지 않다)';
+  console.log('  · PRECACHE ' + items.length + '개 항목(sw.js 에서 읽었다 · 이 도구에 목록·개수를 박지 않는다) · ' + crossNote);
 
   /* ① 형식 — 여기서 걸린 항목은 아래 규칙의 대상에서 뺀다.
      ★왜 빼는가: 형식이 깨진 항목을 매핑하면 내 매핑이 엉뚱한 파일을 찾아 '없다' 고 또 운다.
@@ -249,12 +335,24 @@ function run(root, swTextOverride){
       if (u.indexOf('#') >= 0) why.push('조각(#)이 있다');
       if (u.indexOf('//') >= 0) why.push("'//' 가 있다");
       if (u.split('/').indexOf('..') >= 0) why.push("'..' 마디가 있다");
+      /* R2 축4·축7 — 눈에 안 보이는 글자가 형태 검사를 통과하던 자리. 세 종류를 여기서 함께 닫는다.
+         ★공백·제어문자는 그 자체로 다른 URL 이고(요청은 인코딩되어 나간다), 백슬래시는 Windows 경로
+         습관이 새어 든 것이며(배포처는 경로 구분자로 안 읽는다), 둘 다 프리캐시 항목으로는 404 다. */
+      if (/\s/.test(u)) why.push('공백류(공백·탭·개행)가 들어 있다 — ' + JSON.stringify(u));
+      // eslint-disable-next-line no-control-regex
+      if (/[\x00-\x1f\x7f]/.test(u)) why.push('제어문자가 들어 있다 — ' + JSON.stringify(u));
+      if (u.indexOf('\\') >= 0) why.push("백슬래시가 있다(경로 구분자는 '/' 뿐이다)");
     }
     if (why.length) shapeBad.push({ u, why: why.join(' · ') });
     else clean.push(u);
   }
-  if (shapeBad.length) bad('precache-url-shape', '절대 경로가 아닌 항목 ' + shapeBad.length + '건 — ' + shapeBad.map(x => JSON.stringify(x.u) + ' (' + x.why + ')').join(' · '));
-  else good('precache-url-shape', items.length + '개 항목이 모두 절대 경로다(질의·조각·".."·"//" 0건)');
+  /* ★퍼센트 인코딩은 미달이 아니라 판정 불가다 — '%2F' 가 이름 그대로인지 인코딩인지 이 도구가
+     정하지 않았다. 규칙을 정하지 않은 채 어느 쪽으로든 판정하면 그 판정이 곧 추측이다. */
+  const pctItems = clean.filter(u => u.indexOf('%') >= 0);
+  if (shapeBad.length) bad('precache-url-shape', '형태가 어긋난 항목 ' + shapeBad.length + '건 — ' + shapeBad.map(x => JSON.stringify(x.u) + ' (' + x.why + ')').join(' · '));
+  else if (pctItems.length) indet('precache-url-shape', '퍼센트 인코딩이 든 항목 ' + pctItems.length + '건 — ' + pctItems.map(u => JSON.stringify(u)).join(' · ')
+    + ' · 디코딩 규칙을 정하지 않았다(이름 그대로인지 인코딩인지)');
+  else good('precache-url-shape', items.length + '개 항목이 모두 절대 경로다(질의·조각·".."·"//"·공백·제어문자·백슬래시·퍼센트 0건)');
 
   /* ② 중복 */
   const seen = new Map();
@@ -278,24 +376,38 @@ function run(root, swTextOverride){
   /* ③ 파일 형태로 적힌 디렉터리 항목 — Cloudflare Pages 가 308 을 돌려주어 addAll 이 통째로 깨진다.
      ★이 항목은 파일이 실제로 있으므로 실재 검사로는 절대 안 잡힌다. 규칙이 따로 있어야 하는 이유다. */
   const fileForm = clean.filter(u => u === '/index.html' || u.endsWith('/index.html'));
-  if (fileForm.length) bad('precache-dir-form', '디렉터리 자원이 파일 형태로 실려 있다 ' + fileForm.length + '건 — '
-    + fileForm.map(u => JSON.stringify(u) + ' → ' + JSON.stringify(u.slice(0, u.length - 'index.html'.length)) + ' 로 적어라').join(' · ')
+  /* ★R2 축2 — 반대 모양도 같은 308 이다. `/about` 처럼 **후행 슬래시가 빠진 디렉터리 항목**은
+     배포처가 `/about/` 로 308 을 돌려주므로 addAll 이 통째로 깨진다. 이 저장소가 2026-08-26 에
+     실제로 다친 형태가 바로 308 이다.
+     ★'디렉터리인가' 를 이름 규칙으로 짐작하지 않는다 — 저장소에서 그 자리가 실제로 디렉터리인지 본다.
+     그러면 확장자 없는 파일(예: `/robots`)과 디렉터리를 헷갈리지 않는다. */
+  const noSlashDir = clean.filter(u => !u.endsWith('/') && isDirExact(root, u.slice(1)));
+  const dirFormBad = fileForm.concat(noSlashDir);
+  if (dirFormBad.length) bad('precache-dir-form', '디렉터리 자원의 표기가 어긋난 항목 ' + dirFormBad.length + '건 — '
+    + fileForm.map(u => JSON.stringify(u) + '(파일 형태) → ' + JSON.stringify(u.slice(0, u.length - 'index.html'.length)) + ' 로 적어라')
+      .concat(noSlashDir.map(u => JSON.stringify(u) + '(후행 슬래시 없음) → ' + JSON.stringify(u + '/') + ' 로 적어라')).join(' · ')
     + ' (배포처가 308 을 돌려주어 cache.addAll 이 통째로 reject 된다 · 2026-08-26 실측 · sw.js 주석)');
-  else good('precache-dir-form', '파일 형태로 적힌 디렉터리 항목 0 — 디렉터리 자원은 모두 "…/" 꼴이다');
+  else good('precache-dir-form', '디렉터리 표기 어긋남 0 — 파일 형태 0건 · 후행 슬래시 빠진 디렉터리 0건');
 
-  /* ④ 실재성 */
+  /* ④ 실재성 — ★③에서 이미 지적된 항목은 뺀다.
+     후행 슬래시가 빠진 디렉터리 항목(`/about`)은 매핑하면 '파일이 아니라 디렉터리다' 로 실재 검사도
+     함께 울어 한 결함이 두 규칙을 붉힌다. 원인을 대는 규칙은 ③ 하나여야 한다(무임승차 배제 · 자기시험이 잡았다). */
+  const dirFormSet = new Set(dirFormBad);
+  const cleanForExists = clean.filter(u => !dirFormSet.has(u));
   const missing = [];
   let checked = 0;
-  for (const u of clean){
+  for (const u of cleanForExists){
     const rel = targetOf(u);
     const r = resolveExact(root, rel);
     checked++;
     if (!r.ok) missing.push({ u, rel, at: r.at, why: r.why });
   }
-  if (missing.length) bad('precache-target-exists', '대응 자원을 찾지 못한 항목 ' + missing.length + '건 — '
+  if (!cleanForExists.length){
+    indet('precache-target-exists', '실재를 잴 대상이 0건이다(형식·디렉터리 표기에서 전량이 걸렸다) — 잴 것이 없으면 통과가 아니다');
+  } else if (missing.length) bad('precache-target-exists', '대응 자원을 찾지 못한 항목 ' + missing.length + '건 — '
     + missing.map(m => JSON.stringify(m.u) + ' → ' + m.rel + ' (' + m.at + ' 에서 막혔다: ' + m.why + ')').join(' · '));
-  else if (checked !== clean.length) indet('precache-target-exists', '잰 건수(' + checked + ')가 대상 건수(' + clean.length + ')와 다르다 — 세는 자리가 고장 났다');
-  else good('precache-target-exists', '★잰 건수 ' + checked + ' = 형식이 성한 항목 ' + clean.length + '(전체 ' + items.length + ') · 전부 저장소의 실제 파일에 대응한다(대소문자까지 정확히 대조)');
+  else if (checked !== cleanForExists.length) indet('precache-target-exists', '잰 건수(' + checked + ')가 대상 건수(' + cleanForExists.length + ')와 다르다 — 세는 자리가 고장 났다');
+  else good('precache-target-exists', '★잰 건수 ' + checked + ' = 형식·표기가 성한 항목 ' + cleanForExists.length + '(형식 통과 ' + clean.length + ' · 전체 ' + items.length + ') · 전부 저장소의 실제 파일에 대응한다(대소문자까지 정확히 대조)');
 
   console.log('결과: 통과 ' + passCount + ' · 미달 ' + failCount + ' · 판정 불가 ' + indetCount);
   if (indetCount) return 2;
@@ -404,6 +516,66 @@ const MUTATIONS = {
       const next = lit.replace(/'\/([^']*)'/g, "'$1'");
       if (next === lit) return null;
       return text.slice(0, span.open) + next + text.slice(span.close + 1);
+    }
+  },
+  'comment-close-bracket': {
+    why: '★R2 blocker 재현 — 배열 안 주석에 "];" 를 넣고 그 뒤에 없는 파일 항목을 넣는다(옛 파서는 여기서 잘려 36항목만 읽고 초록을 냈다)',
+    rules: ['precache-target-exists'], rc: 1,
+    apply(text, root){
+      const span = precacheSpan(text);
+      if (span === null) return null;
+      const ghost = '/ghost-after-comment.webp';
+      if (fs.existsSync(path.join(root, ghost.slice(1)))) return null;   /* 정말 없는 경로여야 한다 */
+      const inject = '\n  // temporary marker: ];\n  \'' + ghost + '\',';
+      return text.slice(0, span.open + 1) + inject + text.slice(span.open + 1);
+    }
+  },
+  'no-semicolon': {
+    why: '★R2 축5 — 배열 끝의 세미콜론을 뗀다(ASI 는 정상 자바스크립트다). 거부하지 말고 그대로 판정해야 한다(오탐 0)',
+    rules: [], rc: 0,
+    apply(text){
+      const span = precacheSpan(text);
+      if (span === null) return null;
+      const after = text.slice(span.close + 1);
+      const m = /^(\s*);/.exec(after);
+      if (!m) return null;
+      return text.slice(0, span.close + 1) + m[1] + after.slice(m[0].length);
+    }
+  },
+  'dir-without-slash': {
+    why: '★R2 축2 — 실재하는 디렉터리 항목에서 후행 슬래시를 뗀다(배포처가 308 을 준다 · 2026-08-26 에 다친 형태)',
+    rules: ['precache-dir-form'], rc: 1,
+    apply(text, root){
+      const P = parsePrecache(text);
+      if (P.err) return null;
+      const dir = P.items.find(u => u.endsWith('/') && u !== '/' && isDirExact(root, u.slice(1, -1)));
+      if (!dir) return null;
+      const needle = "'" + dir + "'";
+      if (text.split(needle).length !== 2) return null;                  /* 앵커 유일성 */
+      return text.replace(needle, "'" + dir.slice(0, -1) + "'");
+    }
+  },
+  'control-char-entry': {
+    why: '★R2 축4·축7 — 항목 끝에 눈에 안 보이는 제어문자(탭)를 붙인다(형태 검사가 그냥 통과시키던 자리)',
+    rules: ['precache-url-shape'], rc: 1,
+    apply(text){
+      const P = parsePrecache(text);
+      if (P.err) return null;
+      const one = P.items.find(u => u.endsWith('.webp'));
+      if (!one) return null;
+      const needle = "'" + one + "'";
+      if (text.split(needle).length !== 2) return null;
+      return text.replace(needle, "'" + one + '\\t' + "'");
+    }
+  },
+  'entries-outside-array': {
+    why: '★파스 온전성 교차 확인 — 항목처럼 생긴 줄을 배열 밖에 둔다(파스가 무언가를 놓친 상태의 지문). 통과가 아니라 판정 불가여야 한다',
+    rules: [], rc: 2,
+    apply(text){
+      const span = precacheSpan(text);
+      if (span === null) return null;
+      const tail = '\nconst PRECACHE_EXTRA = [\n  \'/outside-the-array.webp\',\n];\n';
+      return text + tail;
     }
   },
   'unreadable-array': {
