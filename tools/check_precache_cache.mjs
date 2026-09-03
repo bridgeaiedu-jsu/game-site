@@ -33,8 +33,11 @@
  *   보려면 값의 같고 다름이 아니라 **정해진 시점의 앞뒤**를 재야 한다.
  *
  * ★설계 원칙 1 — 비교 기준은 git 이다
- *   파일 내용을 추측하지 않는다. `git diff --name-only base..head` 로 바뀐 파일을 얻고,
- *   PRECACHE 는 **head 시점의 sw.js** 에서 읽는다(지금 나가는 계약이 그것이므로).
+ *   파일 내용을 추측하지 않는다. 구간을 `rev-list --first-parent` 로 걸으면서 커밋마다
+ *   `git diff --name-status <커밋>~1 <커밋>` 으로 바뀐 파일과 그 상태(삭제·이름변경)를 얻고,
+ *   PRECACHE·CACHE 는 **그 커밋 시점의 sw.js** 에서 읽는다(그때의 계약을 봐야 하므로).
+ *   ★R2 까지는 구간 전체를 한 번의 `git diff base..head` 로 얻고 PRECACHE 를 head 에서만 읽었다 —
+ *   그러면 순서도 삭제도 볼 수 없다.
  *
  * ★설계 원칙 2 — 디렉터리 형태로 매핑한다 (이 도구의 핵심)
  *   PRECACHE 는 '/about/' 처럼 **디렉터리 형태만** 담는다. 파일 형태를 넣으면 Cloudflare Pages 가
@@ -343,7 +346,7 @@ function run(root, base, head){
   };
 
   if (!lastTouch){
-    good('precache-cache-bump', '이 구간은 프리캐시 계약에 영향을 주는 변경(대상 내용·삭제·PRECACHE 목록)이 없다 — CACHE 를 올릴 의무가 없다(구간 커밋 ' + commits.length + '개 중 0개)');
+    good('precache-cache-bump', '이 구간은 프리캐시 계약에 영향을 주는 변경(대상 내용 변경·대상 삭제·PRECACHE 목록에서 항목 삭제)이 없다 — CACHE 를 올릴 의무가 없다(★목록에 항목을 추가만 한 것은 여기 들어가지 않는다 · 구간 커밋 ' + commits.length + '개 중 0개)');
   } else if (!lastBump){
     bad('precache-cache-bump', '프리캐시 계약에 영향을 주는 변경이 있는데 CACHE 가 구간 내내 그대로다(' + cHead.value + ') — '
       + consequence(lastTouch) + '. 마지막으로 바꾼 곳: ' + lastTouch.sha + ' 의 ' + nameHits(lastTouch));
