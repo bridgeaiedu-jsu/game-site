@@ -51,6 +51,11 @@
  *   · 값이 **실제로 서빙되는지**는 안 본다 — 문자열의 앞뒤·형식·중복만 본다.
  *   · 순서는 **first-parent 선을 따라** 본다. 병합 커밋은 첫 부모 대비 차이로 한 번에 세고,
  *     병합해 들어온 옆가지의 커밋들을 하나씩 걷지는 않는다.
+ *     ★이것이 옳은 것은 **전제 하나에 기대고 있다** — 이 저장소는 main 으로 들어올 때 `--no-ff` 병합을
+ *     쓰므로, 옆가지의 내용이 병합 커밋의 첫 부모 대비 차이에 통째로 들어온다. 그래서 옆가지를 하나씩
+ *     걷는 것은 같은 변경을 두 번 세는 쪽에 가깝다. **rebase 나 squash 로 들어온 이력에서는 이 전제가
+ *     깨진다** — 그때는 옆가지의 중간 상태(올린 뒤에 또 바꾼 순간)가 first-parent 선에서 접혀 보이지
+ *     않을 수 있다. 그 이력을 쓰기 시작하면 이 도구의 순서 판정을 다시 재야 한다.
  *   · ★**축7 — 런타임 cacheFirst 하위 자산을 못 본다.** sw.js 는 PRECACHE 에 없는 동일 오리진 자원도
  *     cacheFirst 로 같은 버킷에 담는다. 그래서 `/stop/` 은 초록인데 `stop/game.js` 구버전이 계속
  *     실행되는 경로가 남는다. 이 게이트의 계약이 아니다(master 가 별도 티켓으로 뗐다).
@@ -488,6 +493,39 @@ const MUTATIONS = {
       appendLine(path.join(dir, 'about', 'index.html'), '<!-- 변이 -->');
       if (!setCache(p, pre + String(n + 3))) return false;      /* v35 → v40 (단조는 통과 · 재사용) */
       return commit(dir, 'about 을 고치며 ★이미 쓴 v40 을 다시 쓴다');
+    }
+  },
+  /* ★자릿수 경계 — master 가 미리 준 함정이다. 단조를 ★문자열로 비교하면 '-v10' < '-v9' 이므로
+     v9→v10 이 역행으로 오판된다(사전순에서 '1' 이 '9' 보다 앞이다). 숫자로 비교하는지를 ★양방향으로
+     세운다: 한쪽만 세우면 '항상 통과' 하는 구현도 통과한다. */
+  'bump-across-digit-width': {
+    why: "★Q3 함정 — v9 에서 v10 으로 올린다(자릿수가 늘어난다). 문자열 비교라면 역행으로 오판해 붉어진다. 숫자 비교면 정상 출고이므로 rc=0 이어야 한다",
+    expect: { rc: 0, fail: [], indet: [] },
+    apply(dir){
+      const p = path.join(dir, 'sw.js');
+      const cur = readCache(p);
+      const m = cur && /^(.*-v)(\d+)$/.exec(cur);
+      if (!m) return false;
+      if (!setCache(p, m[1] + '9')) return false;
+      if (!commit(dir, 'CACHE 를 v9 로 맞춘다(자릿수 경계 표본을 만들기 위해)')) return false;
+      appendLine(path.join(dir, 'about', 'index.html'), '<!-- 변이 -->');
+      if (!setCache(p, m[1] + '10')) return false;
+      return commit(dir, 'about 을 고치고 v9 에서 v10 으로 올린다');
+    }
+  },
+  'rollback-across-digit-width': {
+    why: "★위 표본의 반대편 — v10 에서 v9 로 ★내린다. 문자열 비교라면 '9' 가 '10' 보다 뒤라 통과시켜 버린다. 숫자 비교면 역행이므로 rc=1 이어야 한다. 이 짝이 없으면 '자릿수 경계에서 늘 통과' 하는 구현이 위 표본만으로 초록을 받는다",
+    expect: { rc: 1, fail: ['precache-cache-bump'], indet: [] },
+    apply(dir){
+      const p = path.join(dir, 'sw.js');
+      const cur = readCache(p);
+      const m = cur && /^(.*-v)(\d+)$/.exec(cur);
+      if (!m) return false;
+      if (!setCache(p, m[1] + '10')) return false;
+      if (!commit(dir, 'CACHE 를 v10 으로 맞춘다')) return false;
+      appendLine(path.join(dir, 'about', 'index.html'), '<!-- 변이 -->');
+      if (!setCache(p, m[1] + '9')) return false;
+      return commit(dir, 'about 을 고치고 v10 에서 v9 로 내린다');
     }
   },
   'add-precache-entry-no-bump': {
