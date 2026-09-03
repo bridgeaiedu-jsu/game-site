@@ -436,7 +436,9 @@ async function doShare(){
 
 /* ★오늘의 판을 다시 짓는다 — 날짜가 바뀌면 화면만 새로 그리는 것으로 때우지 않는다.
    day·회차·3종은 전부 날짜에서 나오므로, 날짜가 바뀌면 상태를 통째로 다시 지어야 한다.
-   같은 날이면 아무것도 하지 않는다(같은 날짜면 같은 3종이라는 계약을 여기서도 지킨다). */
+   ★아래 '같은 날이면 그만둔다' 가드가 하는 일은 ★중복 연산과 객체 재할당을 피하는 것뿐이다.
+   '같은 날짜면 같은 3종' 계약을 지키는 것은 이 가드가 아니라 pickThree 의 날짜 결정론이다 —
+   가드를 지워도 같은 날에는 같은 3종이 다시 나온다(뮤테이션으로 확인됐다). */
 function rebuildForDay(){
   if (!Array.isArray(pool)) return false;      /* 목록을 아직 못 읽었다 — 지어내지 않는다 */
   const day = dayKey();
@@ -499,8 +501,8 @@ window.__td = {
   const: () => ({ DAILY_EPOCH, PICK: Object.assign({}, PICK) }),
   dayKey, dailyNo, prevDayKey,
   pick: (dayStr, list) => copy(pickThree(dayStr, copy(list || pool || []))),
-  adapterIds: () => Object.keys(ADAPTERS).slice(),
-  view: () => state ? { day: state.day, no: state.no, ids: state.picks.map(g => g.id).slice(),
+  adapterIds: () => Object.keys(ADAPTERS),          /* Object.keys 가 이미 새 배열을 준다 */
+  view: () => state ? { day: state.day, no: state.no, ids: state.picks.map(g => g.id),   /* map 이 이미 새 배열을 준다 */
                         doneCount: state.doneCount, streak: state.streak,
                         attempts: state.pickInfo.attempts, fallback: state.pickInfo.fallback } : null,
   shareText: () => state ? shareText() : null,
