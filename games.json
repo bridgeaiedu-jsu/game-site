@@ -413,5 +413,31 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "just-right",
+    "path": "/just-right/",
+    "title": {
+      "ko": "딱 맞춰!",
+      "en": "Just Right"
+    },
+    "desc": {
+      "ko": "좌우로 오가는 막대와 차오르는 게이지를 목표선에서 멈추는 타이밍 게임 — 3라운드 평균 정확도",
+      "en": "Stop the sweeping bar and the rising gauge right on the target — three rounds, averaged"
+    },
+    "thumb": "/just-right/thumb.webp",
+    "playtime": {
+      "ko": "한 판 12~20초",
+      "en": "12–20 sec a round"
+    },
+    "maxMinutes": 0.5,
+    "daily": true,
+    "released": "2026-09-04",
+    "tags": [
+      "timing",
+      "sense",
+      "casual",
+      "daily"
+    ]
   }
 ]
