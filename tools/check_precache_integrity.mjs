@@ -264,6 +264,17 @@ function run(root, swTextOverride){
     + ' (addAll 은 같은 batch 안의 중복을 InvalidStateError 로 거절한다 — 없는 파일과 같은 결과다)');
   else good('precache-duplicate', '중복 항목 0 — ' + items.length + '개가 모두 서로 다른 URL 이다');
 
+  /* ★잴 대상이 0개면 통과가 아니다 — 아래 두 규칙은 '형식이 성한 항목' 만 본다. 그 집합이 비면
+     "0개 항목이 모두 대응한다" 는 초록 문장이 나오는데, 그것은 관측이 아니라 관측의 부재다.
+     (master 가 이 티켓에서 경고한 바로 그 공허다 — 결손 0 인 저장소에서는 아무것도 안 하는
+      게이트도 rc=0 을 낸다. 그래서 분모를 단언하고, 분모가 0 이면 판정 불가로 올린다.) */
+  if (!clean.length){
+    indet('precache-dir-form', '형식이 성한 항목이 하나도 없어 잴 대상이 없다(전량이 url-shape 에서 걸렸다)');
+    indet('precache-target-exists', '형식이 성한 항목이 하나도 없어 잴 대상이 없다(전량이 url-shape 에서 걸렸다)');
+    console.log('결과: 통과 ' + passCount + ' · 미달 ' + failCount + ' · 판정 불가 ' + indetCount);
+    return 2;
+  }
+
   /* ③ 파일 형태로 적힌 디렉터리 항목 — Cloudflare Pages 가 308 을 돌려주어 addAll 이 통째로 깨진다.
      ★이 항목은 파일이 실제로 있으므로 실재 검사로는 절대 안 잡힌다. 규칙이 따로 있어야 하는 이유다. */
   const fileForm = clean.filter(u => u === '/index.html' || u.endsWith('/index.html'));
@@ -283,7 +294,8 @@ function run(root, swTextOverride){
   }
   if (missing.length) bad('precache-target-exists', '대응 자원을 찾지 못한 항목 ' + missing.length + '건 — '
     + missing.map(m => JSON.stringify(m.u) + ' → ' + m.rel + ' (' + m.at + ' 에서 막혔다: ' + m.why + ')').join(' · '));
-  else good('precache-target-exists', checked + '개 항목이 모두 저장소의 실제 파일에 대응한다(대소문자까지 정확히 대조)');
+  else if (checked !== clean.length) indet('precache-target-exists', '잰 건수(' + checked + ')가 대상 건수(' + clean.length + ')와 다르다 — 세는 자리가 고장 났다');
+  else good('precache-target-exists', '★잰 건수 ' + checked + ' = 형식이 성한 항목 ' + clean.length + '(전체 ' + items.length + ') · 전부 저장소의 실제 파일에 대응한다(대소문자까지 정확히 대조)');
 
   console.log('결과: 통과 ' + passCount + ' · 미달 ' + failCount + ' · 판정 불가 ' + indetCount);
   if (indetCount) return 2;
@@ -380,6 +392,18 @@ const MUTATIONS = {
       const needle = "'" + dir + "'";
       if (lit.split(needle).length !== 2) return null;             /* 앵커 유일성 — 두 번 나오면 손대지 않는다 */
       return text.slice(0, span.open) + lit.replace(needle, "'" + upper + "'") + text.slice(span.close + 1);
+    }
+  },
+  'all-entries-relative': {
+    why: '전 항목의 선두 "/" 를 떼어낸다 — ★실재·파일형태 규칙의 대상 집합이 비었을 때 "0개가 모두 대응한다" 는 공허한 초록을 내지 않는지 본다',
+    rules: ['precache-url-shape'], rc: 2,
+    apply(text){
+      const span = precacheSpan(text);
+      if (span === null) return null;
+      const lit = text.slice(span.open, span.close + 1);
+      const next = lit.replace(/'\/([^']*)'/g, "'$1'");
+      if (next === lit) return null;
+      return text.slice(0, span.open) + next + text.slice(span.close + 1);
     }
   },
   'unreadable-array': {
