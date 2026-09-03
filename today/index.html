@@ -434,6 +434,29 @@ async function doShare(){
   }
 }
 
+/* ★오늘의 판을 다시 짓는다 — 날짜가 바뀌면 화면만 새로 그리는 것으로 때우지 않는다.
+   day·회차·3종은 전부 날짜에서 나오므로, 날짜가 바뀌면 상태를 통째로 다시 지어야 한다.
+   같은 날이면 아무것도 하지 않는다(같은 날짜면 같은 3종이라는 계약을 여기서도 지킨다). */
+function rebuildForDay(){
+  if (!Array.isArray(pool)) return false;      /* 목록을 아직 못 읽었다 — 지어내지 않는다 */
+  const day = dayKey();
+  if (state && state.day === day) return false;
+  const picked = pickThree(day, pool);
+  state = { day, no: dailyNo(), picks: picked.games, pickInfo: picked };
+  return true;
+}
+/* 화면을 다시 여는 모든 경로가 지나는 자리 — ★먼저 날짜를 보고, 바뀌었으면 다시 짓고, 그린다. */
+function refresh(){ rebuildForDay(); render(); }
+/* 탭을 열어 둔 채 자정을 넘기는 사람에게는 돌아오는 사건이 없다. 그래서 다음 자정에 한 번
+   예약해 두고, 지나면 다시 예약한다(폴링하지 않는다 · 시계를 흐르게 하지도 않는다). */
+let midnightTimer = 0;
+function scheduleMidnight(){
+  clearTimeout(midnightTimer);
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 1);
+  midnightTimer = setTimeout(() => { refresh(); scheduleMidnight(); }, Math.max(1000, next - now));
+}
+
 async function boot(){
   applyStatic();
   let list = null;
@@ -450,10 +473,9 @@ async function boot(){
     return;
   }
   pool = list.filter(g => g.daily === true && typeof g.maxMinutes === 'number');
-  const day = dayKey(), no = dailyNo();
-  const picked = pickThree(day, pool);
-  state = { day, no, picks: picked.games, pickInfo: picked };
+  rebuildForDay();
   render();
+  scheduleMidnight();
   if (window.hpHit) window.hpHit('visit');
 }
 
@@ -463,18 +485,22 @@ $('btnLang').onclick = () => {
   render();
 };
 $('btnShare').onclick = doShare;
-$('btnRefresh').onclick = () => render();
+$('btnRefresh').onclick = () => refresh();   /* ★날짜가 바뀌었으면 여기서 다시 짓는다 */
 /* 다른 탭에서 한 판 끝내고 돌아오는 흐름 — 밀어 주는 신호가 없으므로(storage 이벤트·
    BroadcastChannel·postMessage 전수 0건 · SURVEY ⓒ) 화면이 다시 보일 때 직접 다시 읽는다. */
-document.addEventListener('visibilitychange', () => { if (!document.hidden && state) render(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && state) refresh(); });   /* ★자정을 넘겨 돌아온 경우도 여기서 다시 지어진다 */
 
-/* ★관측 창구 — 읽기 전용이다. 상태를 바꾸는 함수는 내보내지 않는다. */
+/* ★관측 창구 — 읽기 전용이다. 상태를 바꾸는 함수는 내보내지 않고,
+   ★반환값은 전부 사본이다(형제 관례: stop/index.html:1053 · tensec/index.html:886).
+   배열만 slice 하면 알맹이는 games.json 객체 그대로라, 받은 쪽이 원소를 고치면
+   내부 pool 이 오염된다 — 그러면 이 주석이 거짓이 된다. */
+const copy = o => JSON.parse(JSON.stringify(o));
 window.__td = {
   const: () => ({ DAILY_EPOCH, PICK: Object.assign({}, PICK) }),
   dayKey, dailyNo, prevDayKey,
-  pick: (dayStr, list) => pickThree(dayStr, (list || pool || []).slice()),
+  pick: (dayStr, list) => copy(pickThree(dayStr, copy(list || pool || []))),
   adapterIds: () => Object.keys(ADAPTERS).slice(),
-  view: () => state ? { day: state.day, no: state.no, ids: state.picks.map(g => g.id),
+  view: () => state ? { day: state.day, no: state.no, ids: state.picks.map(g => g.id).slice(),
                         doneCount: state.doneCount, streak: state.streak,
                         attempts: state.pickInfo.attempts, fallback: state.pickInfo.fallback } : null,
   shareText: () => state ? shareText() : null,
