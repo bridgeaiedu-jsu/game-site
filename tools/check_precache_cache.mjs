@@ -175,7 +175,14 @@ function parseCacheValue(v){
   return { prefix: m[1], n: Number(m[2]) };
 }
 /* 이 저장소가 지금까지 실제로 쓴 CACHE 값의 계보(오래된 것부터 · 연속 중복은 접는다).
-   ★'과거에 쓰인 적 없는 새 값' 을 판정하려면 구간 밖 이력까지 봐야 한다. */
+   ★'과거에 쓰인 적 없는 새 값' 을 판정하려면 구간 밖 이력까지 봐야 한다.
+   ★왜 단조 증가만으로 부족한가 (AMEND2 재정2 · W3C Service Worker Update 알고리즘):
+     새 script body 가 저장된 worker 와 **byte-for-byte 동일**하면 hasUpdatedResources 가 서지 않아
+     ★install 자체가 일어나지 않는다. 그러면 새 버킷도 안 생기고 cache-first 가 옛 자산을 계속 준다.
+     즉 CACHE 는 '올랐는가' 가 아니라 **출고 역사에서 쓰인 적 없는 새 identity 인가** 로 재야 한다.
+     (codex 실측: head 의 sw.js blob 이 최초 v37 출고본과 같은 해시 367c4bad… 인데 자산은 달라진 상태)
+   ★연속 중복을 접는 이유: 값을 그대로 이어받은 커밋(be65d63 이 v34 를 물려받은 것)은 재사용이 아니다.
+     재사용은 **떠났다가 돌아온** 값이다. 접고 세면 그 둘이 갈린다. */
 function cacheLineage(root, head){
   const r = git(root, ['log', '--first-parent', '--reverse', '--format=%H', head, '--', 'sw.js']);
   if (r.err) return { err: r.err };
@@ -228,15 +235,19 @@ function run(root, base, head){
     if (dirty.length) console.log('  ⚠ 작업 트리에 미커밋 변경 ' + dirty.length + '건이 있다 — 아래 판정은 그것을 보지 않는다');
   }
 
-  /* ★축10 — 구간의 시작점은 base 가 아니라 base 와 head 의 **공통 조상**이다.
-     base 가 갈라진 다른 갈래일 때 base 의 CACHE 값을 기준으로 삼으면, 양쪽이 각자 같은 값으로
-     올린 경우 '안 올랐다' 는 위양성이 난다. 조상관계면 공통 조상 = base 라 값이 달라지지 않는다.
-     (파일 목록은 이미 커밋마다 c~1..c 로 얻으므로 2-dot diff 의 상류 혼입은 구조적으로 없다) */
-  const mbr = git(root, ['merge-base', base, head]);
-  if (mbr.err){ indet('precache-cache-bump', base + ' 와 ' + head + ' 의 공통 조상을 찾지 못했다(' + mbr.err + ')'); return 2; }
-  const MB = mbr.out.trim();
-  if (!MB){ indet('precache-cache-bump', base + ' 와 ' + head + ' 는 공통 조상이 없다 — 구간으로 잴 수 없다'); return 2; }
-  const baseRef = MB;
+  /* ★축10 (AMEND2 재정) — base 가 head 의 조상이 아니면 **판정 불가(rc=2)** 로 멈춘다.
+     ★왜 3-dot 이 아닌가: 3-dot 은 조용히 다른 것을 재기 시작한다(질문이 공통 조상 기준으로 바뀐다).
+     이 게이트의 계약은 '출고되는 나무' 에 관한 것이고, 비조상 base 에서는 그 질문 자체가 성립하지
+     않는다. 성립하지 않는 질문에 초록을 주지 않는다 — 설계 원칙 3 과 같은 태도다.
+     ★막지 않으면 실제로 무슨 일이 나는가(codex fixture 실측): head 브랜치는 CACHE 를 전혀 안 바꿨는데
+     ★base 브랜치에서만 오른 값을 head 의 올림으로 소비해 초록을 준다. 남의 브랜치의 bump 를 훔친다. */
+  const anc = git(root, ['merge-base', '--is-ancestor', base, head]);
+  if (anc.err){
+    indet('precache-cache-bump', base + ' 는 ' + head + ' 의 조상이 아니다 — 이 구간은 하나의 출고 나무가 아니므로 '
+      + '무엇이 이 구간의 올림인지 정의되지 않는다(남의 갈래에서 오른 값을 이 구간의 올림으로 셀 위험). 통과로 세지 않는다');
+    return 2;
+  }
+  const baseRef = base;
 
   const fHead = swFacts(root, head);
   if (fHead.err){ indet('precache-cache-bump', fHead.err); return 2; }
@@ -260,10 +271,7 @@ function run(root, base, head){
   if (rl.err){ indet('precache-cache-bump', rl.err); return 2; }
   const commits = rl.out.split('\n').map(x => x.trim()).filter(Boolean);
 
-  const bp = git(root, ['rev-parse', base]);
-  const baseSha = bp.err ? null : bp.out.trim();
-  console.log('  · ' + head + ' 의 PRECACHE ' + P.length + '항목 · CACHE ' + cBase.value + ' → ' + cHead.value
-    + (baseSha && baseSha !== MB ? ' · ★' + base + ' 는 갈래라 시작점을 공통 조상 ' + MB.slice(0, 7) + ' 로 잡았다' : ''));
+  console.log('  · ' + head + ' 의 PRECACHE ' + P.length + '항목 · CACHE ' + cBase.value + ' → ' + cHead.value);
   console.log('  · 구간 커밋 ' + commits.length + '개(first-parent 선)');
 
   let prevCache = cBase.value, prevSet = fBase.set;
@@ -543,6 +551,61 @@ const MUTATIONS = {
       if (!addPrecacheEntry(path.join(dir, 'sw.js'), '/추가된자원/')) return false;
       if (!bumpCache(path.join(dir, 'sw.js'))) return false;
       return commit(dir, 'PRECACHE 에 항목을 추가하고 CACHE 도 올린다');
+    }
+  },
+  /* ── AMEND2 에서 더한 3종 (reviewer-codex) ──────────────────────────────── */
+  'cache-identity-reuse': {
+    why: "★AMEND2 재정2 — head 의 sw.js 를 과거 출고본과 ★byte-identical 로 되돌리고 프리캐시 대상은 바꾼다. W3C Update 알고리즘상 저장된 worker 와 바이트가 같으면 install 자체가 안 일어나 새 버킷이 생기지 않는다. ★단조 규칙에 무임승차하지 않도록 중간에 값을 내려 두어(의무 없는 구간) 직전 값보다는 큰 값이 되게 만들었다",
+    expect: { rc: 1, fail: ['precache-cache-bump'], indet: [] },
+    apply(dir){
+      const p = path.join(dir, 'sw.js');
+      const original = fs.readFileSync(p);                       /* 기준 커밋의 sw.js 바이트 그대로 */
+      const cur = readCache(p);
+      const m = cur && /^(.*-v)(\d+)$/.exec(cur);
+      if (!m) return false;
+      const n = Number(m[2]);
+      if (n < 3) return false;
+      if (!setCache(p, m[1] + String(n - 2))) return false;      /* v37 → v35 · 프리캐시 변경 없음 = 의무 없음 */
+      if (!commit(dir, 'CACHE 를 내려 둔다(의무 없는 구간)')) return false;
+      fs.writeFileSync(p, original);                             /* ★기준 출고본으로 바이트 복원 */
+      appendLine(path.join(dir, 'about', 'index.html'), '<!-- 변이 -->');
+      if (!commit(dir, 'sw.js 를 과거 출고본과 바이트 동일로 되돌리고 about 을 고친다')) return false;
+      /* ★표본이 공허하지 않다는 것을 blob 해시로 단언한다 — 같지 않으면 주입 실패로 돌린다. */
+      const a = git(dir, ['rev-parse', 'HEAD:sw.js']);
+      const b = git(dir, ['rev-parse', 'HEAD~2:sw.js']);
+      if (a.err || b.err) return false;
+      const ha = a.out.trim(), hb = b.out.trim();
+      console.log('        · blob 단언: HEAD:sw.js ' + ha.slice(0, 8) + ' == HEAD~2:sw.js ' + hb.slice(0, 8)
+        + ' → ' + (ha === hb ? '동일(표본 성립)' : '★다르다(표본 불성립)'));
+      return ha === hb;
+    }
+  },
+  'non-ancestor-base': {
+    why: '★AMEND2 재정1 — base 가 head 의 조상이 아닌 구간이다. head 는 CACHE 를 안 바꿨는데 base 갈래에서만 오른 값을 이 구간의 올림으로 소비해 초록을 주던 형태다. 통과도 미달도 아닌 ★판정 불가여야 한다',
+    range: { base: 'other', head: 'main' },
+    expect: { rc: 2, fail: [], indet: ['precache-cache-bump'] },
+    apply(dir){
+      const br = git(dir, ['branch', 'other']);   /* 기준 커밋에서 갈라 둔다 */
+      if (br.err) return false;
+      appendLine(path.join(dir, 'about', 'index.html'), '<!-- main 쪽 변경 -->');
+      if (!commit(dir, 'main: 프리캐시 대상만 바꾼다(올림 없음)')) return false;
+      if (git(dir, ['checkout', '-q', 'other']).err) return false;
+      if (!bumpCache(path.join(dir, 'sw.js'))) return false;
+      if (!commit(dir, 'other: 남의 갈래에서만 CACHE 를 올린다')) return false;
+      return !git(dir, ['checkout', '-q', 'main']).err;
+    }
+  },
+  'fresh-identity-ok': {
+    why: '★AMEND2 재정2 의 반대편 — 한 번도 쓴 적 없는 새 CACHE 값으로 올리며 프리캐시 대상을 바꾼다. 정상 출고이므로 붉으면 안 된다(재사용 규칙의 오탐 0)',
+    expect: { rc: 0, fail: [], indet: [] },
+    apply(dir){
+      const p = path.join(dir, 'sw.js');
+      const cur = readCache(p);
+      const m = cur && /^(.*-v)(\d+)$/.exec(cur);
+      if (!m) return false;
+      appendLine(path.join(dir, 'about', 'index.html'), '<!-- 변이 -->');
+      if (!setCache(p, m[1] + String(Number(m[2]) + 41))) return false;   /* 계보에 없던 값 */
+      return commit(dir, 'about 을 고치고 한 번도 쓴 적 없는 값으로 올린다');
     }
   },
   'unknown-flag': {
