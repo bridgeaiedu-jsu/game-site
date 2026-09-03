@@ -151,6 +151,13 @@ Sitemap: https://hanpango.com/sitemap.xml
          ★검출력은 `--selftest` 로 잰다: 임시 **Git 저장소**에 규칙 **8종**(금지 바이트 6종 + BOM + lone CR)을 각각 주입하고 **CLI 경로 전체를 자식 프로세스로 밟아** rc=2 와 규칙 이름이 지적문에 나오는지 본다(rc=0 확인 · rc=1 검출 실패·규칙 소실 · rc=2 주입 실패·하네스 이상). 옵션 오타(`--selftes`)와 루트 2개 같은 잘못된 호출은 **rc=2 로 거부**한다 — 검사 못 한 것을 통과로 세지 않는다.
          범위는 여기서 닫혀 있다 — 제로폭·혼동 글자까지 넓히지 않는다(이번 사고가 지나온 경로만 막는다).
    - [ ] `node tools/counter/test_functions.mjs .` · `node tools/counter/test_pages.mjs .`
+   - [ ] `node tools/check_home_sync.mjs .` → **rc=0 일 때만** 통과다. 대문이 실제 게임 목록과 어긋나면 미달이다(games.json · FALLBACK · noscript · sw.js PRECACHE · /about/ 다섯 자리). rc=2 는 **판정 불가**이며 통과가 아니다.
+   - [ ] `node tools/check_precache_cache.mjs . --base origin/main --head HEAD` → **rc=0 일 때만** 통과다.
+         ★**인자를 반드시 주라** — 무플래그는 `HEAD^..HEAD`(직전 한 커밋)만 재므로, 여러 커밋을 함께 내보내는 출고에서는 **묻고 싶은 것을 묻지 않는다**.
+         재는 계약: 구간에서 프리캐시 대상의 **내용 변경·삭제** 나 **PRECACHE 목록에서 항목 삭제** 가 있었다면, 구간 끝 나무의 `CACHE` 값이 그 모든 변경보다 **나중에** 정해졌고 **과거에 쓴 적 없는 새 값**이어야 한다.
+         목록에 항목을 **추가만** 한 것은 의무를 만들지 않는다 — sw.js 가 바뀌어 install 이 돌고 `addAll` 이 망에서 새로 받기 때문이다(2026-09-03 실측).
+         rc=2 는 **판정 불가**다(통과가 아니다): 모르는 플래그 · `CACHE`·`PRECACHE` 를 못 읽음 · **base 가 head 의 조상이 아님**(남의 갈래에서 오른 값을 이 구간의 올림으로 셀 위험).
+         ★검출력은 `--selftest` 로 잰다(뮤테이션 22종 · 어긋남 0 이 합격선).
    각 레인(브랜치)에서 초록이었다는 것은 **병합 결과가 초록이라는 뜻이 아니다**. 2026-08-31 에
    노노그램 병합이 `functions/_games.js` 의 `export const GAMES` 를 두 줄로 만들어 Cloudflare
    Pages 빌드가 거부했고, 배포가 통째로 실패해 새 경로만 404 였다. 두 부모는 각자 한 줄이라
