@@ -16,9 +16,15 @@
  *   ⓐ PRECACHE 에 실린 자원의 **내용 변경**
  *   ⓑ PRECACHE 에 실린 자원의 **삭제** — head 의 목록만 보면 자원과 항목을 함께 지운 출고가 빠져나간다.
  *      그래서 판정 대상 집합은 **그 커밋의 부모 PRECACHE ∪ 그 커밋의 PRECACHE** 다.
- *      (지워진 페이지는 옛 CACHE 버킷이 caches.delete 되지 않는 한 재방문자에게 영구 잔존한다)
- *   ⓒ **PRECACHE 목록 자체의 변경**(항목 추가·삭제·경로 수정) — sw.js 는 PRECACHE 항목이 아니라서
- *      목록에 새 자원을 추가해도 '바뀐 파일 중 프리캐시 대상 0개' 로 빠져나갔다.
+ *      (지워진 자원은 옛 버킷에 남는다 — addAll 은 목록에서 빠진 항목을 지우지 않고 activate 는 이름이
+ *       같은 버킷을 지우지 않는다. ★온라인 navigation 은 network-first 라 404 지만 오프라인에서는
+ *       구사본이 나온다. '영구 잔존하며 계속 서빙' 은 과장이라 쓰지 않는다 — 2026-09-03 자력 재현)
+ *   ⓒ **PRECACHE 목록에서 항목이 빠지는 것** — sw.js 는 PRECACHE 항목이 아니라서 목록만 고친 출고가
+ *      '바뀐 파일 중 프리캐시 대상 0개' 로 빠져나갔다.
+ *      ★R4 에서 좁혔다 — **추가는 의무를 만들지 않는다.** 목록에 넣으면 sw.js blob 이 바뀌어 install 이
+ *      돌고 addAll 이 목록 전체를 네트워크에서 새로 받아 덮어쓰므로 낡은 것을 보지 않는다(자력 재현:
+ *      추가 구간에서 옛 사본 0건 잔존). 추가에 대고 '낡은 사본을 본다' 고 붉히면 **거짓 이유로 붉는
+ *      게이트**가 되어 팀에 틀린 인과 모형을 가르친다 — 대리물을 재는 것보다 나쁘다.
  *
  * ★왜 '구간 어딘가에서 CACHE 가 바뀌었는가' 로는 모자란가 (R1 의 대리물 · master 실측)
  *   `--base 6a0c502 --head 8d65c60` 구간은 abdbedf(대문 변경) → da5624d(v35→v36) → 8d65c60(about 변경·안 올림)
@@ -260,7 +266,7 @@ function run(root, base, head){
   const vHead = parseCacheValue(cHead.value);
   if (!vHead){
     indet('precache-cache-bump', head + ' 의 CACHE 값이 비었거나 형식이 아니다(' + JSON.stringify(cHead.value)
-      + ') — 이 저장소의 형식은 <접두어>-v<정수> 다. 통과로 세지 않는다');
+      + ') — 이 저장소의 형식은 <접두어>-v<정수> 다. ★근거는 형식 위반 하나다(W3C caches.open 절차에는 빈 이름 거부가 없어 런타임 오류를 근거로 대지 않는다). 통과로 세지 않는다');
     return 2;
   }
 
@@ -299,12 +305,20 @@ function run(root, base, head){
       }
     }
 
-    /* ★축6 — PRECACHE 목록 자체가 달라졌으면 그것만으로 계약에 영향을 주는 변경이다. */
+    /* ★축6 (R4 에서 좁혔다) — 목록 변경 중 **삭제만** 의무를 만든다. 추가는 만들지 않는다.
+       ★근거는 내가 직접 돌린 재현이다(sw.js 를 vm 에서 구동해 install→activate→fetch 를 돌렸다):
+       목록에 항목을 넣으면 sw.js blob 이 바뀌므로 Update 가 install 을 돌리고, cache.addAll 이
+       **목록 전체를 네트워크에서 새로 받아 같은 버킷에 덮어쓴다**. 실측에서 새 항목은 물론 기존
+       45항목까지 전부 FRESH 가 되고 옛 사본은 0건 남았다. 그러니 '추가만 했는데 낡은 것을 본다' 는
+       ★거짓이다. 거짓 이유로 붉는 게이트는 틀린 인과 모형을 가르치므로 대리물보다 나쁘다.
+       ★삭제는 다르다 — addAll 은 목록에서 빠진 항목을 **지우지 않고**, activate 는 이름이 같은 버킷을
+       지우지 않는다. 그래서 지워진 자원이 옛 버킷에 남는다(실측 확인).
+       ※ 추가된 자원이 저장소에 실재하는지는 여기서 재지 않는다 — 그것은 별도 게이트(precache-integrity)
+         의 몫이고, 없는 경로가 하나라도 있으면 addAll 전체가 reject 된다. 이 도구의 계약 밖이다. */
     const added = [...f.set].filter(x => !prevSet.has(x));
     const removed = [...prevSet].filter(x => !f.set.has(x));
-    const listChanged = added.length > 0 || removed.length > 0;
 
-    if (hits.length || listChanged){
+    if (hits.length || removed.length){
       touchCount += hits.length;
       lastTouch = { i, sha: c.slice(0, 7), hits, added, removed };
     }
@@ -315,16 +329,24 @@ function run(root, base, head){
 
   const nameHits = t => {
     const parts = t.hits.map(h => h.file + (h.del ? '(삭제)' : '') + ' → PRECACHE 항목 ' + h.url);
-    if (t.added.length) parts.push('PRECACHE 항목 추가 ' + t.added.join(','));
     if (t.removed.length) parts.push('PRECACHE 항목 삭제 ' + t.removed.join(','));
+    if (t.added.length) parts.push('(참고 · 의무 없음) PRECACHE 항목 추가 ' + t.added.join(','));
+    return parts.join(' · ');
+  };
+  /* ★사용자에게 실제로 무슨 일이 나는지만 말한다 — 원인마다 결과가 다르므로 뭉뚱그리지 않는다.
+     (R4: 두 원인을 한 문장으로 뭉치면 그 문장이 어느 한쪽에서는 반드시 거짓이 된다) */
+  const consequence = t => {
+    const parts = [];
+    if (t.hits.some(h => !h.del)) parts.push('내용이 바뀐 자원은, sw.js 도 그대로면 install 이 돌지 않아 ★재방문자가 옛 버킷의 낡은 사본을 계속 받는다');
+    if (t.hits.some(h => h.del) || t.removed.length) parts.push('지워진 자원은 옛 캐시 버킷에 남는다(온라인 navigation 은 network-first 라 404 지만, ★오프라인에서는 구사본이 나온다)');
     return parts.join(' · ');
   };
 
   if (!lastTouch){
     good('precache-cache-bump', '이 구간은 프리캐시 계약에 영향을 주는 변경(대상 내용·삭제·PRECACHE 목록)이 없다 — CACHE 를 올릴 의무가 없다(구간 커밋 ' + commits.length + '개 중 0개)');
   } else if (!lastBump){
-    bad('precache-cache-bump', '프리캐시 계약에 영향을 주는 변경이 있는데 CACHE 가 구간 내내 그대로다(' + cHead.value + ') — 재방문자는 낡은 사본을 계속 본다. 마지막으로 바꾼 곳: '
-      + lastTouch.sha + ' 의 ' + nameHits(lastTouch));
+    bad('precache-cache-bump', '프리캐시 계약에 영향을 주는 변경이 있는데 CACHE 가 구간 내내 그대로다(' + cHead.value + ') — '
+      + consequence(lastTouch) + '. 마지막으로 바꾼 곳: ' + lastTouch.sha + ' 의 ' + nameHits(lastTouch));
   } else if (lastBump.i >= lastTouch.i){
     /* 순서는 맞다. 이제 값 자체를 본다 — ★'바뀌었다' 는 '올랐다' 가 아니다(축5). */
     const vFrom = parseCacheValue(lastBump.from);
@@ -359,7 +381,7 @@ function run(root, base, head){
   } else {
     bad('precache-cache-bump', '★CACHE 를 올린 뒤에 프리캐시 대상을 또 바꿨다 — CACHE 는 ' + lastBump.sha + ' 에서 ' + lastBump.from + ' → ' + lastBump.to
       + ' 로 정해졌는데, 그 뒤 ' + lastTouch.sha + ' 이 ' + nameHits(lastTouch) + ' 를 바꿨다. 구간 끝 나무 = ' + cHead.value
-      + ' + 고쳐진 그 파일 ⇒ ' + cHead.value + ' 를 가진 재방문자는 낡은 사본을 계속 본다.');
+      + ' + 그 뒤에 바뀐 것 ⇒ ' + consequence(lastTouch) + '.');
   }
 
   console.log('결과: 통과 ' + passCount + ' · 미달 ' + failCount + ' · 판정 불가 ' + indetCount);
@@ -456,12 +478,34 @@ const MUTATIONS = {
   },
   /* ── AMEND1 에서 더한 5종 (reviewer-gemini 축4·축5·축6) ─────────────────── */
   'delete-precache-target-no-bump': {
-    why: '★축4 — 자원(about/index.html)과 PRECACHE 항목(/about/)을 ★함께 지우고 CACHE 는 안 올린다. head 의 목록만 보면 지워진 항목이 집합에 없어 통째로 빠져나갔다. 재방문자에게는 지워진 페이지가 옛 버킷에 영구 잔존한다',
+    why: '★축4 — 자원(about/index.html)과 PRECACHE 항목(/about/)을 ★함께 지우고 CACHE 는 안 올린다. head 의 목록만 보면 지워진 항목이 집합에 없어 통째로 빠져나갔다. 지워진 페이지는 옛 버킷에 남아 오프라인에서 구사본이 나온다',
     expect: { rc: 1, fail: ['precache-cache-bump'], indet: [] },
     apply(dir){
       fs.rmSync(path.join(dir, 'about', 'index.html'));
       if (!removePrecacheEntry(path.join(dir, 'sw.js'), '/about/')) return false;
       return commit(dir, 'about 을 자원과 목록에서 함께 지우고 CACHE 는 안 올린다');
+    }
+  },
+  /* ★R4 — 추가 짝(추가+안올림 / 추가+올림)이 이제 둘 다 rc=0 이라 아무것도 구별하지 못한다.
+     판별력은 ★삭제 짝이 진다. 그래서 삭제+올림(rc=0) 을 세워 짝을 완성한다. */
+  'delete-precache-target-with-bump': {
+    why: '★R4 — 자원과 PRECACHE 항목을 함께 지우면서 CACHE 도 올린다. 정상 출고이므로 붉으면 안 된다. 이 짝(삭제+안올림 rc=1 / 삭제+올림 rc=0)이 추가 짝을 대신해 판별력을 진다',
+    expect: { rc: 0, fail: [], indet: [] },
+    apply(dir){
+      fs.rmSync(path.join(dir, 'about', 'index.html'));
+      if (!removePrecacheEntry(path.join(dir, 'sw.js'), '/about/')) return false;
+      if (!bumpCache(path.join(dir, 'sw.js'))) return false;
+      return commit(dir, 'about 을 지우고 CACHE 도 올린다');
+    }
+  },
+  /* ★삭제 의무가 '자원 파일이 지워졌다' 로만 잡히면 목록 규칙은 공허하다 — 파일은 두고
+     ★항목만 뺀 표본을 따로 세워야 그 규칙이 홀로 판정을 짊어진다. */
+  'remove-precache-entry-keep-file-no-bump': {
+    why: '★R4 — 파일은 저장소에 그대로 두고 PRECACHE 목록에서 ★항목만 뺀다(CACHE 안 올림). 자원 파일이 안 지워졌으므로 파일 기반 검사로는 안 잡히고 ★목록 삭제 규칙만이 잡을 수 있다. 옛 버킷에 그 항목이 남아 오프라인에서 구사본이 나온다',
+    expect: { rc: 1, fail: ['precache-cache-bump'], indet: [] },
+    apply(dir){
+      if (!removePrecacheEntry(path.join(dir, 'sw.js'), '/about/')) return false;
+      return commit(dir, 'PRECACHE 에서 /about/ 항목만 뺀다(파일은 둔다)');
     }
   },
   'cache-rollback': {
@@ -537,8 +581,8 @@ const MUTATIONS = {
     }
   },
   'add-precache-entry-no-bump': {
-    why: '★축6 — PRECACHE 목록에 새 항목만 추가하고 CACHE 는 안 올린다. sw.js 자신은 PRECACHE 항목이 아니라서 "바뀐 파일 중 프리캐시 대상 0개" 로 빠져나갔다',
-    expect: { rc: 1, fail: ['precache-cache-bump'], indet: [] },
+    why: '★R4 에서 기대값을 뒤집었다(표본은 지우지 않았다) — 목록에 항목을 ★추가만 하면 sw.js blob 이 바뀌어 install 이 돌고 addAll 이 목록 전체를 새로 받으므로 낡은 것을 보지 않는다. 그러므로 의무 없음 = rc=0. 자력 재현으로 확인했다(옛 사본 0건 잔존)',
+    expect: { rc: 0, fail: [], indet: [] },
     apply(dir){
       if (!addPrecacheEntry(path.join(dir, 'sw.js'), '/추가된자원/')) return false;
       return commit(dir, 'PRECACHE 에 항목만 추가한다');
