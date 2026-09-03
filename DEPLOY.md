@@ -158,6 +158,10 @@ Sitemap: https://hanpango.com/sitemap.xml
          목록에 항목을 **추가만** 한 것은 의무를 만들지 않는다 — sw.js 가 바뀌어 install 이 돌고 `addAll` 이 망에서 새로 받기 때문이다(2026-09-03 실측).
          rc=2 는 **판정 불가**다(통과가 아니다): 모르는 플래그 · `CACHE`·`PRECACHE` 를 못 읽음 · **base 가 head 의 조상이 아님**(남의 갈래에서 오른 값을 이 구간의 올림으로 셀 위험).
          ★검출력은 `--selftest` 로 잰다(뮤테이션 22종 · 어긋남 0 이 합격선).
+   - [ ] `node tools/check_precache_integrity.mjs .` → **rc=0 일 때만** 통과다. `PRECACHE` 항목 하나가 404 나면 `cache.addAll` 이 **통째로 reject** 되어 프리캐시가 조용히 전멸한다.
+         규칙 4개: 형태(`precache-url-shape`) · 디렉터리 표기(`precache-dir-form` — `/about` 처럼 후행 슬래시가 빠지면 308 로 addAll 이 깨진다) · 실재(`precache-target-exists`) · 중복(`precache-duplicate`).
+   - [ ] `node tools/check_page_assets.mjs .` → **rc=0 일 때만** 통과다. 페이지가 요청시키는 동일 오리진 하위 자원(문서·`/api/`·서비스워커 스크립트 제외)이 `PRECACHE` 에 없으면 미달이다.
+         조립되는 경로는 데이터 전개로 **갈음**하고, 못 푸는 조립은 통과가 아니라 **판정 불가**다.
    각 레인(브랜치)에서 초록이었다는 것은 **병합 결과가 초록이라는 뜻이 아니다**. 2026-08-31 에
    노노그램 병합이 `functions/_games.js` 의 `export const GAMES` 를 두 줄로 만들어 Cloudflare
    Pages 빌드가 거부했고, 배포가 통째로 실패해 새 경로만 404 였다. 두 부모는 각자 한 줄이라
