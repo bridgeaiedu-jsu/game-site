@@ -110,7 +110,7 @@
 <div class="wrap">
   <header>
     <div class="htitle">
-      <h1>오늘의 한판<small data-i18n="slogan">날짜가 고르는 세 가지 — 하루에 한 번씩</small></h1>
+      <h1><span data-i18n="h1">오늘의 한판</span><small data-i18n="slogan">날짜가 고르는 세 가지 — 하루에 한 번씩</small></h1>
     </div>
     <div class="hbtns">
       <a class="ibtn" href="/" data-i18n="home">전체 게임</a>
@@ -173,7 +173,7 @@ const $ = id => document.getElementById(id);
 const LANG = {
   ko: {
     docTitle:'오늘의 한판 — 한판고',
-    slogan:'날짜가 고르는 세 가지 — 하루에 한 번씩',
+    h1:'오늘의 한판', slogan:'날짜가 고르는 세 가지 — 하루에 한 번씩',
     home:'전체 게임', share:'결과 공유', refresh:'다시 읽기',
     adPlaceholder:'광고 자리 (320×50 / 728×90)',
     no:(n)=>`오늘의 한판 #${n}`,
@@ -190,7 +190,7 @@ const LANG = {
   },
   en: {
     docTitle:'Daily Set — Hanpango',
-    slogan:'Three games picked by the date — one round each',
+    h1:'Daily Set', slogan:'Three games picked by the date — one round each',
     home:'All games', share:'Share result', refresh:'Reload',
     adPlaceholder:'Ad slot (320×50 / 728×90)',
     no:(n)=>`Daily Set #${n}`,
