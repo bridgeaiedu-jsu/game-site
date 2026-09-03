@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오늘의 한판 — 한판고 | Hanpango Daily Set</title>
+<meta name="description" content="한판고의 오늘의 한판 — 날짜로 정해지는 세 가지 게임을 하루에 한 번씩. 완료한 판 수로 오늘의 등급이 정해지고 연속 기록이 쌓입니다. Hanpango daily set — three games chosen by the date, one round each.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="오늘의 한판 — 한판고">
+<meta property="og:description" content="날짜로 정해지는 세 가지 게임을 하루에 한 번씩. 완료한 판 수로 오늘의 등급이 정해집니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/today/">
+<link rel="canonical" href="https://hanpango.com/today/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<!-- ADSENSE (1/3) — 사이트 코드(pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않는다. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 이 페이지는 게임이 아니므로 visit 만 보낸다(play 는 게임 화이트리스트가 필요하다:
+     functions/api/hit.js:84 의 kind === 'play' 검사). -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<style>
+  /* 색 토큰 — 대문(index.html)과 같은 이름·같은 값. 라이트가 기본이고 다크는 값만 바꿔 끼운다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --good:#16a34a; --warn:#b45309;
+    --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1200;
+      --good:#34d399; --warn:#fcd34d;
+      --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center}
+  .wrap{width:100%;max-width:640px;padding:0 14px}
+  header{width:100%;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:14px 0 4px}
+  .htitle{min-width:0}
+  h1{font-size:1.15rem;margin:0;letter-spacing:.02em}
+  h1 small{display:block;color:var(--muted);font-weight:400;font-size:.76rem;margin-top:4px;letter-spacing:0}
+  .hbtns{display:flex;gap:6px;flex:none}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.78rem;cursor:pointer;white-space:nowrap}
+  .ibtn:active{transform:scale(.96)}
+  a.ibtn{text-decoration:none;display:inline-block}
+  main{width:100%;padding:4px 0 18px}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:8px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}
+  /* ---- 오늘 요약 ---- */
+  .summary{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 12px}
+  .sumTop{display:flex;align-items:center;gap:12px}
+  .gradeBox{flex:none;width:56px;height:56px;border-radius:14px;background:var(--sig-soft);color:var(--sig-ink);display:flex;align-items:center;justify-content:center;font-size:1.7rem;font-weight:700;line-height:1}
+  .sumText{min-width:0}
+  .sumCount{font-size:.95rem;font-weight:600;margin:0}
+  .sumStreak{font-size:.8rem;color:var(--muted);margin:4px 0 0}
+  .sumNo{font-size:.72rem;color:var(--muted);margin:8px 0 0}
+  /* ---- 3종 카드 ---- */
+  .list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;gap:10px}
+  .item{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .item.done{border-color:var(--good)}
+  .itemLink{display:flex;align-items:center;gap:10px;padding:12px 14px;text-decoration:none;color:inherit}
+  .itemLink:hover{background:var(--panel2)}
+  .mark{flex:none;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:.95rem;background:var(--bg)}
+  .item.done .mark{border-color:var(--good);color:var(--good)}
+  .itemBody{min-width:0;flex:1}
+  .itemName{font-size:.95rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .itemMeta{font-size:.76rem;color:var(--muted);margin:3px 0 0}
+  .itemValue{font-size:.84rem;color:var(--sig-ink);margin:4px 0 0;font-weight:600}
+  .itemValue.none{color:var(--muted);font-weight:400}
+  .itemValue.unreadable{color:var(--warn);font-weight:400}
+  .go{flex:none;color:var(--muted);font-size:1rem}
+  /* ---- 아래 줄 ---- */
+  .actions{display:flex;gap:8px;margin:14px 0 0}
+  .btn{flex:1;background:var(--sig);color:var(--on-sig);border:0;border-radius:10px;padding:11px 12px;font-size:.9rem;font-weight:600;cursor:pointer}
+  .btn:active{transform:scale(.98)}
+  .btn.sub{background:var(--panel2);color:var(--text);border:1px solid var(--line);font-weight:500}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + var(--safe-b));background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 14px;font-size:.82rem;opacity:0;pointer-events:none;transition:opacity .18s ease}
+  .toast.show{opacity:1}
+  .note{color:var(--muted);font-size:.74rem;line-height:1.6;margin:14px 0 0}
+  .err{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;color:var(--muted);font-size:.85rem}
+  footer{width:100%;padding:10px 0 calc(16px + var(--safe-b));color:var(--muted);font-size:.72rem;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  footer a{color:var(--muted)}
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+    .btn:active,.ibtn:active{transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="htitle">
+      <h1>오늘의 한판<small data-i18n="slogan">날짜가 고르는 세 가지 — 하루에 한 번씩</small></h1>
+    </div>
+    <div class="hbtns">
+      <a class="ibtn" href="/" data-i18n="home">전체 게임</a>
+      <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+    </div>
+  </header>
+
+  <!-- ADSENSE (2/3) — 상단 배너 자리 -->
+  <div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+  <main>
+    <section class="summary" id="summary" aria-live="polite">
+      <div class="sumTop">
+        <div class="gradeBox" id="grade">–</div>
+        <div class="sumText">
+          <p class="sumCount" id="sumCount">–</p>
+          <p class="sumStreak" id="sumStreak">–</p>
+        </div>
+      </div>
+      <p class="sumNo" id="sumNo">–</p>
+    </section>
+
+    <ul class="list" id="list"></ul>
+    <div class="err" id="err" hidden></div>
+
+    <div class="actions">
+      <button class="btn" id="btnShare" data-i18n="share">결과 공유</button>
+      <button class="btn sub" id="btnRefresh" data-i18n="refresh">다시 읽기</button>
+    </div>
+
+    <p class="note" id="note"></p>
+  </main>
+
+  <footer>
+    <a href="/">한판고 / Hanpango</a>
+    <a href="/about/">소개 / About</a>
+    <a href="/privacy/">개인정보 / Privacy</a>
+  </footer>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   「오늘의 한판」 — 허브
+   ★불가침 두 가지(티켓 T0903-today 첫 문장):
+     ① 이 페이지는 게임 저장값을 **읽기만** 한다. 15종의 어떤 키도 쓰지 않는다.
+        이 페이지가 쓰는 키는 hp1.daily · hp1.streak 둘뿐이다.
+     ② 점수를 **합치지 않는다.** 등급은 오직 '완료한 판 수' 다. 단위 환산·정규화·백분위 없음.
+   ★키 접두를 hp1. 로 쓰는 이유: bp.lang 은 15종과 대문이 함께 쓰는 공용 키인데 블록퍼즐의
+     자기 키도 bp. 접두다(예: bp.daily). 접두로 소유를 판정하면 언어 설정을 게임 기록으로
+     오인한다. 그래서 겹치지 않는 새 접두를 쓴다.
+   사실 근거: _round/evidence/T0903-today/SURVEY.md (15종 전수 · 파일:행)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const $ = id => document.getElementById(id);
+
+/* ── 언어 ───────────────────────────────────────────────────────────────────
+   ★data-i18n 은 '내용이 고정된' 요소에만 붙인다. 카드·요약처럼 실행 중에 내용이 바뀌는
+   요소에는 붙이지 않는다 — 언어 전환이 진행 중 내용을 안내 문구로 덮기 때문이다. */
+const LANG = {
+  ko: {
+    docTitle:'오늘의 한판 — 한판고',
+    slogan:'날짜가 고르는 세 가지 — 하루에 한 번씩',
+    home:'전체 게임', share:'결과 공유', refresh:'다시 읽기',
+    adPlaceholder:'광고 자리 (320×50 / 728×90)',
+    no:(n)=>`오늘의 한판 #${n}`,
+    count:(k,t)=>`${t}판 중 ${k}판 완료`,
+    streak:(n)=> n > 0 ? `🔥 한판 연속 ${n}일` : '한판 연속 —',
+    notYet:'아직 안 함', done:'완료',
+    unreadable:'읽을 수 없음',
+    playtime:(s)=>s,
+    copied:'결과가 복사됐어요',
+    shareFail:'복사하지 못했어요 — 길게 눌러 직접 복사해 주세요',
+    loadErr:'게임 목록을 읽을 수 없습니다. 새로고침하거나 잠시 뒤 다시 열어 주세요.',
+    note:'기록은 이 기기에만 저장됩니다. 이 화면은 각 게임이 남긴 기록을 읽기만 하고 고치지 않습니다. 등급은 점수를 더한 것이 아니라 완료한 판 수입니다.',
+    gradeNone:'–',
+  },
+  en: {
+    docTitle:'Daily Set — Hanpango',
+    slogan:'Three games picked by the date — one round each',
+    home:'All games', share:'Share result', refresh:'Reload',
+    adPlaceholder:'Ad slot (320×50 / 728×90)',
+    no:(n)=>`Daily Set #${n}`,
+    count:(k,t)=>`${k} of ${t} done`,
+    streak:(n)=> n > 0 ? `🔥 ${n}-day set streak` : 'Set streak —',
+    notYet:'Not played', done:'Done',
+    unreadable:'Cannot read',
+    playtime:(s)=>s,
+    copied:'Result copied',
+    shareFail:'Could not copy — long-press to copy manually',
+    loadErr:'Cannot read the game list. Reload, or try again in a moment.',
+    note:'Records stay on this device. This page only reads what each game saved — it never changes them. The grade is the number of rounds completed, not a sum of scores.',
+    gradeNone:'–',
+  }
+};
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = LANG[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+
+/* ── 날짜·시드 ──────────────────────────────────────────────────────────────
+   ★새 시계를 만들지 않는다. 아래 세 줄은 15종 게임이 문자열까지 똑같이 쓰고 있는 것을
+   그대로 옮긴 것이다(예: stop/index.html:526·529 · tensec/index.html:501·504 —
+   15종 전수 대조는 SURVEY.md 표 B). 여기서 한 글자라도 달라지면 게임과 날짜가 어긋난다. */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   // 2026-08-23 = #1 (15종과 동일 기준일)
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+/* 'YYYY-MM-DD' 의 전날 — 문자열에서 계산해 시계 의존을 없앤다(estimate/index.html:500 과 같은 꼴). */
+function prevDayKey(day){ const [y,m,d] = day.split('-').map(Number); const t = new Date(y, m-1, d); t.setDate(t.getDate()-1); return dayKey(t); }
+
+/* ── 오늘의 3종 선정 ────────────────────────────────────────────────────────
+   ★날짜만으로 정해진다. 플레이 행동은 난수를 소비하지 않는다 — 같은 날이면 누가 무엇을 하든
+   같은 3종이다. 재추첨도 시드 스트림 안에서만 한다(시간·기기 속도를 재지 않는다). */
+const PICK = { n:3, fastMax:2, sumMax:12, limit:200 };
+const sumMin = list => list.reduce((s,g) => s + g.maxMinutes, 0);
+const okPick = list => list.some(g => g.maxMinutes <= PICK.fastMax) && sumMin(list) <= PICK.sumMax;
+/* 상한에 닿았을 때의 대체 규칙도 결정론이다 — 짧은 순, 같으면 id 사전순으로 앞의 셋.
+   (앞뒤 400일 전수 시뮬레이션에서 이 자리에 닿은 날은 0일이었다 — 증거는 조사 산출물에 있다.) */
+function fallbackPick(pool){
+  return pool.slice().sort((a,b) => (a.maxMinutes - b.maxMinutes) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)).slice(0, PICK.n);
+}
+function pickThree(dayStr, pool){
+  if (pool.length < PICK.n) return { games: pool.slice(), attempts: 0, fallback: false, short: true };
+  const rng = mulberry32(hashStr('hanpango-today-' + dayStr));
+  for (let attempt = 1; attempt <= PICK.limit; attempt++){
+    const bag = pool.slice(), take = [];
+    for (let i = 0; i < PICK.n; i++) take.push(bag.splice(Math.floor(rng() * bag.length), 1)[0]);
+    if (okPick(take)) return { games: take, attempts: attempt, fallback: false, short: false };
+  }
+  return { games: fallbackPick(pool), attempts: PICK.limit, fallback: true, short: false };
+}
+
+/* ── 게임별 어댑터 ──────────────────────────────────────────────────────────
+   ★각 줄의 근거는 내가 15종을 하나씩 열어 읽은 것이다(SURVEY.md 표 A·B · 파일:행).
+   ★허브는 스스로 날짜 규칙을 만들지 않는다 — 게임이 남긴 date 를 읽어, 15종이 함께 쓰는
+     dayKey 로 오늘인지 본다(계산식이 같으므로 게임의 판정과 어긋나지 않는다).
+   ★값을 못 읽으면 조용히 빈칸으로 두지 않고 '읽을 수 없음' 으로 표시한다. */
+const fmtDur = s => {
+  if (!isFinite(s)) return null;
+  const t = Math.max(0, Math.round(s));
+  return t < 60 ? (lang === 'ko' ? `${t}초` : `${t}s`)
+                : (lang === 'ko' ? `${Math.floor(t/60)}분 ${t%60}초` : `${Math.floor(t/60)}m ${t%60}s`);
+};
+const num = n => (typeof n === 'number' && isFinite(n)) ? n.toLocaleString(lang === 'ko' ? 'ko-KR' : 'en-US') : null;
+const pts = n => { const v = num(n); return v === null ? null : (lang === 'ko' ? `${v}점` : `${v} pts`); };
+
+/* result 를 감싼 형태(11종) 공통 판독기 — date 가 오늘이고 result 가 있으면 완료다. */
+const wrapped = (raw, pick) => ({
+  raw,
+  read(rec, today){
+    if (!rec || rec.date !== today) return { done:false };
+    if (!rec.result) return { done:false };
+    const v = pick(rec.result, rec);
+    return { done:true, value: v };
+  }
+});
+
+const ADAPTERS = {
+  /* ⓐ block-puzzle 만 result 필드가 없다 — 결과가 최상위에 평평하게 들어간다.
+        그래서 date 만 보고 완료를 판정한다(block-puzzle/index.html:392 · 492). */
+  'block-puzzle': { raw: () => localStorage.getItem('bp.daily'), read(rec, today){
+      if (!rec || rec.date !== today) return { done:false };
+      return { done:true, value: pts(rec.score) };
+  }},
+  /* ⓑ 2048 · block-drop · word 는 date 가 오늘이어도 아직 진행 중일 수 있다.
+        run(진행 중)과 result(끝난 판)를 구별해야 한다(2048:446 · block-drop:647 · word:672).
+        2048 은 구 형식(결과가 최상위에 있던 기록)도 완료로 읽는다(2048/index.html:426-429). */
+  '2048': { raw: () => localStorage.getItem('g2048.daily'), read(rec, today){
+      if (!rec || rec.date !== today) return { done:false };
+      if (rec.result) return { done:true, value: pts(rec.result.score) };
+      if (rec.run === undefined && rec.result === undefined && rec.score !== undefined)
+        return { done:true, value: pts(rec.score) };       /* 구 형식 호환 */
+      return { done:false };
+  }},
+  'block-drop': wrapped(() => localStorage.getItem('bd.daily'), r => pts(r.score)),                                   /* block-drop:1326 */
+  'word':       wrapped(() => localStorage.getItem('wd.daily'), r => {                                                /* word:1121 */
+      const t = num(r.tries); if (t === null) return null;
+      return r.win === false ? (lang === 'ko' ? `실패 · ${t}/6` : `lost · ${t}/6`) : `${t}/6`;
+  }),
+  'shooting':      wrapped(() => localStorage.getItem('sh.daily'), r => pts(r.score)),                                /* shooting:660 */
+  'brick-breaker': wrapped(() => localStorage.getItem('bb.daily'), r => pts(r.score)),                                /* brick-breaker:756 */
+  'estimate':      wrapped(() => localStorage.getItem('es.daily'), r => {                                             /* estimate:753 · 점수는 정확도 % */
+      const v = r.score; if (typeof v !== 'number' || !isFinite(v)) return null;
+      return lang === 'ko' ? `정확도 ${v}%` : `${v}% accuracy`;
+  }),
+  'sudoku':     wrapped(() => localStorage.getItem('sd.daily'), r => fmtDur(r.duration)),                              /* sudoku:819 · 초 */
+  'nonsense':   wrapped(() => localStorage.getItem('nq.daily'), r => { const c = num(r.correct); return c === null ? null : `${c}/10`; }), /* nonsense:1009 */
+  'wordchain':  wrapped(() => localStorage.getItem('wc.daily'), r => { const t = num(r.turns); return t === null ? null : (lang === 'ko' ? `${t}턴` : `${t} turns`); }), /* wordchain:811 */
+  'minesweeper':wrapped(() => localStorage.getItem('ms.daily'), r => {                                                /* minesweeper:786 · 진 판도 저장된다 */
+      const d = fmtDur(r.duration); if (d === null) return null;
+      return r.win ? d : (lang === 'ko' ? `실패 · ${d}` : `lost · ${d}`);
+  }),
+  'memory':     wrapped(() => localStorage.getItem('mc.daily'), r => { const f = num(r.flips); return f === null ? null : (lang === 'ko' ? `${f}번 뒤집기` : `${f} flips`); }), /* memory:745 */
+  'nonogram':   wrapped(() => localStorage.getItem('ng.daily'), r => fmtDur(r.duration)),                              /* nonogram:944 · 초 */
+  'tensec':     wrapped(() => localStorage.getItem('ts.daily'), r => {                                                 /* tensec:656 · err 는 초(작을수록 좋다) */
+      const e = r.err; if (typeof e !== 'number' || !isFinite(e)) return null;
+      return lang === 'ko' ? `평균 오차 ${e.toFixed(2)}초` : `avg error ${e.toFixed(2)}s`;
+  }),
+  'stop':       wrapped(() => localStorage.getItem('st.daily'), r => {                                                 /* stop:842 · 5라운드 평균 점수 */
+      const a = r.avg; if (typeof a !== 'number' || !isFinite(a)) return null;
+      return lang === 'ko' ? `${a.toFixed(1)}점` : `${a.toFixed(1)} pts`;
+  }),
+};
+
+/* 게임 키를 읽는다. ★읽기만 한다 — 이 함수에는 setItem 이 없다. */
+function readGame(id, today){
+  const ad = ADAPTERS[id];
+  if (!ad) return { done:false, unreadable:true };     /* 어댑터가 없는 게임 — 지어내지 않는다 */
+  let raw = null;
+  /* ★키 이름은 어댑터 안에 리터럴로 한 번만 적혀 있다 — 변수로 부르면 저장 항목 게이트가
+     인자를 정적으로 풀지 못해 '판정 불가' 로 멈춘다(tools/check_privacy_storage.py). */
+  try { raw = ad.raw(); } catch(_){ return { done:false, unreadable:true }; }
+  if (raw === null) return { done:false };
+  let rec = null;
+  try { rec = JSON.parse(raw); } catch(_){ return { done:false, unreadable:true }; }
+  let out;
+  try { out = ad.read(rec, today); } catch(_){ return { done:false, unreadable:true }; }
+  if (out.done && (out.value === null || out.value === undefined)) return { done:true, unreadable:true };
+  return out;
+}
+
+/* ── 허브 자신의 저장(hp1.) ─────────────────────────────────────────────────
+   ★hp1.daily 는 스냅숏이지 화면의 진실이 아니다. 화면 값은 매번 게임 키에서 다시 읽는다.
+     그래서 여기에 게임 점수를 담지 않는다 — 허브가 소유한 것(3종 id · 판정 시각 ·
+     스트릭 판정에 쓴 날짜)만 담는다. 두 진실을 만들지 않기 위해서다. */
+const parseOr = (raw, dflt) => { try { const v = JSON.parse(raw || 'null'); return v === null ? dflt : v; } catch(_){ return dflt; } };
+const readStreak = () => { try { return parseOr(localStorage.getItem('hp1.streak'), {}); } catch(_){ return {}; } };
+function saveSnapshot(day, ids){
+  try { localStorage.setItem('hp1.daily', JSON.stringify({ date: day, ids, at: new Date().toISOString() })); } catch(_){}
+}
+/* 한판 연속 — 3종 중 1종 이상 완료한 날을 연속으로 센다. 값 모양 {last,n} 은 15종과 같다.
+   ★last 에 적는 날짜는 허브 자기 장부의 날짜다(게임 기록이 아니다). 계산식은 15종과 같은 dayKey 를 쓴다. */
+function bumpStreak(day){
+  const st = readStreak();
+  if (st.last === day) return st.n || 1;
+  const n = (st.last === prevDayKey(day)) ? (st.n || 0) + 1 : 1;
+  try { localStorage.setItem('hp1.streak', JSON.stringify({ last: day, n })); } catch(_){}
+  return n;
+}
+/* 신선도 — last 가 오늘이나 어제일 때만 살아 있는 연속이다(estimate:502 와 같은 규칙). */
+function streakNow(day){
+  const st = readStreak();
+  return (st.last === day || st.last === prevDayKey(day)) ? (st.n || 0) : 0;
+}
+
+/* ── 화면 ───────────────────────────────────────────────────────────────────*/
+const GRADE = k => k >= 3 ? 'A' : k === 2 ? 'B' : k === 1 ? 'C' : null;
+let pool = null, state = null;
+
+function applyStatic(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  $('btnLang').textContent = lang === 'ko' ? 'EN' : '한국어';
+  for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = T(el.dataset.i18n);
+  $('note').textContent = T('note');
+}
+
+function render(){
+  applyStatic();
+  if (!state){ return; }
+  const { day, no, picks } = state;
+  const rows = picks.map(g => ({ g, r: readGame(g.id, day) }));
+  const doneCount = rows.filter(x => x.r.done).length;
+
+  $('list').innerHTML = rows.map(({ g, r }) => {
+    const name = g.title[lang] || g.title.ko;
+    const time = g.playtime[lang] || g.playtime.ko;
+    const cls = r.done ? 'item done' : 'item';
+    const mark = r.done ? '✓' : '·';
+    let val, vcls;
+    if (r.unreadable){ val = T('unreadable'); vcls = 'itemValue unreadable'; }
+    else if (r.done){ val = r.value; vcls = 'itemValue'; }
+    else { val = '—'; vcls = 'itemValue none'; }
+    return `<li class="${cls}"><a class="itemLink" href="${g.path}">`
+         + `<span class="mark" aria-hidden="true">${mark}</span>`
+         + `<span class="itemBody"><p class="itemName">${esc(name)}</p>`
+         + `<p class="itemMeta">${esc(time)} · ${esc(r.done ? T('done') : T('notYet'))}</p>`
+         + `<p class="${vcls}">${esc(val)}</p></span>`
+         + `<span class="go" aria-hidden="true">›</span></a></li>`;
+  }).join('');
+
+  const grade = GRADE(doneCount);
+  $('grade').textContent = grade || T('gradeNone');
+  /* ★분모를 항상 밝힌다 — "3판 중 N판 완료". 등급만 보여 주면 무엇으로 매긴 등급인지 알 수 없다. */
+  $('sumCount').textContent = T('count', doneCount, picks.length);
+  const streak = doneCount > 0 ? bumpStreak(day) : streakNow(day);
+  $('sumStreak').textContent = T('streak', streak);
+  $('sumNo').textContent = T('no', no);
+  state.doneCount = doneCount; state.streak = streak; state.rows = rows;
+  if (doneCount > 0) saveSnapshot(day, picks.map(g => g.id));
+}
+
+const esc = s => String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function shareText(){
+  const { no, picks, rows, doneCount, streak } = state;
+  const head = lang === 'ko' ? `🎯 한판고 오늘의 한판 #${no}` : `🎯 Hanpango Daily Set #${no}`;
+  const lines = rows.map(({ g, r }) => {
+    const name = g.title[lang] || g.title.ko;
+    const v = r.unreadable ? T('unreadable') : (r.done ? r.value : '—');
+    return `${r.done ? '✅' : '⬜'} ${name} ${v}`;
+  });
+  const grade = GRADE(doneCount) || T('gradeNone');
+  const tail = (lang === 'ko' ? `종합 ${grade} · ${T('count', doneCount, picks.length)}` : `Grade ${grade} · ${T('count', doneCount, picks.length)}`)
+             + (streak > 1 ? (lang === 'ko' ? ` · 🔥${streak}일 연속` : ` · 🔥${streak}-day streak`) : '');
+  return [head, ...lines, tail, 'https://hanpango.com/today/'].join('\n');
+}
+
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600); }
+
+async function doShare(){
+  const text = shareText();
+  try {
+    if (navigator.share){ await navigator.share({ title: T('docTitle'), text }); return; }
+    await navigator.clipboard.writeText(text);
+    toast(T('copied'));
+  } catch(_){
+    try { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast(T('copied')); }
+    catch(__){ toast(T('shareFail')); }
+  }
+}
+
+async function boot(){
+  applyStatic();
+  let list = null;
+  try {
+    const res = await fetch('/games.json', { cache: 'no-cache' });
+    if (res.ok) list = await res.json();
+  } catch(_){}
+  if (!Array.isArray(list)){
+    /* ★목록을 못 읽으면 지어내지 않는다 — 화면에 그대로 밝히고 멈춘다.
+       (게임 목록의 정본은 games.json 하나다. 이 페이지는 사본을 갖지 않는다.) */
+    $('err').hidden = false; $('err').textContent = T('loadErr');
+    $('list').innerHTML = ''; $('grade').textContent = T('gradeNone');
+    $('sumCount').textContent = '–'; $('sumStreak').textContent = '–'; $('sumNo').textContent = '–';
+    return;
+  }
+  pool = list.filter(g => g.daily === true && typeof g.maxMinutes === 'number');
+  const day = dayKey(), no = dailyNo();
+  const picked = pickThree(day, pool);
+  state = { day, no, picks: picked.games, pickInfo: picked };
+  render();
+  if (window.hpHit) window.hpHit('visit');
+}
+
+$('btnLang').onclick = () => {
+  lang = lang === 'ko' ? 'en' : 'ko';
+  try { localStorage.setItem('bp.lang', lang); } catch(_){}   /* 15종·대문과 같은 공용 언어 키 */
+  render();
+};
+$('btnShare').onclick = doShare;
+$('btnRefresh').onclick = () => render();
+/* 다른 탭에서 한 판 끝내고 돌아오는 흐름 — 밀어 주는 신호가 없으므로(storage 이벤트·
+   BroadcastChannel·postMessage 전수 0건 · SURVEY ⓒ) 화면이 다시 보일 때 직접 다시 읽는다. */
+document.addEventListener('visibilitychange', () => { if (!document.hidden && state) render(); });
+
+/* ★관측 창구 — 읽기 전용이다. 상태를 바꾸는 함수는 내보내지 않는다. */
+window.__td = {
+  const: () => ({ DAILY_EPOCH, PICK: Object.assign({}, PICK) }),
+  dayKey, dailyNo, prevDayKey,
+  pick: (dayStr, list) => pickThree(dayStr, (list || pool || []).slice()),
+  adapterIds: () => Object.keys(ADAPTERS).slice(),
+  view: () => state ? { day: state.day, no: state.no, ids: state.picks.map(g => g.id),
+                        doneCount: state.doneCount, streak: state.streak,
+                        attempts: state.pickInfo.attempts, fallback: state.pickInfo.fallback } : null,
+  shareText: () => state ? shareText() : null,
+};
+
+boot();
+</script>
+</body>
+</html>

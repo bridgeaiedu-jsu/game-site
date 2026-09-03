@@ -89,6 +89,15 @@
   .ad-top{height:50px}
   .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
   main{width:100%;padding:4px 0 16px}
+  /* 「오늘의 한판」 배너 — 게임 타일과 다른 모양이어야 한다(같은 모양이면 16번째 게임처럼 보인다) */
+  .today-banner{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;
+    background:var(--sig-soft);border:1px solid var(--sig);border-radius:14px;padding:12px 14px;margin:0 0 12px}
+  .today-banner:active{transform:scale(.99)}
+  .tb-ico{flex:none;font-size:1.4rem;line-height:1}
+  .tb-text{min-width:0;flex:1;display:block}
+  .tb-text b{display:block;font-size:.98rem;color:var(--sig-ink)}
+  .tb-text em{display:block;font-style:normal;font-size:.78rem;color:var(--muted-2);margin-top:3px}
+  .tb-go{flex:none;color:var(--sig-ink);font-size:1.1rem}
   .grid{display:grid;grid-template-columns:1fr;gap:12px;margin:0;padding:0;list-style:none}
   @media (min-width:520px){ .grid{grid-template-columns:repeat(2,1fr)} }
   @media (min-width:820px){ .grid{grid-template-columns:repeat(3,1fr)} }
@@ -158,6 +167,17 @@
        block-puzzle/index.html 의 게임오버 카드에만 존재한다. -->
 
   <main>
+    <!-- 「오늘의 한판」 진입점 — ★게임 카드가 아니라 배너다. 허브는 게임이 아니므로
+         games.json 게임 배열에도 functions/_games.js 화이트리스트에도 들어가지 않는다
+         (들어가면 대문이 그것을 16번째 게임 타일로 그린다). -->
+    <a class="today-banner" href="/today/">
+      <span class="tb-ico" aria-hidden="true">🎯</span>
+      <span class="tb-text">
+        <b data-i18n="todayTitle">오늘의 한판</b>
+        <em data-i18n="todaySub">날짜가 고르는 세 가지 — 하루에 한 번씩</em>
+      </span>
+      <span class="tb-go" aria-hidden="true">›</span>
+    </a>
     <ul class="grid" id="grid"></ul>
     <!-- ★ 이 noscript 목록은 아래 FALLBACK 배열 · 루트 games.json 과 내용이 같아야 한다(3곳 동기).
          게임을 추가·수정하면 games.json / FALLBACK / 이 noscript 를 반드시 함께 갱신할 것. -->
@@ -300,6 +320,7 @@ function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, p
 const I18N = {
   ko: {
     slogan:'설치 없이 바로 하는 미니게임',
+    todayTitle:'오늘의 한판', todaySub:'날짜가 고르는 세 가지 — 하루에 한 번씩',
     adPlaceholder:'광고 자리 (320×50 / 728×90)',
     note:'게임은 하나씩 늘려갑니다.',
     navAbout:'소개', navPrivacy:'개인정보 처리방침',
@@ -313,6 +334,7 @@ const I18N = {
   },
   en: {
     slogan:'browser mini games, no install',
+    todayTitle:'Daily Set', todaySub:'Three games picked by the date — one round each',
     adPlaceholder:'Ad slot (320×50 / 728×90)',
     note:'More games are added one at a time.',
     navAbout:'About', navPrivacy:'Privacy Policy',
@@ -335,112 +357,112 @@ const FALLBACK = [{
   desc:{ko:'10×10 판에 블록을 놓고 가로·세로 줄을 지우는 퍼즐',en:'Drop blocks on a 10×10 board and clear rows and columns'},
   thumb:'/block-puzzle/thumb.webp',
   playtime:{ko:'한 판 1~3분',en:'1–3 min a round'},
-  daily:true, released:'2026-08-22', tags:['puzzle','casual','daily']
+  maxMinutes:3, daily:true, released:'2026-08-22', tags:['puzzle','casual','daily']
 },{
   id:'2048', path:'/2048/',
   title:{ko:'2048',en:'2048'},
   desc:{ko:'같은 숫자를 밀어서 합쳐 2048 타일을 만드는 숫자 퍼즐',en:'Slide and merge equal numbers to reach the 2048 tile'},
   thumb:'/2048/thumb.webp',
   playtime:{ko:'한 판 2~5분',en:'2–5 min a round'},
-  daily:true, released:'2026-08-23', tags:['puzzle','numbers','casual','daily']
+  maxMinutes:5, daily:true, released:'2026-08-23', tags:['puzzle','numbers','casual','daily']
 },{
   id:'block-drop', path:'/block-drop/',
   title:{ko:'블록 낙하',en:'Block Drop'},
   desc:{ko:'떨어지는 블록을 돌려 가로줄을 지우는 낙하 퍼즐',en:'Rotate the falling blocks and clear horizontal lines'},
   thumb:'/block-drop/thumb.webp',
   playtime:{ko:'한 판 3~8분',en:'3–8 min a round'},
-  daily:true, released:'2026-08-23', tags:['puzzle','arcade','casual','daily']
+  maxMinutes:8, daily:true, released:'2026-08-23', tags:['puzzle','arcade','casual','daily']
 },{
   id:'word', path:'/word/',
   title:{ko:'오늘의 낱말',en:'Daily Word'},
   desc:{ko:'두 글자 낱말을 자음·모음 여섯 칸으로 맞히는 한글 퍼즐',en:'Guess a two-syllable Korean word from its letters in six tries'},
   thumb:'/word/thumb.webp',
   playtime:{ko:'한 판 2~5분',en:'2–5 min a round'},
-  daily:true, released:'2026-08-23', tags:['puzzle','word','korean','daily']
+  maxMinutes:5, daily:true, released:'2026-08-23', tags:['puzzle','word','korean','daily']
 },{
   id:'shooting', path:'/shooting/',
   title:{ko:'슛팅',en:'Shooting'},
   desc:{ko:'한 손가락으로 움직이고 자동 발사 — 90초 동안 도형을 부수며 콤보를 쌓는 스트레스 해소 슈팅',en:'One-finger move, auto-fire — smash shapes and chain combos in 90 seconds'},
   thumb:'/shooting/thumb.webp',
   playtime:{ko:'한 판 90초',en:'90 s a round'},
-  daily:true, released:'2026-08-26', tags:['arcade','shooter','casual','daily']
+  maxMinutes:1.5, daily:true, released:'2026-08-26', tags:['arcade','shooter','casual','daily']
 },{
   id:'brick-breaker', path:'/brick-breaker/',
   title:{ko:'벽돌깨기',en:'Brick Breaker'},
   desc:{ko:'한 손가락으로 패들을 움직여 공을 튕기고 벽돌을 부수는 아케이드 — 콤보를 채우면 관통·분열 폭발',en:'Slide the paddle with one finger, bounce the ball, smash bricks — fill the combo for a piercing multi-ball burst'},
   thumb:'/brick-breaker/thumb.webp',
   playtime:{ko:'한 판 2~5분',en:'2–5 min a round'},
-  daily:true, released:'2026-08-26', tags:['arcade','casual','daily']
+  maxMinutes:5, daily:true, released:'2026-08-26', tags:['arcade','casual','daily']
 },{
   id:'estimate', path:'/estimate/',
   title:{ko:'눈대중',en:'Eyeball'},
   desc:{ko:'각도·개수·비율을 눈으로 어림잡아 맞히는 10문제 추정 퀴즈 — 정확도 %로 자랑하기',en:'Eyeball angles, counts and ratios in a 10-question estimation quiz — brag with your accuracy %'},
   thumb:'/estimate/thumb.webp',
   playtime:{ko:'한 판 1~2분',en:'1–2 min a round'},
-  daily:true, released:'2026-08-27', tags:['quiz','estimation','casual','daily']
+  maxMinutes:2, daily:true, released:'2026-08-27', tags:['quiz','estimation','casual','daily']
 },{
   id:'sudoku', path:'/sudoku/',
   title:{ko:'스도쿠',en:'Sudoku'},
   desc:{ko:'6×6 미니부터 9×9 클래식까지 — 오늘의 스도쿠를 풀고 시간·실수로 자랑하기',en:"From 6×6 mini to classic 9×9 — solve today's Sudoku and brag with your time"},
   thumb:'/sudoku/thumb.webp',
   playtime:{ko:'한 판 3~15분',en:'3–15 min a round'},
-  daily:true, released:'2026-08-28', tags:['puzzle','logic','numbers','daily']
+  maxMinutes:15, daily:true, released:'2026-08-28', tags:['puzzle','logic','numbers','daily']
 },{
   id:'nonsense', path:'/nonsense/',
   title:{ko:'넌센스 퀴즈',en:'Riddle Quiz'},
   desc:{ko:'말장난·수수께끼 10문제 4지선다 — 오늘의 넌센스를 풀고 7/10 자랑하기',en:'Korean wordplay & riddle quiz, 10 questions, tap to answer — share your daily score'},
   thumb:'/nonsense/thumb.webp',
   playtime:{ko:'한 판 1~2분',en:'1–2 min a round'},
-  daily:true, released:'2026-08-28', tags:['quiz','trivia','korean','casual','daily']
+  maxMinutes:2, daily:true, released:'2026-08-28', tags:['quiz','trivia','korean','casual','daily']
 },{
   id:'wordchain', path:'/wordchain/',
   title:{ko:'끝말잇기',en:'Word Chain'},
   desc:{ko:'AI 와 번갈아 단어를 잇는 한국어 끝말잇기 — 10초 안에 다음 말을 찾아라',en:'Korean word-chain duel against the AI — find the next word in 10 seconds'},
   thumb:'/wordchain/thumb.webp',
   playtime:{ko:'한 판 1~3분',en:'1–3 min a round'},
-  daily:true, released:'2026-08-28', tags:['word','korean','quiz','daily']
+  maxMinutes:3, daily:true, released:'2026-08-28', tags:['word','korean','quiz','daily']
 },{
   id:'minesweeper', path:'/minesweeper/',
   title:{ko:'지뢰찾기',en:'Minesweeper'},
   desc:{ko:'숫자를 단서로 지뢰를 피해 칸을 여는 논리 퍼즐 — 찍기 없이 풀리는 판만 냅니다',en:'Classic logic minesweeper — every daily board is solvable without guessing'},
   thumb:'/minesweeper/thumb.webp',
   playtime:{ko:'한 판 2~10분',en:'2–10 min a round'},
-  daily:true, released:'2026-08-28', tags:['puzzle','logic','classic','daily']
+  maxMinutes:10, daily:true, released:'2026-08-28', tags:['puzzle','logic','classic','daily']
 },{
   id:'ladder', path:'/ladder/',
   title:{ko:'사다리타기',en:'Ladder'},
   desc:{ko:'이름과 결과만 넣으면 끝 — 링크를 나누면 모두 같은 판을 봅니다',en:'Share one link, everyone sees the same ladder'},
   thumb:'/ladder/thumb.webp',
   playtime:{ko:'한 판 1~2분',en:'1–2 min a round'},
-  daily:false, released:'2026-08-29', tags:['party','random','group','share']
+  maxMinutes:2, daily:false, released:'2026-08-29', tags:['party','random','group','share']
 },{
   id:'memory', path:'/memory/',
   title:{ko:'기억력 카드',en:'Memory Match'},
   desc:{ko:'뒤집힌 카드를 두 장씩 열어 같은 그림을 찾는 기억력 게임 — 뒤집기 수가 적을수록 좋은 기록',en:'Flip two cards at a time and find every matching pair — the fewer flips, the better'},
   thumb:'/memory/thumb.webp',
   playtime:{ko:'한 판 1~3분',en:'1–3 min a round'},
-  daily:true, released:'2026-08-31', tags:['puzzle','memory','casual','daily']
+  maxMinutes:3, daily:true, released:'2026-08-31', tags:['puzzle','memory','casual','daily']
 },{
   id:'nonogram', path:'/nonogram/',
   title:{ko:'노노그램',en:'Nonogram'},
   desc:{ko:'숫자 힌트로 칸을 칠해 그림을 완성하는 논리 퍼즐 — 답이 하나뿐인 판만 냅니다',en:'Paint the squares from the number clues to reveal a picture — one solution, never a guess'},
   thumb:'/nonogram/thumb.webp',
   playtime:{ko:'한 판 3~10분',en:'3–10 min a round'},
-  daily:true, released:'2026-08-31', tags:['puzzle','logic','picture','daily']
+  maxMinutes:10, daily:true, released:'2026-08-31', tags:['puzzle','logic','picture','daily']
 },{
   id:'tensec', path:'/tensec/',
   title:{ko:'10초 감각',en:'Ten-Second Sense'},
   desc:{ko:'시간을 보지 않고 정확히 10초를 맞히는 감각 게임 — 오차가 작을수록 좋은 기록',en:'Count ten seconds in your head with no clock on screen — the smaller your miss, the better'},
   thumb:'/tensec/thumb.webp',
   playtime:{ko:'한 판 20~30초',en:'20–30 sec a round'},
-  daily:true, released:'2026-08-31', tags:['timing','sense','casual','daily']
+  maxMinutes:0.5, daily:true, released:'2026-08-31', tags:['timing','sense','casual','daily']
 },{
   id:'stop', path:'/stop/',
   title:{ko:'멈춰!',en:'Stop!'},
   desc:{ko:'점·원·막대가 목표와 겹치는 순간을 잡는 시각 감각 게임 — 5라운드 평균 점수',en:'Tap the moment the moving mark lines up with the target — five rounds, averaged'},
   thumb:'/stop/thumb.webp',
   playtime:{ko:'한 판 20~40초',en:'20–40 sec a round'},
-  daily:true, released:'2026-09-02', tags:['timing','sense','casual','daily']
+  maxMinutes:0.67, daily:true, released:'2026-09-02', tags:['timing','sense','casual','daily']
 }];
 
 let games = FALLBACK;
