@@ -162,6 +162,15 @@ Sitemap: https://hanpango.com/sitemap.xml
          규칙 4개: 형태(`precache-url-shape`) · 디렉터리 표기(`precache-dir-form` — `/about` 처럼 후행 슬래시가 빠지면 308 로 addAll 이 깨진다) · 실재(`precache-target-exists`) · 중복(`precache-duplicate`).
    - [ ] `node tools/check_page_assets.mjs .` → **rc=0 일 때만** 통과다. 페이지가 요청시키는 동일 오리진 하위 자원(문서·`/api/`·서비스워커 스크립트 제외)이 `PRECACHE` 에 없으면 미달이다.
          조립되는 경로는 데이터 전개로 **갈음**하고, 못 푸는 조립은 통과가 아니라 **판정 불가**다.
+   - [ ] `node tools/check_today_pool.mjs .` → **rc=0 일 때만** 통과다. 「오늘의 한판」 선정 규칙
+         (3종 · 최소 1종 `maxMinutes<=N` · 합 `<=M`)이 어떤 게임을 **영원히 후보에서 빼는지**를
+         매번 **계산해서 찍는다**. ★목록을 문서·주석에 손으로 적지 마라 — 게임이 늘거나
+         `maxMinutes` 가 바뀌면 그 순간 거짓이 된다. 규칙 상수는 이 도구가 갖지 않고
+         `today/index.html` 의 `window.__td.const().PICK` 에서 읽는다(제품이 규칙을 바꾸면
+         판정도 함께 바뀐다). 영구 제외 자체는 **미달로 세지 않는다** — 규칙의 정당한 귀결일 수
+         있고, 이 도구의 일은 그것을 **눈에 보이게** 만드는 것이다. 미달은 셋뿐이다:
+         daily 게임에 `maxMinutes` 가 없다 · 빠른 게임이 0종이다 · 성립하는 조합이 0개다.
+         제품 스크립트나 규칙 상수를 못 읽으면 **판정 불가(rc=2)** 다.
    각 레인(브랜치)에서 초록이었다는 것은 **병합 결과가 초록이라는 뜻이 아니다**. 2026-08-31 에
    노노그램 병합이 `functions/_games.js` 의 `export const GAMES` 를 두 줄로 만들어 Cloudflare
    Pages 빌드가 거부했고, 배포가 통째로 실패해 새 경로만 404 였다. 두 부모는 각자 한 줄이라
