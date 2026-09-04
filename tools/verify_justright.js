@@ -124,11 +124,29 @@ const MUTATIONS = {
     from:   "  if (ev.repeat) return;",
     to:     "  /* repeat guard deleted */"
   },
-  /* 사각5 — 분모 0 보호를 지운다 = 목표가 비정상일 때 정확도가 NaN 이 된다 */
-  'zerodiv-guard-gone': {
+  /* 사각5 — ★뮤테이션을 넣지 않는다. 넣으면 영원히 통과하는 가짜 시험이 된다.
+     `if (!(m > 0)) return 0;` 는 지워도 행동이 달라지지 않는다(입력 171조합 대조 · 차이 0):
+       · m = max(t, 1-t) 라 ★유한한 목표에서는 언제나 m >= 0.5 다 — 분기 자체가 도달 불가.
+       · 목표가 NaN·undefined 면 m 은 NaN 이라 분기에 닿지만, 그때도 꼬리 절
+         `return a > 0 ? a : 0;` 이 NaN 을 0 으로 접어 ★같은 값을 낸다.
+     즉 이 가드는 결함이 아니라 ★중복 방어다. 제품은 고치지 않는다(R2 범위 밖 · master 보고).
+     대신 같은 계약이 ★실제로 걸린 자리(꼬리 절)를 겨냥한 아래 acc-nan-leaks 로
+     '내가 새로 넣은 단언이 공허하지 않다' 를 증명한다.
+     ★범위 상수가 바뀌어도 결론은 같다 — TARGET_MIN/MAX 를 어떻게 잡아도 실수 목표에서는
+     m >= 0.5 이므로 이 분기는 열리지 않는다(열리는 유일한 입력은 비수치 목표다). */
+  'acc-nan-leaks': {
     catcher: '목표가 비정상이면 정확도는 NaN 이 아니라 0 이다',
-    from:   "  if (!(m > 0)) return 0;",
-    to:     "  /* zero div guard deleted */"
+    /* ★한 줄이 아니라 두 줄을 함께 지운다. 실측 결과 이 계약을 지키는 방어가 둘이고
+       (분모 가드 · 꼬리 절) ★서로를 가린다 — 어느 한 줄만 지워도 나머지가 같은 값을 내므로
+       한 줄짜리 뮤테이션은 어떤 검사로도 잡을 수 없다(그건 가짜 시험이다).
+       둘을 함께 지우면 NaN 이 그대로 새어 나가고 아래 단언이 붉는다 — 그때 비로소
+       '이 단언에 검출력이 있다' 가 증명된다.
+       격리 행렬(양방향 실측):
+         · 가드만 제거 → 결과 차이 0 (입력 171조합 대조 · 꼬리 절이 NaN 을 0 으로 접는다)
+         · 꼬리만 제거 → 결과 차이 0 (가드가 NaN 목표에서 먼저 0 을 돌려준다)
+         · 둘 다 제거 → accuracyOf(0.5, NaN) = NaN → 단언 붉음 */
+    from:   "  if (!(m > 0)) return 0;\n  const a = 1 - errorOf(pos, target) / m;\n  return a > 0 ? a : 0;",
+    to:     "  const a = 1 - errorOf(pos, target) / m;\n  return a;"
   },
   /* 사각6 — Space 기본동작 차단을 지운다 = 화면이 스크롤되고 뒤따르는 click 이 한 번 더 센다 */
   'space-no-preventdefault': {
@@ -948,6 +966,8 @@ section('10. ★사각 7종 — 살아 있는 계약을 못박는다');
     ok('목표가 비정상이면 정확도는 NaN 이 아니라 0 이다',
        A.jr.accuracyOf(0.5, NaN) === 0 && A.jr.accuracyOf(0.5, undefined) === 0,
        `acc(0.5,NaN)=${A.jr.accuracyOf(0.5, NaN)} acc(0.5,undefined)=${A.jr.accuracyOf(0.5, undefined)}`);
+    /* ★이 계약을 실제로 지키는 줄은 분모 보호가 아니라 꼬리 절이다(위 acc-nan-leaks 주석 참조).
+       그래서 뮤테이션도 그 자리를 겨냥한다 — 겨냥을 잘못하면 통과만 하는 가짜 시험이 된다. */
     ok('정상 목표에서는 분모 보호가 값을 깎지 않는다(과잉 가드 아님)',
        Math.abs(A.jr.accuracyOf(0.3, 0.3) - 1) < 1e-12 &&
        Math.abs(A.jr.accuracyOf(0.65, 0.3) - (1 - 0.35 / 0.7)) < 1e-12);
