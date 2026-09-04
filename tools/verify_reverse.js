@@ -51,6 +51,18 @@ const MUTATIONS = {
     from: 'const correctIndexOf = p => 1 - p.variant;',
     to:   'const correctIndexOf = p => p.variant;'
   },
+  /* ①-A ★판정이 도장을 버리고 '지금'을 쓴다 = 시계는 멀쩡한데 판정만 프레임 시각을 탄다.
+        master(236) 외부 뮤테이션 R1 의 후속이다. R1 은 nowMs 를 뿌리째 프레임 누적으로 바꿔
+        검사의 ★전제부터 깨뜨렸고(놓침 0), 그래서 rc=2 판정불가로 멈췄다 — fail-closed 라 안전하지만
+        '프레임 독립 판정' 을 ★지목해 증명하지는 못했다. 그 좁은 자리를 이 뮤테이션이 겨냥한다:
+        시계(nowMs)도 그리기도 그대로 두고, 누른 순간의 도장만 버리게 한다.
+        브라우저는 우리 코드가 돌기 전에 사건에 도장을 찍으므로, 도장을 버리면 그 사이의 지연이
+        통째로 기록에 섞인다(화면이 느릴수록 커진다). */
+  'judge-ignores-stamp': {
+    catcher: '허용오차 안쪽의 도장은 그대로 쓴다',
+    from: '  const stamp = stampOf(ev);\n  settle(stamp);',
+    to:   '  const stamp = nowMs();\n  settle(stamp);'
+  },
   /* ② 시계를 프레임 누적으로 그린다 = 60Hz 와 144Hz 에서 다른 게임이 된다 */
   'frame-accumulate': {
     catcher: '그린 남은 시간이 매 프레임 흐른 시간과 같다(프레임 간격 불규칙)',
