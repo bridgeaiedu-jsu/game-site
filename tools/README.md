@@ -315,6 +315,42 @@ python3 tools/run_mutations_higherlower.py --html higher-lower/index.html
 종료코드: `0` 전부 지목 검사로 탐지 + 원본 정상 · `1` 검출력 실패(미탐지·엉뚱탐지) ·
 `2` 하네스 비정상(주입 실패·요약행 미도달·원본이 이미 FAIL).
 
+## check_render_parity.mjs — 두 슬롯의 ★렌더된 치수 대조 (선언 훑기로는 못 닫는 층)
+
+`verify_higherlower.js` 9-A 는 `.hl-cur` 로 시작하며 width/height/font-size/transform/scale 을
+선언하는 규칙을 훑는다. 그런데 **`.hl-cur .hl-dots i{zoom:1.3}`** 은 요소를 실제로 1.3배로
+그리면서도 그 목록에 없어 **rc=0 으로 통과했다**(2026-09-04 master 236 이 밖에서 심어 확인).
+근인은 명확하다 — **선언 이름 훑기는 대리물이고 계약은 렌더된 치수다**. 금지 목록은 원리적으로
+못 닫는다(zoom·padding·border-width·aspect-ratio·inline-size… 계속 는다).
+
+그래서 이 도구는 목록을 늘리는 대신 **실브라우저가 실제로 세운 치수를 잰다**. Chrome 을
+headless 로 띄우고 CDP(Node 22 의 전역 `WebSocket`)로 붙어, 제품 자신의 경로로 그 종류의 판을 연 뒤
+두 슬롯에 **같은 값**을 제품의 `valueHtml` 로 그려 넣고 `getBoundingClientRect` 를 읽는다.
+두 요소가 같은 페이지 안에 있으므로 확대율·dpr 은 서로 상쇄된다.
+
+계약 한 문장: **같은 값을 두 슬롯에 그렸을 때 값 그림의 렌더된 치수가 두 슬롯에서 같아야 한다.**
+예외는 숫자(`.hl-num`) 하나뿐이고 — 길이가 아니라 읽는 값이다 — 그 예외를 **양성 대조군**으로
+쓴다. 숫자가 실제로 달라야 잣대가 '차이를 볼 수 있다'가 증명되고, 안 그러면 '전부 같다'는
+초록이 '아무것도 못 재고 있다'와 구별되지 않는다(대조군 실패는 rc=2).
+
+★9-A 선언 훑기는 지우지 않는다. 그쪽은 브라우저 없이 도는 **값싼 조기 경보**이고 이쪽은
+느리지만 **계약 자체를 재는 잣대**다 — 층이 다르므로 한 도구에 얹지 않는다.
+
+```sh
+node tools/check_render_parity.mjs                       # 기본 대상 = higher-lower/index.html
+node tools/check_render_parity.mjs --html higher-lower/index.html
+node tools/check_render_parity.mjs --list-mutations
+node tools/check_render_parity.mjs --mutate cur-dots-zoom    # 우회 1건만 주입(임시 사본에만)
+node tools/check_render_parity.mjs --selftest                # 검출력 검산(우회 3종 전수)
+```
+종료코드: `0` 두 슬롯의 자가 같다 · `1` 미달(자가 갈라졌다) ·
+`2` **판정 불가**(크롬 없음·구동 실패·종류 도달 실패·양성 대조군 실패) — 통과로 세지 않는다.
+
+검출력(2026-09-04 실측): 원본 rc=0 이고 우회 3종이 전부 rc=1 로 붉는다 —
+`cur-dots-zoom`(점 11px → 14.297px 로 잡힌다) · `cur-circle-scale` · `bar-track-uneven`.
+크롬은 임시 프로필로 띄우고 어떤 경로로 끝나든 죽인다(`taskkill /T /F` 포함) — 실행 후
+headless 잔존 0 을 실측 확인했다.
+
 ## check_source_bytes.py — 눈에 보이지 않는 바이트 정적 전수 스캔
 
 `verify_tensec.js` 870·871 행에 원시 `0x08`(백스페이스)이 2개 있었다(커밋 `32df830` 이후 계속).
