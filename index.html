@@ -303,6 +303,12 @@
           <span class="body"><h2>위냐 아래냐 / Higher or Lower</h2>
             <p>다음 값이 위인지 아래인지 맞힐 때마다 연쇄가 이어지는 게임 — 틀리면 그 자리에서 끝, 기록은 연속 정답 수<br>Call whether the next value is higher or lower — one wrong call ends it, and your score is the chain</p></span>
         </a></li>
+        <li><a class="card" href="/how-many/">
+          <span class="thumb"><img src="/how-many/thumb.webp" alt="몇 개였지 / How Many Were There" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 40초 / 40 sec a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>몇 개였지 / How Many Were There</h2>
+            <p>잠깐 나타났다 사라진 도형이 몇 개였는지 맞히는 감각 게임 — 8라운드, 뒤로 갈수록 개수는 늘고 보는 시간은 짧아진다<br>Call how many shapes flashed before they vanished — eight rounds, more shapes and less time as you go</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -515,6 +521,13 @@ const FALLBACK = [{
   thumb:'/higher-lower/thumb.webp',
   playtime:{ko:'한 판 20초~',en:'20 sec and up'},
   maxMinutes:1, daily:true, released:'2026-09-04', tags:['guess','sense','casual','daily']
+},{
+  id:'how-many', path:'/how-many/',
+  title:{ko:'몇 개였지',en:'How Many Were There'},
+  desc:{ko:'잠깐 나타났다 사라진 도형이 몇 개였는지 맞히는 감각 게임 — 8라운드, 뒤로 갈수록 개수는 늘고 보는 시간은 짧아진다',en:'Call how many shapes flashed before they vanished — eight rounds, more shapes and less time as you go'},
+  thumb:'/how-many/thumb.webp',
+  playtime:{ko:'한 판 40초',en:'40 sec a round'},
+  maxMinutes:1, daily:true, released:'2026-09-04', tags:['memory','sense','casual','daily']
 }];
 
 let games = FALLBACK;
