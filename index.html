@@ -297,6 +297,12 @@
           <span class="body"><h2>반대로 눌러! / Do the Opposite</h2>
             <p>화면에 뜨는 지시의 반대를 누르는 순발력 게임 — 30초에 맞힌 개수, 오답은 −1<br>Tap the opposite of what the screen says — thirty seconds, minus one for a wrong tap</p></span>
         </a></li>
+        <li><a class="card" href="/higher-lower/">
+          <span class="thumb"><img src="/higher-lower/thumb.webp" alt="위냐 아래냐 / Higher or Lower" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 20초~ / 20 sec and up</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>위냐 아래냐 / Higher or Lower</h2>
+            <p>다음 값이 위인지 아래인지 맞힐 때마다 연쇄가 이어지는 게임 — 틀리면 그 자리에서 끝, 기록은 연속 정답 수<br>Call whether the next value is higher or lower — one wrong call ends it, and your score is the chain</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -502,6 +508,13 @@ const FALLBACK = [{
   thumb:'/reverse/thumb.webp',
   playtime:{ko:'한 판 30초',en:'30 sec a round'},
   maxMinutes:0.5, daily:true, released:'2026-09-04', tags:['reaction','sense','casual','daily']
+},{
+  id:'higher-lower', path:'/higher-lower/',
+  title:{ko:'위냐 아래냐',en:'Higher or Lower'},
+  desc:{ko:'다음 값이 위인지 아래인지 맞힐 때마다 연쇄가 이어지는 게임 — 틀리면 그 자리에서 끝, 기록은 연속 정답 수',en:'Call whether the next value is higher or lower — one wrong call ends it, and your score is the chain'},
+  thumb:'/higher-lower/thumb.webp',
+  playtime:{ko:'한 판 20초~',en:'20 sec and up'},
+  maxMinutes:1, daily:true, released:'2026-09-04', tags:['guess','sense','casual','daily']
 }];
 
 let games = FALLBACK;

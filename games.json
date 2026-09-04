@@ -491,5 +491,31 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "higher-lower",
+    "path": "/higher-lower/",
+    "title": {
+      "ko": "위냐 아래냐",
+      "en": "Higher or Lower"
+    },
+    "desc": {
+      "ko": "다음 값이 위인지 아래인지 맞힐 때마다 연쇄가 이어지는 게임 — 틀리면 그 자리에서 끝, 기록은 연속 정답 수",
+      "en": "Call whether the next value is higher or lower — one wrong call ends it, and your score is the chain"
+    },
+    "thumb": "/higher-lower/thumb.webp",
+    "playtime": {
+      "ko": "한 판 20초~",
+      "en": "20 sec and up"
+    },
+    "maxMinutes": 1,
+    "daily": true,
+    "released": "2026-09-04",
+    "tags": [
+      "guess",
+      "sense",
+      "casual",
+      "daily"
+    ]
   }
 ]
