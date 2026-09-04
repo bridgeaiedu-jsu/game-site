@@ -268,6 +268,51 @@ python3 tools/run_mutations_reverse.py --html reverse/index.html
 종료코드: `0` 전부 지목 검사로 탐지 + 원본 정상 · `1` 검출력 실패(미탐지·엉뚱탐지) ·
 `2` 하네스 비정상(주입 실패·요약행 미도달·원본이 이미 FAIL).
 
+## verify_higherlower.js — 위냐 아래냐 검증 (연쇄와 무승부 배제가 계약이다)
+
+배포되는 `higher-lower/index.html` 안의 `<script>` 를 그대로 꺼내 최소 DOM 스텁 위에서 돌리고,
+진짜 입력 사건(pointerdown·keydown)으로 두 답 칸을 두드려 계약을 잰다. 상태를 바꾸는 명령은
+제품에 두지 않고 이 도구가 메모리 위에서만 덧붙인다(배포본에는 관측 창구 `window.__hl` 만 남는다).
+
+재는 것: ①연쇄 계약(다음 값이 크면 위·작으면 아래 · 맞히면 그 값이 새 기준 · 틀리면 그 자리에서 끝)
+②무승부 배제(사후 필터가 아니라 ★생성 규칙으로 막혔는가 — 씨앗 240개 이웃쌍 23,760 에서 동률 0)
+③차이(라운드가 오를수록 좁아지되 ★바닥 아래로는 안 내려간다 — 두 방향을 따로 가른다)
+④일일 결정성(★가짜 벽시계를 크게 옮겨도 같은 날이면 같은 판 · 전제로 '시계가 제품에 닿는가'를 먼저 증명)
+⑤난수(판을 짤 때 전부 소진 · 연쇄를 끝까지 이어도 플레이 중 소비 0) ⑥시간(판정에 안 들어가고
+그림만 흐른 시간을 따른다 · 도장 허용오차) ⑦한 판 한 종류 ⑧값의 몸(숫자·막대·점·원이 서로 다른
+모양이고 값을 따라 변한다) ⑨색맹 안전(두 칸이 글자와 화살표로 다르다) ⑩터치 목표(360px 에서 짧은
+변 50px 하한 — 숫자를 박지 않고 CSS 치수에서 다시 셈하고 실측으로 보정) ⑪저장·하루 한 번·최고기록
+(자유 모드에서만)·스트릭 ⑫입력(화살표·Enter·Space · 반복 발화 무시 · preventDefault) ⑬창 inert
+⑭결과·공유 ⑮정적 계약(i18n 두 표·hl- 접두·hp-stats 짝·관측 창구에 상태 변경 명령 0).
+
+★못 보는 것(정직 고지): 레이아웃을 계산하지 않고(칸이 몇 px 로 서는지는 실브라우저에서만 보인다),
+CSS 를 파싱하지 않으며(치수 몇 개를 정규식으로 읽을 뿐이다), svg 를 그리지 않는다 — 두 모양이
+'사람 눈에' 구별되는지는 문자열 차이까지만 증명한다. 점·막대·원의 크기가 사람 눈에 견줄 만한지도
+재지 못한다(수치 대조까지다).
+
+```sh
+node tools/verify_higherlower.js                                # 기본 대상 = 이 저장소의 higher-lower/index.html
+node tools/verify_higherlower.js --html higher-lower/index.html
+node tools/verify_higherlower.js --list-mutations
+node tools/verify_higherlower.js --mutate correct-inverted      # 검출력 확인(임시 사본에만 주입)
+```
+종료코드: `0` 전부 PASS · `1` 하나라도 FAIL · `2` 주입 실패·하네스 이상(탐지 아님).
+
+## run_mutations_higherlower.py — 위 검증기의 검출력 검산
+
+위냐 아래냐 의 계약을 하나씩 깨뜨린 사본 29종으로 `verify_higherlower.js` 를 돌려 **지목한 검사가
+붉어지는지** 본다. 탐지의 정의가 엄격하다: `exit 1` **그리고** 지목한 검사가 FAIL 목록에 있고
+**그리고** 최종 요약행에 도달했을 때만 탐지다. '주입 실패'(앵커 노후화)는 검출력 저하와 따로 세어
+표에 남긴다. 기대 목록(29종과 각각의 지목 검사)은 러너가 **독립 리터럴로** 쥐고, 대상이 내놓는
+`--list-mutations` 는 근거가 아니라 대조 상대다. 이 문서가 선언한 종수도 러너가 읽어 대조한다.
+
+```sh
+python3 tools/run_mutations_higherlower.py
+python3 tools/run_mutations_higherlower.py --html higher-lower/index.html
+```
+종료코드: `0` 전부 지목 검사로 탐지 + 원본 정상 · `1` 검출력 실패(미탐지·엉뚱탐지) ·
+`2` 하네스 비정상(주입 실패·요약행 미도달·원본이 이미 FAIL).
+
 ## check_source_bytes.py — 눈에 보이지 않는 바이트 정적 전수 스캔
 
 `verify_tensec.js` 870·871 행에 원시 `0x08`(백스페이스)이 2개 있었다(커밋 `32df830` 이후 계속).
