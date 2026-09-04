@@ -96,6 +96,51 @@ const MUTATIONS = {
     catcher: '오늘의 도전은 하루 한 번 — 두 번째 완주가 기록을 덮지 않는다',
     from:   '    if (!dailyDoneToday()){\n      saveDaily({ acc: avgAcc, err: avgErr, rounds: r.rounds });',
     to:     '    if (true){\n      saveDaily({ acc: avgAcc, err: avgErr, rounds: r.rounds });'
+  },
+  /* ── R2 신규 7종 — 232 리뷰가 열거하고 master 가 3종 실증한 '검증기 사각' ──────────
+     ★모두 '제품에 방어가 살아 있는데 검증기가 못 박지 않던' 자리다. 제품은 고치지 않는다. */
+  /* 사각1 — 도장 허용오차를 지운다 = 터무니없는 timeStamp 를 그대로 믿는다 */
+  'stamp-no-tolerance': {
+    catcher: '허용오차를 벗어난 도장은 믿지 않고 지금 시각으로 물러선다',
+    from:   "  if (typeof s === 'number' && isFinite(s) && s > 0 && Math.abs(t - s) <= STAMP_TOLERANCE_MS) return s;",
+    to:     "  if (typeof s === 'number' && isFinite(s)) return s;"
+  },
+  /* 사각2 — 스트릭 리셋을 지운다 = 하루를 건너뛰어도 연속으로 센다 */
+  'streak-never-resets': {
+    catcher: '날짜가 끊기면 스트릭이 1 로 리셋된다',
+    from:   "  const n = (st && st.last === prevDayKey(day)) ? (st.n || 0) + 1 : 1;",
+    to:     "  const n = (st.n || 0) + 1;"
+  },
+  /* 사각3 — 진행 중 문구 갱신 분기를 지운다 = 언어 전환이 판의 글을 안내 문구로 덮는다.
+     ★R1 의 공허 단언(&&/|| 우선순위)이 놓치고 있던 바로 그 결함이다. */
+  'lang-overwrites-running-copy': {
+    catcher: '진행 중 언어를 바꿔도 판의 글이 진행 문구를 유지한다(안내 문구로 덮이지 않는다)',
+    from:   "  if (phase === 'running'){\n    $('padMain').textContent = T('padRun');\n    $('padSub').textContent = T('padRunSub');\n  } else if",
+    to:     "  if (false){\n  } else if"
+  },
+  /* 사각4 — 키 반복 가드를 지운다 = 스페이스를 누르고 있으면 판이 저절로 굴러간다 */
+  'repeat-guard-gone': {
+    catcher: '누르고 있어서 반복 발화된 키 입력은 무시된다',
+    from:   "  if (ev.repeat) return;",
+    to:     "  /* repeat guard deleted */"
+  },
+  /* 사각5 — 분모 0 보호를 지운다 = 목표가 비정상일 때 정확도가 NaN 이 된다 */
+  'zerodiv-guard-gone': {
+    catcher: '목표가 비정상이면 정확도는 NaN 이 아니라 0 이다',
+    from:   "  if (!(m > 0)) return 0;",
+    to:     "  /* zero div guard deleted */"
+  },
+  /* 사각6 — Space 기본동작 차단을 지운다 = 화면이 스크롤되고 뒤따르는 click 이 한 번 더 센다 */
+  'space-no-preventdefault': {
+    catcher: 'Space 로 실제로 눌렀을 때 preventDefault 가 호출된다',
+    from:   "  ev.preventDefault();                         /* Space 의 화면 스크롤과, 뒤따르는 click 을 막는다 */",
+    to:     "  /* preventDefault deleted */"
+  },
+  /* 사각7 — 창 밖 inert 부여를 지운다 = 창이 떠 있는데 배경으로 초점이 빠진다 */
+  'inert-gone': {
+    catcher: '창이 열리면 창 밖 요소에 inert 가 붙는다',
+    from:   "function setOutsideInert(on){\n  for (const el of document.querySelectorAll('body > header, body > main, body > section, body > footer, body > .ad-slot, body > .scores')){\n    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');\n  }\n}",
+    to:     "function setOutsideInert(on){ /* deleted */ }"
   }
 };
 if (argv.includes('--list-mutations')){
@@ -129,6 +174,9 @@ window.__jrTest = {
   /* ★i18n 표를 정규식으로 읽지 않는다 — 한 줄에 키가 여럿이거나 문장 안에 콜론이 있으면
      정규식은 대리물이 된다. 실행된 객체의 실제 키 목록을 그대로 준다. */
   i18nKeys: () => ({ ko: Object.keys(I18N.ko), en: Object.keys(I18N.en) }),
+  /* ★문안 값도 표에서 그대로 받는다 — 하네스가 제품 문자열을 상수로 베껴 들면 그때부터
+     검사가 계약이 아니라 '내가 베껴 둔 문자열'을 재게 된다. 함수형 문안은 null 로 준다. */
+  i18nText: (lang, key) => { const v = I18N[lang][key]; return typeof v === 'function' ? null : v; },
   begin: m => beginRun(m),
   refresh: () => refreshStart(),
   overShown: () => overShown,
@@ -200,6 +248,13 @@ function matchesSel(el, sel){
     if (s.startsWith('a[href]') && el.tagName === 'A') return true;
     if (s.indexOf('button:not(') === 0 && el.tagName === 'BUTTON' && !el.disabled && !el.hidden) return true;
     if (s === '.overlay' && el._classes.has('overlay')) return true;
+    /* ★R2 — 'body > header' 꼴을 인정한다. 이것을 인정하지 않으면 제품의 setOutsideInert 가
+       스텁에서 아무 요소도 못 찾아, 그 함수를 통째로 비워도 어떤 검사도 붉지 않는다(사각7). */
+    const m = /^body\s*>\s*(?:(\.)?([A-Za-z][A-Za-z0-9_-]*))$/.exec(s);
+    if (m && el.parent && el.parent.tagName === 'BODY'){
+      if (m[1]) { if (el._classes.has(m[2])) return true; }
+      else if (el.tagName === m[2].toUpperCase()) return true;
+    }
   }
   return false;
 }
@@ -230,7 +285,7 @@ function boot(opts){
     removeEventListener: () => {}
   };
   doc.documentElement = makeEl('html', doc);
-  doc.body = makeEl('body', doc);
+  doc.body = makeEl('body', doc, 'body');   /* ★tagName 이 BODY 여야 'body > header' 선택자가 성립한다 */
   for (const id of IDS) doc.getElementById(id);
   doc.getElementById('pad').tagName = 'BUTTON';
   doc.getElementById('over')._classes.add('overlay');
@@ -263,6 +318,28 @@ function boot(opts){
   const setTimeoutStub = (fn, ms) => { const id = tSeq++; timers.set(id, fn); return id; };
   const clearTimeoutStub = id => { timers.delete(id); };
   function runTimers(){ const e = [...timers.entries()]; timers.clear(); for (const [, fn] of e) fn(); return e.length; }
+
+  /* ★R2 — preventDefault 호출 계수기(사각6). 스텁의 빈 함수는 '호출됐다'를 증명하지 못한다.
+     장기기억 stub-fidelity-decides-whether-a-check-can-fail 이 가리키는 바로 그 자리다. */
+  let pdCount = 0;
+
+  /* ★R2 — 창 밖 요소(사각7). 제품의 setOutsideInert 는
+     'body > header, body > main, body > section, body > footer, body > .ad-slot, body > .scores'
+     를 훑는다. 스텁이 그 선택자에 아무것도 주지 않으면 그 함수는 시험에서 ★없는 것과 같다. */
+  const outsideEls = {};
+  for (const spec of [['header','HEADER'],['main','MAIN'],['section','SECTION'],['footer','FOOTER']]){
+    const e = makeEl('outside_' + spec[0], doc, spec[1]);
+    e.parent = doc.body; doc.body.children.push(e);
+    els.set('outside_' + spec[0], e);
+    outsideEls[spec[0]] = e;
+  }
+  for (const cls of ['ad-slot','scores']){
+    const e = makeEl('outside_' + cls, doc, 'DIV');
+    e._classes.add(cls);
+    e.parent = doc.body; doc.body.children.push(e);
+    els.set('outside_' + cls, e);
+    outsideEls[cls] = e;
+  }
 
   /* Math.random 계수기 — '플레이가 난수를 소비하지 않는다'를 직접 잰다 */
   let randCalls = 0;
@@ -314,11 +391,36 @@ function boot(opts){
       if (!fn) throw new Error('pad pointerdown 핸들러 없음');
       fn({ button: 0, timeStamp: clock + (stampOffset || 0) });
     },
-    key: k => {
+    /* ★R2 — 도장을 마음대로 줄 수 있어야 한다. 정상 도장만 보내면 stampOf 의 물러섬 분기가
+       시험에서 한 번도 열리지 않는다(232 지적 사각1 · master 실증). */
+    pressRaw: props => {
+      const fn = pad._on.pointerdown;
+      if (!fn) throw new Error('pad pointerdown 핸들러 없음');
+      const ev = Object.assign({ button: 0 }, props || {});
+      fn(ev);
+    },
+    /* ★R2 — repeat 플래그와 preventDefault 호출 횟수를 다룰 수 있어야 한다(사각4·6). */
+    key: (k, opts) => {
       const fn = doc._on && doc._on.keydown;
       if (!fn) throw new Error('keydown 핸들러 없음');
-      fn({ key: k || ' ', repeat: false, target: pad, preventDefault(){}, timeStamp: clock });
+      const o = opts || {};
+      const ev = {
+        key: k || ' ', repeat: !!o.repeat,
+        target: ('target' in o) ? o.target : pad,
+        ctrlKey: !!o.ctrlKey, metaKey: !!o.metaKey, altKey: !!o.altKey,
+        preventDefault(){ pdCount++; },
+        timeStamp: ('timeStamp' in o) ? o.timeStamp : clock
+      };
+      fn(ev);
     },
+    pd: () => pdCount,
+    resetPd: () => { pdCount = 0; },
+    /* ★R2 — 창 밖 요소의 inert 를 읽을 수 있어야 한다(사각7). */
+    inertOf: sel => {
+      const el = outsideEls[sel];
+      return el ? el.hasAttribute('inert') : null;
+    },
+    outsideNames: () => Object.keys(outsideEls),
     startBtn: () => doc.getElementById('btnStart').onclick(),
     dailyBtn: () => doc.getElementById('btnDaily').onclick(),
     againBtn: () => doc.getElementById('btnAgain').onclick()
@@ -645,9 +747,23 @@ section('7. 화면·언어 — 진행 중 내용이 안내 문구로 덮이지 �
   A.press(0); A.advance(300); A.frame();
   const mainBefore = A.txt('padMain'), chipBefore = A.txt('varChip');
   A.el('btnLang').onclick();                          /* 재는 도중에 언어를 바꾼다 */
-  ok('언어를 바꿔도 판의 글이 안내 문구로 갈아엎어지지 않는다',
-     A.txt('padMain') !== '' && A.txt('padMain') !== mainBefore || A.jr.lang() === 'en',
-     `before=${mainBefore} after=${A.txt('padMain')}`);
+  /* ★R2 수리 — 앞 판(R1)의 단언은 `X && Y || lang==='en'` 이었다. && 가 먼저 묶여
+     오른쪽 항이 항상 참이 되어 ★어떤 구현에서도 통과했다(232 지적 · master 가 진행 분기를
+     지운 사본에서 PASS 90 FAIL 0 으로 실증).
+     계약을 다시 적는다 — '언어가 바뀌었나' 가 아니라 **진행 중에는 진행 문구를 유지하고
+     안내 문구(padReady)로 돌아가지 않는다** 가 계약이다. 기대값은 제품 문자열을 베끼지 않고
+     실행된 i18n 표에서 받아 온다(다만 그 표가 아니라 ★렌더된 결과를 대조한다). */
+  const L = () => A.jr.lang();
+  const tx = k => A.t.i18nText(L(), k);
+  ok('전제 — 진행 중 상태에서 언어를 바꿨다(phase=running · lang 이 실제로 바뀌었다)',
+     A.jr.state().phase === 'running' && L() === 'en',
+     `phase=${A.jr.state().phase} lang=${L()}`);
+  ok('진행 중 언어를 바꿔도 판의 글이 진행 문구를 유지한다(안내 문구로 덮이지 않는다)',
+     A.txt('padMain') === tx('padRun') && A.txt('padMain') !== tx('padReady'),
+     `padMain="${A.txt('padMain')}" 기대(padRun)="${tx('padRun')}" 금지(padReady)="${tx('padReady')}"`);
+  ok('진행 중 언어를 바꿔도 판의 보조 문구도 진행 문구를 유지한다',
+     A.txt('padSub') === tx('padRunSub') && A.txt('padSub') !== tx('padReadySub'),
+     `padSub="${A.txt('padSub')}" 기대="${tx('padRunSub')}"`);
   ok('진행 중에도 라운드 칩이 비지 않는다', A.txt('roundChip') !== '');
   ok('유형 칩이 언어를 따라 바뀐다', A.txt('varChip') !== chipBefore, `${chipBefore} → ${A.txt('varChip')}`);
   A.press(0);                                          /* 언어를 바꾼 뒤에도 정지가 정상 동작한다 */
@@ -738,6 +854,142 @@ section('9. 정적 검사 — 소스에 대한 계약');
        .every(u => /googlesyndication|googletagmanager|^\/js\/hp-stats\.js$/.test(u)));
   ok('결과·게이지 위치를 CSS 애니메이션으로 만들지 않는다',
      /\.jr-marker,\.jr-fill\{transition:none!important;animation:none!important\}/.test(html));
+}
+
+
+/* ============================================================ 10. ★R2 — 232 가 지목한 사각 7종
+   각 항목은 '제품에 방어가 있는데 검증기가 못 박지 않던' 자리다. 단언마다 짝 뮤테이션이 있고,
+   뮤테이션은 ★지목한 검사에서만 붉어야 한다(무임승차 배제).
+   사각3(진행 중 문구 보존)은 7절에서 수리한 단언이 담당한다 — 여기서 중복하지 않는다. */
+section('10. ★사각 7종 — 살아 있는 계약을 못박는다');
+{
+  /* ── 사각1. 도장(timeStamp) 허용오차와 물러섬 ─────────────────────────────
+     정상 도장만 보내면 stampOf 의 물러섬 분기는 시험에서 한 번도 열리지 않는다. */
+  {
+    const A = boot(); A.dailyBtn();
+    A.press(0); A.advance(300);
+    A.pressRaw({ timeStamp: A.now() + 5000 });     /* 지금과 5,000ms 어긋난 도장 = 믿을 수 없다 */
+    const r = A.jr.state().rounds[0] || null;
+    ok('전제 — 라운드가 확정됐다(사각1 잴 대상)', !!r, `확정 ${A.jr.state().rounds.length}`);
+    ok('허용오차를 벗어난 도장은 믿지 않고 지금 시각으로 물러선다',
+       !!r && Math.abs(r.elapsedMs - 300) < 1e-9,
+       r ? `경과 ${r.elapsedMs} (기대 300 · 도장을 믿었다면 5300)` : '★잴 대상 0 — 판정 불가는 통과가 아니다');
+    note(`허용오차 ${A.jr.const().STAMP_TOLERANCE_MS}ms · 5,000ms 어긋난 도장을 주었다`);
+
+    const B = boot(); B.dailyBtn();
+    B.press(0); B.advance(250);
+    B.pressRaw({});                                /* 도장이 아예 없다 */
+    const rb = B.jr.state().rounds[0] || null;
+    ok('도장이 없으면 지금 시각으로 잰다',
+       !!rb && Math.abs(rb.elapsedMs - 250) < 1e-9, rb ? `경과 ${rb.elapsedMs}` : '★잴 대상 0');
+
+    const C = boot(); C.dailyBtn();
+    C.press(0); C.advance(120);
+    C.pressRaw({ timeStamp: NaN });                /* 숫자가 아닌 도장 */
+    const rc2 = C.jr.state().rounds[0] || null;
+    ok('NaN 도장은 믿지 않는다',
+       !!rc2 && Math.abs(rc2.elapsedMs - 120) < 1e-9, rc2 ? `경과 ${rc2.elapsedMs}` : '★잴 대상 0');
+
+    const D = boot(); D.dailyBtn();
+    D.press(0); D.advance(90);
+    D.pressRaw({ timeStamp: -5 });                 /* 음수 도장 */
+    const rd2 = D.jr.state().rounds[0] || null;
+    ok('음수 도장은 믿지 않는다(경과가 음수가 되지 않는다)',
+       !!rd2 && Math.abs(rd2.elapsedMs - 90) < 1e-9 && rd2.elapsedMs > 0,
+       rd2 ? `경과 ${rd2.elapsedMs}` : '★잴 대상 0');
+
+    /* ★반대 방향 — 허용오차 안쪽의 도장은 그대로 쓴다(그래야 이 가드가 과잉이 아니다) */
+    const E = boot(); E.dailyBtn();
+    E.press(0); E.advance(400);
+    E.pressRaw({ timeStamp: E.now() - 40 });       /* 40ms 앞선 도장 = 허용오차 안 */
+    const re2 = E.jr.state().rounds[0] || null;
+    ok('허용오차 안쪽의 도장은 그대로 쓴다(입력 지연이 오차에 안 섞인다)',
+       !!re2 && Math.abs(re2.elapsedMs - 360) < 1e-9,
+       re2 ? `경과 ${re2.elapsedMs} (기대 360 = 400-40)` : '★잴 대상 0');
+  }
+
+  /* ── 사각2. 스트릭 리셋 ─────────────────────────────────────────────────
+     최초 1회만 보면 '끊겼을 때 1 로 돌아간다' 는 계약이 표본 밖에 있다. */
+  {
+    const pad2s = n => String(n).padStart(2, '0');
+    const keyOf = d => `${d.getFullYear()}-${pad2s(d.getMonth() + 1)}-${pad2s(d.getDate())}`;
+    const daysAgo = n => { const t = new Date(); t.setDate(t.getDate() - n); return keyOf(t); };
+
+    const cut = makeStore();
+    cut.setItem('jr.streak', JSON.stringify({ last: daysAgo(3), n: 5 }));
+    const A = boot({ store: cut }); A.dailyBtn();
+    playRun(A, [300, 400, 500], 1);
+    ok('날짜가 끊기면 스트릭이 1 로 리셋된다', A.jr.daily().streak === 1,
+       `스트릭 ${A.jr.daily().streak} · 저장된 앞 기록 ${daysAgo(3)} 5일`);
+
+    /* ★반대 방향 짝 — 어제 이어서 했으면 6 이어야 한다(리셋이 과잉이 아님을 함께 보인다) */
+    const cont = makeStore();
+    cont.setItem('jr.streak', JSON.stringify({ last: daysAgo(1), n: 5 }));
+    const B = boot({ store: cont }); B.dailyBtn();
+    playRun(B, [300, 400, 500], 1);
+    ok('어제 이어서 하면 스트릭이 1 늘어난다', B.jr.daily().streak === 6,
+       `스트릭 ${B.jr.daily().streak} (기대 6)`);
+  }
+
+  /* ── 사각4. 키 반복(ev.repeat) 가드 ────────────────────────────────────── */
+  {
+    const A = boot(); A.dailyBtn();
+    A.key(' ', { repeat: true });
+    ok('누르고 있어서 반복 발화된 키 입력은 무시된다',
+       A.jr.state().phase === 'ready' && !A.jr.running() && A.jr.state().rounds.length === 0,
+       `phase=${A.jr.state().phase} running=${A.jr.running()} rounds=${A.jr.state().rounds.length}`);
+    A.key(' ');
+    ok('반복이 아닌 첫 키 입력은 판을 시작한다', A.jr.running(), `running=${A.jr.running()}`);
+  }
+
+  /* ── 사각5. 정확도 분모 보호 ───────────────────────────────────────────── */
+  {
+    const A = boot();
+    ok('목표가 비정상이면 정확도는 NaN 이 아니라 0 이다',
+       A.jr.accuracyOf(0.5, NaN) === 0 && A.jr.accuracyOf(0.5, undefined) === 0,
+       `acc(0.5,NaN)=${A.jr.accuracyOf(0.5, NaN)} acc(0.5,undefined)=${A.jr.accuracyOf(0.5, undefined)}`);
+    ok('정상 목표에서는 분모 보호가 값을 깎지 않는다(과잉 가드 아님)',
+       Math.abs(A.jr.accuracyOf(0.3, 0.3) - 1) < 1e-12 &&
+       Math.abs(A.jr.accuracyOf(0.65, 0.3) - (1 - 0.35 / 0.7)) < 1e-12);
+  }
+
+  /* ── 사각6. Space 기본동작 차단 ────────────────────────────────────────── */
+  {
+    const A = boot();                       /* 시작 창이 떠 있는 상태 */
+    A.resetPd();
+    A.key(' ');
+    ok('창이 떠 있으면 Space 는 판에 닿지 않고 기본동작도 막지 않는다(막을 필요가 없다)',
+       A.pd() === 0 && A.jr.state().rounds.length === 0, `preventDefault ${A.pd()}회`);
+    A.dailyBtn();                           /* 창을 닫는다 */
+    A.resetPd();
+    A.key(' ');
+    ok('Space 로 실제로 눌렀을 때 preventDefault 가 호출된다', A.pd() === 1, `preventDefault ${A.pd()}회`);
+    A.resetPd();
+    A.key('a');
+    ok('다른 키는 기본동작을 막지 않는다', A.pd() === 0, `preventDefault ${A.pd()}회`);
+  }
+
+  /* ── 사각7. 창이 열리면 창 밖을 inert 로 가둔다 ───────────────────────────
+     ★스텁이 'body > header' 꼴 선택자에 아무것도 주지 않으면 제품의 setOutsideInert 는
+       시험에서 '없는 것' 과 같아진다 — 그래서 전제부터 세운다. */
+  {
+    const A = boot();
+    const names = A.outsideNames();
+    ok('전제 — 스텁이 창 밖 요소를 6종 제공한다(없으면 이 절은 판정 불가)',
+       names.length === 6, `제공 ${names.length}종: ${names.join(',')}`);
+    ok('전제 — 시작 창이 떠 있다', A.jr.shown('start'));
+    ok('창이 열리면 창 밖 요소에 inert 가 붙는다',
+       names.length === 6 && names.every(n => A.inertOf(n) === true),
+       names.map(n => n + '=' + A.inertOf(n)).join(' '));
+    A.dailyBtn();
+    ok('창이 닫히면 inert 가 걷힌다',
+       names.length === 6 && names.every(n => A.inertOf(n) === false),
+       names.map(n => n + '=' + A.inertOf(n)).join(' '));
+    playRun(A, [200, 200, 200], 1);
+    ok('결과 창이 뜨면 다시 창 밖을 가둔다',
+       A.jr.shown('over') && names.length === 6 && names.every(n => A.inertOf(n) === true),
+       `over=${A.jr.shown('over')} · ` + names.map(n => n + '=' + A.inertOf(n)).join(' '));
+  }
 }
 
 /* ============================================================ 결과 */
