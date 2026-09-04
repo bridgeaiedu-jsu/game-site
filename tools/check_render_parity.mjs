@@ -47,7 +47,15 @@
  * ★같이 한판(together)의 계약 — 다섯을 각각 판정한다
  *   ①두 절반의 ★누르는 면(버튼)이 같은 치수로 그려진다. 이 게임에서 버튼은 '값 그림'이 아니라
  *     ★손이 닿는 면이라, 한쪽이 크면 그쪽이 유리하다. 그래서 판정 대상은 말단이 아니라 버튼이다.
- *   ②두 절반이 ★중심선에서 같은 거리에 있다(같은 손 거리에서 시작한다).
+ *   ②두 사람이 ★손을 대는 면이 중심선에서 같은 거리에 있다(같은 손 거리에서 시작한다).
+ *     ★판정은 담는 절반(.tg-half)이 아니라 ★눌리는 면(.tg-press)의 중심으로 한다.
+ *     실측(2026-09-05 · master 236 이 밖에서 심어 확인): `.tg-top .tg-press{margin-bottom:120px}`
+ *     을 넣어도 절반의 중심은 ★꿈쩍도 안 한다 — 절반은 격자가 잡아 주어 언제나 대칭이고,
+ *     움직인 것은 그 안의 버튼이다. 절반으로 재던 판은 18·60·120px 을 전부 통과시켰다
+ *     (허용 오차가 아니라 ★미측정이었다). 어제 higher-lower 에서 담는 상자(wrap)를 재고
+ *     채움(fill)을 안 재서 뚫린 것과 ★같은 자리이며, 이름만 다른 요소로 다시 온 것이다.
+ *     ⇒ 이 계열은 판정을 ★사람이 만지는 말단(누르는 면 · 그 안의 글자)으로 내려야 닫힌다.
+ *     절반의 중심은 지우지 않고 ★함께 판정한다(격자가 깨지는 것도 결함이다).
  *   ③신호는 ★하나이고, 그 중심이 중심선 위·판 가로 가운데에 있다. 절반마다 따로 그리면 두 그림이
  *     다른 순간에 서고 그 차이가 승패가 된다 — 그래서 '몇 개인가'를 실브라우저에서 센다.
  *   ④★회전이 치수를 보존한다. 위쪽 절반은 180도 돌아 있다. 축 정렬 회전이라 렌더된 폭·높이가
@@ -207,6 +215,13 @@ const MUTATIONS_TG = {
     why: '위쪽 절반만 좌우로 밀어 넣는다(누르는 면이 좁아진다)',
     from: '  .sr-only{',
     to:   '  .tg-half.tg-top{padding:0 18px}\n  .sr-only{'
+  },
+  /* ★master(236) 가 밖에서 심어 뚫은 우회 — 그대로 가져다 쓴다.
+     ★작은 값(18px)에서도 걸려야 한다(큰 값만 잡히면 그 사이가 통째로 사각이다). */
+  'press-margin-shift': {
+    why: '위쪽 누르는 면만 위로 민다(담는 절반은 꿈쩍도 안 한다 · 절반으로 재면 못 본다)',
+    from: '  .sr-only{',
+    to:   '  .tg-top .tg-press{margin-bottom:18px}\n  .sr-only{'
   },
   'signal-off-center': {
     why: '신호를 중심선에서 내린다(한쪽 사람에게 더 가까워진다)',
@@ -506,6 +521,10 @@ const TG_GEOM = `(() => {
   out.alive.shift = { half: { bottom: R(el('halfBottom')), top: R(el('halfTop')) },
                       signal: R(el('signal')) };
   board.style.paddingTop = bp; settle();
+  /* ★②의 새 자(누르는 면의 중심)가 살아 있는지 — 뮤테이션과 같은 수단으로 매 실행 증명한다 */
+  const pm = p1.style.marginBottom;
+  p1.style.marginBottom = '24px'; settle();
+  out.alive.press = R(p1); p1.style.marginBottom = pm; settle();
   const l1 = el('lbl1'), lf = l1.style.fontSize;
   l1.style.fontSize = '2.5rem'; settle();
   out.alive.font = F(l1); out.alive.lbl = R(l1); l1.style.fontSize = lf; settle();
@@ -551,13 +570,22 @@ function judgeTogether(res, target){
            pb.w + 'x' + pb.h + ' · 위 ' + pt.w + 'x' + pt.h +
            ' · 차이 ' + Math.abs(pb.w - pt.w).toFixed(3) + 'x' + Math.abs(pb.h - pt.h).toFixed(3));
 
-  /* ②중심선에서의 거리 — 중심선은 두 절반 사이의 틈 한가운데다 */
+  /* ②중심선에서의 거리 — 중심선은 두 절반 사이의 틈 한가운데다.
+     ★판정은 ★눌리는 면으로 한다(담는 절반은 격자가 잡아 주어 언제나 대칭이라 아무것도 못 본다).
+     절반의 중심도 ★함께 판정한다 — 격자가 깨지는 것도 결함이기 때문이다. */
   const line = +(((on.half.top.bottom) + (on.half.bottom.top)) / 2).toFixed(3);
-  const dTop = Math.abs(on.half.top.cy - line), dBot = Math.abs(on.half.bottom.cy - line);
-  const distSame = near(dTop, dBot);
-  out.push('  ' + (distSame ? '✓' : '✗') + ' ②두 절반이 중심선에서 같은 거리다 · 중심선 y=' + line +
-           ' · 위 ' + dTop.toFixed(3) + ' · 아래 ' + dBot.toFixed(3) +
-           ' · 차이 ' + Math.abs(dTop - dBot).toFixed(3));
+  const pdTop = Math.abs(pt.cy - line), pdBot = Math.abs(pb.cy - line);
+  const pressSame = near(pdTop, pdBot);
+  const hdTop = Math.abs(on.half.top.cy - line), hdBot = Math.abs(on.half.bottom.cy - line);
+  const halfSame = near(hdTop, hdBot);
+  const distSame = pressSame && halfSame;
+  out.push('  ' + (pressSame ? '✓' : '✗') + ' ②두 사람이 ★손을 대는 면이 중심선에서 같은 거리다 · 중심선 y=' + line +
+           ' · 위 ' + pdTop.toFixed(3) + ' · 아래 ' + pdBot.toFixed(3) +
+           ' · 차이 ' + Math.abs(pdTop - pdBot).toFixed(3));
+  out.push('  ' + (halfSame ? '✓' : '✗') + ' ②-b 담는 절반도 중심선에서 같은 거리다(격자) · 위 ' +
+           hdTop.toFixed(3) + ' · 아래 ' + hdBot.toFixed(3) + ' · 차이 ' + Math.abs(hdTop - hdBot).toFixed(3) +
+           (pressSame && !halfSame ? ' ← 격자가 깨졌다' : '') +
+           (!pressSame && halfSame ? ' ← ★절반은 대칭인데 누르는 면이 밀렸다(절반으로만 재면 못 보는 자리)' : ''));
 
   /* ③신호는 하나이고 중심선 위·판 가로 가운데에 있다 */
   const sigs = on.signals || [];
@@ -616,6 +644,7 @@ function judgeTogether(res, target){
   /* ★되돌림 확인 — 양성 대조군이 판을 오염시킨 채 끝났으면 위의 판정 자체가 못 믿을 것이 된다 */
   const after = res.after;
   const restored = !!after && near(after.press.top.w, on.press.top.w) && near(after.press.top.h, on.press.top.h) &&
+                   near(after.press.top.cy, on.press.top.cy) &&
                    near(after.signals[0] ? after.signals[0].cy : -1, sig ? sig.cy : -2) &&
                    near(after.textBoxes[2].top.h, boxes[2].top.h);
   if (!restored) return { rc: 2, lines: out.concat(['판정 불가 · 양성 대조군이 건드린 것을 되돌리지 못했다']) };
@@ -626,16 +655,18 @@ function judgeTogether(res, target){
   const line2 = shift ? (shift.half.top.bottom + shift.half.bottom.top) / 2 : null;
   const aliveShift = !!shift && Math.abs(shift.signal.cy - line2) > TOL;
   const aliveFont = !!res.alive && !!res.alive.lbl && Math.abs(res.alive.lbl.h - boxes[2].top.h) > TOL;
+  const alivePress = !!res.alive && !!res.alive.press && Math.abs(res.alive.press.cy - pt.cy) > TOL;
   out.push('  [양성 대조군] 치수 자: 위 버튼을 60% 로 줄이자 달라졌는가 ' + (aliveSize ? '그렇다' : '★아니다') +
-           ' · 자리 자: 판을 48px 내리자 신호가 중심선에서 벗어났는가 ' + (aliveShift ? '그렇다' : '★아니다') +
+           ' · 자리 자(신호): 판을 48px 내리자 신호가 중심선에서 벗어났는가 ' + (aliveShift ? '그렇다' : '★아니다') +
+           ' · 자리 자(누르는 면): 위 버튼에 margin-bottom:24px 를 주자 중심이 움직였는가 ' + (alivePress ? '그렇다' : '★아니다') +
            ' · 글자 자: 위 문구를 2.5rem 로 키우자 달라졌는가 ' + (aliveFont ? '그렇다' : '★아니다'));
-  if (!(aliveSize && aliveShift && aliveFont))
+  if (!(aliveSize && aliveShift && alivePress && aliveFont))
     return { rc: 2, lines: out.concat(['판정 불가 · 잣대가 차이를 못 본다(양성 대조군 실패)']) };
 
-  const broken = [!sizeSame ? '①치수' : null, !distSame ? '②중심선 거리' : null, !sigOk ? '③신호' : null,
+  const broken = [!sizeSame ? '①치수' : null, !pressSame ? '②누르는 면의 중심선 거리' : null, !halfSame ? '②-b 격자 대칭' : null, !sigOk ? '③신호' : null,
                   !rotOk ? '④회전 보존' : null, !textOk ? '⑤글자 상자' : null].filter(Boolean);
   if (broken.length) return { rc: 1, lines: out.concat(['미달 · ' + broken.join(' / ') + ' 가 어긋났다']) };
-  return { rc: 0, lines: out.concat(['통과 · 두 자리는 같은 치수·같은 거리이고, 신호는 가운데 하나이며, 회전이 치수를 보존하고 글자가 같은 크기로 그려진다']) };
+  return { rc: 0, lines: out.concat(['통과 · 두 자리의 누르는 면은 같은 치수·같은 거리이고, 신호는 가운데 하나이며, 회전이 치수를 보존하고 글자가 같은 크기로 그려진다']) };
 }
 
 /* ---------------------------------------------------------------- 판정 */
