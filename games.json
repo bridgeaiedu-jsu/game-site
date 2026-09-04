@@ -465,5 +465,31 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "reverse",
+    "path": "/reverse/",
+    "title": {
+      "ko": "반대로 눌러!",
+      "en": "Do the Opposite"
+    },
+    "desc": {
+      "ko": "화면에 뜨는 지시의 반대를 누르는 순발력 게임 — 30초에 맞힌 개수, 오답은 −1",
+      "en": "Tap the opposite of what the screen says — thirty seconds, minus one for a wrong tap"
+    },
+    "thumb": "/reverse/thumb.webp",
+    "playtime": {
+      "ko": "한 판 30초",
+      "en": "30 sec a round"
+    },
+    "maxMinutes": 0.5,
+    "daily": true,
+    "released": "2026-09-04",
+    "tags": [
+      "reaction",
+      "sense",
+      "casual",
+      "daily"
+    ]
   }
 ]

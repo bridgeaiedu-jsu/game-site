@@ -125,6 +125,12 @@ const MUTATIONS = {
     from: '    missed += 1;\n    /* ★표시는 지우지 않는다',
     to:   '    missed += 1;\n    score = clampScore(score - 1);\n    /* ★표시는 지우지 않는다'
   },
+  /* ⑬-A 따라잡기가 점수를 준다 = 다른 탭에 숨어 있는 것이 이득이 된다 */
+  'catchup-awards-score': {
+    catcher: '숨긴 구간이 점수를 주지 않는다(따라잡기로 점수가 오르지 않는다)',
+    from: '    missed += 1;\n    /* ★표시는 지우지 않는다',
+    to:   '    missed += 1;\n    score += 1;\n    /* ★표시는 지우지 않는다'
+  },
   /* ⑭ 두 칸의 모양을 같게 만든다 = 색맹 사용자에게 두 칸이 구별되지 않는다 */
   'icons-identical': {
     catcher: '두 답 칸은 색이 아니라 글자와 모양으로 서로 다르다',
@@ -759,6 +765,45 @@ section('5. ★30초 종료 — 시작 도장에서 못박힌다');
   }
 }
 
+/* ============================================================ 5-A. ★숨긴 구간은 이득도 손해도 아니다
+   ★master(236) 조건 (4). 위 4·5절은 '놓침은 감점 없다' 와 '밀린 마감이 각자 시각으로 확정된다' 를
+     각각 재지만, ★그 둘을 곱한 상황(다른 탭에 20초를 두고 돌아온 판)을 직접 재지는 않는다.
+     따라잡기가 점수를 주면 탭을 숨기는 것이 이득이 되고, 감점하면 손해가 된다 — 둘 다 안 된다.
+     결과적으로 남는 것은 '그 시간을 못 쓴 것' 뿐이어야 중립이다. */
+section('5-A. ★숨긴 구간 — 따라잡기가 점수를 주지도 빼앗지도 않는다');
+{
+  const A = boot(); A.dailyBtn();
+  const C = A.rv.const();
+  /* 앞 5초 동안 세 개를 맞힌다 */
+  playScript(A, [{ wait: 300, kind: 'right' }, { wait: 300, kind: 'right' }, { wait: 300, kind: 'right' }], 1);
+  const before = A.rv.state();
+  ok('전제 — 숨기기 전에 점수가 올라 있다', before.score === 3, `점수 ${before.score}`);
+  const missedBefore = before.missed;
+
+  /* ★20초 동안 프레임이 한 번도 안 돈다(탭이 숨겨진 상태) */
+  A.advance(20000);
+  A.frame();                                   /* 돌아왔다 */
+  const after = A.rv.state();
+  eq('전제 — 판은 아직 돌고 있다', after.phase, 'running');
+  /* ★두 방향을 갈라 적는다 — 같은 조건을 두 번 적으면 한쪽은 공허해서 어떤 뮤테이션도
+     그 하나만 붉힐 수 없다. 위는 '오르지 않는다', 아래는 '내리지 않는다' 로 각자 짝이 있다. */
+  ok('숨긴 구간이 점수를 주지 않는다(따라잡기로 점수가 오르지 않는다)',
+     after.score <= before.score, `${before.score} → ${after.score}`);
+  ok('숨긴 구간이 점수를 빼앗지도 않는다(놓침은 무감점)',
+     after.score >= before.score, `${before.score} → ${after.score}`);
+  eq('정답 수도 그대로다', after.right, before.right);
+  eq('오답 수도 그대로다', after.wrong, before.wrong);
+  ok('그 구간은 놓침으로만 쌓인다(잃은 것은 시간뿐이다)',
+     after.missed > missedBefore, `놓침 ${missedBefore} → ${after.missed}`);
+  /* ★그 20초가 정말 '시간 손해' 인가 — 남은 시간이 그만큼 줄어 있어야 한다 */
+  ok('숨긴 20초만큼 남은 시간이 실제로 줄어 있다',
+     Math.abs((after.endAt - A.now()) - (C.ROUND_MS - 20900)) < 1e-9,
+     `남은 시간 ${after.endAt - A.now()}`);
+  /* ★그리고 숨긴 뒤에도 계속 칠 수 있어야 한다(따라잡기가 판을 망가뜨리지 않았다) */
+  playScript(A, [{ wait: 200, kind: 'right' }], 1);
+  eq('숨겼다 돌아와도 이어서 맞힐 수 있다', A.rv.state().score, before.score + 1);
+}
+
 /* ============================================================ 6. ★시드 결정론(시각 축 포함) */
 section('6. ★시드 결정론 — 같은 날은 같은 판, 시각을 옮겨도 같은 판');
 {
@@ -884,8 +929,10 @@ section('9. ★터치 목표 — 360px 에서 답 칸의 짧은 변이 50px 을 
   const VIEWPORT = 360;        /* 재는 화면 폭(티켓이 못박은 값) */
   const MIN_TOUCH = 50;        /* 손가락 하한 */
   /* ★세로 스크롤막대가 차지하는 폭. 이 게임도 본문이 길어 360px 화면에서 항상 막대가 선다.
-     아래 보정 단언이 이 값이 맞는지를 실측으로 되짚는다(임의로 고른 값이 아니다). */
-  const SCROLLBAR = 11;
+     ★이 값은 추정이 아니라 실측이다 — 2026-09-04 iframe width=360 에서
+     innerWidth(360) - documentElement.clientWidth(348) = 12 를 그대로 읽었다.
+     아래 보정 단언이 이 값이 맞는지를 답 칸 폭 실측으로 다시 되짚는다. */
+  const SCROLLBAR = 12;
   const mainPad = (/ {2}main\{[^}]*padding:\s*\d+px\s+(\d+)px/.exec(html) || [])[1];
   const ansCss = (/\.rv-answers\{([\s\S]*?)\}/.exec(html) || [])[1] || '';
   const gap = (/gap:(\d+)px/.exec(ansCss) || [])[1];
@@ -904,8 +951,8 @@ section('9. ★터치 목표 — 360px 에서 답 칸의 짧은 변이 50px 을 
      재현하지 못하면 아래 50px 판정은 '내가 지어낸 수식' 위에 선 것이라 아무 뜻이 없다.
      실측은 2026-09-04 iframe width=360 에서 얻었다. */
   ok('이 셈이 실브라우저 실측(답 칸 폭)을 재현한다',
-     Math.abs(btnW - 159.5) < 0.6,
-     `셈한 폭 ${btnW.toFixed(2)}px · 실측 159.50px — 어긋나면 CSS 가 바뀐 것이니 다시 재라`);
+     Math.abs(btnW - 159.0) < 0.6,
+     `셈한 폭 ${btnW.toFixed(2)}px · 실측 159.00px — 어긋나면 CSS 가 바뀐 것이니 다시 재라`);
   ok('답 칸은 360px 에서 짧은 변이 50px 하한을 지킨다',
      shortSide >= MIN_TOUCH, `짧은 변 ${shortSide.toFixed(2)}px(폭 ${btnW.toFixed(2)} · 높이 ${mh}) · 하한 ${MIN_TOUCH}px`);
   note(`360px 에서 답 칸 ${btnW.toFixed(2)} x ${mh}px`);
