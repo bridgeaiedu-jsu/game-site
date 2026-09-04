@@ -10,7 +10,13 @@
  *   어떤 CSS 수단이든 한 번에 걸린다.
  *
  * 계약 (이 한 문장이 판정의 단일 기준이다)
- *   **같은 값을 두 슬롯에 그렸을 때, 값 그림의 렌더된 치수가 두 슬롯에서 같아야 한다.**
+ *   **같은 값을 두 슬롯에 그렸을 때, 값 그림의 ★칠해지는 말단 요소가 두 슬롯에서 같은 치수로
+ *   그려져야 한다.** 종류마다 요소 하나를 골라 재면 '담는 상자'만 보고 '눈이 읽는 것'을 놓친다 —
+ *   border-box 에서 겉 상자가 같아도 안쪽이 줄면 채움이 짧아진다(master 236 이 뚫은 자리).
+ *   그래서 고르지 않고 하위 요소를 전수로 훑되, ★판정은 말단(자식이 없는 요소)으로 한다.
+ *   컨테이너는 칸 폭에 맞춰 줄을 접는 배치 산물이라(좁은 칸에서 점 12개가 두 줄이 된다)
+ *   잉크를 바꾸지 않는다 — 지우지 않고 '관측' 줄로 남겨 사람이 보게 한다.
+ *   ★못 보는 것(정직 고지): 가상 요소(::before)와 컨테이너 사이 간격(gap)의 차이는 재지 않는다.
  *   예외는 하나뿐이다 — 숫자(.hl-num)는 길이로 견주는 것이 아니라 ★읽는 값이라 글자 크기
  *   강조를 허용한다. 그 예외는 ★양성 대조군으로도 쓴다: 숫자가 실제로 달라야 이 잣대가
  *   '차이를 볼 수 있다'는 것이 증명된다(안 그러면 전부 같다는 초록이 공허하다).
@@ -28,7 +34,7 @@
  * 사용법:
  *   node tools/check_render_parity.mjs [--html <경로>] [--mutate <이름>] [--list-mutations] [--selftest]
  * 종료코드:
- *   0 = 두 슬롯의 자가 같다(숫자 예외는 실제로 달랐다 = 잣대가 살아 있다)
+ *   0 = 두 슬롯의 자가 같다(하위 요소 전수 · 숫자 예외는 실제로 달랐다 = 잣대가 살아 있다)
  *   1 = 미달(자가 갈라졌다)
  *   2 = 판정 불가(크롬 없음·구동 실패·종류 도달 실패·측정 불가) — ★통과로 세지 않는다
  */
@@ -58,6 +64,22 @@ const MUTATIONS = {
     why: '지금 칸의 원에만 transform:scale 을 건다',
     from: '  .sr-only{',
     to:   '  .hl-cur .hl-circ{transform:scale(1.3)}\n  .sr-only{'
+  },
+  'cur-bar-border': {
+    why: '지금 칸의 막대 트랙에만 border 를 건다(겉 상자는 같은데 안쪽이 줄어 채움이 짧아진다)',
+    from: '  .sr-only{',
+    to:   '  .hl-cur .hl-barwrap{border:5px solid var(--mark)}\n  .sr-only{'
+  },
+  /* ★음성 대조군 · 이것은 ★붉으면 안 된다.
+     전역 box-sizing:border-box 라 인라인 width:v px 가 바깥 상자를 고정하고 padding 은 안으로
+     먹는다 — 원의 겉지름이 그대로라 착시가 없다. master(236) 가 우회 후보로 심었다가 스스로
+     취소한 건이고, 통과시키는 것이 옳다. 붉어야 할 것만 시험하면 반대 방향(오탐)이 열린 채로
+     초록이 된다. */
+  'cur-circle-padding': {
+    expect: 'quiet',
+    why: '지금 칸의 원에 padding 을 건다(border-box 라 겉지름 불변 · ★통과가 옳다)',
+    from: '  .sr-only{',
+    to:   '  .hl-cur .hl-circ{padding:6px}\n  .sr-only{'
   },
   'bar-track-uneven': {
     why: '막대 판의 균등 격자를 도로 벌린다(트랙 폭이 갈라진다)',
@@ -100,6 +122,16 @@ const PROBE = `(async () => {
   const d = document, w = window;
   const rect = el => { if (!el) return null; const r = el.getBoundingClientRect();
                        return { w: +r.width.toFixed(3), h: +r.height.toFixed(3) }; };
+  /* ★값 그림의 ★하위 요소를 전수로 훑는다. 종류마다 요소 하나를 골라 재면 '담는 상자'만
+     보고 '눈이 읽는 것'을 놓친다 — border-box 에서 겉 상자가 같아도 안쪽이 줄면 채움이 짧아진다
+     (master 236 이 .hl-cur .hl-barwrap{border:5px} 로 뚫은 자리다). 고르지 않으면 안 놓친다.
+     ★슬롯 자신(#prevVal/#curVal)은 뺀다 — 칸 높이(min-height)는 설계상 다르고 그림의 자가 아니다. */
+  const walk = root => [...root.querySelectorAll('*')].map(el => ({
+    tag: el.tagName.toLowerCase(),
+    cls: el.getAttribute('class') || '',
+    leaf: el.children.length === 0,     /* ★칠해지는 말단인가 · 눈이 실제로 읽는 것이다 */
+    ...rect(el)
+  }));
   const out = { kinds: {}, errors: [] };
   const KINDS = w.__hl.const().KINDS;
   const PROBE_VALUE = { number: 42, bar: 60, dots: 12, circle: 60 };
@@ -118,15 +150,20 @@ const PROBE = `(async () => {
     d.getElementById('curVal').innerHTML = w.__hl.valueHtml(kind, v);
     /* 레이아웃이 확정되게 강제로 한 번 읽는다 */
     void d.body.offsetHeight;
-    const sel = { number: '.hl-num', bar: '.hl-barwrap', dots: '.hl-dots i', circle: '.hl-circ' }[kind];
-    const prev = rect(d.querySelector('#prevVal ' + sel));
-    const cur  = rect(d.querySelector('#curVal ' + sel));
-    if (!prev || !cur){ out.errors.push('종류 ' + kind + ' 의 값 그림(' + sel + ')을 찾지 못했다'); continue; }
-    const extra = {};
-    if (kind === 'bar') extra.fill = rect(d.querySelector('#curVal .hl-barfill'));
-    if (kind === 'dots') extra.count = [d.querySelectorAll('#prevVal .hl-dots i').length,
-                                        d.querySelectorAll('#curVal .hl-dots i').length];
-    out.kinds[kind] = { value: v, sel, prev, cur, even: w.__hl.stageEven(), ...extra };
+    const prevEls = walk(d.getElementById('prevVal'));
+    const curEls  = walk(d.getElementById('curVal'));
+    if (!prevEls.length || !curEls.length){ out.errors.push('종류 ' + kind + ' 의 값 그림 요소를 찾지 못했다'); continue; }
+    /* ★같은 값을 같은 함수로 그렸으니 두 쪽의 요소 구조가 같아야 한다.
+       다르면 사과와 오렌지를 견주는 것이라 ★판정 불가로 올린다(통과가 아니다). */
+    const shape = a => a.map(e => e.tag + '.' + e.cls).join('|');
+    if (shape(prevEls) !== shape(curEls)){
+      out.errors.push('종류 ' + kind + ' 의 두 슬롯 요소 구조가 다르다: ' + shape(prevEls) + ' vs ' + shape(curEls));
+      continue;
+    }
+    out.kinds[kind] = { value: v, even: w.__hl.stageEven(), n: prevEls.length,
+                        els: prevEls.map((e, i) => ({ tag: e.tag, cls: e.cls, leaf: e.leaf,
+                                                      prev: { w: e.w, h: e.h },
+                                                      cur:  { w: curEls[i].w, h: curEls[i].h } })) };
   }
   out.dpr = w.devicePixelRatio;
   return JSON.stringify(out);
@@ -238,17 +275,27 @@ async function runOnce(mutation){
   out.push(`devicePixelRatio ${res.dpr} · 허용 오차 ${TOL}px · 두 요소가 같은 페이지 안에 있어 확대율은 상쇄된다`);
   for (const k of kinds){
     const e = res.kinds[k];
-    const dw = Math.abs(e.prev.w - e.cur.w), dh = Math.abs(e.prev.h - e.cur.h);
-    const same = dw <= TOL && dh <= TOL;
-    const extra = e.count ? ` · 점 개수 ${e.count[0]}/${e.count[1]}` : (e.fill ? ` · 채움 ${e.fill.w}` : '');
+    /* ★판정은 칠해지는 말단으로 한다 — 컨테이너는 칸 폭에 맞춰 줄을 접는 ★배치 산물이라
+       (좁은 칸에서 점 12개가 두 줄이 된다) 잉크를 바꾸지 않는다. 다만 지우지 않고 아래에
+       관측 줄로 남긴다 — 사람이 보고 판단할 몫이다. */
+    const diff = x => Math.abs(x.prev.w - x.cur.w) > TOL || Math.abs(x.prev.h - x.cur.h) > TOL;
+    const leaves = e.els.filter(x => x.leaf);
+    const offs = leaves.filter(diff);
+    const boxOffs = e.els.filter(x => !x.leaf && diff(x));
+    const same = offs.length === 0;
+    const show = x => `${x.tag}${x.cls ? '.' + x.cls.split(/\s+/).join('.') : ''} ` +
+                      `직전 ${x.prev.w}x${x.prev.h} · 지금 ${x.cur.w}x${x.cur.h}` +
+                      ` · 차이 ${Math.abs(x.prev.w - x.cur.w).toFixed(3)}x${Math.abs(x.prev.h - x.cur.h).toFixed(3)}`;
     if (k === EXEMPT_KIND){
       exemptDiffers = !same;
-      out.push(`  면제 ${k} (${e.sel}) 값 ${e.value} · 직전 ${e.prev.w}x${e.prev.h} · 지금 ${e.cur.w}x${e.cur.h}` +
-               ` → ${same ? '같다' : '다르다(강조 · 읽는 값이라 허용)'}`);
+      out.push(`  면제 ${k} 값 ${e.value} · 말단 ${leaves.length}개 대조 → ${same ? '전부 같다' : '다르다(강조 · 읽는 값이라 허용)'}`);
+      for (const x of offs) out.push(`      · ${show(x)}`);
       continue;
     }
-    out.push(`  ${same ? '✓' : '✗'} ${k} (${e.sel}) 값 ${e.value} · 직전 ${e.prev.w}x${e.prev.h} · 지금 ${e.cur.w}x${e.cur.h}` +
-             ` · 차이 ${dw.toFixed(3)}x${dh.toFixed(3)}${extra}`);
+    out.push(`  ${same ? '✓' : '✗'} ${k} 값 ${e.value} · 하위 요소 ${e.n}개 중 ★말단 ${leaves.length}개로 판정` +
+             (same ? ' · 전부 같다' : ` · 어긋난 말단 ${offs.length}개`));
+    for (const x of offs) out.push(`      ✗ ${show(x)}`);
+    for (const x of boxOffs) out.push(`      (관측) 담는 상자가 다르다 · ${show(x)} · 배치 산물이라 판정에 넣지 않는다`);
     if (!same) bad++;
   }
   /* ★양성 대조군 · 잣대가 차이를 볼 수 있다는 증명이다. 이것이 없으면 '전부 같다' 는 초록이
@@ -256,26 +303,35 @@ async function runOnce(mutation){
   out.push(`  [양성 대조군] 면제 종류(${EXEMPT_KIND})가 실제로 달랐는가: ${exemptDiffers ? '그렇다(잣대가 살아 있다)' : '★아니다'}`);
   if (!exemptDiffers) return { rc: 2, lines: out.concat(['판정 불가 · 잣대가 차이를 못 본다(양성 대조군 실패)']) };
   if (bad) return { rc: 1, lines: out.concat([`미달 · 두 슬롯의 자가 갈라진 종류 ${bad}종`]) };
-  return { rc: 0, lines: out.concat(['통과 · 값 그림의 렌더된 치수가 두 슬롯에서 같다(숫자 예외)']) };
+  return { rc: 0, lines: out.concat(['통과 · 값 그림의 하위 요소가 전부 두 슬롯에서 같은 치수로 그려진다(숫자 예외)']) };
 }
 
 /* ---------------------------------------------------------------- 자기시험 */
 async function selftest(){
-  console.log('[자기시험] 원본은 통과하고, 심어 둔 우회 3종은 전부 붉어야 한다.\n');
+  const names = Object.keys(MUTATIONS);
+  const loud = names.filter(n => MUTATIONS[n].expect !== 'quiet');
+  const quiet = names.filter(n => MUTATIONS[n].expect === 'quiet');
+  console.log(`[자기시험] 원본은 통과하고, 우회 ${loud.length}종은 붉어야 하며, ` +
+              `★음성 대조군 ${quiet.length}종은 조용해야 한다.\n`);
   const base = await runOnce(null);
   console.log(base.lines.join('\n'));
   console.log(`원본 rc=${base.rc}\n`);
   if (base.rc !== 0){ console.log('★원본이 이미 미달·판정불가다 · 검출력을 세울 수 없다'); return 2; }
-  let bad = [];
-  for (const name of Object.keys(MUTATIONS)){
+  const missed = [], falseAlarm = [];
+  for (const name of names){
+    const wantQuiet = MUTATIONS[name].expect === 'quiet';
     const r = await runOnce(name);
-    const okDetect = r.rc === 1;
-    console.log(`${okDetect ? '✓' : '★'} ${name} rc=${r.rc} · ${MUTATIONS[name].why}`);
-    if (!okDetect){ bad.push(name); console.log(r.lines.map(l => '    ' + l).join('\n')); }
+    const good = wantQuiet ? r.rc === 0 : r.rc === 1;
+    console.log(`${good ? '✓' : '★'} ${name} rc=${r.rc} ${wantQuiet ? '[음성 대조군 · 조용해야 한다]' : ''} · ${MUTATIONS[name].why}`);
+    if (!good){
+      (wantQuiet ? falseAlarm : missed).push(name);
+      console.log(r.lines.map(l => '    ' + l).join('\n'));
+    }
   }
   console.log('');
-  if (bad.length){ console.log(`검출력 실패 · 못 잡은 우회 ${bad.length}종: ${bad.join(', ')}`); return 1; }
-  console.log(`검출력 확인 · 우회 ${Object.keys(MUTATIONS).length}종 전부 rc=1 로 붉었다(원본은 rc=0)`);
+  if (missed.length){ console.log(`검출력 실패 · 못 잡은 우회 ${missed.length}종: ${missed.join(', ')}`); return 1; }
+  if (falseAlarm.length){ console.log(`★오탐 · 조용해야 할 ${falseAlarm.length}종이 붉었다: ${falseAlarm.join(', ')}`); return 1; }
+  console.log(`검출력 확인 · 우회 ${loud.length}종 전부 rc=1 로 붉었고, 음성 대조군 ${quiet.length}종은 rc=0 으로 조용했다(원본 rc=0)`);
   return 0;
 }
 
