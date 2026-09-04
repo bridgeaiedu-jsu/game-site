@@ -37,8 +37,14 @@
  *   ★같은 값을 제품의 valueHtml 로 그려 넣고 getBoundingClientRect 를 읽는다.
  *   두 요소가 ★같은 페이지 안에 있으므로 확대율·dpr 은 서로 상쇄된다.
  *
+ * ★두 게임을 잰다(2026-09-04 T0904-howmany 에서 확장) — 잣대는 하나이고 계약이 둘이다:
+ *   --game higher-lower (기본) · 두 슬롯이 같은 자로 그리는가
+ *   --game how-many      · 판 전체에서 도형이 같은 치수로 그려지고,
+ *                          ★개수 순서와 ★잉크 넓이 순서가 어긋나지 않는가
+ *   두 계약은 한 함수에 얹지 않는다 — 게임마다 재는 것과 판정이 다르다.
+ *
  * 사용법:
- *   node tools/check_render_parity.mjs [--html <경로>] [--mutate <이름>] [--list-mutations] [--selftest]
+ *   node tools/check_render_parity.mjs [--game <이름>] [--html <경로>] [--mutate <이름>] [--list-mutations] [--selftest]
  * 종료코드:
  *   0 = 두 슬롯의 자가 같다(하위 요소 전수 · 숫자 예외는 실제로 달랐다 = 잣대가 살아 있다)
  *   1 = 미달(자가 갈라졌다)
@@ -55,12 +61,17 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
 const argOf = (n, d) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : d; };
-const HTML = path.resolve(argOf('--html', path.join(__dirname, '..', 'higher-lower', 'index.html')));
+const GAME = argOf('--game', 'higher-lower');
+if (GAME !== 'higher-lower' && GAME !== 'how-many'){
+  console.error('알 수 없는 게임: ' + GAME + ' (higher-lower | how-many)');
+  process.exit(2);
+}
+const HTML = path.resolve(argOf('--html', path.join(__dirname, '..', GAME, 'index.html')));
 const MUTATION = argOf('--mutate', null);
 
 /* ---------------------------------------------------------------- 뮤테이션
    ★master(236) 가 밖에서 심어 준 우회를 그대로 가져다 쓴다. zoom 이 이 도구의 존재 이유다. */
-const MUTATIONS = {
+const MUTATIONS_HL = {
   'cur-dots-zoom': {
     why: '지금 칸의 점에만 zoom 을 건다(선언 훑기가 못 보던 바로 그 수단)',
     from: '  .sr-only{',
@@ -108,6 +119,49 @@ const MUTATIONS = {
     to:   '  .hl-stage.hl-even{grid-template-columns:1fr 1.6fr}'
   }
 };
+
+/* ---------------------------------------------------------------- 몇 개였지 뮤테이션
+   ★이 게임의 계약은 둘이다 — ①판 전체에서 도형이 같은 치수로 그려진다
+   ②개수 순서와 잉크 넓이 순서가 어긋나지 않는다. 도형 크기를 흔드는 CSS 수단은
+   계속 늘어나므로(zoom·scale·nth-child·padding…) 목록을 늘리지 않고 ★렌더된 치수를 잰다. */
+const MUTATIONS_HM = {
+  'dots-uneven-size': {
+    why: '셋째 도형마다 지름을 키운다(한 판 안에서 도형 크기가 섞인다)',
+    from: '  .sr-only{',
+    to:   '  .hm-dot:nth-child(3n){width:9%}\n  .sr-only{'
+  },
+  'dots-scaled-odd': {
+    why: '홀수 번째 도형만 확대한다(transform 은 선언 훑기가 못 보던 수단이다)',
+    from: '  .sr-only{',
+    to:   '  .hm-dot:nth-child(odd){transform:translate(-50%,-50%) scale(1.4)}\n  .sr-only{'
+  },
+  'late-dots-shrunk': {
+    why: '열세 번째부터 도형을 줄인다(개수는 느는데 잉크는 안 늘어 순서가 어긋난다)',
+    from: '  .sr-only{',
+    to:   '  .hm-dot:nth-child(n+13){width:1%}\n  .sr-only{'
+  },
+  'dot-zoom-all': {
+    why: '모든 도형에 함께 zoom 을 건다(크기 일치·잉크 순서는 지켜지므로 이 게이트는 조용해야 하고, 겹침 여유가 줄어드는 것은 verify_howmany.js 의 겹침 검사가 잡을 자리다)',
+    expect: 'quiet',
+    from: '  .sr-only{',
+    to:   '  .hm-dot{zoom:1.02}\n  .sr-only{'
+  },
+  'dot-padding': {
+    /* ★음성 대조군 · border-box 라 겉지름이 그대로다(안쪽만 먹는다) · 통과가 옳다 */
+    expect: 'quiet',
+    why: '도형에 padding 을 건다(border-box 라 겉지름 불변 · ★통과가 옳다)',
+    from: '  .sr-only{',
+    to:   '  .hm-dot{padding:2px}\n  .sr-only{'
+  },
+  'dot-color-changed': {
+    /* ★음성 대조군 · 색은 이 게이트의 계약이 아니다 */
+    expect: 'quiet',
+    why: '도형 색만 바꾼다(치수·개수 불변 · ★통과가 옳다)',
+    from: 'background:var(--mark);transform:translate(-50%,-50%)}',
+    to:   'background:var(--sig-ink);transform:translate(-50%,-50%)}'
+  }
+};
+const MUTATIONS = GAME === 'how-many' ? MUTATIONS_HM : MUTATIONS_HL;
 
 if (argv.includes('--list-mutations')){
   for (const [k, v] of Object.entries(MUTATIONS)) console.log(k + '\t' + v.why);
@@ -194,7 +248,7 @@ const PROBE = `(async () => {
 async function measure(htmlPath){
   const chrome = findChrome();
   if (!chrome) return { fatal: '크롬 계열 브라우저를 찾지 못했다(CHROME_PATH 로 지정할 수 있다)' };
-  const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'hl-parity-'));
+  const profile = fs.mkdtempSync(path.join(os.tmpdir(), GAME + '-parity-'));
   const url = pathToFileURL(htmlPath).href;
   const child = spawn(chrome, [
     '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
@@ -250,10 +304,15 @@ async function measure(htmlPath){
     let ready = false;
     for (let t = 0; t < 100 && !ready; t++){
       await sleep(100);
-      try { ready = await evaluate('document.readyState === "complete" && !!window.__hl'); } catch(_){}
+      try { ready = await evaluate('document.readyState === "complete" && !!window.' + (GAME === 'how-many' ? '__hm' : '__hl')); } catch(_){}
     }
-    if (!ready) return { fatal: '페이지가 뜨지 않았거나 관측 창구(__hl)가 서지 않았다' };
+    if (!ready) return { fatal: '페이지가 뜨지 않았거나 관측 창구(' + (GAME === 'how-many' ? '__hm' : '__hl') + ')가 서지 않았다' };
 
+    if (GAME === 'how-many'){
+      const res = await measureHowMany(evaluate);
+      try { ws.close(); } catch(_){}
+      return res;
+    }
     const raw = await evaluate(PROBE);
     try { ws.close(); } catch(_){}
     if (!raw) return { fatal: '측정 결과를 받지 못했다' };
@@ -271,9 +330,87 @@ async function measure(htmlPath){
   }
 }
 
+/* ---------------------------------------------------------------- 몇 개였지 측정
+   ★한 evaluate 안에서 실시간 수십 초를 기다리지 않는다 — CDP 가 먼저 끊긴다.
+     노출이 흐르는 것은 제품의 타이머에 맡기고, Node 쪽에서 짧게 여러 번 물어본다.
+   ★상태를 밖에서 밀어 넣지 않는다 — 자유 모드 버튼을 누르고 보기를 진짜 입력 사건으로 누른다. */
+async function measureHowMany(evaluate){
+  const out = { rounds: [], errors: [], dpr: await evaluate('devicePixelRatio') };
+  await evaluate("document.getElementById('btnStart').click(), 1");
+  for (let r = 0; r < 8; r++){
+    /* 도형이 보이는 국면을 잡는다(제품이 스스로 그 국면에 든다) */
+    let seen = null;
+    for (let t = 0; t < 60 && !seen; t++){
+      const raw = await evaluate(`(() => {
+        const st = window.__hm.state();
+        if (st.phase !== 'show') return '';
+        const dots = [...document.querySelectorAll('#stage .hm-dot')].map(d => {
+          const b = d.getBoundingClientRect();
+          return { w: +b.width.toFixed(3), h: +b.height.toFixed(3) };
+        });
+        return JSON.stringify({ round: st.round, n: window.__hm.planNow().rounds[st.round].n, dots });
+      })()`);
+      if (raw) seen = JSON.parse(raw);
+      else await sleep(80);
+    }
+    if (!seen){ out.errors.push('라운드 ' + (r + 1) + ' 의 노출 국면을 못 잡았다'); return out; }
+    if (seen.dots.length !== seen.n){
+      out.errors.push('라운드 ' + (r + 1) + ' 에서 그려진 도형 ' + seen.dots.length + '개 != 개수 ' + seen.n);
+      return out;
+    }
+    out.rounds.push(seen);
+    /* 보기가 열리기를 기다렸다가 진짜 입력 사건으로 하나 누른다 */
+    let asked = false;
+    for (let t = 0; t < 60 && !asked; t++){
+      asked = await evaluate("window.__hm.state().phase === 'ask'");
+      if (!asked) await sleep(80);
+    }
+    if (!asked){ out.errors.push('라운드 ' + (r + 1) + ' 에서 보기가 열리지 않았다'); return out; }
+    if (r < 7){
+      await evaluate("document.getElementById('ans0').dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true })), 1");
+    }
+  }
+  return out;
+}
+
 /* ---------------------------------------------------------------- 판정 */
 const TOL = 0.5;                 /* 서브픽셀 허용 오차(px) */
 const EXEMPT_KIND = 'number';    /* ★유일한 예외 · 길이가 아니라 읽는 값이다 */
+
+/* ★몇 개였지 판정 — 계약 둘을 각각 판정하고, 어느 쪽이 깨졌는지 이름을 대서 적는다. */
+function judgeHowMany(res, target){
+  const out = [];
+  const rounds = res.rounds || [];
+  if (rounds.length !== 8) return { rc: 2, lines: ['판정 불가 · 잰 라운드가 ' + rounds.length + '개다(8개여야 한다)'] };
+  out.push('대상 ' + target);
+  out.push('devicePixelRatio ' + res.dpr + ' · 허용 오차 ' + TOL + 'px · 여덟 라운드를 실제로 치르며 잰다');
+  /* ①판 전체에서 도형이 같은 치수로 그려진다 — 라운드 안에서도, 라운드 사이에서도 */
+  const all = [];
+  for (const r of rounds) for (const d of r.dots) all.push(d);
+  const wMin = Math.min(...all.map(d => d.w)), wMax = Math.max(...all.map(d => d.w));
+  const hMin = Math.min(...all.map(d => d.h)), hMax = Math.max(...all.map(d => d.h));
+  const sameSize = (wMax - wMin) <= TOL && (hMax - hMin) <= TOL;
+  out.push('  ' + (sameSize ? '✓' : '✗') + ' 판 전체에서 도형이 같은 치수로 그려진다 · 도형 ' + all.length +
+           '개 · 폭 ' + wMin.toFixed(3) + '~' + wMax.toFixed(3) + ' · 높이 ' + hMin.toFixed(3) + '~' + hMax.toFixed(3));
+  /* ②개수 순서와 잉크 넓이 순서가 어긋나지 않는다 — 칠해지는 말단(도형)의 넓이 합으로 잰다 */
+  const ink = rounds.map(r => ({ round: r.round + 1, n: r.n,
+                                 area: r.dots.reduce((s, d) => s + d.w * d.h, 0) }));
+  const inversions = [];
+  for (let i = 0; i < ink.length; i++) for (let j = 0; j < ink.length; j++){
+    if (ink[i].n < ink[j].n && !(ink[i].area < ink[j].area - TOL)) inversions.push('R' + ink[i].round + '(n=' + ink[i].n + ',잉크=' + ink[i].area.toFixed(1) + ') >= R' + ink[j].round + '(n=' + ink[j].n + ',잉크=' + ink[j].area.toFixed(1) + ')');
+  }
+  const order = inversions.length === 0;
+  out.push('  ' + (order ? '✓' : '✗') + ' 개수 순서와 잉크 넓이 순서가 일치한다 · 뒤집힌 쌍 ' + inversions.length + '개');
+  for (const x of inversions.slice(0, 6)) out.push('      ✗ ' + x);
+  for (const e of ink) out.push('      (관측) R' + e.round + ' 개수 ' + e.n + ' · 잉크 ' + e.area.toFixed(1) + 'px^2');
+  /* ★양성 대조군 · 잣대가 차이를 볼 수 있다는 증명이다. 라운드마다 개수가 다르므로
+     잉크도 달라야 한다 — 전부 같게 나오면 아무것도 못 재고 있다는 뜻이다. */
+  const spread = Math.max(...ink.map(e => e.area)) - Math.min(...ink.map(e => e.area));
+  out.push('  [양성 대조군] 라운드별 잉크가 실제로 달랐는가: ' + (spread > TOL ? '그렇다(잣대가 살아 있다 · 폭 ' + spread.toFixed(1) + 'px^2)' : '★아니다'));
+  if (!(spread > TOL)) return { rc: 2, lines: out.concat(['판정 불가 · 잣대가 차이를 못 본다(양성 대조군 실패)']) };
+  if (!sameSize || !order) return { rc: 1, lines: out.concat(['미달 · ' + [!sameSize ? '도형 치수가 갈라졌다' : null, !order ? '개수와 잉크의 순서가 어긋났다' : null].filter(Boolean).join(' / ')]) };
+  return { rc: 0, lines: out.concat(['통과 · 도형은 판 전체에서 같은 치수로 그려지고 개수 순서와 잉크 순서가 일치한다']) };
+}
 
 async function runOnce(mutation){
   let target = HTML, tmp = null;
@@ -283,7 +420,7 @@ async function runOnce(mutation){
     const src = fs.readFileSync(HTML, 'utf8');
     const n = src.split(m.from).length - 1;
     if (n !== 1) return { rc: 2, lines: [`뮤테이션 주입 실패(${mutation}) · 앵커가 ${n}회 나타났다(1회여야 한다)`] };
-    tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'hl-mut-')), 'index.html');
+    tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), GAME + '-mut-')), 'index.html');
     fs.writeFileSync(tmp, src.replace(m.from, m.to));
     target = tmp;
   }
@@ -292,6 +429,7 @@ async function runOnce(mutation){
   if (tmp) { try { fs.rmSync(path.dirname(tmp), { recursive: true, force: true }); } catch(_){} }
   if (res.fatal) return { rc: 2, lines: ['판정 불가 · ' + res.fatal] };
   if (res.errors && res.errors.length) return { rc: 2, lines: ['판정 불가 · ' + res.errors.join(' / ')] };
+  if (GAME === 'how-many') return judgeHowMany(res, target);
 
   const kinds = Object.keys(res.kinds);
   if (kinds.length < 4) return { rc: 2, lines: [`판정 불가 · 잰 종류가 ${kinds.length}종이다(4종이어야 한다)`] };

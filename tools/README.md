@@ -317,6 +317,26 @@ python3 tools/run_mutations_higherlower.py --html higher-lower/index.html
 
 ## check_render_parity.mjs — 두 슬롯의 ★렌더된 치수 대조 (선언 훑기로는 못 닫는 층)
 
+★2026-09-04 확장 — 이 도구는 이제 **두 게임을 잰다**(`--game`). 잣대는 하나(실브라우저가 세운
+치수)이고 계약이 둘이다:
+
+- `--game higher-lower`(기본) — 두 슬롯이 **같은 자**로 그리는가(아래 본문).
+- `--game how-many` — 판 전체에서 도형이 **같은 치수**로 그려지고, **개수 순서와 잉크 넓이
+  순서가 어긋나지 않는가**. 여덟 라운드를 실제로 치르며(제품의 타이머에 노출을 맡기고 Node 쪽에서
+  짧게 여러 번 물어본다 — 한 evaluate 안에서 실시간 수십 초를 기다리면 CDP 가 먼저 끊긴다)
+  라운드마다 도형의 렌더된 사각형을 전수로 읽어 판정한다. 양성 대조군은 '라운드별 잉크가 실제로
+  달랐는가' 다 — 전부 같게 나오면 아무것도 못 재고 있다는 뜻이라 판정 불가(rc=2)로 올린다.
+
+```sh
+node tools/check_render_parity.mjs --game how-many
+node tools/check_render_parity.mjs --game how-many --selftest   # 우회 3종 붉음 · 음성 대조군 3종 조용
+```
+
+how-many 자기시험의 음성 대조군 셋은 **조용해야 옳다**: 도형 색 변경, `padding`(border-box 라
+겉지름 불변), 그리고 **모든 도형에 함께 건 zoom**(크기 일치와 잉크 순서는 지켜진다 — 줄어드는 것은
+겹침 여유이고 그것은 `verify_howmany.js` 의 겹침 검사가 잡을 자리다. 한 게이트에 두 계약을 얹지 않는다).
+
+
 `verify_higherlower.js` 9-A 는 `.hl-cur` 로 시작하며 width/height/font-size/transform/scale 을
 선언하는 규칙을 훑는다. 그런데 **`.hl-cur .hl-dots i{zoom:1.3}`** 은 요소를 실제로 1.3배로
 그리면서도 그 목록에 없어 **rc=0 으로 통과했다**(2026-09-04 master 236 이 밖에서 심어 확인).
