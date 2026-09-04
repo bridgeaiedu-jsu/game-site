@@ -324,6 +324,10 @@ const ADAPTERS = {
       const sec = (Math.round(v / 10) / 100).toFixed(2);
       return lang === 'ko' ? `${sec}초` : `${sec} s`;
   }),
+  'reverse': wrapped(() => localStorage.getItem('rv.daily'), r => {                                                  /* reverse · score 는 맞힌 개수(클수록 좋다) */
+      const v = r.score; if (typeof v !== 'number' || !isFinite(v)) return null;
+      return lang === 'ko' ? `${v}개` : `${v} pts`;
+  }),
 };
 
 /* 게임 키를 읽는다. ★읽기만 한다 — 이 함수에는 setItem 이 없다. */

@@ -291,6 +291,12 @@
           <span class="body"><h2>가짜 하나 / Spot the Fake</h2>
             <p>격자에서 딱 하나만 다른 도형을 찾는 관찰력 게임 — 8라운드 총 소요 시간, 오답은 +2초<br>Find the one shape that differs in the grid — eight rounds against the clock, +2 s per miss</p></span>
         </a></li>
+        <li><a class="card" href="/reverse/">
+          <span class="thumb"><img src="/reverse/thumb.webp" alt="반대로 눌러! / Do the Opposite" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 30초 / 30 sec a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>반대로 눌러! / Do the Opposite</h2>
+            <p>화면에 뜨는 지시의 반대를 누르는 순발력 게임 — 30초에 맞힌 개수, 오답은 −1<br>Tap the opposite of what the screen says — thirty seconds, minus one for a wrong tap</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -489,6 +495,13 @@ const FALLBACK = [{
   thumb:'/fake-one/thumb.webp',
   playtime:{ko:'한 판 30~60초',en:'30–60 sec a round'},
   maxMinutes:1, daily:true, released:'2026-09-04', tags:['observation','sense','casual','daily']
+},{
+  id:'reverse', path:'/reverse/',
+  title:{ko:'반대로 눌러!',en:'Do the Opposite'},
+  desc:{ko:'화면에 뜨는 지시의 반대를 누르는 순발력 게임 — 30초에 맞힌 개수, 오답은 −1',en:'Tap the opposite of what the screen says — thirty seconds, minus one for a wrong tap'},
+  thumb:'/reverse/thumb.webp',
+  playtime:{ko:'한 판 30초',en:'30 sec a round'},
+  maxMinutes:0.5, daily:true, released:'2026-09-04', tags:['reaction','sense','casual','daily']
 }];
 
 let games = FALLBACK;
