@@ -517,5 +517,31 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "how-many",
+    "path": "/how-many/",
+    "title": {
+      "ko": "몇 개였지",
+      "en": "How Many Were There"
+    },
+    "desc": {
+      "ko": "잠깐 나타났다 사라진 도형이 몇 개였는지 맞히는 감각 게임 — 8라운드, 뒤로 갈수록 개수는 늘고 보는 시간은 짧아진다",
+      "en": "Call how many shapes flashed before they vanished — eight rounds, more shapes and less time as you go"
+    },
+    "thumb": "/how-many/thumb.webp",
+    "playtime": {
+      "ko": "한 판 40초",
+      "en": "40 sec a round"
+    },
+    "maxMinutes": 1,
+    "daily": true,
+    "released": "2026-09-04",
+    "tags": [
+      "memory",
+      "sense",
+      "casual",
+      "daily"
+    ]
   }
 ]

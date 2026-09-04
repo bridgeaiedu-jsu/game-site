@@ -332,6 +332,11 @@ const ADAPTERS = {
       const v = r.score; if (typeof v !== 'number' || !isFinite(v)) return null;
       return lang === 'ko' ? `${v}연속` : `${v} in a row`;
   }),
+  'how-many': wrapped(() => localStorage.getItem('hm.daily'), r => {                                                /* how-many · score 는 맞힌 라운드 수(클수록 좋다) */
+      const v = r.score; if (typeof v !== 'number' || !isFinite(v)) return null;
+      const tot = (typeof r.rounds === 'number' && isFinite(r.rounds)) ? r.rounds : 8;
+      return lang === 'ko' ? `${v}/${tot}개` : `${v}/${tot} right`;
+  }),
 };
 
 /* 게임 키를 읽는다. ★읽기만 한다 — 이 함수에는 setItem 이 없다. */

@@ -55,6 +55,8 @@ const PRECACHE = [
   '/reverse/thumb.webp',
   '/higher-lower/',
   '/higher-lower/thumb.webp',
+  '/how-many/',
+  '/how-many/thumb.webp',
   '/today/',
   '/privacy/',
   '/about/',
