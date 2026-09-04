@@ -241,7 +241,12 @@ async function measure(htmlPath){
     return { fatal: String(e && e.message ? e.message : e) };
   } finally {
     kill();
-    try { fs.rmSync(profile, { recursive: true, force: true }); } catch(_){}
+    /* ★크롬이 죽는 데 잠깐 걸려 첫 삭제는 잠금에 막힌다(실측: 임시 프로필 2개가 남았다).
+       프로세스는 죽었으니 위험은 없지만 쓰레기를 남기지 않는다 — 짧게 물러서서 몇 번 더 시도한다. */
+    for (let t = 0; t < 5; t++){
+      try { fs.rmSync(profile, { recursive: true, force: true }); break; }
+      catch(_){ await sleep(200); }
+    }
   }
 }
 
