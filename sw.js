@@ -4,7 +4,7 @@
  * ★캐시 버전: 파일을 추가/변경하면 CACHE 문자열을 올려라(구버전은 activate 에서 삭제된다).
  *   DEPLOY.md '게임 추가 절차' 체크리스트 참조.
  */
-const CACHE = 'hanpango-v44';
+const CACHE = 'hanpango-v45';
 
 /* 사이트 총량 ~100KB(정적) — 전량 프리캐시한다.
  * ★디렉터리 형태(/block-puzzle/)만 넣는다 — 파일 형태(/block-puzzle/index.html)는 넣지 않는다.
@@ -49,6 +49,8 @@ const PRECACHE = [
   '/stop/thumb.webp',
   '/just-right/',
   '/just-right/thumb.webp',
+  '/fake-one/',
+  '/fake-one/thumb.webp',
   '/today/',
   '/privacy/',
   '/about/',

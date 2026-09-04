@@ -319,6 +319,11 @@ const ADAPTERS = {
       const p = (Math.round(v * 1000) / 10).toFixed(1);
       return lang === 'ko' ? `정확도 ${p}%` : `${p}% accuracy`;
   }),
+  'fake-one': wrapped(() => localStorage.getItem('fo.daily'), r => {                                                 /* fake-one · ms 는 총 소요 시간(작을수록 좋다) */
+      const v = r.ms; if (typeof v !== 'number' || !isFinite(v)) return null;
+      const sec = (Math.round(v / 10) / 100).toFixed(2);
+      return lang === 'ko' ? `${sec}초` : `${sec} s`;
+  }),
 };
 
 /* 게임 키를 읽는다. ★읽기만 한다 — 이 함수에는 setItem 이 없다. */

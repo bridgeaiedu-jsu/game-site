@@ -439,5 +439,31 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "fake-one",
+    "path": "/fake-one/",
+    "title": {
+      "ko": "가짜 하나",
+      "en": "Spot the Fake"
+    },
+    "desc": {
+      "ko": "격자에서 딱 하나만 다른 도형을 찾는 관찰력 게임 — 8라운드 총 소요 시간, 오답은 +2초",
+      "en": "Find the one shape that differs in the grid — eight rounds against the clock, +2 s per miss"
+    },
+    "thumb": "/fake-one/thumb.webp",
+    "playtime": {
+      "ko": "한 판 30~60초",
+      "en": "30–60 sec a round"
+    },
+    "maxMinutes": 1,
+    "daily": true,
+    "released": "2026-09-04",
+    "tags": [
+      "observation",
+      "sense",
+      "casual",
+      "daily"
+    ]
   }
 ]

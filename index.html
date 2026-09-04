@@ -285,6 +285,12 @@
           <span class="body"><h2>딱 맞춰! / Just Right</h2>
             <p>좌우로 오가는 막대와 차오르는 게이지를 목표선에서 멈추는 타이밍 게임 — 3라운드 평균 정확도<br>Stop the sweeping bar and the rising gauge right on the target — three rounds, averaged</p></span>
         </a></li>
+        <li><a class="card" href="/fake-one/">
+          <span class="thumb"><img src="/fake-one/thumb.webp" alt="가짜 하나 / Spot the Fake" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 30~60초 / 30–60 sec a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>가짜 하나 / Spot the Fake</h2>
+            <p>격자에서 딱 하나만 다른 도형을 찾는 관찰력 게임 — 8라운드 총 소요 시간, 오답은 +2초<br>Find the one shape that differs in the grid — eight rounds against the clock, +2 s per miss</p></span>
+        </a></li>
       </ul>
     </noscript>
     <p class="note" data-i18n="note">게임은 하나씩 늘려갑니다.</p>
@@ -476,6 +482,13 @@ const FALLBACK = [{
   thumb:'/just-right/thumb.webp',
   playtime:{ko:'한 판 12~20초',en:'12–20 sec a round'},
   maxMinutes:0.5, daily:true, released:'2026-09-04', tags:['timing','sense','casual','daily']
+},{
+  id:'fake-one', path:'/fake-one/',
+  title:{ko:'가짜 하나',en:'Spot the Fake'},
+  desc:{ko:'격자에서 딱 하나만 다른 도형을 찾는 관찰력 게임 — 8라운드 총 소요 시간, 오답은 +2초',en:'Find the one shape that differs in the grid — eight rounds against the clock, +2 s per miss'},
+  thumb:'/fake-one/thumb.webp',
+  playtime:{ko:'한 판 30~60초',en:'30–60 sec a round'},
+  maxMinutes:1, daily:true, released:'2026-09-04', tags:['observation','sense','casual','daily']
 }];
 
 let games = FALLBACK;
