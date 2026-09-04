@@ -12,6 +12,10 @@
  *   ★② 시드 결정론 — 같은 날짜 씨앗이 같은 판을 주는가. 플레이 행동이 난수를 소비하지 않는가.
  *   ★③ 격자 계약 — 다른 칸이 **정확히 하나**인가. 한 라운드가 차이축을 **하나만** 쓰는가.
  *   ★④ 벌점 — 오답 1회가 총 기록에 정확히 2초를 더하고, 라운드는 넘어가지 않는가.
+ *   ★⑤ 일일 결정성(시각 축) — 가짜 벽시계를 크게 움직여도 같은 씨앗이 같은 판을 주는가.
+ *       (같은 순간 두 번 물어 같은 것은 씨앗에 시각이 섞여 있어도 성립한다 — 그 그물로는 못 잡는다)
+ *   ★⑥ 격자 상한 — 360px 에서 칸 한 변이 50px 하한을 지키는가. 상한 숫자를 박지 않고
+ *       CSS 치수에서 칸 크기를 다시 셈해 판정한다(실브라우저 실측 두 점으로 그 셈을 보정한다).
  *
  * ★이 하네스가 못 보는 것(정직 고지)
  *   · 레이아웃을 계산하지 않는다 — '요소가 0×0 으로 접힘' 은 실브라우저에서만 보인다.
@@ -162,6 +166,31 @@ const MUTATIONS = {
   /* ㉑ 언어 전환이 격자를 다시 세운다 = 눌린 자리 표시와 초점이 사라진다.
         ★그림 문자열은 다시 세워도 똑같으므로 '그림 대조'로는 잡히지 않는다 —
           잡는 것은 '눌린 자리 표시가 살아남는가' 다(짝을 정확히 겨냥한다). */
+  /* ㉔ 오늘의 도전 씨앗에 시각을 섞는다 = 같은 날인데 몇 시에 열었는지로 판이 갈린다.
+        ★master(236) 의 재현 두 줄 중 하나를 그대로 쓴다. 앞 라운드의 검사는 이것을 통과시켰다 —
+          같은 키로 연달아 두 번 부르면 두 호출이 같은 초 안에 끝나 같은 값이 나오기 때문이다. */
+  'daily-seed-uses-clock': {
+    catcher: '같은 씨앗은 시각이 달라져도 같은 판을 준다(가짜 시계로 크게 벌려 확인)',
+    from: 'const dailyPlan = seedKey => makePlan(mulberry32(hashStr(String(seedKey))));',
+    to:   'const dailyPlan = seedKey => makePlan(mulberry32(hashStr(String(seedKey)) ^ ((Date.now()/1000)|0)));'
+  },
+  /* ㉕ 격자 상한을 6 으로 되돌린다 = 360px 에서 칸이 45.53px 로 서서 손가락이 짚기 어렵다.
+        ★단조성은 그대로라 앞 라운드의 '라운드가 오를수록 커진다' 검사는 이것을 통과시켰다. */
+  'grid-cap-raised': {
+    catcher: '가장 큰 격자도 360px 에서 칸 한 변 50px 을 지킨다',
+    from: 'const GRIDS = [3, 3, 4, 4, 4, 5, 5, 5];',
+    to:   'const GRIDS = [3, 3, 4, 4, 5, 5, 6, 6];'
+  },
+  /* ㉖ 판의 간격을 넓힌다 = 칸 크기 셈의 전제(CSS 치수)가 달라진다.
+        ★㉕ 와 짝이다 — ㉕ 는 '50px 하한' 을, ㉖ 은 '이 셈이 실측을 재현한다' 를 각각 붉힌다.
+          간격을 6→8 로만 올려 칸이 54.2px 로 하한은 지키게 두었다. 그래야 두 단언이 서로에게
+          무임승차하지 않는다는 것이 드러난다(㉖ 은 보정 단언 하나만 붉혀야 한다). */
+  'board-gap-widened': {
+    scope: 'html',
+    catcher: '이 셈이 실브라우저 실측 두 점(5x5 55.84px · 6x6 45.53px)을 재현한다',
+    from: '.fo-board{display:grid;gap:6px;',
+    to:   '.fo-board{display:grid;gap:8px;'
+  },
   /* ㉒ 다크 도형 색의 채도를 올려 sRGB 밖으로 내보낸다 = 브라우저가 색을 끌어당기며 밝기 차가 줄어든다.
         ★이것이 실브라우저 픽셀 측정이 실제로 잡아낸 결함이다(선언 0.1118 → 렌더 0.0991). */
   'fig-out-of-gamut': {
@@ -190,7 +219,11 @@ if (argv.includes('--list-mutations')){
   process.exit(0);
 }
 
-let RAW = fs.readFileSync(HTML, 'utf8');
+/* ★읽자마자 줄끓을 LF 로 고른다. 이 저장소는 인덱스에 LF 로 들어가지만
+   Windows 작업본은 core.autocrlf 로 CRLF 가 된다. 그러면 여러 줄을 걸치는 앵커가 전부 어긋나
+   뉴테이션 7종이 '주입 실패(rc=2)' 로 멈췄다(2026-09-04 실측) — 검출력이 떨어진 것이 아니라
+   환경이 게이트를 꺼버린 것이다. ★대상 파일은 고치지 않는다 — 읽은 것만 고르게 한다(읽기 전용). */
+let RAW = fs.readFileSync(HTML, 'utf8').replace(/\r\n/g, '\n');
 
 /* 인라인 스크립트 중 게임 본체(가장 긴 것)를 고른다 */
 function gameSource(html){
@@ -359,6 +392,17 @@ function boot(opts){
   let clock = 1000;
   const perf = { now: () => clock };
 
+  /* ★벽시계(달력)도 하네스가 쥔다 — performance.now() 와는 다른 축이다.
+     이것이 없으면 '같은 날 아무 때나 열어도 같은 판' 을 잴 수 없다. 같은 순간에 두 번 물어
+     같은 답이 나오는 것은 씨앗에 시각이 섞여 있어도 성립하기 때문이다(master 236 지적).
+     기본값은 진짜 지금이라 이 다리를 안 쓰는 검사들의 행동은 그대로다. */
+  const RealDate = Date;
+  let wall = RealDate.now();
+  class DateStub extends RealDate {
+    constructor(...a){ if (a.length === 0) super(wall); else super(...a); }
+    static now(){ return wall; }
+  }
+
   /* ★프레임 — 우리가 부를 때만 돈다. 간격도 우리가 정한다(불규칙하게 줄 수 있다). */
   let rafSeq = 1;
   const rafQueue = new Map();
@@ -421,7 +465,7 @@ function boot(opts){
     HTMLElement: HTMLElementStub, PointerEvent: PointerEventStub, location: win.location,
     setTimeout: setTimeoutStub, clearTimeout: clearTimeoutStub,
     requestAnimationFrame, cancelAnimationFrame,
-    console, Math: MathStub, Date, JSON, Promise,
+    console, Math: MathStub, Date: DateStub, JSON, Promise,
     Number, String, Array, Object, RegExp, Error, isNaN, parseInt, parseFloat
   };
   sandbox.globalThis = sandbox;
@@ -440,6 +484,9 @@ function boot(opts){
     resetRand: () => { randCalls = 0; },
     now: () => clock,
     advance: ms => { clock += ms; },
+    /* 벽시계 조작 — 달력을 옮긴다(경과 시간 clock 과는 별개 축이다) */
+    wall: () => wall,
+    setWall: ms => { wall = ms; },
     frame: () => runFrame(),
     frames: () => rafQueue.size,
     runTimers,
@@ -842,6 +889,112 @@ section('5. ★시드 결정론 — 같은 날은 같은 판, 플레이는 난�
     ok('자유 모드는 판을 짤 때 난수를 한 번만 뽑는다', after === 1, `판 짤 때 ${after}회`);
     eq('그 뒤 플레이는 난수를 더 쓰지 않는다', C.rand(), after);
   }
+}
+
+/* ============================================================ 5-A. ★일일 결정성 — 시각이 움직여도 같은 판
+   ★master(236)가 뚫은 구멍이다. 5절의 '같은 키로 두 번 불러 같은가' 는 두 호출이 같은 순간에
+     끝나므로, 씨앗에 초 단위 시각을 섞어 놓아도 두 번 다 같은 값이 나와 그냥 통과한다.
+     계약은 '같은 날 모두 같은 판' 인데 그 검사는 '같은 순간 두 번 같은 판' 까지만 본다.
+   ★그래서 여기서는 ★벽시계를 하네스가 쥐고 크게 움직인다 — 같은 키를 주고 시각만 바꾼다.
+     dailyPlan 이 키만의 함수가 아니면 그 순간 판이 갈라진다. */
+section('5-A. ★일일 결정성 — 벽시계를 움직여도 같은 씨앗은 같은 판');
+{
+  const A = boot();
+  const key = A.fo.seedKey('2026-09-04T09:00:00');
+  const t0 = A.wall();
+  const noAt = () => A.fo.dailyNo();
+
+  /* ★전제 — 가짜 시계가 제품에 실제로 닿는지 먼저 증명한다.
+     닿지 않으면 아래 '같다' 는 시각을 안 바꾼 채로 낸 초록이라 아무것도 증명하지 못한다. */
+  const noBefore = noAt();
+  A.setWall(t0 + 100 * 86400000);
+  const noAfter = noAt();
+  ok('전제 — 가짜 벽시계가 제품에 닿는다(100일 옮기니 도전 회차가 100 늘었다)',
+     noAfter - noBefore === 100, `회차 ${noBefore} → ${noAfter}`);
+
+  A.setWall(t0);
+  const p0 = JSON.stringify(A.fo.plan(key));
+  const shots = [];
+  for (const dt of [7 * 3600000, 100 * 86400000, -3 * 86400000, 1000]){
+    A.setWall(t0 + dt);
+    shots.push({ dt, same: JSON.stringify(A.fo.plan(key)) === p0 });
+  }
+  ok('전제 — 벽시계를 네 지점으로 옮겨 가며 같은 키를 물었다', shots.length === 4);
+  ok('같은 씨앗은 시각이 달라져도 같은 판을 준다(가짜 시계로 크게 벌려 확인)',
+     shots.every(s => s.same),
+     shots.map(s => `${(s.dt / 3600000).toFixed(2)}h:${s.same ? 'same' : '★다름'}`).join(' '));
+
+  /* ★사용자가 실제로 밟는 길로도 확인한다 — 같은 날 이른 시각과 늦은 시각에 각각 판을 시작한다.
+     dailyPlan 만 순수해도 beginRun 이 시각을 섞으면 사람마다 판이 갈린다. */
+  const B = boot();
+  const localBase = new Date(2026, 8, 4, 1, 0, 0).getTime();   /* 그 지역 시각 01:00 */
+  B.setWall(localBase);
+  B.dailyBtn();
+  const early = { plan: JSON.stringify(B.fo.state().plan), day: B.fo.state().runDay, no: B.fo.state().runNo };
+  const C = boot();
+  C.setWall(localBase + 20 * 3600000);                          /* 같은 날 21:00 */
+  C.dailyBtn();
+  const late = { plan: JSON.stringify(C.fo.state().plan), day: C.fo.state().runDay, no: C.fo.state().runNo };
+  ok('전제 — 두 시각이 같은 날로 잡혔다(날 경계를 넘었으면 이 비교는 성립하지 않는다)',
+     early.day === late.day && early.day !== '', `${early.day} vs ${late.day}`);
+  ok('같은 날이면 이른 시각과 늦은 시각이 같은 판을 받는다',
+     early.plan === late.plan && early.no === late.no, `회차 ${early.no} vs ${late.no}`);
+  /* ★반대 방향 — 날이 바뀌면 판도 바뀌어야 한다(위 '같다' 가 과잉이 아님을 함께 보인다) */
+  const D = boot();
+  D.setWall(localBase + 86400000);
+  D.dailyBtn();
+  ok('날이 바뀌면 다른 판을 받는다',
+     JSON.stringify(D.fo.state().plan) !== early.plan && D.fo.state().runNo === early.no + 1,
+     `회차 ${early.no} → ${D.fo.state().runNo}`);
+}
+
+/* ============================================================ 5-B. ★격자 상한 — 손가락이 짚을 수 있는가
+   ★master(236)가 뚫은 두 번째 구멍이다. 2절의 '라운드가 오를수록 격자가 커진다' 는 단조성만 보므로
+     3,3,4,4,5,5,6,6 처럼 단조롭게 커지면서 6x6 을 다시 넣어도 통과한다.
+     ★상한 5 는 실브라우저 360px 실측에서 얻은 결론인데(6x6 = 45.53px < 50px), 그 결론을 지키는
+     검사가 없으면 다음 사람이 격자를 키울 때 아무도 막지 못한다. 측정으로 얻은 제약은 검사로 굳혀야 남는다.
+   ★그래서 상한 숫자 5 를 박지 않고 ★그 근거를 다시 계산한다 — 360px 화면에서 CSS 가 정하는 칸 크기를
+     소스에서 읽어 셈하고, 그것이 50px 하한을 지키는지 본다. 격자를 키우면 칸이 줄어 저절로 붉어진다. */
+section('5-B. ★격자 상한 — 360px 에서 칸 한 변이 50px 을 지키는가');
+{
+  const A = boot();
+  const html = RAW;
+  const C = A.fo.const();
+  const VIEWPORT = 360;        /* 재는 화면 폭(티켓이 못박은 값) */
+  const MIN_TOUCH = 50;        /* master 가 못박은 손가락 하한 */
+  /* ★세로 스크롤막대가 차지하는 폭. 이 게임은 본문이 길어 360px 화면에서 항상 막대가 선다.
+     아래 보정 단언이 이 값이 맞는지를 실측 두 점으로 되짚는다(임의로 고른 값이 아니다). */
+  const SCROLLBAR = 11;
+
+  const mainPad = (/ {2}main\{[^}]*padding:\s*\d+px\s+(\d+)px/.exec(html) || [])[1];
+  const boardCss = (/\.fo-board\{([\s\S]*?)\}/.exec(html) || [])[1] || '';
+  const gap = (/gap:(\d+)px/.exec(boardCss) || [])[1];
+  const boardMax = (/max-width:min\(100%,(\d+)px\)/.exec(boardCss) || [])[1];
+  const boardPad = (/padding:(\d+)px/.exec(boardCss) || [])[1];
+  const border = (/border:(\d+)px/.exec(boardCss) || [])[1];
+  const nums = [mainPad, gap, boardMax, boardPad, border].map(Number);
+  ok('전제 — 판의 치수 다섯을 소스에서 읽었다(못 읽으면 판정 불가)',
+     nums.every(v => Number.isFinite(v)),
+     `main padding ${mainPad} · gap ${gap} · max-width ${boardMax} · padding ${boardPad} · border ${border}`);
+
+  const [mp, gp, bmax, bpad, bor] = nums;
+  const boardW = Math.min(VIEWPORT - SCROLLBAR - 2 * mp, bmax);
+  const inner = boardW - 2 * bpad - 2 * bor;
+  const cellOf = n => (inner - gp * (n - 1)) / n;
+
+  /* ★보정 — 이 셈이 실브라우저가 실제로 세운 값을 재현하는가.
+     재현하지 못하면 아래 50px 판정은 '내가 지어낸 수식' 위에 선 것이라 아무 뜻이 없다.
+     두 점은 2026-09-04 실측이다(iframe width=360 · 5x5 55.84px · 6x6 45.53px). */
+  ok('이 셈이 실브라우저 실측 두 점(5x5 55.84px · 6x6 45.53px)을 재현한다',
+     Math.abs(cellOf(5) - 55.84) < 0.1 && Math.abs(cellOf(6) - 45.53) < 0.1,
+     `셈한 값 5x5 ${cellOf(5).toFixed(2)}px · 6x6 ${cellOf(6).toFixed(2)}px — 어긋나면 CSS 가 바뀐 것이니 다시 재라`);
+
+  const maxGrid = Math.max(...C.GRIDS);
+  ok('가장 큰 격자도 360px 에서 칸 한 변 50px 을 지킨다',
+     cellOf(maxGrid) >= MIN_TOUCH,
+     `가장 큰 격자 ${maxGrid}x${maxGrid} · 칸 ${cellOf(maxGrid).toFixed(2)}px · 하한 ${MIN_TOUCH}px`);
+  note(`격자별 칸 크기(360px) — ` + [...new Set(C.GRIDS)].map(n => `${n}x${n} ${cellOf(n).toFixed(2)}px`).join(' · ') +
+       ` · 한 단계 더 키우면 ${maxGrid + 1}x${maxGrid + 1} ${cellOf(maxGrid + 1).toFixed(2)}px`);
 }
 
 /* ============================================================ 6. ★오답과 벌점 */
