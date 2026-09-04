@@ -43,13 +43,29 @@
      라이트(흰 바탕)가 기본. 다크는 아래 @media 에서 같은 이름의 값만 바꿔 끼운다 — 마크업은 두 테마가 동일하다.
      ★이 게임에서 색은 거들 뿐이다: 신호는 ★모양(꽉 찬 원 / X)이 뜻을 지니고, 각 절반의 글자가 함께 말한다.
        두 절반은 ★같은 토큰을 쓴다 — 한쪽만 다른 색을 주면 눈에 띄는 쪽이 유리해질 수 있다. */
+  /* ★분류가 색을 정한다(색 규약 2026-09-05 · 오너 승인) — 이 게임의 분류는 ★2인용이고 그 색은
+     pink #db2777 이다. 22종 중 17종이 같은 보라였던 것은 새 게임이 직전 게임을 본보기로 삼다가
+     색까지 물려받았기 때문이고, 대문 카드가 전부 같은 색이면 색이 정보가 되지 못한다.
+     ★세 토큰이 한 벌이다(--sig 주색 · --sig-ink 진한 쪽 글자 · --sig-soft 옅은 쪽 배경) ·
+     ★대비비는 눈으로 정하지 않고 잰다. 아래는 이 파일의 실제 배경 토큰에 대고 잰 값이다
+     (라이트 배경 #ffffff · 판 #f6f7f9 / 다크 배경 #0c0a24 · 판 #191540 · 글자 #f1f0ff):
+       라이트  sig 4.60 · ink 6.04(판 위 5.63) · soft 위의 본문 글자 15.09 · 버튼 글자 4.60
+       다크    sig 7.31(판 위 6.49) · ink 10.68 · soft 위의 본문 글자 8.57 · 버튼 글자 5.68
+     ★판(--pad 계열)도 함께 옮긴다 — 대문 카드에 실리는 그림은 판이라, 판이 보라인 채로 두면
+       카드는 여전히 보라로 보이고 규약의 목적(색이 정보가 된다)이 서지 않는다. 실측:
+       라이트  판 글자 8.84 · ★테두리 3.23(칸 경계는 뜻을 지닌 UI 라 3.0 이상이어야 한다)
+       다크    판 글자 15.01 · 테두리 3.84
+       결과 표시 글자는 이김 8.78/7.75 · 잃음 7.90/11.90 이고, 신호 그림은 판 위에서
+       라이트 원 4.59 · X 5.93 / 다크 원 9.18 · X 9.30 이라 모양이 색과 무관하게 읽힌다.
+     하한은 양 테마 3.0(큰 글자·아이콘 WCAG)이고 위 값 전부 그 위다. 검사는 이 숫자를 베끼지
+     않고 ★소스에서 읽어 다시 계산한다 — 값을 옮겨 적으면 그때부터 검사가 계약이 아니라 사본을 잰다. */
   :root{
     --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
     --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
-    --sig:#7c3aed; --sig-ink:#5b21b6; --sig-soft:#ede9fe; --on-sig:#ffffff;
+    --sig:#db2777; --sig-ink:#be185d; --sig-soft:#fce7f3; --on-sig:#ffffff;
     --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
     --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
-    --pad:#f1f0fb; --pad-line:#cfc7f3; --pad-ink:#3b2a6d;
+    --pad:#fdf2f8; --pad-line:#ec4899; --pad-ink:#831843;
     --go:#15803d; --go-soft:#dcfce7; --hold:#b91c1c; --hold-soft:#fee2e2;
     --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
     --safe-b:env(safe-area-inset-bottom,0px);
@@ -58,10 +74,10 @@
     :root{
       --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
       --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
-      --sig:#a78bfa; --sig-ink:#c4b5fd; --sig-soft:#2e2670; --on-sig:#2e1065;
+      --sig:#f472b6; --sig-ink:#f9a8d4; --sig-soft:#831843; --on-sig:#500724;
       --good:#34d399; --good-ink:#bbf7d0; --good-soft:#14532d;
       --warn:#fbbf24; --bad:#fca5a5; --bad-ink:#fecaca; --bad-soft:#4c1d1d;
-      --pad:#191540; --pad-line:#453da0; --pad-ink:#e9e6ff;
+      --pad:#2a0f22; --pad-line:#db2777; --pad-ink:#fce7f3;
       --go:#34d399; --go-soft:#14532d; --hold:#fca5a5; --hold-soft:#4c1d1d;
       --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
     }
@@ -137,7 +153,7 @@
   .card-box .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
   .card-box .reason{font-size:.95rem;font-weight:600;margin:2px 0 6px;min-height:1.2em;color:var(--muted-2)}
   /* ★결과 문안은 두 사람이 마주 본 채로 읽는다 — 위쪽 사람 몫을 180도 돌려 한 벌 더 둔다 */
-  .tg-mirror{transform:rotate(180deg);border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:10px}
+  .tg-mirror{transform:rotate(180deg);background:var(--sig-soft);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:12px}
   .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
   .btn.primary{background:var(--sig);color:var(--on-sig)}
   .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}

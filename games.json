@@ -563,6 +563,7 @@
     "maxMinutes": 1,
     "daily": true,
     "solo": false,
+    "category": "two-player",
     "released": "2026-09-05",
     "tags": [
       "reaction",
