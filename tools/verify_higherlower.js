@@ -207,6 +207,26 @@ const MUTATIONS = {
     from: '  overShown = true;\n  setOutsideInert(true);',
     to:   '  overShown = true;\n  setOutsideInert(false);'
   },
+  /* ⑮-A 막대 판에서 무대를 균등 격자로 세우지 않는다 = 두 칸의 자가 1:1.6 으로 갈라진다 */
+  'bar-uneven-runtime': {
+    catcher: '막대 판에서는 무대가 좌우 균등 격자다(두 칸의 자가 같다)',
+    from: "  $('stage').classList.toggle('hl-even', kind === 'bar');",
+    to:   "  $('stage').classList.toggle('hl-even', false);"
+  },
+  /* ⑮-B 균등 격자 선언을 도로 벌린다(CSS) = 값 순서와 물리 길이 순서가 어긋난다 */
+  'bar-even-css-widened': {
+    scope: 'html',
+    catcher: '값 순서와 눈에 보이는 크기 순서가 전 구간에서 일치한다',
+    from: '  .hl-stage.hl-even{grid-template-columns:1fr 1fr}',
+    to:   '  .hl-stage.hl-even{grid-template-columns:1fr 1.6fr}'
+  },
+  /* ⑮-C 지금 칸의 점만 키운다(CSS) = 잉크 넓이가 개수 순서를 뒤집는다 */
+  'dots-cur-bigger': {
+    scope: 'html',
+    catcher: '지금 칸이 값 그림의 치수를 다시 정하지 않는다(글자인 숫자만 예외)',
+    from: '  .hl-dots i{display:block;width:11px;height:11px;border-radius:50%;background:var(--mark)}',
+    to:   '  .hl-dots i{display:block;width:9px;height:9px;border-radius:50%;background:var(--mark)}\n  .hl-cur .hl-dots i{width:12px;height:12px}'
+  },
   /* ⑯ 터치 목표를 줄인다(CSS · scope html) */
   'touch-target-shrunk': {
     scope: 'html',
@@ -881,6 +901,133 @@ section('9. ★값의 몸 · 종류마다 다른 모양으로 그린다');
   ok('값이 달라지면 그림도 달라진다', same.length === 0, String(same));
 }
 
+/* ============================================================ 9-A. ★자(눈금) 일치
+   master(236) 2026-09-04 지적으로 세운 축이다. 이 게임은 ★눈으로 견주어 답을 고르는 게임이라,
+   값의 순서와 화면에 보이는 크기의 순서가 어긋나면 ★눈이 시키는 답이 오답이 된다.
+   실제로 두 군데가 어긋나 있었다:
+     · 막대 — 칸 폭의 백분율로 그리는데 무대가 1fr 1.6fr 이라 지금 칸이 1.6배 길었다.
+     · 점 — 점 지름이 9px 대 12px 라 잉크 넓이가 (12/9)^2 = 1.78배였다.
+   ★배율은 내가 상수로 베끼지 않는다 · CSS 선언과 제품의 실제 동작에서 유도한다.
+   ★그리고 막대만이 아니라 네 종류 전부에 돌린다. */
+section('9-A. ★자(눈금) · 두 칸이 같은 자로 그리고 값 순서가 뒤집히지 않는다');
+{
+  const html = RAW;
+  const baseCols = (/\.hl-stage\{[\s\S]*?grid-template-columns:1fr ([0-9.]+)fr/.exec(html) || [])[1];
+  const evenCols = (/\.hl-stage\.hl-even\{grid-template-columns:1fr ([0-9.]+)fr\}/.exec(html) || [])[1];
+  ok('전제 · 무대의 두 격자 선언을 소스에서 읽었다(못 읽으면 판정 불가)',
+     Number.isFinite(Number(baseCols)) && Number.isFinite(Number(evenCols)),
+     `기본 1fr ${baseCols}fr · 균등 1fr ${evenCols}fr`);
+  const RATIO = { base: Number(baseCols), even: Number(evenCols) };
+
+  /* ★'지금 칸'이 값 그림의 치수를 다시 정하는 규칙을 전수로 훑는다.
+     그물은 낱말이 아니라 ★선택자 접두(.hl-cur )와 ★치수 속성으로 친다.
+     min-height 는 일부러 넣지 않는다 — 칸의 높이일 뿐 그림의 자가 아니다(속성 이름이 다르다). */
+  const DIM_RE = /(?:^|[;{])\s*(width|height|font-size|transform|scale)\s*:/;
+  const curRules = [...html.matchAll(/\n\s*(\.hl-cur [^{}\n]*)\{([^{}]*)\}/g)]
+    .map(m => ({ sel: m[1].trim(), body: m[2] }))
+    .filter(r => DIM_RE.test(r.body));
+  /* ★면제는 이 검사기가 독립 리터럴로 쥔다(제품에서 받아오면 자기참조가 된다).
+     숫자는 길이가 아니라 ★읽는 값이라 글자 크기가 비교를 흔들지 않는다 — 그 하나뿐이다. */
+  const EXEMPT = ['.hl-cur .hl-num'];
+  const violations = curRules.map(r => r.sel).filter(sel => !EXEMPT.includes(sel));
+  ok('전제 · 면제로 적은 규칙이 실제로 소스에 있다(공집합 면제가 아니다)',
+     EXEMPT.every(sel => curRules.some(r => r.sel === sel)),
+     `면제 ${JSON.stringify(EXEMPT)} · 발견 ${JSON.stringify(curRules.map(r => r.sel))}`);
+  ok('지금 칸이 값 그림의 치수를 다시 정하지 않는다(글자인 숫자만 예외)',
+     violations.length === 0, JSON.stringify(violations));
+
+  const A = boot();
+  const C = A.hl.const();
+  /* 종류마다 ①무대가 균등 격자인가 ②값을 무엇으로 옮기는가를 ★제품에서 읽는다 */
+  const seen = {};
+  for (const want of C.KINDS){
+    let found = false;
+    for (let t = 0; t < 400; t++){
+      A.el('start')._classes.add('show');
+      A.startBtn(0);
+      if (A.hl.state().kind === want){ found = true; break; }
+    }
+    if (!found){ seen[want] = null; continue; }
+    const markup = A.hl.valueHtml(want, 17);
+    const dots = (markup.match(/<i>/g) || []).length;
+    const channel = /width:\d+(?:\.\d+)?%/.test(markup) ? 'length'      /* 칸 폭의 백분율 */
+                  : /width:\d+(?:\.\d+)?px/.test(markup) ? 'size'       /* 절대 px */
+                  : dots === 17 ? 'count'                               /* 값만큼 찍는 낱개 */
+                  : 'glyph';                                            /* 읽는 글자 */
+    seen[want] = { even: A.hl.stageEven(), channel };
+  }
+  ok('전제 · 네 종류를 모두 열어 무대 상태와 표기 채널을 읽었다',
+     C.KINDS.every(k => seen[k] !== null), JSON.stringify(seen));
+  ok('막대 판에서는 무대가 좌우 균등 격자다(두 칸의 자가 같다)',
+     !!seen.bar && seen.bar.even === true, JSON.stringify(seen.bar));
+  ok('막대가 아닌 판에서는 균등 격자를 쓰지 않는다(늘 켜져 있으면 위 검사가 공허하다)',
+     C.KINDS.filter(k => k !== 'bar').every(k => seen[k] && seen[k].even === false),
+     JSON.stringify(C.KINDS.map(k => [k, seen[k] && seen[k].even])));
+  ok('전제 · 칸 폭의 백분율로 그리는 종류가 실재한다(0종이면 격자 검사가 공허하다)',
+     C.KINDS.some(k => seen[k] && seen[k].channel === 'length'),
+     JSON.stringify(C.KINDS.map(k => [k, seen[k] && seen[k].channel])));
+
+  /* ★눈에 보이는 크기의 배율을 유도한다.
+       length(막대) = 폭 x 높이 → 격자비 x 높이비
+       count(점)    = 개수 x 낱개 넓이 → (지름비)^2
+       size(원)     = 넓이 → (지름비)^2
+     지름비·높이비는 위에서 훑은 '지금 칸 재정의' 에서 오고, 재정의가 없으면 1 이다. */
+  const curDimRatio = (baseSel, curSel, prop) => {
+    /* ★선택자의 ★왼쪽 경계를 못박는다 — 없으면 '.hl-dots i' 가 '.hl-cur .hl-dots i' 규칙 안에서도
+       걸려, 지금 칸만 키우는 뮤테이션에서 기본과 재정의를 같은 줄에서 읽어 배율 1 로 오판한다. */
+    const grab = (sel) => {
+      const esc = sel.replace(/[-.*+?^${}()|[\]\\]/g, '\\$&');
+      const m = new RegExp('(?:^|\\n)\\s*' + esc + '\\{([^{}]*)\\}').exec(html);
+      if (!m) return null;
+      const d = new RegExp('(?:^|[;{])\\s*' + prop + '\\s*:\\s*([0-9.]+)px').exec(m[1]);
+      return d ? Number(d[1]) : null;
+    };
+    const base = grab(baseSel), cur = grab(curSel);
+    if (base === null) return { ratio: 1, base: null, cur };
+    return { ratio: cur === null ? 1 : cur / base, base, cur };
+  };
+  const barH = curDimRatio('.hl-barwrap', '.hl-cur .hl-barwrap', 'height');
+  const dotD = curDimRatio('.hl-dots i', '.hl-cur .hl-dots i', 'width');
+  ok('전제 · 막대 높이와 점 지름의 기본 치수를 소스에서 읽었다(못 읽으면 판정 불가)',
+     barH.base !== null && dotD.base !== null,
+     `막대 높이 ${barH.base} · 점 지름 ${dotD.base}`);
+  const scaleOf = k => {
+    const info = seen[k];
+    if (!info) return null;
+    if (info.channel === 'length') return (info.even ? RATIO.even : RATIO.base) * barH.ratio;
+    if (info.channel === 'count')  return dotD.ratio * dotD.ratio;
+    if (info.channel === 'size')   return 1;      /* 두 칸 모두 style 의 절대 px 를 그대로 쓴다 */
+    return null;                                   /* glyph */
+  };
+
+  /* ★전 구간 경계값 전수 대입 · 값 순서와 보이는 크기 순서가 어긋나는 쌍이 하나라도 있는가 */
+  let bad = [], pairs = 0, judged = [];
+  for (const k of C.KINDS){
+    const mult = scaleOf(k);
+    if (mult === null) continue;
+    judged.push(`${k}(x${mult.toFixed(3)})`);
+    const sp = C.SPEC[k];
+    for (let pv = sp.min; pv <= sp.max; pv++){
+      for (let cv = sp.min; cv <= sp.max; cv++){
+        if (pv === cv) continue;
+        pairs++;
+        if (Math.sign(pv * 1 - cv * mult) !== Math.sign(pv - cv)){
+          if (bad.length < 5) bad.push(`${k} 직전${pv}/지금${cv} → 크기 ${(pv).toFixed(1)}/${(cv * mult).toFixed(1)}`);
+        }
+      }
+    }
+  }
+  ok(`전제 · 크기로 견주는 종류를 실제로 대입했다(${judged.join(' ')} · ${pairs}쌍)`,
+     judged.length >= 3 && pairs > 5000, `${judged.join(' ')} · ${pairs}쌍`);
+  ok('값 순서와 눈에 보이는 크기 순서가 전 구간에서 일치한다', bad.length === 0, bad.join(' / '));
+  const glyphKinds = C.KINDS.filter(k => seen[k] && seen[k].channel === 'glyph');
+  ok('크기가 아니라 글자로 읽는 종류는 정확히 하나다(숫자 · 면제 사유가 실재한다)',
+     glyphKinds.length === 1 && glyphKinds[0] === 'number', JSON.stringify(glyphKinds));
+  note(`격자 기본 1:${RATIO.base} · 균등 1:${RATIO.even} · 막대 높이비 ${barH.ratio} · 점 지름비 ${dotD.ratio}`);
+  note(`판정한 종류 [${judged.join(' ')}] · 대입 ${pairs}쌍 · 어긋난 쌍 ${bad.length}`);
+  note('이 절은 소스와 제품 동작에서 유도한 것이다 · 실브라우저 실측은 11절 note 에 따로 적는다.');
+}
+
 /* ============================================================ 10. ★색맹 안전 */
 section('10. ★색맹 안전 · 두 칸이 글자와 모양으로 말한다');
 {
@@ -905,11 +1052,15 @@ section('11. ★터치 목표 · 360px 에서 답 칸의 짧은 변이 50px 을 
   const html = RAW;
   const VIEWPORT = 360;        /* 재는 화면 폭(티켓이 못박은 값) */
   const MIN_TOUCH = 50;        /* 손가락 하한 */
-  /* ★세로 스크롤막대가 차지하는 폭. 이 게임도 본문이 길어 360px 화면에서 항상 막대가 선다.
-     ★추정이 아니라 실측이다 · innerWidth - documentElement.clientWidth 를 직접 읽었다.
-     아래 보정 단언이 이 값이 맞는지를 답 칸 폭 실측으로 다시 되짚는다. */
-  const SCROLLBAR = 12;
-  const REAL_BTN_W = 159.0;    /* 실브라우저 실측(2026-09-04 · iframe width=360) */
+  /* ★실측은 ★그 실측이 성립한 조건과 함께 저장한다.
+     세로 스크롤막대 폭은 제품이 아니라 ★환경이 정한다 — 같은 360px 에서도 브라우저 확대율이
+     1.0 이면 12px, 1.1 이면 14px 였다(2026-09-04 두 번 실측). 답 칸 폭 하나만 상수로 박으면
+     그것은 ★움직이는 대상에 박은 고정 참조라, 제품이 멀쩡한데도 붉어진다.
+     그래서 (스크롤막대 폭, 답 칸 폭) 쌍으로 저장하고 ★셈이 두 쌍을 다 재현하는지 본다. */
+  const CALIB = [
+    { sb: 12, btnW: 159.00, when: 'devicePixelRatio 1.0 · iframe width=360' },
+    { sb: 14, btnW: 158.18, when: 'devicePixelRatio 1.1 · iframe width=360' }
+  ];
   const mainPad = (/ {2}main\{[^}]*padding:\s*\d+px\s+(\d+)px/.exec(html) || [])[1];
   const ansCss = (/\.hl-answers\{([\s\S]*?)\}/.exec(html) || [])[1] || '';
   const gap = (/gap:(\d+)px/.exec(ansCss) || [])[1];
@@ -921,17 +1072,21 @@ section('11. ★터치 목표 · 360px 에서 답 칸의 짧은 변이 50px 을 
      nums.every(v => Number.isFinite(v)),
      `main padding ${mainPad} · gap ${gap} · max-width ${ansMax} · min-height ${minH}`);
   const [mp, gp, amax, mh] = nums;
-  const rowW = Math.min(VIEWPORT - SCROLLBAR - 2 * mp, amax);
-  const btnW = (rowW - gp) / 2;
-  const shortSide = Math.min(btnW, mh);
+  const btnWidthAt = sb => (Math.min(VIEWPORT - sb - 2 * mp, amax) - gp) / 2;
   /* ★보정 · 이 셈이 실브라우저가 실제로 세운 값을 재현하는가.
      재현하지 못하면 아래 50px 판정은 '내가 지어낸 수식' 위에 선 것이라 아무 뜻이 없다. */
+  const off = CALIB.map(c => ({ ...c, got: btnWidthAt(c.sb), diff: Math.abs(btnWidthAt(c.sb) - c.btnW) }));
   ok('이 셈이 실브라우저 실측(답 칸 폭)을 재현한다',
-     Math.abs(btnW - REAL_BTN_W) < 0.6,
-     `셈한 폭 ${btnW.toFixed(2)}px · 실측 ${REAL_BTN_W.toFixed(2)}px · 어긋나면 CSS 가 바뀐 것이니 다시 재라`);
+     off.every(o => o.diff <= 0.25),
+     off.map(o => `sb ${o.sb}: 셈 ${o.got.toFixed(2)} vs 실측 ${o.btnW.toFixed(2)}(${o.when})`).join(' / '));
+  /* ★하한 판정은 관측된 것 중 ★가장 불리한 조건(가장 넓은 스크롤막대)으로 내린다 */
+  const worstSb = Math.max(...CALIB.map(c => c.sb));
+  const btnW = btnWidthAt(worstSb);
+  const shortSide = Math.min(btnW, mh);
   ok('답 칸은 360px 에서 짧은 변이 50px 하한을 지킨다',
-     shortSide >= MIN_TOUCH, `짧은 변 ${shortSide.toFixed(2)}px(폭 ${btnW.toFixed(2)} · 높이 ${mh}) · 하한 ${MIN_TOUCH}px`);
-  note(`360px 에서 답 칸 ${btnW.toFixed(2)} x ${mh}px`);
+     shortSide >= MIN_TOUCH,
+     `짧은 변 ${shortSide.toFixed(2)}px(폭 ${btnW.toFixed(2)} · 높이 ${mh} · 스크롤막대 ${worstSb}px 가정) · 하한 ${MIN_TOUCH}px`);
+  note(`360px 에서 답 칸 ${btnW.toFixed(2)} x ${mh}px(가장 불리한 스크롤막대 ${worstSb}px 기준)`);
 }
 
 /* ============================================================ 12. 저장 · 하루 한 번 · 최고기록 · 스트릭 */

@@ -104,6 +104,14 @@
   .hl-stage{width:100%;max-width:min(100%,420px);min-height:min(30dvh,200px);border-radius:20px;
        border:3px solid var(--stage-line);background:var(--stage);color:var(--stage-ink);
        display:grid;grid-template-columns:1fr 1.6fr;align-items:center;gap:10px;padding:14px;text-align:center}
+  /* ★막대 종류만 좌우 균등 격자다 — 막대는 자기 칸 폭의 백분율로 그려지므로 칸이 다르면
+       ★자(눈금)가 달라진다. 1fr 1.6fr 에서는 같은 값이라도 지금 쪽이 1.6배 길게 그려져,
+       현재값 < 직전값 < 1.6 x 현재값 구간에서 값은 큰데 더 짧게 보인다 — 눈으로 길이를
+       견주는 게임에서 ★눈이 시키는 답이 오답이 된다(master 236 지적 · 2026-09-04).
+       고정 px 트랙 대신 균등 격자를 쓴 이유: 좁은 화면에서 직전 칸이 먼저 줄어들면
+       고정 폭은 다시 갈라지지만, 균등 격자는 뷰포트와 무관하게 두 폭이 같다(구조로 같다).
+       숫자·점·원은 두 칸이 같은 절대 자를 쓰므로 이 문제가 없다. */
+  .hl-stage.hl-even{grid-template-columns:1fr 1fr}
   .hl-slot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0}
   .hl-slot-lbl{font-size:.72rem;font-weight:700;color:var(--muted-2);letter-spacing:.02em}
   .hl-prev{opacity:.62}
@@ -112,12 +120,15 @@
   /* 값의 네 가지 몸 — 숫자 · 막대 길이 · 점 개수 · 원 크기 */
   .hl-num{font-size:2.1rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
   .hl-cur .hl-num{font-size:3.4rem}
-  .hl-barwrap{display:block;width:100%;height:18px;border-radius:999px;background:var(--mark-soft);overflow:hidden}
-  .hl-cur .hl-barwrap{height:28px}
+  /* ★높이도 두 칸이 같다 — 지금 칸만 키우면 잉크 넓이가 벌어져 개수·길이 순서를 흔든다.
+       '지금' 강조는 자를 흔들지 않는 수단(직전 칸 opacity·자리 이름표)으로만 한다. */
+  .hl-barwrap{display:block;width:100%;height:22px;border-radius:999px;background:var(--mark-soft);overflow:hidden}
   .hl-barfill{display:block;height:100%;background:var(--mark);border-radius:999px}
   .hl-dots{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;max-width:100%}
-  .hl-dots i{display:block;width:9px;height:9px;border-radius:50%;background:var(--mark)}
-  .hl-cur .hl-dots i{width:12px;height:12px}
+  /* ★점 지름도 두 칸이 같다 — 9px 대 12px 는 넓이비 (12/9)^2 = 1.78 이라
+       현재개수 < 직전개수 < 1.78 x 현재개수 구간에서 적은 쪽이 더 많아 보인다
+       (실브라우저에서 본 직전 19 대 지금 14 가 정확히 그 구간이었다). */
+  .hl-dots i{display:block;width:11px;height:11px;border-radius:50%;background:var(--mark)}
   .hl-circ{display:block;border-radius:50%;background:var(--mark)}
   /* 결과가 드러난 순간 — ★테두리 모양이 함께 바뀐다(색만으로 말하지 않는다) */
   .hl-cur.hl-reveal .hl-val{outline:3px dashed var(--bad);outline-offset:6px;border-radius:14px}
@@ -656,6 +667,9 @@ function paintStage(){
   $('curVal').innerHTML = (cur === undefined) ? '' : valueHtml(kind, cur);
   $('curVal').setAttribute('aria-label', (cur === undefined) ? '' : T('ariaValue', kindName(kind), cur));
   $('curSlot').classList.toggle('hl-reveal', revealed);
+  /* ★막대는 칸 폭의 백분율로 그려진다 — 두 칸의 폭이 다르면 자가 달라져 값 순서와
+     물리 길이 순서가 어긋난다. 막대 판에서만 무대를 좌우 균등 격자로 세운다. */
+  $('stage').classList.toggle('hl-even', kind === 'bar');
   const prev = prevIdx >= 0 ? valueAt(prevIdx) : undefined;
   $('prevLbl').textContent = T('prevLbl');
   $('prevVal').innerHTML = (prev === undefined) ? '<span class="hl-num">–</span>' : valueHtml(kind, prev);
@@ -970,6 +984,8 @@ window.__hl = {
   shareText: () => lastResult ? shareText(lastResult, 'https://hanpango.com/higher-lower/') : '',
   /* ★화면에 실제로 들어간 글과 모양 — 하네스가 '색 없이도 말하는가' 를 그림에서 직접 센다.
      ★버튼의 innerHTML 같은 상위 자리를 주지 않는다 — 제품이 실제로 쓰는 자리를 준다. */
+  /* ★막대 판에서 두 칸의 자가 같은지(균등 격자인지)를 밖에서 읽는다 · 관측 전용이다 */
+  stageEven: () => $('stage').classList.contains('hl-even'),
   curHtml: () => $('curVal').innerHTML,
   prevHtml: () => $('prevVal').innerHTML,
   iconHtml: () => [$('icon0').innerHTML, $('icon1').innerHTML],
