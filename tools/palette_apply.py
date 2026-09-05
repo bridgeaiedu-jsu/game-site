@@ -186,8 +186,25 @@ def apply_index(order, values, dry):
     return len(order)
 
 
+DISARM_MSG = [
+    '--write 는 사용 금지다(T0909 · 수리 전까지).',
+    '  사유: index.html 에 다크 @media 블록을 중복 생성하고 그 안에 라이트 값을 넣어,',
+    '        다크 테마 전 카드가 라이트 색으로 그려지는 사이트 전역 회귀를 만든다',
+    '        (T0906 실측 2026-09-06 · 다크 블록 3 -> 4).',
+    '  대신: --dry 로 파생값을 보고 손으로 고쳐라 — 대상 :root 4토큰 + index.html 카드 2줄.',
+    '  고친 뒤: 다크 @media 블록 수 불변 확인 + 대문에서 check_card_render.js 로 ok:true 확인.',
+]
+
 def main(argv):
-    dry = '--write' not in argv
+    # ★--write 무장해제 (T0906 실측 2026-09-06 · 티켓 T0909)
+    #   이 옵션은 index.html 에 다크 @media 블록을 ★중복 생성하고 그 안에 라이트 값을 넣는다.
+    #   @media 는 명시도를 올리지 않으므로 뒤에 온 그 블록이 이겨 ★다크 카드가 전부 라이트로 그려진다.
+    #   ★T0905 가 이미 잡았던 결함을 도구가 다시 심는 것이다. 수리 전까지 금지한다.
+    if '--write' in argv:
+        for _line in DISARM_MSG:
+            print(_line, file=sys.stderr)
+        return 2          # 2 = 사용 불가(1 로 내면 자동 호출자가 미달로 오분류한다)
+    dry = True            # 가드를 지나쳐도 쓰지 않는 쪽으로 떨어진다(fail-safe)
     spec, games = G.load()
     pages = {g['id']: G.read_root_blocks(os.path.join(ROOT, g['id'], 'index.html')) for g in games}
     pages['@index'] = G.read_root_blocks(os.path.join(ROOT, 'index.html'))
