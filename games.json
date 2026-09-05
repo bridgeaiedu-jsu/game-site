@@ -17,6 +17,7 @@
     },
     "maxMinutes": 3,
     "daily": true,
+    "category": "puzzle",
     "released": "2026-08-22",
     "tags": [
       "puzzle",
@@ -42,6 +43,7 @@
     },
     "maxMinutes": 5,
     "daily": true,
+    "category": "puzzle",
     "released": "2026-08-23",
     "tags": [
       "puzzle",
@@ -68,6 +70,7 @@
     },
     "maxMinutes": 8,
     "daily": true,
+    "category": "stress",
     "released": "2026-08-23",
     "tags": [
       "puzzle",
@@ -94,6 +97,7 @@
     },
     "maxMinutes": 5,
     "daily": true,
+    "category": "word",
     "released": "2026-08-23",
     "tags": [
       "puzzle",
@@ -120,6 +124,7 @@
     },
     "maxMinutes": 1.5,
     "daily": true,
+    "category": "stress",
     "released": "2026-08-26",
     "tags": [
       "arcade",
@@ -146,6 +151,7 @@
     },
     "maxMinutes": 5,
     "daily": true,
+    "category": "stress",
     "released": "2026-08-26",
     "tags": [
       "arcade",
@@ -171,6 +177,7 @@
     },
     "maxMinutes": 2,
     "daily": true,
+    "category": "sense",
     "released": "2026-08-27",
     "tags": [
       "quiz",
@@ -197,6 +204,7 @@
     },
     "maxMinutes": 15,
     "daily": true,
+    "category": "puzzle",
     "released": "2026-08-28",
     "tags": [
       "puzzle",
@@ -223,6 +231,7 @@
     },
     "maxMinutes": 2,
     "daily": true,
+    "category": "word",
     "released": "2026-08-28",
     "tags": [
       "quiz",
@@ -250,6 +259,7 @@
     },
     "maxMinutes": 3,
     "daily": true,
+    "category": "word",
     "released": "2026-08-28",
     "tags": [
       "word",
@@ -276,6 +286,7 @@
     },
     "maxMinutes": 10,
     "daily": true,
+    "category": "puzzle",
     "released": "2026-08-28",
     "tags": [
       "puzzle",
@@ -302,6 +313,7 @@
     },
     "maxMinutes": 2,
     "daily": false,
+    "category": "group",
     "released": "2026-08-29",
     "tags": [
       "party",
@@ -328,6 +340,7 @@
     },
     "maxMinutes": 3,
     "daily": true,
+    "category": "puzzle",
     "released": "2026-08-31",
     "tags": [
       "puzzle",
@@ -354,6 +367,7 @@
     },
     "maxMinutes": 10,
     "daily": true,
+    "category": "puzzle",
     "released": "2026-08-31",
     "tags": [
       "puzzle",
@@ -380,6 +394,7 @@
     },
     "maxMinutes": 0.5,
     "daily": true,
+    "category": "sense",
     "released": "2026-08-31",
     "tags": [
       "timing",
@@ -406,6 +421,7 @@
     },
     "maxMinutes": 0.67,
     "daily": true,
+    "category": "sense",
     "released": "2026-09-02",
     "tags": [
       "timing",
@@ -432,6 +448,7 @@
     },
     "maxMinutes": 0.5,
     "daily": true,
+    "category": "sense",
     "released": "2026-09-04",
     "tags": [
       "timing",
@@ -458,6 +475,7 @@
     },
     "maxMinutes": 1,
     "daily": true,
+    "category": "sense",
     "released": "2026-09-04",
     "tags": [
       "observation",
@@ -484,6 +502,7 @@
     },
     "maxMinutes": 0.5,
     "daily": true,
+    "category": "sense",
     "released": "2026-09-04",
     "tags": [
       "reaction",
@@ -510,6 +529,7 @@
     },
     "maxMinutes": 1,
     "daily": true,
+    "category": "sense",
     "released": "2026-09-04",
     "tags": [
       "guess",
@@ -536,6 +556,7 @@
     },
     "maxMinutes": 1,
     "daily": true,
+    "category": "sense",
     "released": "2026-09-04",
     "tags": [
       "memory",

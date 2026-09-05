@@ -1,0 +1,47 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>capture frame</title>
+<style>
+  html,body{margin:0;background:#777;overflow:hidden}
+  #row{position:absolute;left:0;top:0;display:flex;gap:8px;transform-origin:0 0}
+  .slice{position:relative;width:360px;overflow:hidden;background:#777}
+  .slice iframe{position:absolute;left:0;border:0;display:block;width:360px}
+</style>
+<div id="row"></div>
+<script>
+  /* 360px 폭 그대로 레이아웃한 대문을 세로로 3등분해 나란히 놓는다.
+     레이아웃은 손대지 않고 자른 조각을 옆에 두는 것뿐이라, 한 장에 22개 카드가 다 들어간다. */
+  const p = new URLSearchParams(location.search);
+  const SRC = p.get('src') || '/';
+  const N = +(p.get('n') || 3);
+  const row = document.getElementById('row');
+  const frames = [];
+  for (let i = 0; i < N; i++) {
+    const s = document.createElement('div');
+    s.className = 'slice';
+    const f = document.createElement('iframe');
+    f.src = SRC;
+    s.appendChild(f);
+    row.appendChild(s);
+    frames.push({ s, f });
+  }
+  window.layout = async () => {
+    const d0 = frames[0].f.contentDocument;
+    d0.querySelectorAll('img[loading="lazy"]').forEach(i => i.loading = 'eager');
+    const H = Math.max(d0.documentElement.scrollHeight, d0.body.scrollHeight);
+    const slice = Math.ceil(H / N);
+    for (let i = 0; i < N; i++) {
+      const { s, f } = frames[i];
+      const d = f.contentDocument;
+      d.querySelectorAll('img[loading="lazy"]').forEach(x => x.loading = 'eager');
+      f.style.height = H + 'px';
+      f.style.top = (-i * slice) + 'px';
+      s.style.height = slice + 'px';
+    }
+    const w = N * 360 + (N - 1) * 8;
+    const sc = Math.min(innerWidth / w, innerHeight / slice);
+    row.style.transform = 'scale(' + sc + ')';
+    document.title = 'shot H=' + H + ' slice=' + slice + ' scale=' + sc.toFixed(3);
+    return document.title;
+  };
+</script>
