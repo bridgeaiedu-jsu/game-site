@@ -534,6 +534,48 @@ def axis6(root, games, rep, pages_extra):
             elif ('src="%s"' % g.get('thumb')) not in home_src:
                 rep.fail('asset-home-card', gid, '대문 카드가 %s 를 쓰지 않는다' % g.get('thumb'))
 
+    # ── 사이트 페이지의 og:image ────────────────────────────────────────────
+    # ★면제는 이름으로 주지 않는다. "404 는 빼 준다"로 적으면 그 줄이 영구 구멍이 된다.
+    #   면제의 근거는 그 페이지가 **스스로 선언한 robots noindex** 다 — 색인하지 말라고
+    #   말하는 페이지에 공유 카드 메타를 요구하지 않는다. noindex 가 사라지면 그 순간
+    #   이 게이트가 다시 요구한다(면제가 거저가 아니라 벌어야 하는 것이 된다).
+    for name, rel in pages_extra:
+        page = os.path.join(root, rel)
+        if not os.path.isfile(page):
+            rep.cannot('사이트 페이지가 없다: %s' % rel)
+            continue
+        src = read_text(page)
+        rep.count('site-og-image', 1)
+        if re.search(r'name="robots" content="[^"]*noindex', src):
+            rep.info('site-og-image-exempt', name,
+                     'robots noindex 를 스스로 선언해 og:image 를 요구하지 않는다(%s)' % rel)
+            continue
+        mi = re.search(r'property="og:image" content="([^"]+)"', src)
+        if not mi:
+            rep.fail('site-og-image', name, 'og:image 가 없다 (%s)' % rel)
+            continue
+        if not mi.group(1).startswith(SITE + '/'):
+            rep.fail('site-og-image', name, 'og:image 가 절대 URL 이 아니다: %r' % mi.group(1))
+            continue
+        target = os.path.join(root, mi.group(1)[len(SITE):].lstrip('/'))
+        if not os.path.isfile(target):
+            rep.fail('site-og-image', name, 'og:image 가 가리키는 파일이 없다: %s' % mi.group(1))
+            continue
+        real = webp_size(target) if target.lower().endswith('.webp') else None
+        dims = {}
+        for dim in ('width', 'height'):
+            md = re.search(r'property="og:image:%s" content="(\d+)"' % dim, src)
+            dims[dim] = int(md.group(1)) if md else None
+        rep.count('site-og-image-dims', 1)
+        if dims['width'] is None or dims['height'] is None:
+            rep.fail('site-og-image-dims', name, 'og:image:width/height 선언이 빠졌다')
+        elif real is None:
+            rep.cannot('%s: og:image 실제 치수를 못 읽었다' % name)
+        elif (dims['width'], dims['height']) != real:
+            rep.fail('site-og-image-dims', name,
+                     '선언 %dx%d 가 파일 실측 %dx%d 와 다르다'
+                     % (dims['width'], dims['height'], real[0], real[1]))
+
     # 내부 링크 실재 — 게임 23종 + 사이트 페이지
     targets = [(g.get('id', '?'), os.path.join(root, g['path'].strip('/'), 'index.html')) for g in games]
     targets += [(name, os.path.join(root, rel)) for name, rel in pages_extra]
@@ -568,6 +610,10 @@ MUTATIONS = {
     'm-og-image-drop':     ('page', 'og:image 선언을 지운다', 'asset-og-image'),
     'm-og-image-relative': ('page', 'og:image 를 상대경로로 바꾼다', 'asset-og-image'),
     'm-og-dims-drift':     ('page', 'og:image:width 를 실제와 다르게 적는다', 'asset-og-image-dims'),
+    'm-site-og-drop':      ('index', '대문의 og:image 를 지운다', 'site-og-image'),
+    # ★면제가 공허하지 않음을 증명한다 — 404 에서 noindex 를 걷어내면 면제가 사라지고
+    #   그 페이지도 og:image 를 요구받아야 한다. 이것이 붉어지지 않으면 면제는 영구 구멍이다.
+    'm-404-noindex-gone':  ('index', '404 의 robots noindex 를 걷어낸다(면제 근거 제거)', 'site-og-image'),
     'm-canonical-drift':   ('page', 'canonical 을 다른 주소로 바꾼다', 'asset-canonical'),
     'm-dead-link':         ('page', '없는 내부 링크를 넣는다', 'asset-internal-links'),
     'm-i18n-key-drop':     ('page', 'en 사전에서 키 한 줄을 지운다', 'i18n-dict-key-parity'),
@@ -674,6 +720,22 @@ def apply_mutation(name, games, texts, root):
                 texts[key] = src[:blk_start] + new + src[blk_start + len(blk):]
                 return True, '%s:%s' % (g['id'], victim)
         return False, '적용 대상 없음'
+    if name == 'm-site-og-drop':
+        if 'index.html' not in texts:
+            return False, 'index.html 없음'
+        new = re.sub(r'<meta property="og:image" content="[^"]+">\r?\n', '', texts['index.html'], count=1)
+        if new == texts['index.html']:
+            return False, '주입 실패 — og:image 줄을 못 찾았다'
+        texts['index.html'] = new
+        return True, 'index.html'
+    if name == 'm-404-noindex-gone':
+        if '404.html' not in texts:
+            return False, '404.html 없음'
+        new = re.sub(r'<meta name="robots" content="[^"]*noindex[^"]*">\r?\n', '', texts['404.html'], count=1)
+        if new == texts['404.html']:
+            return False, '주입 실패 — noindex 줄을 못 찾았다'
+        texts['404.html'] = new
+        return True, '404.html (면제 근거 제거)'
     if name == 'm-fallback-drift':
         if 'index.html' not in texts:
             return False, 'index.html 없음'
