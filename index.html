@@ -125,6 +125,7 @@
   .card[href="/higher-lower/"]{--sig:#9c7bd5;--sig-ink:#7445c4}
   .card[href="/how-many/"]{--sig:#a172f2;--sig-ink:#7631ec}
   .card[href="/together/"]{--sig:#db2777;--sig-ink:#a01b56}
+  .card[href="/gomoku/"]{--sig:#ba1f64;--sig-ink:#7d1543}
   @media (prefers-color-scheme: dark){
     /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다. ★라이트 규칙 뒤에 와야 이긴다(@media 는 명시도를 안 올린다). */
     .card[href="/block-puzzle/"]{--sig:#6d90db;--sig-ink:#a7bbe9}
@@ -149,6 +150,7 @@
     .card[href="/higher-lower/"]{--sig:#8b47ff;--sig-ink:#b88eff}
     .card[href="/how-many/"]{--sig:#946bda;--sig-ink:#bea5e8}
     .card[href="/together/"]{--sig:#e876a9;--sig-ink:#f2b3cf}
+    .card[href="/gomoku/"]{--sig:#e25393;--sig-ink:#ec90b9}
   }
   .card.soon::before{background:var(--line)}
   .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
@@ -353,6 +355,12 @@
             <span class="badges"><span class="badge">한 판 1분 / 1 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
           <span class="body"><h2>같이 한판 / Two on One Screen</h2>
             <p>한 화면을 위아래로 갈라 마주 보고 겨루는 2인용 반응 게임 — 신호에 먼저 누르면 1점, 참아야 할 신호에 누르면 실점<br>A two-player reaction game on a single screen — press first to score, but press on the hold signal and the point goes to the other side</p></span>
+        </a></li>
+        <li><a class="card" href="/gomoku/">
+          <span class="thumb"><img src="/gomoku/thumb.webp" alt="오목 한판 / Gomoku" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 5~10분 / 5–10 min a round</span></span></span>
+          <span class="body"><h2>오목 한판 / Gomoku</h2>
+            <p>한 기기에서 번갈아 두는 2인용 오목 — 가로·세로·대각으로 다섯 알을 먼저 이으면 승리, 다시 하기를 누르면 흑백이 바뀌어 선공을 번갈아 갖는다<br>Two players taking turns on one device — line up five stones to win, and the colours swap each time you play again</p></span>
         </a></li>
       </ul>
     </noscript>
@@ -580,6 +588,13 @@ const FALLBACK = [{
   thumb:'/together/thumb.webp',
   playtime:{ko:'한 판 1분',en:'1 min a round'},
   maxMinutes:1, daily:true, solo:false, category:'two-player', released:'2026-09-05', tags:['reaction','party','casual','daily']
+},{
+  id:'gomoku', path:'/gomoku/',
+  title:{ko:'오목 한판',en:'Gomoku'},
+  desc:{ko:'한 기기에서 번갈아 두는 2인용 오목 — 가로·세로·대각으로 다섯 알을 먼저 이으면 승리, 다시 하기를 누르면 흑백이 바뀌어 선공을 번갈아 갖는다',en:'Two players taking turns on one device — line up five stones to win, and the colours swap each time you play again'},
+  thumb:'/gomoku/thumb.webp',
+  playtime:{ko:'한 판 5~10분',en:'5–10 min a round'},
+  maxMinutes:10, daily:false, solo:false, category:'two-player', released:'2026-09-05', tags:['board','strategy','two-player','party']
 }];
 
 let games = FALLBACK;

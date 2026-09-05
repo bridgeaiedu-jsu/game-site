@@ -592,5 +592,33 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "gomoku",
+    "path": "/gomoku/",
+    "title": {
+      "ko": "오목 한판",
+      "en": "Gomoku"
+    },
+    "desc": {
+      "ko": "한 기기에서 번갈아 두는 2인용 오목 — 가로·세로·대각으로 다섯 알을 먼저 이으면 승리, 다시 하기를 누르면 흑백이 바뀌어 선공을 번갈아 갖는다",
+      "en": "Two players taking turns on one device — line up five stones to win, and the colours swap each time you play again"
+    },
+    "thumb": "/gomoku/thumb.webp",
+    "playtime": {
+      "ko": "한 판 5~10분",
+      "en": "5–10 min a round"
+    },
+    "maxMinutes": 10,
+    "daily": false,
+    "solo": false,
+    "category": "two-player",
+    "released": "2026-09-05",
+    "tags": [
+      "board",
+      "strategy",
+      "two-player",
+      "party"
+    ]
   }
 ]

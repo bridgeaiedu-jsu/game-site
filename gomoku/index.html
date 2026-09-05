@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오목 한판 — 한 기기에서 번갈아 두는 2인용 오목 | Gomoku</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 2인용 오목. 15줄 판에서 흑이 먼저 두고, 가로·세로·대각 어느 방향으로든 다섯 알을 먼저 이으면 이깁니다. 여섯 알 이상도 승리로 봅니다(자유 오목). 무르기 한 번, 마지막 수 표시, 다시 하기를 누르면 흑백이 바뀌어 선공을 번갈아 갖습니다. Two players, one device, five in a row.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="오목 한판 — 한 기기에서 번갈아 두는 2인용 오목 | Gomoku">
+<meta property="og:description" content="기기 하나를 사이에 두고 번갈아 둡니다. 먼저 다섯 알을 이으면 이깁니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/gomoku/">
+<link rel="canonical" href="https://hanpango.com/gomoku/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="hp-ga-disclosure" content="game_start:game; game_end:result,moves,ms; lang_switch:lang">
+<meta name="hp-ga-labels" content="game=어느 게임인지|which game; result=판이 끝난 방식|how the game ended; moves=둔 수|stones played; ms=걸린 시간(밀리초)|elapsed milliseconds; lang=언어|language">
+<!-- ★링크에 담긴 수열을 주소에서 즉시 걷어낸다(광고·분석 스크립트보다 먼저 실행되는 자리다).
+     HTML 파서는 문서에 적힌 순서대로 스크립트를 실행하므로, 아래 광고 스크립트가 location.href 를 읽는
+     시점에는 주소에 이미 수열(#p=…)이 없다 — 경합이 아니라 순서 계약이다.
+     걷어낸 값은 window.__gmPayload 에만 남고, 본문 스크립트가 그 값으로 판을 만든다.
+     ★이 블록은 아래 ADSENSE·GA4 태그보다 반드시 위에 있어야 한다(자리를 옮기면 유출이 되살아난다).
+     (사다리타기 ladder/index.html 의 같은 배선을 본보기로 삼았다.) -->
+<!-- data-cfasync="false" — Cloudflare Rocket Loader 가 켜지면 일반 script 실행을 window.onload 로
+     미루는데, 그러면 이 인라인이 광고 스크립트보다 먼저 돈다는 순서 계약 자체가 무너진다. -->
+<script data-cfasync="false">
+  window.__gmPayload = null;
+  /* ★제거는 한 곳에서만 한다 — 최초 파싱 때도, 이미 열린 탭에서 주소만 #p=… 로 바뀔 때도 이 함수가 돈다. */
+  window.__gmTakeHash = function(){
+    try {
+      /* ★값 전체를 집는다(& 앞까지) — 허용 글자만 집으면 깨진 링크가 조용히 잘려
+         ★합법인 다른 판이 된다. 합법성은 디코더 한 곳에서만 판정한다. */
+      var m = /(?:^|[#&])p=([^&]*)/.exec(location.hash || '');
+      if (!m) return null;
+      history.replaceState(null, '', location.pathname + location.search);
+      window.__gmPayload = m[1];
+      return m[1];
+    } catch (e) { return null; }
+  };
+  window.__gmTakeHash();
+  (function(){
+    var relay = function(){
+      var p = window.__gmTakeHash();
+      if (!p) return;
+      try { window.dispatchEvent(new CustomEvent('gm:payload', { detail: p })); }
+      catch (e) {
+        var ev = document.createEvent('Event'); ev.initEvent('gm:payload', false, false);
+        window.dispatchEvent(ev);
+      }
+    };
+    window.addEventListener('hashchange', relay);
+    window.addEventListener('popstate', relay);
+  })();
+</script>
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"오목 한판","alternateName":"Gomoku","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본. 다크는 아래 @media 에서 같은 이름의 값만 바꿔 끼운다 — 마크업은 두 테마가 동일하다.
+     ★이 게임에서 색은 판과 크롬의 것이고, ★돌은 색 토큰을 쓰지 않는다. 흑돌·백돌은 테마가 바뀌어도
+       같은 흑과 백이어야 한다 — 다크에서 흑돌이 밝아지면 그것은 더 이상 흑돌이 아니다.
+     ★분류가 색을 정한다(색 규약 2026-09-05 · 오너 승인) — 이 게임의 분류는 ★2인용이고 그 기준색은
+       pink #db2777 이다. 다만 같은 분류의 「같이 한판」이 그 기준색을 이미 쓰므로, 이 게임은
+       ★같은 색상(hue)의 변주를 받는다(규약 검사1 은 색상 2도 이내, 검사4 는 두 게임의 --sig 가
+       CIEDE2000 5.0 이상으로 갈릴 것을 요구한다). 값은 눈으로 고르지 않고 tools/palette_gen.py 가
+       정본(tools/palette_by_category.json)을 읽어 산출한 것을 그대로 옮겼다.
+     ★대비비는 눈으로 정하지 않고 잰다. 아래는 이 파일의 실제 배경 토큰에 대고 잰 값이다
+       (라이트 배경 #ffffff · 판 #f6f7f9 / 다크 배경 #0c0a24 · 판 #191540):
+         라이트  sig-on-bg 6.06 · ink-on-bg 10.19 · ink-on-soft 7.98 · on-sig 6.06
+         다크    sig-on-bg 5.43 · ink-on-bg 8.54 · ink-on-soft 5.79 · on-sig 4.98
+     ★판(--pad 계열)은 ★두 테마가 같은 하나다 — 바둑판은 방의 조명에 따라 색이 바뀌지 않고,
+       무엇보다 ★두 돌이 함께 읽혀야 한다. 처음에는 라이트에 옅은 분홍(#fdf2f8) · 다크에 짙은
+       자주(#2a0f22)를 썼는데, 360px 실캡처를 보고 재니 ★라이트에서 백돌 1.05 · 다크에서 흑돌
+       1.02 로 테마마다 한쪽 돌이 판에 잠겼다. 오목은 판 위의 돌을 읽는 게임이라 그건 취향이
+       아니라 결함이다. 조심하는 대신 ★구조로 막는다 — 판을 두 돌 사이의 중간 톤으로 옮겼다(실측):
+         판 #ab6383   흑돌 4.14 · 백돌 4.18 · 줄 #2b121d 4.01
+       분류색(2인용 pink)은 판의 색조(hue 333)와 테두리·대문 카드 띠가 계속 말한다.
+       (줄은 칸 경계라 뜻을 지니는 UI 다 — 3.0 이상이어야 한다)
+       검사는 이 숫자를 베끼지 않고 ★소스에서 읽어 다시 계산한다(tools/check_palette.py). */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#ba1f64; --sig-ink:#7d1543; --sig-soft:#f9dce9; --on-sig:#ffffff;
+    --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
+    --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
+    --pad:#ab6383; --pad-line:#2b121d; --pad-ink:#2b121d;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+    /* ★돌은 테마와 무관한 고정색이다(위 주석 참조) */
+    --stone-b:#15171c; --stone-b-edge:#000000; --stone-w:#fbfbf9; --stone-w-edge:#9aa0a6;
+    --mark-on-b:#ffffff; --mark-on-w:#111827;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#e25393; --sig-ink:#ec90b9; --sig-soft:#5a1634; --on-sig:#111827;
+      --good:#34d399; --good-ink:#bbf7d0; --good-soft:#14532d;
+      --warn:#fbbf24; --bad:#fca5a5; --bad-ink:#fecaca; --bad-soft:#4c1d1d;
+      --pad:#ab6383; --pad-line:#2b121d; --pad-ink:#2b121d;
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em;flex:1 1 auto;min-width:0;line-height:1.2}
+  h1 small{display:block;color:var(--muted);font-weight:400;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-btns{display:flex;gap:6px;flex:0 0 auto}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer;white-space:nowrap}
+  .ibtn:active{transform:scale(.96)}
+  .ibtn[disabled]{opacity:.45;cursor:default}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}
+  .ad-rect{width:300px;height:250px;margin:10px auto}
+  main{width:100%;max-width:520px;padding:4px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  /* ---- ★차례 줄 · 두 사람이 같은 화면을 본다 ------------------------------------
+     헷갈리면 그대로 오조작이다. 그래서 차례는 ①돌 그림 ②'흑/백' 글자 ③자리 번호 세 가지로
+     동시에 말한다 — 색맹이거나 화면이 어둡거나 글자를 못 읽어도 최소 하나는 남는다. */
+  .gb-bar{width:100%;max-width:520px;display:flex;align-items:center;gap:10px;padding:8px 12px;
+       background:var(--panel);border:1px solid var(--line);border-radius:12px}
+  .gb-bar.gb-over{background:var(--sig-soft);border-color:var(--sig)}
+  /* ★차례 표시의 돌 그림은 판이 아니라 크롬 위에 놓인다 — 다크의 짙은 판(--panel #191540) 위에서
+     흑돌(#15171c)은 대비 1.1 로 잠긴다. 그래서 판과 같은 중간 톤(--pad)으로 ★고리를 둘러
+     어느 크롬 위에서도 두 돌이 같은 값(흑 4.14 · 백 4.18)으로 읽히게 한다. */
+  .gb-dot{width:26px;height:26px;border-radius:50%;flex:none;box-shadow:0 0 0 3px var(--pad),0 1px 2px var(--shadow)}
+  .gb-dot.b{background:var(--stone-b);border:1px solid var(--stone-b-edge)}
+  .gb-dot.w{background:var(--stone-w);border:1px solid var(--stone-w-edge)}
+  .gb-dot.none{background:transparent;border:2px dashed var(--line);box-shadow:none}
+  .gb-turn{font-size:.98rem;font-weight:700;flex:1 1 auto;min-width:0;line-height:1.25}
+  .gb-turn small{display:block;font-weight:400;font-size:.74rem;color:var(--muted)}
+  .gb-count{font-size:.74rem;color:var(--muted);flex:0 0 auto;text-align:right;font-variant-numeric:tabular-nums;line-height:1.3}
+  /* ---- ★판 ---------------------------------------------------------------------
+     오목은 ★교차점에 둔다. 그래서 판을 이렇게 짠다:
+       · 칸(버튼) 225개가 판을 빈틈없이 덮고, 각 칸의 ★중심이 곧 교차점이다.
+       · 줄은 칸 위에 따로 깔되 위아래·좌우로 ★반 칸씩 들여 그린다 — 그러면 줄이 칸 중심을 지난다.
+         (반 칸 = 판의 1/30 · 줄 간격 = 판의 1/15 = 칸 하나)
+       · 줄은 pointer-events:none 이라 누르는 것은 언제나 칸이다.
+     ★칸을 정사각으로 유지하는 것은 aspect-ratio 하나가 한다 — 폭·높이를 두 번 적으면 어긋난다. */
+  .gb-wrap{width:100%;max-width:min(100%,520px);position:relative}
+  .gb-board{position:relative;width:100%;aspect-ratio:1;background:var(--pad);
+       border:2px solid var(--pad-line);border-radius:10px;overflow:hidden;touch-action:manipulation}
+  .gb-lines{position:absolute;inset:calc(100% / 30);pointer-events:none;
+       border:1px solid var(--pad-line);
+       background-image:linear-gradient(to right,var(--pad-line) 1px,transparent 1px),
+                        linear-gradient(to bottom,var(--pad-line) 1px,transparent 1px);
+       background-size:calc(100% / 14) calc(100% / 14)}
+  .gb-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr)}
+  .gb-cell{position:relative;padding:0;margin:0;border:0;background:transparent;cursor:pointer;
+       font:inherit;color:inherit;display:block;min-width:0;min-height:0;touch-action:manipulation}
+  .gb-cell:focus-visible{outline:3px solid var(--sig);outline-offset:-3px;border-radius:4px;z-index:4}
+  /* 화점(별) — 빈 교차점일 때만 보인다 */
+  .gb-cell.star::before{content:"";position:absolute;left:50%;top:50%;width:22%;height:22%;
+       transform:translate(-50%,-50%);border-radius:50%;background:var(--pad-line);opacity:.85}
+  .gb-cell.b::before,.gb-cell.w::before{display:none}
+  /* 돌 — 칸 중심에 놓인다 */
+  .gb-cell.b::after,.gb-cell.w::after{content:"";position:absolute;left:50%;top:50%;width:84%;height:84%;
+       transform:translate(-50%,-50%);border-radius:50%;box-shadow:0 1px 2px var(--shadow)}
+  .gb-cell.b::after{background:radial-gradient(circle at 34% 30%,#4a4f5a 0%,var(--stone-b) 58%);border:1px solid var(--stone-b-edge)}
+  .gb-cell.w::after{background:radial-gradient(circle at 34% 30%,#ffffff 0%,var(--stone-w) 62%);border:1px solid var(--stone-w-edge)}
+  /* ★마지막 수 — 돌 위의 작은 표식. 색이 아니라 ★모양(가운데 점)으로 말한다 */
+  .gb-mark{position:absolute;left:50%;top:50%;width:26%;height:26%;transform:translate(-50%,-50%);
+       border-radius:50%;z-index:3;pointer-events:none}
+  .gb-cell.b .gb-mark{background:var(--mark-on-b)}
+  .gb-cell.w .gb-mark{background:var(--mark-on-w)}
+  /* ★이긴 줄 — 다섯 알에 테두리를 두른다. 색이 아니라 ★굵은 테와 크기로도 갈린다 */
+  .gb-cell.win::after{outline:3px solid var(--sig);outline-offset:1px}
+  .gb-board.gb-done .gb-cell{cursor:default}
+  .gb-help{color:var(--muted);font-size:.78rem;text-align:center;margin:0;max-width:32em}
+  .gb-acts{display:flex;gap:6px;width:100%;max-width:520px;padding:0 2px}
+  .gb-acts .ibtn{flex:1;padding:9px 8px;font-size:.85rem}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card-box h2{margin:0 0 6px;font-size:1.5rem}
+  .card-box .big{font-size:2rem;font-weight:800;color:var(--sig-ink);line-height:1.15}
+  .card-box .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card-box .reason{font-size:.95rem;font-weight:600;margin:2px 0 6px;min-height:1.2em;color:var(--muted-2)}
+  .card-box .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .hp-stat[hidden]{display:none!important}
+  .card-box .hp-stat b{font-weight:600}
+  /* ★결과 문안은 두 사람이 마주 본 채로 읽는다 — 위쪽 사람 몫을 180도 돌려 한 벌 더 둔다 */
+  .gb-mirror{transform:rotate(180deg);background:var(--sig-soft);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:12px}
+  .gb-mirror .big{font-size:1.5rem}
+  .stats3{display:flex;gap:6px;margin:10px 0 4px}
+  .stats3 div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .stats3 b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums;word-break:keep-all}
+  .stats3 span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[hidden]{display:none}
+  .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  section.content a{color:var(--muted-2)}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center;max-width:520px}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(84px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  @media (max-width:400px){
+    header .ibtn .lbl{display:none}
+    header .ibtn{padding:5px 8px}
+    .gb-turn{font-size:.9rem}
+  }
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  @media (prefers-reduced-motion: reduce){
+    .toast{transition:none}
+    .btn:active,.ibtn:active{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">오목 한판</span> <small id="subtitle" data-i18n="subtitle">한 기기에서 번갈아 두는 2인용 오목</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 <span class="lbl">다른 게임</span></a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<main>
+  <!-- ★차례 줄 -->
+  <div class="gb-bar" id="bar">
+    <span class="gb-dot none" id="turnDot" aria-hidden="true"></span>
+    <span class="gb-turn"><span id="turnText">–</span><small id="turnSub">–</small></span>
+    <span class="gb-count" id="countText">–</span>
+  </div>
+
+  <div class="gb-wrap">
+    <div class="gb-board" id="board">
+      <div class="gb-lines" aria-hidden="true"></div>
+      <div class="gb-grid" id="grid" role="grid" aria-label="오목판"></div>
+    </div>
+  </div>
+
+  <div class="gb-acts">
+    <button class="ibtn" id="btnUndo" type="button">↩ 무르기 (1회)</button>
+    <button class="ibtn" id="btnNew" type="button">새 판</button>
+    <button class="ibtn" id="btnLink" type="button">🔗 이어두기 링크</button>
+  </div>
+
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="gb-help" id="help" data-i18n="hint">가로·세로·대각선 어느 방향으로든 <strong>다섯 알</strong>을 먼저 이으면 이깁니다 · 여섯 알 이상도 승리입니다</p>
+</main>
+
+<!-- 결과 -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card-box">
+    <!-- ★위쪽 사람 몫 · 같은 값을 180도 돌려 한 벌 더 적는다(둘이 마주 본 채로 읽는다) -->
+    <div class="gb-mirror"><div class="big" id="finalBigTop">–</div><div class="reason" id="finalLineTop"></div></div>
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <div class="big" id="finalBig">–</div>
+    <div class="reason" id="finalLine"></div>
+    <div class="stats3">
+      <div><b id="nMoves">0</b><span data-i18n="movesLbl">둔 수</span></div>
+      <div><b id="nTime">–</b><span data-i18n="timeLbl">걸린 시간</span></div>
+      <div><b id="nNext">–</b><span data-i18n="nextLbl">다음 판 선공</span></div>
+    </div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기 (선공 교대)</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
+    <button class="btn ghost" id="btnBoard" data-i18n="viewBoard">🔍 판 보기</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- 시작 -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card-box">
+    <h2 id="startTitle" data-i18n="title2">오목 한판</h2>
+    <div class="sub" data-i18n="startSub">기기 하나를 사이에 두고 두 사람이 <strong>번갈아</strong> 둡니다. <strong>흑이 먼저</strong>입니다.<br>가로·세로·대각선으로 <strong>다섯 알</strong>을 먼저 이으면 그 자리에서 이깁니다.</div>
+    <button class="btn primary" id="btnStart" data-i18n="startBtn">⚫ 둘이 한판</button>
+    <p class="sub" id="startHint" style="margin:6px 0 0"></p>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.gomoku.today">–</b>판 · 누적 <b data-hp="plays.gomoku.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">기기 하나를 가운데 놓고 두 사람이 번갈아 둡니다. 판은 가로세로 <strong>15줄</strong>이고 돌은 칸이 아니라 <strong>줄이 만나는 점</strong>에 놓입니다. 화면의 아무 교차점이나 누르면 그 자리에 지금 차례의 돌이 놓입니다. <strong>흑이 먼저</strong> 두고, 그다음부터 한 번씩 번갈아 둡니다.</p>
+  <p data-i18n="how2">가로·세로·대각선 어느 방향으로든 <strong>같은 색 다섯 알</strong>을 먼저 이으면 그 자리에서 이깁니다. 다섯을 넘겨 여섯 알, 일곱 알이 이어져도 <strong>승리</strong>입니다(장목을 인정하는 자유 오목입니다). 사이에 상대 돌이 끼거나 한 칸이라도 비면 이어진 것이 아닙니다. 225개 자리가 모두 차면 무승부입니다.</p>
+  <p data-i18n="how3"><strong>무르기</strong>는 한 판에 한 번, <strong>직전 한 수</strong>만 되돌립니다 — 손이 미끄러진 자리를 구제하려는 것이지 수를 물리며 두는 게임이 아니기 때문입니다. 판이 끝난 뒤에는 무를 수 없습니다. 방금 둔 자리에는 <strong>작은 점</strong>이 찍혀 상대가 어디에 두었는지 바로 보입니다.</p>
+  <p data-i18n="how4">키보드로도 둘 수 있습니다. 화살표로 교차점을 옮기고 Enter 나 Space 로 놓습니다. 판을 읽어 주는 안내는 화면 낭독기에도 그대로 전달됩니다.</p>
+  <h2 data-i18n="fairTitle">흑이 유리한 문제</h2>
+  <p data-i18n="fairDesc">금수 없는 자유 오목은 <strong>흑이 유리합니다</strong> — 먼저 두는 쪽이 한 수를 앞서기 때문입니다. 이 게임은 그 불균형을 복잡한 금지 규칙으로 막지 않고 <strong>선공을 번갈아 갖는 것</strong>으로 갚습니다. <strong>다시 하기</strong>를 누르면 흑과 백이 바뀝니다. 그래서 한 판이 아니라 <strong>두 판이 한 벌</strong>입니다. 규칙을 모르는 사람이 자기 수가 왜 막히는지 몰라 당황하는 것보다, 설명 없이 바로 두고 다음 판에 자리를 바꾸는 편이 낫다고 보았습니다.</p>
+  <h2 data-i18n="tipsTitle">요령</h2>
+  <details><summary data-i18n="tip1q">열린 넷을 만드세요</summary><p data-i18n="tip1a">양쪽 끝이 모두 비어 있는 넷은 상대가 한쪽을 막아도 다른 쪽으로 다섯이 됩니다. 반대로 한쪽이 막힌 넷은 남은 한 자리만 막히면 끝납니다. 넷을 만들 때 <strong>양 끝이 비어 있는지</strong>부터 보세요.</p></details>
+  <details><summary data-i18n="tip2q">셋을 방치하지 마세요</summary><p data-i18n="tip2a">양쪽이 열린 셋은 다음 수에 열린 넷이 됩니다. 그때는 이미 늦습니다. 상대의 <strong>열린 셋</strong>은 넷이 되기 전에 한쪽 끝을 막는 것이 정석입니다.</p></details>
+  <details><summary data-i18n="tip3q">두 방향을 동시에 노리세요</summary><p data-i18n="tip3a">한 수가 가로로도 셋, 대각으로도 셋을 만들면 상대는 한 곳밖에 막지 못합니다. 좋은 수는 대개 <strong>여러 줄이 겹치는 자리</strong>에 있습니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">혼자서도 할 수 있나요?</summary><p data-i18n="faq1a">이 게임은 <strong>2인용</strong>입니다. 컴퓨터 상대는 넣지 않았습니다 — 오목의 인공지능은 대충 만들면 너무 약해 재미가 없고, 제대로 만들면 사람이 거의 못 이깁니다. 그 사이를 맞추는 것은 이 판과는 다른 크기의 일이라 따로 다루려고 합니다. 지금은 혼자 두며 수를 연습하는 용도로 쓰셔도 됩니다 — 판은 두 손을 구별하지 않습니다.</p></details>
+  <details><summary data-i18n="faq2q">삼삼·사사 같은 금수는 왜 없나요?</summary><p data-i18n="faq2a">렌주 규칙의 금수(흑의 3-3·4-4·장목)는 흑의 유리함을 규칙으로 깎는 방법입니다. 다만 그 규칙을 모르는 사람은 <strong>자기 수가 왜 거부되는지</strong> 알 수 없습니다. 이 사이트는 설명 없이 바로 시작하는 것을 원칙으로 삼기 때문에, 금수 대신 <strong>선공 교대</strong>로 균형을 맞췄습니다.</p></details>
+  <details><summary data-i18n="faq3q">여섯 알이 이어져도 이긴 건가요?</summary><p data-i18n="faq3a">네. 이 게임은 <strong>다섯 알 이상</strong>이면 승리로 봅니다(자유 오목). 렌주에서는 흑의 여섯 알(장목)을 반칙으로 보지만, 여기서는 금수를 쓰지 않으므로 장목도 그대로 승리입니다. 다섯이 되는 순간 판이 끝나므로 여섯이 되는 경우는 드뭅니다 — 이미 넷이 있던 줄에 끼워 넣어 한 번에 여섯을 만들 때 일어납니다.</p></details>
+  <details><summary data-i18n="faq4q">무르기가 한 번뿐인 이유는요?</summary><p data-i18n="faq4a">무르기는 <strong>잘못 누른 손</strong>을 구제하려는 것입니다. 몇 번이든 무를 수 있으면 상대의 응수를 보고 자기 수를 고치는 것이 되어 오목이 아니게 됩니다. 그래서 한 판에 한 번, <strong>직전 한 수</strong>만 되돌립니다. <strong>판이 끝난 뒤에도 무를 수 없습니다</strong> — 이 게임의 약속은 <strong>이겼으면 반드시 이겼다고 말한다</strong>인데, 이긴 수를 되돌릴 수 있으면 승리가 취소될 수 있다는 뜻이 되어 그 약속이 뜻을 잃습니다. 진 쪽이 이긴 수를 무르는 것은 오목이 아닙니다.</p></details>
+  <details><summary data-i18n="faq5q">기록은 어디에 저장되나요?</summary><p data-i18n="faq5a">이 게임은 판을 저장하지 않습니다. 기기의 브라우저에 남는 것은 <strong>효과음 켜짐/꺼짐</strong>과 <strong>언어 설정</strong>뿐입니다. 서버로는 판수 집계와 함께 어느 게임인지·판이 끝난 방식·둔 수·걸린 시간 같은 플레이 통계가, 그리고 언어를 바꾸면 그 사실이 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a>에 최신 목록으로 유지합니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 오목 한판 · 개인정보: 이 게임은 설정만 기기에 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·판정에는 관여하지 않는다. 태그가 아직 실리지 않았거나 차단됐으면 조용히 지나간다. */
+const GA_GAME = 'gomoku';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ======================= 판의 규격(순수 상수) ======================= */
+const N = 15;                    /* 15x15 — 줄이 만나는 점 225개 */
+const CELLS = N * N;
+const WIN_LEN = 5;               /* ★정확히 5 가 아니라 5 '이상' 이 승리다(장목 인정 · 자유 오목) */
+const EMPTY = 0, BLACK = 1, WHITE = 2;
+/* 네 방향만 본다 — 반대 방향은 같은 줄이라 따로 보지 않는다(runThrough 가 양쪽으로 뻗는다) */
+const DIRS = [[1, 0], [0, 1], [1, 1], [1, -1]];
+/* 화점(별) — 15줄 판의 관례 자리(3·7·11 교차) */
+const STARS = [3, 7, 11].flatMap(y => [3, 7, 11].map(x => y * N + x));
+const UNDO_MAX = 1;              /* ★한 판에 한 번 · 직전 한 수만(오조작 구제) */
+
+/* =======================================================================
+   ★승리 판정 — 이 게임의 전부다.
+   계약: **이겼다고 말할 때만 이겼고, 이겼으면 반드시 이겼다고 말한다.**
+
+   아래 세 함수는 화면도 상태도 건드리지 않는 ★순수 함수다. 판(배열)과 방금 둔 자리를 받아
+   이어진 줄을 돌려준다. 판정을 순수하게 떼어 놓는 이유는 검사가 화면이 아니라 ★함수를 재기
+   위해서다(티켓 4-가).
+
+   ★거짓 양성이 거짓 음성보다 나쁘다. 안 이겼는데 이겼다고 하면 게임이 그 자리에서 끝난다.
+   그래서 세는 방법을 이렇게 못박는다:
+     ① 자리는 언제나 (x, y) 로 다룬다. 칸 번호(idx)에 ±1 을 더해 가로를 세면 판의 오른쪽 끝에서
+        다음 줄 왼쪽으로 ★넘어가 이어진 것처럼 보인다 — 판 가장자리에서 나는 대표적인 거짓 양성이다.
+        idxAt() 이 x·y 를 ★둘 다 검사하므로 그 경로가 없다.
+     ② 뻗어 나가다 ★다른 색이나 빈 자리를 만나면 즉시 멈춘다. 그래서 끊긴 줄(●●●○●●)도,
+        상대 돌이 낀 줄도 이어진 것으로 세지 않는다.
+     ③ 길이가 WIN_LEN ★이상일 때 승리다. '정확히 5' 로 적으면 여섯 알(장목)이 승리에서 빠진다 —
+        이 규칙에서 장목은 승리이므로 그것은 거짓 음성이다.
+   ======================================================================= */
+const inBoard = (x, y) => x >= 0 && y >= 0 && x < N && y < N;
+const idxAt = (x, y) => (inBoard(x, y) ? y * N + x : -1);
+const xOf = i => i % N;
+const yOf = i => (i / N) | 0;
+
+/* 방금 둔 자리를 지나는 한 방향의 연속된 같은 색 줄 — 양쪽으로 뻗어 모은다(작은 번호부터 정렬된다) */
+function runThrough(board, idx, dx, dy){
+  const stone = board[idx];
+  if (!stone) return [];
+  const x0 = xOf(idx), y0 = yOf(idx);
+  const line = [idx];
+  for (let k = 1; k < N; k++){
+    const j = idxAt(x0 + dx * k, y0 + dy * k);
+    if (j < 0 || board[j] !== stone) break;
+    line.push(j);
+  }
+  for (let k = 1; k < N; k++){
+    const j = idxAt(x0 - dx * k, y0 - dy * k);
+    if (j < 0 || board[j] !== stone) break;
+    line.unshift(j);
+  }
+  return line;
+}
+/* ★마지막에 둔 수를 지나는 줄만 본다 — 그 수 이전에는 이어진 줄이 없었으므로 충분하다 */
+function winLineAt(board, idx){
+  if (!(idx >= 0 && idx < CELLS)) return null;
+  if (!board[idx]) return null;
+  for (const [dx, dy] of DIRS){
+    const line = runThrough(board, idx, dx, dy);
+    if (line.length >= WIN_LEN) return { stone: board[idx], dir: [dx, dy], line };
+  }
+  return null;
+}
+/* 판 전체를 훑어 이어진 줄을 찾는다 — 링크로 받은 수열을 되짚을 때처럼 '마지막 수' 가 없는 자리에서 쓴다 */
+function anyWinLine(board){
+  for (let i = 0; i < CELLS; i++){
+    if (!board[i]) continue;
+    const w = winLineAt(board, i);
+    if (w) return w;
+  }
+  return null;
+}
+
+/* ======================= i18n(UI) ======================= */
+const I18N = {
+  ko: {
+    docTitle:'오목 한판 — 한 기기에서 번갈아 두는 2인용 오목 | Gomoku',
+    title:'오목 한판', title2:'오목 한판', subtitle:'한 기기에서 번갈아 두는 2인용 오목',
+    home:'🏠 <span class="lbl">다른 게임</span>', langBtn:'EN',
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    result:'결과', again:'다시 하기 (선공 교대)', share:'결과 공유', viewBoard:'🔍 판 보기',
+    startBtn:'⚫ 둘이 한판', newGame:'새 판',
+    undo:'↩ 무르기 (1회)', undoLeft:n => `↩ 무르기 (${n}회)`, undoNone:'↩ 무르기 (다 씀)',
+    linkBtn:'🔗 이어두기 링크', linkCopied:'링크를 복사했습니다 — 상대에게 보내세요',
+    linkEmpty:'한 수라도 두어야 링크가 생깁니다', linkFail:'복사하지 못했습니다',
+    badLink:'링크를 읽을 수 없어 판을 만들지 않았습니다', linkAdopted:'받은 판을 이어서 둡니다',
+    turnOfLink:stone => `${stone} 차례 — 당신 차례입니다`,
+    winTitleLink:stone => `${stone} 승리`,
+    undoNotYours:'받은 수는 무를 수 없습니다 — 내가 둔 수만 무릅니다',
+    linkSub:'이 링크를 보내면 상대가 그 판을 이어서 둡니다',
+    startSub:'기기 하나를 사이에 두고 두 사람이 <strong>번갈아</strong> 둡니다. <strong>흑이 먼저</strong>입니다.<br>가로·세로·대각선으로 <strong>다섯 알</strong>을 먼저 이으면 그 자리에서 이깁니다.',
+    startHint:'설명은 필요 없습니다 — 누르면 그 자리에 돌이 놓입니다',
+    hint:'가로·세로·대각선 어느 방향으로든 <strong>다섯 알</strong>을 먼저 이으면 이깁니다 · 여섯 알 이상도 승리입니다',
+    statPlays:'오늘 <b data-hp="plays.gomoku.today">–</b>판 · 누적 <b data-hp="plays.gomoku.total">–</b>판',
+    movesLbl:'둔 수', timeLbl:'걸린 시간', nextLbl:'다음 판 선공',
+    black:'흑', white:'백',
+    turnOf:(stone, who) => `${stone} 차례 — ${who}`,
+    playerNo:n => `${n}번`,
+    turnSubPlay:'교차점을 누르면 그 자리에 놓입니다',
+    turnSubOver:'다시 하기를 누르면 흑백이 바뀝니다',
+    countLine:(moves, left) => `${moves}수 · 남은 자리 ${left}`,
+    winTitle:(stone, who) => `${stone} 승리 — ${who}`,
+    drawTitle:'무승부',
+    winLine:(len, dir) => `${dir} ${len}목`,
+    drawLine:'225자리가 모두 찼습니다',
+    dirRow:'가로', dirCol:'세로', dirDiag:'대각(↘)', dirAnti:'대각(↗)',
+    nextBlack:who => `${who} (흑)`,
+    secText:s => `${s}초`, minText:(m, s) => `${m}분 ${s}초`,
+    finalSub:'다시 하기를 누르면 흑백이 바뀝니다 — 두 판이 한 벌입니다',
+    occupied:'이미 돌이 있는 자리입니다',
+    endedMsg:'판이 끝났습니다 — 다시 하기를 누르세요',
+    undoUsed:'무르기는 한 판에 한 번뿐입니다',
+    undoEmpty:'되돌릴 수가 없습니다',
+    undoEnded:'판이 끝난 뒤에는 무를 수 없습니다',
+    undoDone:s => `${s} 한 수를 물렀습니다`,
+    newAsk:'지금 판을 지우고 새로 시작할까요?',
+    copied:'결과를 복사했습니다',
+    shareWin:(stone, who, moves) => `오목 한판\n${stone} 승리 (${who}) · ${moves}수\n`,
+    shareDraw:moves => `오목 한판\n무승부 · ${moves}수\n`,
+    cellLabel:(col, row, what) => `${col}열 ${row}행, ${what}`,
+    cellEmpty:'빈 자리', cellBlack:'흑돌', cellWhite:'백돌',
+    sayPlaced:(stone, col, row) => `${stone} ${col}열 ${row}행`,
+    sayTurn:stone => `${stone} 차례`,
+    sayWin:(stone, who, len) => `${stone} 승리, ${who}, ${len}목`,
+    sayDraw:'무승부',
+    ariaSoundOn:'효과음 끄기', ariaSoundOff:'효과음 켜기', ariaLang:'언어 바꾸기', ariaHome:'다른 게임 보러 가기',
+    ariaBoard:'오목판',
+    howTitle:'게임 방법', fairTitle:'흑이 유리한 문제', tipsTitle:'요령', faqTitle:'자주 묻는 질문',
+    how1:'기기 하나를 가운데 놓고 두 사람이 번갈아 둡니다. 판은 가로세로 <strong>15줄</strong>이고 돌은 칸이 아니라 <strong>줄이 만나는 점</strong>에 놓입니다. 화면의 아무 교차점이나 누르면 그 자리에 지금 차례의 돌이 놓입니다. <strong>흑이 먼저</strong> 두고, 그다음부터 한 번씩 번갈아 둡니다.',
+    how2:'가로·세로·대각선 어느 방향으로든 <strong>같은 색 다섯 알</strong>을 먼저 이으면 그 자리에서 이깁니다. 다섯을 넘겨 여섯 알, 일곱 알이 이어져도 <strong>승리</strong>입니다(장목을 인정하는 자유 오목입니다). 사이에 상대 돌이 끼거나 한 칸이라도 비면 이어진 것이 아닙니다. 225개 자리가 모두 차면 무승부입니다.',
+    how3:'<strong>무르기</strong>는 한 판에 한 번, <strong>직전 한 수</strong>만 되돌립니다 — 손이 미끄러진 자리를 구제하려는 것이지 수를 물리며 두는 게임이 아니기 때문입니다. 판이 끝난 뒤에는 무를 수 없습니다. 방금 둔 자리에는 <strong>작은 점</strong>이 찍혀 상대가 어디에 두었는지 바로 보입니다.',
+    how4:'키보드로도 둘 수 있습니다. 화살표로 교차점을 옮기고 Enter 나 Space 로 놓습니다. 판을 읽어 주는 안내는 화면 낭독기에도 그대로 전달됩니다.',
+    fairDesc:'금수 없는 자유 오목은 <strong>흑이 유리합니다</strong> — 먼저 두는 쪽이 한 수를 앞서기 때문입니다. 이 게임은 그 불균형을 복잡한 금지 규칙으로 막지 않고 <strong>선공을 번갈아 갖는 것</strong>으로 갚습니다. <strong>다시 하기</strong>를 누르면 흑과 백이 바뀝니다. 그래서 한 판이 아니라 <strong>두 판이 한 벌</strong>입니다. 규칙을 모르는 사람이 자기 수가 왜 막히는지 몰라 당황하는 것보다, 설명 없이 바로 두고 다음 판에 자리를 바꾸는 편이 낫다고 보았습니다.',
+    tip1q:'열린 넷을 만드세요',
+    tip1a:'양쪽 끝이 모두 비어 있는 넷은 상대가 한쪽을 막아도 다른 쪽으로 다섯이 됩니다. 반대로 한쪽이 막힌 넷은 남은 한 자리만 막히면 끝납니다. 넷을 만들 때 <strong>양 끝이 비어 있는지</strong>부터 보세요.',
+    tip2q:'셋을 방치하지 마세요',
+    tip2a:'양쪽이 열린 셋은 다음 수에 열린 넷이 됩니다. 그때는 이미 늦습니다. 상대의 <strong>열린 셋</strong>은 넷이 되기 전에 한쪽 끝을 막는 것이 정석입니다.',
+    tip3q:'두 방향을 동시에 노리세요',
+    tip3a:'한 수가 가로로도 셋, 대각으로도 셋을 만들면 상대는 한 곳밖에 막지 못합니다. 좋은 수는 대개 <strong>여러 줄이 겹치는 자리</strong>에 있습니다.',
+    faq1q:'혼자서도 할 수 있나요?',
+    faq1a:'이 게임은 <strong>2인용</strong>입니다. 컴퓨터 상대는 넣지 않았습니다 — 오목의 인공지능은 대충 만들면 너무 약해 재미가 없고, 제대로 만들면 사람이 거의 못 이깁니다. 그 사이를 맞추는 것은 이 판과는 다른 크기의 일이라 따로 다루려고 합니다. 지금은 혼자 두며 수를 연습하는 용도로 쓰셔도 됩니다 — 판은 두 손을 구별하지 않습니다.',
+    faq2q:'삼삼·사사 같은 금수는 왜 없나요?',
+    faq2a:'렌주 규칙의 금수(흑의 3-3·4-4·장목)는 흑의 유리함을 규칙으로 깎는 방법입니다. 다만 그 규칙을 모르는 사람은 <strong>자기 수가 왜 거부되는지</strong> 알 수 없습니다. 이 사이트는 설명 없이 바로 시작하는 것을 원칙으로 삼기 때문에, 금수 대신 <strong>선공 교대</strong>로 균형을 맞췄습니다.',
+    faq3q:'여섯 알이 이어져도 이긴 건가요?',
+    faq3a:'네. 이 게임은 <strong>다섯 알 이상</strong>이면 승리로 봅니다(자유 오목). 렌주에서는 흑의 여섯 알(장목)을 반칙으로 보지만, 여기서는 금수를 쓰지 않으므로 장목도 그대로 승리입니다. 다섯이 되는 순간 판이 끝나므로 여섯이 되는 경우는 드뭅니다 — 이미 넷이 있던 줄에 끼워 넣어 한 번에 여섯을 만들 때 일어납니다.',
+    faq4q:'무르기가 한 번뿐인 이유는요?',
+    faq4a:'무르기는 <strong>잘못 누른 손</strong>을 구제하려는 것입니다. 몇 번이든 무를 수 있으면 상대의 응수를 보고 자기 수를 고치는 것이 되어 오목이 아니게 됩니다. 그래서 한 판에 한 번, <strong>직전 한 수</strong>만 되돌립니다. <strong>판이 끝난 뒤에도 무를 수 없습니다</strong> — 이 게임의 약속은 <strong>이겼으면 반드시 이겼다고 말한다</strong>인데, 이긴 수를 되돌릴 수 있으면 승리가 취소될 수 있다는 뜻이 되어 그 약속이 뜻을 잃습니다. 진 쪽이 이긴 수를 무르는 것은 오목이 아닙니다.',
+    faq5q:'기록은 어디에 저장되나요?',
+    faq5a:'이 게임은 판을 저장하지 않습니다. 기기의 브라우저에 남는 것은 <strong>효과음 켜짐/꺼짐</strong>과 <strong>언어 설정</strong>뿐입니다. 서버로는 판수 집계와 함께 어느 게임인지·판이 끝난 방식·둔 수·걸린 시간 같은 플레이 통계가, 그리고 언어를 바꾸면 그 사실이 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a>에 최신 목록으로 유지합니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개',
+    footer:'© 2026 오목 한판 · 개인정보: 이 게임은 설정만 기기에 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.'
+  },
+  en: {
+    docTitle:'Gomoku — two players, one device, five in a row | 오목 한판',
+    title:'Gomoku', title2:'Gomoku', subtitle:'Two players taking turns on one device',
+    home:'🏠 <span class="lbl">More games</span>', langBtn:'한국어',
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    result:'Result', again:'Play again (colours swap)', share:'Share result', viewBoard:'🔍 View the board',
+    startBtn:'⚫ Two-player game', newGame:'New board',
+    undo:'↩ Undo (1 left)', undoLeft:n => `↩ Undo (${n} left)`, undoNone:'↩ Undo (used)',
+    linkBtn:'🔗 Link to continue', linkCopied:'Link copied — send it to the other player',
+    linkEmpty:'Play at least one stone to make a link', linkFail:'Could not copy',
+    badLink:'That link could not be read, so no board was made', linkAdopted:'Continuing the board you received',
+    turnOfLink:stone => `${stone} to play — it is your turn`,
+    winTitleLink:stone => `${stone} wins`,
+    undoNotYours:'You cannot take back a stone you received — only your own',
+    linkSub:'Send this link and the other player continues that board',
+    startSub:'Put one device between you and take turns. <strong>Black moves first</strong>.<br>Line up <strong>five stones</strong> in any direction — across, down or diagonally — and you win on the spot.',
+    startHint:'No instructions needed — tap an intersection and a stone lands there',
+    hint:'Line up <strong>five stones</strong> in any direction to win · six or more also counts',
+    statPlays:'<b data-hp="plays.gomoku.today">–</b> today · <b data-hp="plays.gomoku.total">–</b> all-time',
+    movesLbl:'Stones', timeLbl:'Time', nextLbl:'Black next',
+    black:'Black', white:'White',
+    turnOf:(stone, who) => `${stone} to play — ${who}`,
+    playerNo:n => `Player ${n}`,
+    turnSubPlay:'Tap an intersection to place your stone',
+    turnSubOver:'Play again and the colours swap',
+    countLine:(moves, left) => `${moves} stones · ${left} points left`,
+    winTitle:(stone, who) => `${stone} wins — ${who}`,
+    drawTitle:'Draw',
+    winLine:(len, dir) => `${len} in a row, ${dir}`,
+    drawLine:'All 225 points are filled',
+    dirRow:'across', dirCol:'down', dirDiag:'diagonal (↘)', dirAnti:'diagonal (↗)',
+    nextBlack:who => `${who} (black)`,
+    secText:s => `${s} sec`, minText:(m, s) => `${m} min ${s} sec`,
+    finalSub:'Play again and the colours swap — two games make one set',
+    occupied:'There is already a stone there',
+    endedMsg:'The game is over — press play again',
+    undoUsed:'Undo is once per game',
+    undoEmpty:'There is nothing to take back',
+    undoEnded:'You cannot undo after the game has ended',
+    undoDone:s => `Took back one ${s} stone`,
+    newAsk:'Clear this board and start a new game?',
+    copied:'Result copied',
+    shareWin:(stone, who, moves) => `Gomoku\n${stone} wins (${who}) · ${moves} stones\n`,
+    shareDraw:moves => `Gomoku\nDraw · ${moves} stones\n`,
+    cellLabel:(col, row, what) => `column ${col}, row ${row}, ${what}`,
+    cellEmpty:'empty', cellBlack:'black stone', cellWhite:'white stone',
+    sayPlaced:(stone, col, row) => `${stone}, column ${col}, row ${row}`,
+    sayTurn:stone => `${stone} to play`,
+    sayWin:(stone, who, len) => `${stone} wins, ${who}, ${len} in a row`,
+    sayDraw:'Draw',
+    ariaSoundOn:'Turn sound off', ariaSoundOff:'Turn sound on', ariaLang:'Change language', ariaHome:'Go to the other games',
+    ariaBoard:'Gomoku board',
+    howTitle:'How to play', fairTitle:'Black has the edge', tipsTitle:'Tips', faqTitle:'FAQ',
+    how1:'Put one device between you and take turns. The board is <strong>15 lines</strong> each way and stones sit on the <strong>intersections</strong>, not inside the squares. Tap any intersection and the stone whose turn it is lands there. <strong>Black plays first</strong>, then you alternate one stone at a time.',
+    how2:'Line up <strong>five stones of your colour</strong> in any direction — across, down, or either diagonal — and you win on the spot. Six or seven in a row also <strong>wins</strong>: this is free-style gomoku, where an overline still counts. A line broken by a gap, or with an opposing stone in it, is not a line. If all 225 points fill up, the game is a draw.',
+    how3:'<strong>Undo</strong> is once per game and takes back the <strong>last stone only</strong> — it is there to rescue a slipped finger, not to let you retract moves as a tactic. Once the game has ended nothing can be taken back. The stone just played carries a <strong>small dot</strong> so the other player can see where it went.',
+    how4:'The keyboard works too. Move between intersections with the arrow keys and place a stone with Enter or Space. Everything the board announces is passed to screen readers as well.',
+    fairDesc:'Free-style gomoku, with no forbidden moves, <strong>favours black</strong> — the first player is one move ahead all game. Rather than patching that with a set of prohibitions, this game repays it by <strong>alternating who goes first</strong>. Press <strong>play again</strong> and black and white change hands, so a match is not one game but <strong>a pair</strong>. We would rather you sat down and played immediately than had a move rejected by a rule nobody explained.',
+    tip1q:'Build an open four',
+    tip1a:'A four with both ends empty wins even if your opponent blocks one side, because the other side still makes five. A four with one end already blocked dies to a single stone. Before you commit to a four, check that <strong>both ends are free</strong>.',
+    tip2q:'Never ignore an open three',
+    tip2a:'A three with both ends open becomes an open four next move, and by then it is too late. Block one end of your opponent\u2019s <strong>open three</strong> before it grows.',
+    tip3q:'Threaten in two directions at once',
+    tip3a:'If one stone makes a three across and a three on the diagonal, your opponent can only block one of them. Strong moves usually sit where <strong>several lines cross</strong>.',
+    faq1q:'Can I play on my own?',
+    faq1a:'This is a <strong>two-player</strong> game; there is no computer opponent. A weak gomoku engine is no fun, and a strong one is nearly unbeatable — tuning something in between is a job of its own size, so it is being handled separately. For now you are welcome to play both sides to practise: the board does not tell the two hands apart.',
+    faq2q:'Why are there no forbidden moves like double-three?',
+    faq2a:'Renju forbids black some shapes (double three, double four, overline) to cut back black\u2019s advantage. But a player who does not know those rules cannot tell <strong>why their move was refused</strong>. This site is built to be played without instructions, so instead of prohibitions the balance comes from <strong>swapping who plays first</strong>.',
+    faq3q:'Do six in a row still win?',
+    faq3a:'Yes. Here <strong>five or more</strong> wins (free-style gomoku). Renju treats black\u2019s overline as a foul, but with no forbidden moves in play an overline simply wins. It is rare, because the game ends the moment five appear — six happens when a stone drops into a gap in a line that already held four.',
+    faq4q:'Why only one undo?',
+    faq4a:'Undo exists to rescue a <strong>mistaken tap</strong>. If you could take back any number of moves, you would be revising your play after seeing the reply, and that is no longer gomoku. So it is once per game, and only the <strong>stone just played</strong>. <strong>Nothing can be taken back once the game has ended</strong>, either: this game promises that <strong>when someone has won, it says so</strong>, and a win you could undo would empty that promise. A losing player retracting the winning stone is not gomoku.',
+    faq5q:'Where are my results stored?',
+    faq5a:'This game stores no boards. All that stays in your browser is the <strong>sound on/off</strong> setting and your <strong>language</strong>. What goes to the server is the play counter plus play statistics — which game, how the game ended, how many stones were played and how long it took — and, if you switch language, that fact; none of it identifies you personally. The list of what is stored and what is sent is kept current in the <a href="/privacy/">privacy policy</a>.',
+    navPrivacy:'Privacy policy', navAbout:'About',
+    footer:'© 2026 Gomoku · Privacy: only your settings stay on this device; third-party cookies (Google and others) may be used to serve ads.'
+  }
+};
+let lang = localStorage.getItem('bp.lang') || ((navigator.language || '').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } };
+const nowMs = () => performance.now();
+
+/* ======================= 소리 ======================= */
+let soundOn = localStorage.getItem('gm.sound') !== '0', actx = null;
+function beep(freq, dur = 0.06, type = 'square', gain = 0.04, delay = 0){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const t0 = actx.currentTime + delay;
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(gain, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sPlace = stone => { beep(stone === BLACK ? 420 : 520, .05, 'sine', .035); vib(8); };
+const sBad   = () => { beep(180, .11, 'sawtooth', .03); vib([12, 30, 12]); };
+const sUndo  = () => { beep(300, .07, 'triangle', .035); vib(10); };
+const sWin   = () => { beep(659, .09, 'triangle', .045); beep(988, .14, 'triangle', .04, .09); vib([20, 40, 20]); };
+const sDraw  = () => { beep(392, .12, 'sine', .04); vib(20); };
+
+/* ======================= 판 상태 =======================
+   ★상태의 단일 진실은 ★수열(moves)이다. cells 는 그 수열을 빠르게 읽으려고 함께 들고 다니는
+     파생물이며, 언제나 replay(moves) 와 같아야 한다(검사기가 그 동일성을 잰다).
+     수열을 진실로 두면 무르기·마지막 수 표시·나중의 '링크 이어두기' 가 전부 여기서 따라온다. */
+let cells = new Array(CELLS).fill(EMPTY);
+let moves = [];              /* 착수 순서(칸 번호) — 짝수 번째가 흑이다(흑선) */
+let ended = null;            /* null | 'win' | 'draw' */
+let winInfo = null;          /* { stone, dir, line } */
+let undoLeft = UNDO_MAX;
+let blackPlayer = 1;         /* ★흑을 잡은 사람(1 또는 2) — 다시 하기마다 바뀐다(선공 교대) */
+let started = false;         /* 시작 화면을 지났는가 */
+let runStart = 0, endStamp = 0;
+let cur = 7 * N + 7;         /* 키보드 커서 — 천원(가운데)에서 시작한다 */
+let overShown = true;
+
+let linkMode = false;        /* 받은 링크로 이어 두는 중인가(자리 번호 대신 '당신' 으로 말한다) */
+let baseLen = 0;             /* ★받은 수열의 길이 — 이 아래로는 무를 수 없다(남의 수다) */
+
+const stoneOfTurn = n => (n % 2 === 0 ? BLACK : WHITE);   /* ★흑선: 0번째 수가 흑이다 */
+const turnStone = () => stoneOfTurn(moves.length);
+const playerOf = stone => (stone === BLACK ? blackPlayer : (blackPlayer === 1 ? 2 : 1));
+const stoneName = s => (s === BLACK ? T('black') : T('white'));
+
+/* 수열만으로 판을 다시 만든다 — 파생물(cells)이 진실(moves)에서 벗어나지 않았는지 재는 자리이기도 하다 */
+function replay(list){
+  const b = new Array(CELLS).fill(EMPTY);
+  for (let k = 0; k < list.length; k++) b[list[k]] = stoneOfTurn(k);
+  return b;
+}
+
+
+/* =======================================================================
+   ★링크 이어두기 — 수열이 유일한 상태다.
+   판을 통째로 인코딩하지 않는다. 수열이면 차례·무르기·마지막 수 표시·복기가 전부 공짜로
+   따라오고, 판 인코딩은 그중 아무것도 주지 않는다. 한 수는 0~224 라 ★1바이트면 충분하고
+   (225 < 256), 색은 저장하지 않는다 — 수의 홀짝이 정한다(흑선).
+   60수 = 60바이트 → base64url 80자 남짓(URL 실용 한계 2,000자의 5% 미만).
+
+   ★받은 링크를 믿지 않는다. 남이 만든 URL 이므로 다음을 하나라도 어기면 ★판을 그리지 않고
+   거부한다 — 이건 보안이 아니라 계약이다(불법 수열로 만든 판은 오목이 아니다):
+     ① base64url 이 아니거나 해독되지 않는다     ④ 이미 끝난 판 뒤에 수가 더 있다
+     ② 칸 번호가 판 밖이다(>=225)                ⑤ 수가 하나도 없거나 225를 넘는다
+     ③ 같은 자리에 두 번 두었다
+   ======================================================================= */
+const B64URL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+function b64urlFromBytes(bytes){
+  let out = '';
+  for (let i = 0; i < bytes.length; i += 3){
+    const a = bytes[i], b = bytes[i + 1], c = bytes[i + 2];
+    out += B64URL[a >> 2];
+    out += B64URL[((a & 3) << 4) | ((b === undefined ? 0 : b) >> 4)];
+    if (b === undefined) break;
+    out += B64URL[((b & 15) << 2) | ((c === undefined ? 0 : c) >> 6)];
+    if (c === undefined) break;
+    out += B64URL[c & 63];
+  }
+  return out;
+}
+function bytesFromB64url(str){
+  const bytes = [];
+  let acc = 0, bits = 0;
+  for (const ch of String(str)){
+    const v = B64URL.indexOf(ch);
+    if (v < 0) return null;                 /* ① 알파벳 밖 글자 — 해독하지 않는다 */
+    acc = (acc << 6) | v; bits += 6;
+    if (bits >= 8){ bits -= 8; bytes.push((acc >> bits) & 255); }
+  }
+  if (bits >= 6) return null;               /* ① 남은 비트가 한 글자를 넘는다 = 깨진 문자열 */
+  return bytes;
+}
+function encodeMoves(list){ return b64urlFromBytes(Array.from(list).map(v => v | 0)); }
+/* 돌려주는 것: { ok:true, moves, ended, win } 또는 { ok:false, why } */
+function decodeMoves(payload){
+  const bytes = bytesFromB64url(payload);
+  if (bytes === null) return { ok: false, why: 'base64' };
+  if (!bytes.length) return { ok: false, why: 'empty' };
+  if (bytes.length > CELLS) return { ok: false, why: 'toolong' };
+  const b = new Array(CELLS).fill(EMPTY);
+  let ended = null, win = null;
+  for (let k = 0; k < bytes.length; k++){
+    const idx = bytes[k];
+    if (!(idx >= 0 && idx < CELLS)) return { ok: false, why: 'range' };   /* ② 판 밖 */
+    if (b[idx] !== EMPTY) return { ok: false, why: 'dup' };               /* ③ 겹침 */
+    if (ended) return { ok: false, why: 'afterend' };                     /* ④ 끝난 뒤의 수 */
+    b[idx] = stoneOfTurn(k);
+    const w = winLineAt(b, idx);
+    if (w){ ended = 'win'; win = w; }
+    else if (k + 1 === CELLS){ ended = 'draw'; }
+  }
+  return { ok: true, moves: bytes, ended, win };
+}
+function linkOf(list){
+  const base = (location.origin || '') + (location.pathname || '/gomoku/');
+  return base + '#p=' + encodeMoves(list);
+}
+/* 받은 판을 그대로 이어받는다 — 검증을 통과한 수열만 여기까지 온다 */
+function adopt(payload){
+  const got = decodeMoves(String(payload || ''));
+  if (!got.ok) return got.why;
+  moves = got.moves.slice();
+  cells = replay(moves);
+  ended = got.ended;
+  winInfo = got.win || null;
+  undoLeft = UNDO_MAX;
+  baseLen = moves.length;          /* ★여기까지는 남의 수다 — 무르기가 넘어가지 못한다 */
+  linkMode = true;
+  runStart = nowMs(); endStamp = ended ? nowMs() : 0;
+  cur = moves[moves.length - 1];
+  return null;
+}
+
+/* ======================= 착수 =======================
+   ★규칙 불변식은 전부 이 한 곳을 지난다(티켓 4-나). 거부 사유를 문자열로 돌려주는 이유는
+     검사가 '막혔다' 가 아니라 '왜 막혔다' 까지 확인할 수 있게 하기 위해서다. */
+function place(idx){
+  if (ended) return 'ended';                       /* 판이 끝난 뒤에는 못 둔다 */
+  if (!(Number.isInteger(idx) && idx >= 0 && idx < CELLS)) return 'range';
+  if (cells[idx] !== EMPTY) return 'occupied';     /* 이미 돌이 있는 자리에는 못 둔다 */
+  const stone = turnStone();                       /* 차례는 수열 길이가 정한다 — 따로 세지 않는다 */
+  cells[idx] = stone;
+  moves.push(idx);
+  if (moves.length === 1) runStart = nowMs();
+  const w = winLineAt(cells, idx);                 /* ★판정 — 방금 둔 수를 지나는 줄만 본다 */
+  if (w){ ended = 'win'; winInfo = w; endStamp = nowMs(); }
+  else if (moves.length === CELLS){ ended = 'draw'; winInfo = null; endStamp = nowMs(); }
+  return 'ok';
+}
+
+/* ★무르기 — 한 판에 한 번, 직전 한 수만.
+   ★판이 끝난 뒤에는 쓰지 않는다. 사유는 취향이 아니라 이 게임의 계약이다 —
+   '이겼으면 반드시 이겼다고 말한다' 인데, 이긴 수를 되돌릴 수 있으면 ★승리가 취소될 수 있다는
+   뜻이 되어 그 문장이 뜻을 잃는다. 진 쪽이 이긴 수를 무르는 것은 오목이 아니다.
+   (티켓 T0906 이 명시하지 않은 자리라 worker 가 정하고 master 가 2026-09-05 확정했다.) */
+function undo(){
+  if (ended) return 'ended';
+  if (undoLeft <= 0) return 'used';
+  if (!moves.length) return 'empty';
+  /* ★받은 수열까지 되돌리면 남의 수를 무르는 것이 된다 — 무르기는 내가 둔 수의 구제 수단이다 */
+  if (moves.length <= baseLen) return 'notyours';
+  const idx = moves.pop();
+  cells[idx] = EMPTY;
+  undoLeft--;
+  return 'ok';
+}
+
+/* 새 판 — swap 이 참이면 선공을 교대한다(다시 하기의 계약) */
+function reset(swap){
+  cells = new Array(CELLS).fill(EMPTY);
+  moves = [];
+  ended = null; winInfo = null;
+  undoLeft = UNDO_MAX;
+  runStart = 0; endStamp = 0;
+  cur = 7 * N + 7;
+  linkMode = false; baseLen = 0;
+  if (swap) blackPlayer = (blackPlayer === 1 ? 2 : 1);
+}
+
+/* ======================= 그리기 ======================= */
+const grid = $('grid');
+const cellEls = [];
+for (let i = 0; i < CELLS; i++){
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'gb-cell' + (STARS.indexOf(i) >= 0 ? ' star' : '');
+  b.dataset.i = String(i);
+  b.tabIndex = -1;
+  b.setAttribute('role', 'gridcell');
+  b.addEventListener('pointerdown', ev => { if (ev.button != null && ev.button !== 0) return; onCell(i); });
+  b.addEventListener('keydown', ev => onCellKey(i, ev));
+  grid.appendChild(b);
+  cellEls.push(b);
+}
+
+function paint(){
+  const lineSet = winInfo ? winInfo.line : [];
+  const last = moves.length ? moves[moves.length - 1] : -1;
+  for (let i = 0; i < CELLS; i++){
+    const el = cellEls[i], s = cells[i];
+    el.classList.toggle('b', s === BLACK);
+    el.classList.toggle('w', s === WHITE);
+    el.classList.toggle('win', lineSet.indexOf(i) >= 0);
+    const wantMark = (i === last);
+    const hasMark = el.children.length > 0;
+    if (wantMark && !hasMark){
+      const m = document.createElement('span');
+      m.className = 'gb-mark';
+      m.setAttribute('aria-hidden', 'true');
+      el.appendChild(m);
+    } else if (!wantMark && hasMark){
+      el.textContent = '';
+    }
+    el.tabIndex = (i === cur) ? 0 : -1;
+    const what = s === BLACK ? T('cellBlack') : s === WHITE ? T('cellWhite') : T('cellEmpty');
+    el.setAttribute('aria-label', T('cellLabel', xOf(i) + 1, yOf(i) + 1, what));
+  }
+  paintBar();
+}
+function paintBar(){
+  const dot = $('turnDot'), txt = $('turnText'), sub = $('turnSub'), cnt = $('countText');
+  $('bar').classList.toggle('gb-over', !!ended);
+  if (ended === 'win'){
+    dot.className = 'gb-dot ' + (winInfo.stone === BLACK ? 'b' : 'w');
+    txt.textContent = linkMode ? T('winTitleLink', stoneName(winInfo.stone))
+                               : T('winTitle', stoneName(winInfo.stone), T('playerNo', playerOf(winInfo.stone)));
+    sub.textContent = T('turnSubOver');
+  } else if (ended === 'draw'){
+    dot.className = 'gb-dot none';
+    txt.textContent = T('drawTitle');
+    sub.textContent = T('turnSubOver');
+  } else {
+    const s = turnStone();
+    dot.className = 'gb-dot ' + (s === BLACK ? 'b' : 'w');
+    txt.textContent = linkMode ? T('turnOfLink', stoneName(s))
+                               : T('turnOf', stoneName(s), T('playerNo', playerOf(s)));
+    sub.textContent = T('turnSubPlay');
+  }
+  cnt.textContent = T('countLine', moves.length, CELLS - moves.length);
+  const ub = $('btnUndo');
+  ub.textContent = undoLeft > 0 ? T('undoLeft', undoLeft) : T('undoNone');
+  ub.disabled = !!ended || undoLeft <= 0 || moves.length === 0;
+  $('board').classList.toggle('gb-done', !!ended);
+  $('btnNew').textContent = T('newGame');
+  $('btnLink').textContent = T('linkBtn');
+  $('btnLink').disabled = moves.length === 0;
+}
+function dirName(dir){
+  if (dir[0] === 1 && dir[1] === 0) return T('dirRow');
+  if (dir[0] === 0 && dir[1] === 1) return T('dirCol');
+  if (dir[0] === 1 && dir[1] === 1) return T('dirDiag');
+  return T('dirAnti');
+}
+
+/* ======================= 입력 ======================= */
+function onCell(i){
+  if (overShown) return;
+  const r = place(i);
+  if (r === 'ok'){
+    cur = i;
+    const s = cells[i];
+    sPlace(s);
+    paint();
+    say(T('sayPlaced', stoneName(s), xOf(i) + 1, yOf(i) + 1));
+    if (ended) finish();
+    else say(T('sayPlaced', stoneName(s), xOf(i) + 1, yOf(i) + 1) + ' · ' + T('sayTurn', stoneName(turnStone())));
+    return;
+  }
+  sBad();
+  if (r === 'occupied') toast(T('occupied'));
+  else if (r === 'ended') toast(T('endedMsg'));
+}
+const KEY_STEP = { ArrowLeft:[-1, 0], ArrowRight:[1, 0], ArrowUp:[0, -1], ArrowDown:[0, 1] };
+function onCellKey(i, ev){
+  if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar'){
+    if (ev.repeat) return;
+    ev.preventDefault();
+    onCell(i);
+    return;
+  }
+  const step = KEY_STEP[ev.key];
+  if (!step) return;
+  ev.preventDefault();
+  const j = idxAt(xOf(i) + step[0], yOf(i) + step[1]);
+  if (j < 0) return;
+  cur = j;
+  paint();
+  try { cellEls[j].focus({ preventScroll: true }); } catch(e){ cellEls[j].focus(); }
+}
+
+/* ======================= 판의 끝 ======================= */
+function finish(){
+  const ms = Math.max(0, Math.round(endStamp - runStart));
+  if (ended === 'win'){
+    sWin();
+    say(T('sayWin', stoneName(winInfo.stone), T('playerNo', playerOf(winInfo.stone)), winInfo.line.length));
+  } else {
+    sDraw();
+    say(T('sayDraw'));
+  }
+  ga('game_end', { game: GA_GAME, result: ended, moves: moves.length, ms });
+  renderOver();
+  show('over');
+}
+function timeText(ms){
+  const total = Math.round(ms / 1000);
+  return total >= 60 ? T('minText', Math.floor(total / 60), total % 60) : T('secText', total);
+}
+function renderOver(){
+  const win = ended === 'win';
+  const big = win ? (linkMode ? T('winTitleLink', stoneName(winInfo.stone))
+                              : T('winTitle', stoneName(winInfo.stone), T('playerNo', playerOf(winInfo.stone))))
+                  : T('drawTitle');
+  const line = win ? T('winLine', winInfo.line.length, dirName(winInfo.dir)) : T('drawLine');
+  $('finalBig').textContent = big;
+  $('finalBigTop').textContent = big;
+  $('finalLine').textContent = line;
+  $('finalLineTop').textContent = line;
+  $('nMoves').textContent = String(moves.length);
+  $('nTime').textContent = timeText(endStamp - runStart);
+  $('nNext').textContent = T('nextBlack', T('playerNo', blackPlayer === 1 ? 2 : 1));
+  $('finalSub').textContent = T('finalSub');
+  $('overTitle').textContent = T('result');
+  $('btnAgain').textContent = T('again');
+  $('btnShare').textContent = T('share');
+}
+
+/* ======================= 창(오버레이) ======================= */
+function show(id){
+  const o = $(id); o.classList.add('show');
+  overShown = true;
+  setOutsideInert(true);
+  const f = o.querySelector('button:not([disabled]):not([hidden]), a[href]');
+  if (f) try { f.focus({ preventScroll: true }); } catch(e){}
+}
+function hide(id){
+  $(id).classList.remove('show');
+  overShown = $('start').classList.contains('show') || $('over').classList.contains('show');
+  if (!overShown) setOutsideInert(false);
+}
+function setOutsideInert(on){
+  for (const el of document.querySelectorAll('body > header, body > main, body > section, body > footer, body > .ad-slot')){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+  }
+}
+function say(msg){ $('srSummary').textContent = msg; }
+let toastTimer = 0;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toastTimer = 0; t.classList.remove('show'); }, 1800);
+}
+
+/* ======================= 버튼 ======================= */
+$('btnStart').onclick = () => {
+  hide('start');
+  if (!started){ started = true; ga('game_start', { game: GA_GAME });
+    if (window.hpHit) window.hpHit('play', GA_GAME); }
+  paint();
+  focusCur();
+};
+$('btnAgain').onclick = () => {
+  hide('over');
+  reset(true);                 /* ★다시 하기 = 선공 교대 */
+  ga('game_start', { game: GA_GAME });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+  paint();
+  focusCur();
+};
+$('btnNew').onclick = () => {
+  if (moves.length && !ended && !confirmNew()) return;
+  reset(true);
+  ga('game_start', { game: GA_GAME });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+  paint();
+  focusCur();
+};
+function confirmNew(){
+  try { return window.confirm(T('newAsk')); } catch(e){ return true; }
+}
+$('btnLink').onclick = async () => {
+  if (!moves.length){ toast(T('linkEmpty')); return; }
+  const url = linkOf(moves);
+  try {
+    if (navigator.share) await navigator.share({ title: T('docTitle'), text: T('linkSub'), url });
+    else { await navigator.clipboard.writeText(url); toast(T('linkCopied')); }
+  } catch(_) { toast(T('linkFail')); }
+};
+$('btnUndo').onclick = () => {
+  const before = moves.length ? cells[moves[moves.length - 1]] : EMPTY;
+  const r = undo();
+  if (r === 'ok'){ sUndo(); paint(); toast(T('undoDone', stoneName(before))); return; }
+  sBad();
+  if (r === 'used') toast(T('undoUsed'));
+  else if (r === 'ended') toast(T('undoEnded'));
+  else if (r === 'notyours') toast(T('undoNotYours'));
+  else toast(T('undoEmpty'));
+};
+function focusCur(){ try { cellEls[cur].focus({ preventScroll: true }); } catch(e){} }
+
+/* ======================= 언어·소리 ======================= */
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  $('btnLang2').textContent = T('langBtn');
+  $('startHint').textContent = T('startHint');
+  $('grid').setAttribute('aria-label', T('ariaBoard'));
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  if (window.hpStats) window.hpStats();
+}
+function applyA11yLabels(){
+  for (const id of ['btnSound', 'btnSound2']){
+    const b = $(id); if (!b) continue;
+    b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  }
+  for (const id of ['btnLang', 'btnLang2']){ const l = $(id); if (l) l.setAttribute('aria-label', T('ariaLang')); }
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+}
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyLang();
+  /* ★진행 중이면 글자만 새 언어로 바꾼다 — 판(수열·차례·무르기 잔여)은 건드리지 않는다. */
+  paint();
+  if (ended && $('over').classList.contains('show')) renderOver();
+  ga('lang_switch', { lang });
+}
+$('btnLang').onclick = toggleLang;
+$('btnLang2').onclick = toggleLang;
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('gm.sound', soundOn ? '1' : '0');
+  const face = soundOn ? '🔊' : '🔇';
+  $('btnSound').textContent = face; $('btnSound2').textContent = face;
+  applyA11yLabels();
+  if (soundOn) beep(660, .06, 'sine', .04);
+}
+$('btnSound').onclick = toggleSound;
+$('btnSound2').onclick = toggleSound;
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnSound2').textContent = soundOn ? '🔊' : '🔇';
+
+/* ======================= 공유 ======================= */
+function shareText(url){
+  const t = (ended === 'win')
+    ? T('shareWin', stoneName(winInfo.stone), T('playerNo', playerOf(winInfo.stone)), moves.length)
+    : T('shareDraw', moves.length);
+  return t + url;
+}
+async function doShare(){
+  if (!ended) return;
+  const url = location.href.split('#')[0];
+  try{
+    if (navigator.share){
+      await navigator.share({ title: T('docTitle'), text: shareText('').trimEnd(), url });
+    } else { await navigator.clipboard.writeText(shareText(url)); toast(T('copied')); }
+  }catch(_){}
+}
+$('btnShare').onclick = doShare;
+/* ★판 보기 — 결과 창을 닫고 끝난 판을 그대로 본다(이긴 줄이 어디인지 보라고 두는 길이다).
+   판은 끝난 상태 그대로이므로 여기서 누르는 수는 ★규칙이 막는다(place 의 'ended'). */
+$('btnBoard').onclick = () => { hide('over'); paint(); focusCur(); };
+
+/* ======================= 기동 ======================= */
+/* 받은 링크가 있으면 그 판으로 시작한다. ★해독에 실패하면 판을 만들지 않고 시작 화면에 머문다 —
+   '어떻게든 그려 주는' 것이 친절이 아니다. 불법 수열로 만든 판은 오목이 아니기 때문이다. */
+/* ★받은 판을 싣는 길은 ★하나다. 진입은 둘이지만(최초 적재 · 이미 열린 탭의 주소 변경)
+   적재 절차를 각자 들고 있으면 한쪽만 손질되어 갈라진다 — 실제로 갈라졌다:
+   relay 쪽이 hide('start') 를 빠뜨려, 시작 화면이 떠 있는 탭에서 링크를 열면 판은 실렸는데
+   ★시작 화면이 그것을 덮은 채로 남았다(reviewer-gemini(245) 발견 · 2026-09-05).
+   받는 사람의 브라우저가 이미 열린 /gomoku/ 탭을 재사용하면 정확히 이 경로이므로,
+   ②의 약속('링크를 보내면 상대가 이어받는다')이 그 자리에서 깨진다. */
+function takePayload(p){
+  if (!p) return false;
+  const why = adopt(p);
+  if (why){ toast(T('badLink')); return false; }
+  hide('start');                 /* ★어느 진입으로 왔든 시작 화면은 걷는다 */
+  hide('over');                  /* 앞 판의 결과 창이 떠 있었으면 그것도 걷는다 */
+  if (!started){ started = true; ga('game_start', { game: GA_GAME });
+    if (window.hpHit) window.hpHit('play', GA_GAME); }
+  toast(T('linkAdopted'));
+  paint();
+  if (ended) { renderOver(); show('over'); }
+  return true;
+}
+function bootFromHash(){
+  const p = window.__gmPayload || (/(?:^|[#&])p=([^&]*)/.exec(location.hash || '') || [])[1];
+  return takePayload(p);
+}
+/* 이미 열려 있는 탭의 주소가 다른 판 링크로 바뀐 경우 — head 인라인이 걷어낸 뒤 알려 준다 */
+window.addEventListener('gm:payload', e => {
+  takePayload((e && e.detail) ? String(e.detail) : (window.__gmPayload || ''));
+});
+applyLang();
+const fromLink = bootFromHash();
+paint();
+if (!fromLink && $('start').classList.contains('show')) show('start');
+
+/* ======================= 검증 창구(관측 전용) =======================
+   ★배포되는 이 창구에는 **읽기만 하는 getter 와 순수 함수** 만 둔다. 돌을 놓거나 판을 지우는
+     상태 변경 명령은 여기에 두지 않는다 — 검증 하네스는 제품이 실제로 듣는 입력 사건
+     (pointerdown·keydown)으로 판을 두드린다. 반환값은 전부 사본이다. 외부 전송 0. */
+const copy = o => JSON.parse(JSON.stringify(o));
+window.__gm = {
+  const: () => ({ N, CELLS, WIN_LEN, EMPTY, BLACK, WHITE, UNDO_MAX,
+                  DIRS: copy(DIRS), STARS: STARS.slice() }),
+  state: () => ({ moves: moves.slice(), ended, win: winInfo ? copy(winInfo) : null,
+                  undoLeft, blackPlayer, turn: ended ? null : turnStone(),
+                  started, overShown, runStart, endStamp }),
+  cells: () => cells.slice(),
+  /* 순수 함수 창구 — 하네스는 이것과 별개로 자기 셈을 들고 재검한다 */
+  judge: (board, idx) => { const w = winLineAt(Array.from(board), idx | 0); return w ? copy(w) : null; },
+  scan: board => { const w = anyWinLine(Array.from(board)); return w ? copy(w) : null; },
+  run: (board, idx, dx, dy) => runThrough(Array.from(board), idx | 0, dx | 0, dy | 0),
+  replay: list => replay(Array.from(list).map(v => v | 0)),
+  idxAt: (x, y) => idxAt(x | 0, y | 0),
+  stoneOfTurn: n => stoneOfTurn(n | 0),
+  /* ★화면에 실제로 들어간 글과 표식 — 제품이 쓰는 자리를 그대로 준다 */
+  turnText: () => $('turnText').textContent,
+  countText: () => $('countText').textContent,
+  classesAt: i => cellEls[i].className,
+  markedCells: () => cellEls.map((el, i) => (el.children.length ? i : -1)).filter(i => i >= 0),
+  winCells: () => cellEls.map((el, i) => (el.classList.contains('win') ? i : -1)).filter(i => i >= 0),
+  labelAt: i => cellEls[i].getAttribute('aria-label'),
+  tabbable: () => cellEls.map((el, i) => (el.tabIndex === 0 ? i : -1)).filter(i => i >= 0),
+  cursor: () => cur,
+  undoDisabled: () => !!$('btnUndo').disabled,
+  undoText: () => $('btnUndo').textContent,
+  shareText: () => (ended ? shareText('https://hanpango.com/gomoku/') : ''),
+  /* 링크 이어두기 — 순수 함수와 상태 관측 */
+  encode: list => encodeMoves(Array.from(list)),
+  /* ★부호화만 따로 볼 수 있는 창구 — 규칙 검증(decode)과 다른 계약이라 따로 잰다 */
+  codec: p => bytesFromB64url(String(p)),
+  decode: p => copy(decodeMoves(String(p))),
+  link: list => linkOf(Array.from(list)),
+  linkMode: () => linkMode,
+  baseLen: () => baseLen,
+  payload: () => (window.__gmPayload || null),
+  linkDisabled: () => !!$('btnLink').disabled,
+  shown: id => $(id).classList.contains('show'),
+  overShown: () => overShown,
+  reduceMotion: () => reduceMotion(),
+  sound: () => soundOn,
+  lang: () => lang
+};
+})();
+</script>
+</body>
+</html>
