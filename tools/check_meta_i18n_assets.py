@@ -478,6 +478,40 @@ def axis6(root, games, rep, pages_extra):
             if not re.search(r'property="%s" content="[^"]+"' % prop, src):
                 rep.fail('asset-og-required', gid, '%s 가 없거나 비어 있다' % prop)
 
+        # ★og:image — 선언이 없으면 공유 카드에 그림이 안 실린다. 2026-09-05 이전에는
+        #   28개 페이지 어디에도 없었고, 그것을 잡을 게이트도 없었다. 여기서 닫는다.
+        #   재는 것 셋: (1) 절대 URL 로 있는가 (2) 그 파일이 실재하는가
+        #   (3) 선언한 width/height 가 파일의 실제 치수와 같은가.
+        rep.count('asset-og-image', 1)
+        mi = re.search(r'property="og:image" content="([^"]+)"', src)
+        if not mi:
+            rep.fail('asset-og-image', gid, 'og:image 가 없다 — 공유 카드에 그림이 안 실린다')
+        elif not mi.group(1).startswith(SITE + '/'):
+            rep.fail('asset-og-image', gid,
+                     'og:image 가 절대 URL 이 아니다(%r) — 크롤러는 상대경로를 못 푼다' % mi.group(1))
+        else:
+            rel = mi.group(1)[len(SITE):]
+            target = os.path.join(root, rel.lstrip('/'))
+            if not os.path.isfile(target):
+                rep.fail('asset-og-image', gid, 'og:image 가 가리키는 파일이 없다: %s' % rel)
+            else:
+                declared = {}
+                for dim in ('width', 'height'):
+                    md = re.search(r'property="og:image:%s" content="(\d+)"' % dim, src)
+                    declared[dim] = int(md.group(1)) if md else None
+                rep.count('asset-og-image-dims', 1)
+                if declared['width'] is None or declared['height'] is None:
+                    rep.fail('asset-og-image-dims', gid,
+                             'og:image:width/height 선언이 빠졌다 — 미리보기가 늦게 뜬다')
+                else:
+                    real = webp_size(target) if target.lower().endswith('.webp') else None
+                    if real is None:
+                        rep.cannot('%s: og:image 의 실제 치수를 못 읽었다(%s)' % (gid, rel))
+                    elif (declared['width'], declared['height']) != real:
+                        rep.fail('asset-og-image-dims', gid,
+                                 'og:image 선언 %dx%d 가 파일 실측 %dx%d 와 다르다'
+                                 % (declared['width'], declared['height'], real[0], real[1]))
+
         rep.count('asset-title-tag', 1)
         mt = re.search(r'<title>([^<]+)</title>', src)
         if not mt:
@@ -526,6 +560,14 @@ MUTATIONS = {
     'm-daily-tag-drop':    ('games.json', "daily=true 인데 tags 의 'daily' 를 뺀다", 'meta-tags-daily-flag'),
     'm-solo-drop':         ('games.json', '2인용의 solo:false 를 지운다', 'meta-solo-vs-category'),
     'm-thumb-missing':     ('games.json', 'thumb 를 없는 파일로 돌린다', 'asset-thumb-exists'),
+    # ★치수 검사의 검출력을 따로 증명한다. 2026-09-05 에 ladder 가 456×640 으로 조용히
+    #   회귀해 있었는데 그것을 막을 게이트가 없었다 — 검사를 세운 것만으로는 부족하고,
+    #   그 검사가 실제로 붉어지는 것을 보여야 한다.
+    'm-thumb-wrong-size':  ('games.json', 'thumb 를 실재하는 480×640 아닌 WebP 로 돌린다', 'asset-thumb-webp-640'),
+    'm-thumb-not-webp':    ('games.json', 'thumb 를 실재하는 PNG 로 돌린다', 'asset-thumb-webp-640'),
+    'm-og-image-drop':     ('page', 'og:image 선언을 지운다', 'asset-og-image'),
+    'm-og-image-relative': ('page', 'og:image 를 상대경로로 바꾼다', 'asset-og-image'),
+    'm-og-dims-drift':     ('page', 'og:image:width 를 실제와 다르게 적는다', 'asset-og-image-dims'),
     'm-canonical-drift':   ('page', 'canonical 을 다른 주소로 바꾼다', 'asset-canonical'),
     'm-dead-link':         ('page', '없는 내부 링크를 넣는다', 'asset-internal-links'),
     'm-i18n-key-drop':     ('page', 'en 사전에서 키 한 줄을 지운다', 'i18n-dict-key-parity'),
@@ -564,6 +606,34 @@ def apply_mutation(name, games, texts, root):
     if name == 'm-thumb-missing':
         games[0]['thumb'] = games[0]['path'] + 'no-such-thumb.webp'
         return True, games[0]['id']
+    if name == 'm-thumb-wrong-size':
+        # ★실재하는 파일이어야 한다 — 없는 파일을 가리키면 앞 검사(asset-thumb-exists)에
+        #   먼저 걸려 이 뮤테이션이 치수 검사에 **도달하지 못한다**(공허해진다).
+        if not os.path.isfile(os.path.join(root, 'donate-qr.webp')):
+            return False, 'donate-qr.webp 가 없다 — 480×480 표본을 세울 수 없다'
+        games[0]['thumb'] = '/donate-qr.webp'
+        return True, '%s → /donate-qr.webp (480×480)' % games[0]['id']
+    if name == 'm-thumb-not-webp':
+        if not os.path.isfile(os.path.join(root, 'icon-512.png')):
+            return False, 'icon-512.png 이 없다'
+        games[0]['thumb'] = '/icon-512.png'
+        return True, '%s → /icon-512.png (WebP 아님)' % games[0]['id']
+    if name in ('m-og-image-drop', 'm-og-image-relative', 'm-og-dims-drift'):
+        key = games[0]['path'].strip('/') + '/index.html'
+        if key not in texts:
+            return False, '대상 페이지 없음'
+        src = texts[key]
+        if name == 'm-og-image-drop':
+            new = re.sub(r'<meta property="og:image" content="[^"]+">\r?\n', '', src, count=1)
+        elif name == 'm-og-image-relative':
+            new = re.sub(r'(<meta property="og:image" content=")https://hanpango\.com',
+                         r'\1', src, count=1)
+        else:
+            new = re.sub(r'(<meta property="og:image:width" content=")\d+', r'\g<1>1200', src, count=1)
+        if new == src:
+            return False, '주입 실패 — 겨냥한 줄을 못 찾았다'
+        texts[key] = new
+        return True, key
     if name == 'm-canonical-drift':
         key = games[0]['path'].strip('/') + '/index.html'
         if key not in texts:
