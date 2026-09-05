@@ -188,6 +188,15 @@ const MUTATIONS = {
     apply: s => s.replace("  if (moves.length <= baseLen) return 'notyours';",
                           "  if (false) return 'notyours';")
   },
+  'm-link-relay-keeps-start': {
+    why: '★245 가 찾은 결함 그대로 — 이미 열린 탭의 relay 경로만 적재 절차를 따로 들고 시작 화면을 안 걷는다',
+    catcher: '열린 탭에 링크가 오면 시작 화면을 걷고 판을 드러낸다',
+    apply: s => s.replace("window.addEventListener('gm:payload', e => {\n  takePayload((e && e.detail) ? String(e.detail) : (window.__gmPayload || ''));\n});",
+                          "window.addEventListener('gm:payload', e => {\n" +
+                          "  const p = (e && e.detail) ? String(e.detail) : (window.__gmPayload || '');\n" +
+                          "  if (!p) return;\n  const why = adopt(p);\n  if (why){ toast(T('badLink')); return; }\n" +
+                          "  hide('over'); toast(T('linkAdopted')); paint();\n  if (ended) { renderOver(); show('over'); }\n});")
+  },
   'm-link-draw-anyway': {
     why: '불법 링크인데도 판을 그린다(거부가 무력해진다)',
     catcher: '불법 링크로는 판을 만들지 않는다',
@@ -330,8 +339,12 @@ function boot(opts){
   }
 
   const nav = { language: opts.lang === 'en' ? 'en-US' : 'ko-KR' };
+  const winOn = {};
   const win = {
-    addEventListener: () => {}, removeEventListener: () => {},
+    /* ★기록해 둔다 — 무시하면 window 사건으로만 도달하는 경로(gm:payload)가 통째로 검사 밖이 된다.
+       실제로 그 자리에 결함이 살아 있었다(reviewer-gemini(245) 2026-09-05). */
+    addEventListener: (t, fn) => { (winOn[t] = winOn[t] || []).push(fn); },
+    removeEventListener: t => { delete winOn[t]; },
     navigator: nav, localStorage,
     matchMedia: () => ({ matches: !!opts.reduceMotion }),
     location: { href: 'https://hanpango.com/gomoku/', origin: 'https://hanpango.com',
@@ -369,6 +382,8 @@ function boot(opts){
   };
   const api = {
     gm: win.__gm, doc, store: localStorage, grid,
+    /* 제품이 실제로 듣는 window 사건을 밖에서 쏜다(합성 상태 주입이 아니다) */
+    fireWin: (type, ev) => { const l = winOn[type] || []; for (const fn of l) fn(ev || {}); return l.length; },
     advance: ms => { clock += ms; },
     /* ★제품이 실제로 듣는 사건으로 둔다 — 상태를 직접 밀어 넣지 않는다 */
     tap: i => fire(grid.children[i], 'pointerdown', { button: 0 }),
@@ -890,6 +905,33 @@ function checkLink(){
     if (st.moves.length === 0 && a.gm.shown('start') && !a.gm.linkMode())
       ok('불법 링크로는 판을 만들지 않는다', '수열 0 · 시작 화면 그대로');
     else bad('불법 링크로는 판을 만들지 않는다', JSON.stringify({ moves: st.moves.length, start: a.gm.shown('start'), linkMode: a.gm.linkMode() }));
+  }
+
+  /* ★이미 열린 탭의 주소가 링크로 바뀌는 경로 — 시작 화면이 판을 덮은 채로 남으면 안 된다.
+     받는 사람의 브라우저가 이미 /gomoku/ 를 연 탭을 재사용하면 이 길로 온다(드문 길이 아니다).
+     최초 적재(bootFromHash)만 보고 통과시키면 이 자리가 통째로 검사 밖에 남는다. */
+  {
+    const a = boot({});                       /* 시작 화면이 뜬 상태(링크 없이 들어온 탭) */
+    const startedShown = a.gm.shown('start');
+    const fired = a.fireWin('gm:payload', { detail: gm.encode([112, 113, 127, 128, 142]) });
+    const st = a.gm.state();
+    if (!fired) ind('열린 탭에 링크가 오면 시작 화면을 걷고 판을 드러낸다', 'gm:payload 리스너가 등록돼 있지 않다');
+    else if (startedShown && !a.gm.shown('start') && st.moves.length === 5 && a.gm.linkMode() && st.started)
+      ok('열린 탭에 링크가 오면 시작 화면을 걷고 판을 드러낸다', '시작 화면 걷힘 · 5수 이어받음 · started=true');
+    else
+      bad('열린 탭에 링크가 오면 시작 화면을 걷고 판을 드러낸다',
+          JSON.stringify({ startedShown, start: a.gm.shown('start'), moves: st.moves.length, linkMode: a.gm.linkMode(), started: st.started }));
+  }
+
+  /* 같은 경로로 온 ★불법 링크는 여전히 거부한다(고치다 반대 방향을 열지 않았는지 본다) */
+  {
+    const a = boot({});
+    a.fireWin('gm:payload', { detail: 'AAA*BBB' });
+    const st = a.gm.state();
+    if (st.moves.length === 0 && a.gm.shown('start') && !a.gm.linkMode())
+      ok('열린 탭에 온 불법 링크는 거부한다', '수열 0 · 시작 화면 그대로');
+    else
+      bad('열린 탭에 온 불법 링크는 거부한다', JSON.stringify({ moves: st.moves.length, start: a.gm.shown('start') }));
   }
 
   /* 링크 버튼은 한 수라도 두어야 열린다 */

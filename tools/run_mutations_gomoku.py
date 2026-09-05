@@ -83,6 +83,7 @@ RED = [
     ('m-link-roundtrip', '링크 수열은 왕복해도 그대로다'),
     ('m-link-undo-others', '받은 수는 무를 수 없다'),
     ('m-link-draw-anyway', '불법 링크로는 판을 만들지 않는다'),
+    ('m-link-relay-keeps-start', '열린 탭에 링크가 오면 시작 화면을 걷고 판을 드러낸다'),
 ]
 QUIET = ['n-beep-freq', 'n-star-points', 'n-toast-ms']
 
