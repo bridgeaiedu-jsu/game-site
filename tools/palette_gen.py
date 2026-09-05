@@ -22,7 +22,8 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from palette_color import contrast, deltaE_ok, hex2hsl, hex2lch, hsl2hex, huedist  # noqa: E402
+from palette_color import contrast, hex2hsl, hex2lch, hsl2hex, huedist  # noqa: E402
+from check_rainbow import ciede2000  # noqa: E402  ★저장소에 이미 있는 색차 언어를 쓴다
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -131,8 +132,8 @@ def build_variant(hue, sat, L, bgs, spec):
 
 def min_dE(spec):
     d = spec.get('distinctness')
-    if not d or d.get('metric') != 'deltaE-oklab' or 'min' not in d:
-        raise SystemExit('STOP: 정본에 distinctness(ΔEok) 하한이 없다 — 하한을 코드에 베끼지 않는다')
+    if not d or d.get('metric') != 'ciede2000' or 'min' not in d:
+        raise SystemExit('STOP: 정본에 distinctness(ciede2000) 하한이 없다 — 하한을 코드에 베끼지 않는다')
     return float(d['min'])
 
 
@@ -140,7 +141,7 @@ def all_apart(cells, floor):
     """계약을 직접 잰다 — 축(L·S)이 아니라 색공간 거리로."""
     for i in range(len(cells)):
         for j in range(i + 1, len(cells)):
-            if deltaE_ok(cells[i], cells[j]) < floor:
+            if ciede2000(cells[i], cells[j]) < floor:
                 return False
     return True
 

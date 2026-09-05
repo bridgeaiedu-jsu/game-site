@@ -63,29 +63,6 @@
       --scrim:rgba(8,6,30,.86); --shadow:rgba(0,0,0,.5);
       --badge-bg:rgba(15,13,46,.82); --ad-bg:rgba(255,255,255,.02);
     }
-    /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다 */
-    .card[href="/block-puzzle/"]{--sig:#5484ef;--sig-ink:#95b3f5}
-    .card[href="/2048/"]{--sig:#718fd2;--sig-ink:#a7bae3}
-    .card[href="/block-drop/"]{--sig:#d58e69;--sig-ink:#e4b8a0}
-    .card[href="/word/"]{--sig:#07db99;--sig-ink:#32f8bb}
-    .card[href="/shooting/"]{--sig:#f57634;--sig-ink:#f8a478}
-    .card[href="/brick-breaker/"]{--sig:#f7905b;--sig-ink:#fabe9f}
-    .card[href="/estimate/"]{--sig:#ac8ce2;--sig-ink:#d5c5f1}
-    .card[href="/sudoku/"]{--sig:#799ff3;--sig-ink:#bacef9}
-    .card[href="/nonsense/"]{--sig:#34c397;--sig-ink:#67d7b4}
-    .card[href="/wordchain/"]{--sig:#08efa7;--sig-ink:#45f9c1}
-    .card[href="/minesweeper/"]{--sig:#8cadf4;--sig-ink:#cddbfa}
-    .card[href="/ladder/"]{--sig:#80ce19;--sig-ink:#a2e946}
-    .card[href="/memory/"]{--sig:#2e6aec;--sig-ink:#7098f2}
-    .card[href="/nonogram/"]{--sig:#5277c8;--sig-ink:#88a2d9}
-    .card[href="/tensec/"]{--sig:#975bff;--sig-ink:#c5a2ff}
-    .card[href="/stop/"]{--sig:#a46fff;--sig-ink:#d1b7ff}
-    .card[href="/just-right/"]{--sig:#b89ce6;--sig-ink:#e1d6f5}
-    .card[href="/fake-one/"]{--sig:#a07cde;--sig-ink:#c9b5ec}
-    .card[href="/reverse/"]{--sig:#cbadff;--sig-ink:#f5f0ff}
-    .card[href="/higher-lower/"]{--sig:#b184ff;--sig-ink:#decbff}
-    .card[href="/how-many/"]{--sig:#946bda;--sig-ink:#bea5e8}
-    .card[href="/together/"]{--sig:#e876a9;--sig-ink:#f2b3cf}
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
@@ -141,13 +118,38 @@
   .card[href="/memory/"]{--sig:#4a7eee;--sig-ink:#1453dd}
   .card[href="/nonogram/"]{--sig:#6a89cf;--sig-ink:#3a61b7}
   .card[href="/tensec/"]{--sig:#855ccb;--sig-ink:#6136aa}
-  .card[href="/stop/"]{--sig:#6c19fa;--sig-ink:#4c04c7}
-  .card[href="/just-right/"]{--sig:#6e3dc1;--sig-ink:#4f2c8b}
-  .card[href="/fake-one/"]{--sig:#955ff0;--sig-ink:#691eea}
-  .card[href="/reverse/"]{--sig:#9c7bd5;--sig-ink:#7445c4}
-  .card[href="/higher-lower/"]{--sig:#5b14d6;--sig-ink:#3f0e95}
+  .card[href="/stop/"]{--sig:#916bd0;--sig-ink:#693bb9}
+  .card[href="/just-right/"]{--sig:#6315e9;--sig-ink:#470fa7}
+  .card[href="/fake-one/"]{--sig:#6e3dc1;--sig-ink:#4f2c8b}
+  .card[href="/reverse/"]{--sig:#955ff0;--sig-ink:#691eea}
+  .card[href="/higher-lower/"]{--sig:#9c7bd5;--sig-ink:#7445c4}
   .card[href="/how-many/"]{--sig:#a172f2;--sig-ink:#7631ec}
   .card[href="/together/"]{--sig:#db2777;--sig-ink:#a01b56}
+  @media (prefers-color-scheme: dark){
+    /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다. ★라이트 규칙 뒤에 와야 이긴다(@media 는 명시도를 안 올린다). */
+    .card[href="/block-puzzle/"]{--sig:#6d90db;--sig-ink:#a7bbe9}
+    .card[href="/2048/"]{--sig:#91b3ff;--sig-ink:#d8e4ff}
+    .card[href="/block-drop/"]{--sig:#d58e69;--sig-ink:#e4b8a0}
+    .card[href="/word/"]{--sig:#2ba37e;--sig-ink:#47cea4}
+    .card[href="/shooting/"]{--sig:#f57634;--sig-ink:#f8a478}
+    .card[href="/brick-breaker/"]{--sig:#f7905b;--sig-ink:#fabe9f}
+    .card[href="/estimate/"]{--sig:#a46fff;--sig-ink:#d1b7ff}
+    .card[href="/sudoku/"]{--sig:#6d9bff;--sig-ink:#b4ccff}
+    .card[href="/nonsense/"]{--sig:#34c397;--sig-ink:#67d7b4}
+    .card[href="/wordchain/"]{--sig:#08efa7;--sig-ink:#45f9c1}
+    .card[href="/minesweeper/"]{--sig:#4982ff;--sig-ink:#91b3ff}
+    .card[href="/ladder/"]{--sig:#80ce19;--sig-ink:#a2e946}
+    .card[href="/memory/"]{--sig:#256aff;--sig-ink:#6d9bff}
+    .card[href="/nonogram/"]{--sig:#517ad3;--sig-ink:#8aa6e2}
+    .card[href="/tensec/"]{--sig:#975bff;--sig-ink:#c5a2ff}
+    .card[href="/stop/"]{--sig:#a07cde;--sig-ink:#c9b5ec}
+    .card[href="/just-right/"]{--sig:#b184ff;--sig-ink:#decbff}
+    .card[href="/fake-one/"]{--sig:#b89ce6;--sig-ink:#e1d6f5}
+    .card[href="/reverse/"]{--sig:#cbadff;--sig-ink:#f5f0ff}
+    .card[href="/higher-lower/"]{--sig:#8b47ff;--sig-ink:#b88eff}
+    .card[href="/how-many/"]{--sig:#946bda;--sig-ink:#bea5e8}
+    .card[href="/together/"]{--sig:#e876a9;--sig-ink:#f2b3cf}
+  }
   .card.soon::before{background:var(--line)}
   .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
   .thumb img{width:100%;height:100%;object-fit:cover;display:block}

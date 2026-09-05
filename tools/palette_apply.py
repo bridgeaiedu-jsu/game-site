@@ -110,33 +110,76 @@ def apply_game(gid, vals, dry):
 CARD_RULE = '  .card[href="/%s/"]{--sig:%s;--sig-ink:%s}'
 
 
+def dark_media_span(src):
+    """다크 @media 블록의 (본문 시작, 본문 끝) — 중괄호 균형으로 찾는다."""
+    m = re.search(r'@media\s*\(prefers-color-scheme:\s*dark\)', src)
+    start = src.index('{', m.end())
+    depth = 0
+    for i in range(start, len(src)):
+        if src[i] == '{':
+            depth += 1
+        elif src[i] == '}':
+            depth -= 1
+            if depth == 0:
+                return start, i
+    raise SystemExit('STOP: 대문 다크 @media 블록이 안 닫힌다')
+
+
+def swap_card_rules(text, order, values, key, indent):
+    """이미 배선된 카드 규칙은 값만 갈아 끼운다 — 두 번 돌려도 같은 결과가 되게."""
+    done = set()
+    def repl(m):
+        gid = m.group(1)
+        if gid not in values:
+            return m.group(0)
+        done.add(gid)
+        return (CARD_RULE % (gid, values[gid][key]['--sig'], values[gid][key]['--sig-ink'])).strip()
+    out = re.sub(r'\.card\[href="/([^"]*)/"\]\s*\{[^}]*\}', repl, text)
+    return out, done
+
+
 def apply_index(order, values, dry):
     path = os.path.join(ROOT, 'index.html')
     src = read(path)
     nl = '\r\n' if '\r\n' in src else '\n'
 
-    # 1) 옛 per-game 토큰 정의 줄을 지운다(이제 카드 규칙이 직접 색을 든다)
+    # 1) 옛 per-game 토큰 정의 줄이 남아 있으면 지운다(이제 카드 규칙이 색을 직접 든다)
     for pat in (r'[ \t]*--sig-block:[^\n]*\n', r'[ \t]*--ink-block:[^\n]*\n'):
         src = re.sub(pat, '', src)
 
-    # 2) 옛 카드 규칙 4줄을 22줄로 갈아 끼운다(라이트)
-    old = re.compile(r'([ \t]*\.card\[href="/[^"]*/"\]\{--sig:var\(--sig-[a-z0-9]+\);--sig-ink:var\(--ink-[a-z0-9]+\)\}\r?\n)+')
-    light_rules = nl.join(CARD_RULE % (g, values[g]['light']['--sig'], values[g]['light']['--sig-ink'])
-                          for g in order) + nl
-    if not old.search(src):
-        raise SystemExit('STOP: 대문의 옛 카드 규칙 덩어리를 못 찾았다')
-    src = old.sub(light_rules.replace('\\', '\\\\'), src, count=1)
+    # 2) 다크 @media 안팎을 나눠 각각 갈아 끼운다
+    a, b = dark_media_span(src)
+    dark_txt, dark_done = swap_card_rules(src[a:b], order, values, 'dark', '    ')
+    head, head_done = swap_card_rules(src[:a], order, values, 'light', '  ')
+    tail, tail_done = swap_card_rules(src[b:], order, values, 'light', '  ')
+    light_done = head_done | tail_done
+    src = head + dark_txt + tail
 
-    # 3) 다크 @media 안에 카드 규칙을 넣는다 — :root 블록 바로 뒤
-    m = re.search(r'@media\s*\(prefers-color-scheme:\s*dark\)', src)
-    k = src.index(':root{', m.end())
-    end = src.index('}', k) + 1
-    dark_rules = (nl + '    /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다 */' + nl
-                  + nl.join('    ' + (CARD_RULE % (g, values[g]['dark']['--sig'], values[g]['dark']['--sig-ink'])).strip()
-                            for g in order))
-    if '.card[href=' in src[k:end + 400] and '다크 — 카드마다' in src:
-        raise SystemExit('STOP: 다크 카드 규칙이 이미 있다 — 두 번 넣지 않는다')
-    src = src[:end] + dark_rules + src[end:]
+    # 3) 아직 배선이 없는 게임은 새로 넣는다(라이트는 옛 규칙 자리, 다크는 :root 바로 뒤)
+    missing_light = [g for g in order if g not in light_done]
+    if missing_light:
+        anchor = re.compile(r'([ \t]*)(\.card\[href="/[^"]*/"\]\{[^}]*\}\r?\n)+')
+        m = anchor.search(src)
+        if not m:
+            raise SystemExit('STOP: 대문에 카드 규칙 덩어리가 없어 새로 넣을 자리를 못 찾았다')
+        block = nl.join(CARD_RULE % (g, values[g]['light']['--sig'], values[g]['light']['--sig-ink'])
+                        for g in order) + nl
+        src = src[:m.start()] + block + src[m.end():]
+    missing_dark = [g for g in order if g not in dark_done]
+    if missing_dark:
+        # ★다크 카드 규칙은 ★라이트 규칙 뒤에 놓아야 한다. @media 는 명시도를 올리지 않으므로
+        #   같은 선택자끼리는 소스에서 뒤에 오는 쪽이 이긴다 — 앞(:root 옆)에 두면 다크 값이
+        #   라이트 값에 덮여 다크 모드에서도 라이트 색이 그려진다(실브라우저 computed 로 확인했다).
+        m = re.compile(r'([ \t]*\.card\[href="/[^"]*/"\]\{[^}]*\}\r?\n)+').search(src)
+        if not m:
+            raise SystemExit('STOP: 라이트 카드 규칙 덩어리를 못 찾아 다크 블록을 뒤에 놓을 수 없다')
+        block = ('  @media (prefers-color-scheme: dark){' + nl
+                 + '    /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다.'
+                 + ' ★라이트 규칙 뒤에 와야 이긴다(@media 는 명시도를 안 올린다). */' + nl
+                 + nl.join('  ' + (CARD_RULE % (g, values[g]['dark']['--sig'], values[g]['dark']['--sig-ink']))
+                           for g in order) + nl
+                 + '  }' + nl)
+        src = src[:m.end()] + block + src[m.end():]
 
     if not dry:
         write(path, src)
