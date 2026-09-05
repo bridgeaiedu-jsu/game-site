@@ -5,3 +5,8 @@ node_modules/
 # 후원 QR 원본(고해상 JPEG) — 배포본은 donate-qr.webp 만 쓴다
 donate-qr.png.jpg
 donate-qr.png
+
+# 팔레트 생성기 작업 부산물 — 산출물은 tools/*.py 와 커밋된 값이지
+# 생성기의 중간 출력이 아니다. 약속으로 막지 않고 경로를 막는다(git add -A 스윕 방지).
+/gen_err.txt
+/gen_out.json
