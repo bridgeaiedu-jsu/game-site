@@ -497,7 +497,10 @@ async function boot(){
     $('sumCount').textContent = '–'; $('sumStreak').textContent = '–'; $('sumNo').textContent = '–';
     return;
   }
-  pool = list.filter(g => g.daily === true && typeof g.maxMinutes === 'number');
+  /* ★혼자 하는 하루 한 판이다 — 2인용(solo:false)은 후보에서 뺀다. 혼자 온 사람이 그날
+     완주를 못 하게 되는 것은 실제 손해이기 때문이다(master 승인 2026-09-05).
+     ★조용히 빼지 않는다 — games.json 의 solo 필드로 드러내고 이 한 줄이 그것을 읽는다. */
+  pool = list.filter(g => g.daily === true && g.solo !== false && typeof g.maxMinutes === 'number');
   rebuildForDay();
   render();
   scheduleMidnight();

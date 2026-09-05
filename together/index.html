@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>같이 한판 — 한 화면을 반으로 갈라 둘이 겨루는 반응 게임 | Two on One Screen</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 2인용 게임. 한 화면을 위아래로 갈라 마주 보고 앉아, 신호가 뜨면 먼저 누르는 쪽이 이깁니다. 참아라 신호에 누르면 상대가 1점, 신호 전에 누르는 부정출발도 상대가 1점 — 7라운드 먼저 4점. 혼자 왔다면 페이스메이커와 연습할 수 있습니다. Split the screen, face each other, and see who reacts first.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="같이 한판 — 한 화면을 반으로 갈라 둘이 겨루는 반응 게임 | Two on One Screen">
+<meta property="og:description" content="한 대만 있으면 됩니다. 마주 보고 앉아 먼저 누르는 쪽이 이깁니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/together/">
+<link rel="canonical" href="https://hanpango.com/together/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="hp-ga-disclosure" content="game_start:game,mode; game_end:mode,score,rounds,ms; lang_switch:lang">
+<meta name="hp-ga-labels" content="game=어느 게임인지|which game; mode=모드|mode; score=이긴 쪽의 점수|winning score; rounds=치른 라운드 수|rounds played; ms=걸린 시간(밀리초)|elapsed milliseconds; lang=언어|language">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"같이 한판","alternateName":"Two on One Screen","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본. 다크는 아래 @media 에서 같은 이름의 값만 바꿔 끼운다 — 마크업은 두 테마가 동일하다.
+     ★이 게임에서 색은 거들 뿐이다: 신호는 ★모양(꽉 찬 원 / X)이 뜻을 지니고, 각 절반의 글자가 함께 말한다.
+       두 절반은 ★같은 토큰을 쓴다 — 한쪽만 다른 색을 주면 눈에 띄는 쪽이 유리해질 수 있다. */
+  /* ★분류가 색을 정한다(색 규약 2026-09-05 · 오너 승인) — 이 게임의 분류는 ★2인용이고 그 색은
+     pink #db2777 이다. 22종 중 17종이 같은 보라였던 것은 새 게임이 직전 게임을 본보기로 삼다가
+     색까지 물려받았기 때문이고, 대문 카드가 전부 같은 색이면 색이 정보가 되지 못한다.
+     ★세 토큰이 한 벌이다(--sig 주색 · --sig-ink 진한 쪽 글자 · --sig-soft 옅은 쪽 배경) ·
+     ★대비비는 눈으로 정하지 않고 잰다. 아래는 이 파일의 실제 배경 토큰에 대고 잰 값이다
+     (라이트 배경 #ffffff · 판 #f6f7f9 / 다크 배경 #0c0a24 · 판 #191540 · 글자 #f1f0ff):
+       라이트  sig 4.60 · ink 6.04(판 위 5.63) · soft 위의 본문 글자 15.09 · 버튼 글자 4.60
+       다크    sig 7.31(판 위 6.49) · ink 10.68 · soft 위의 본문 글자 8.57 · 버튼 글자 5.68
+     ★판(--pad 계열)도 함께 옮긴다 — 대문 카드에 실리는 그림은 판이라, 판이 보라인 채로 두면
+       카드는 여전히 보라로 보이고 규약의 목적(색이 정보가 된다)이 서지 않는다. 실측:
+       라이트  판 글자 8.84 · ★테두리 3.23(칸 경계는 뜻을 지닌 UI 라 3.0 이상이어야 한다)
+       다크    판 글자 15.01 · 테두리 3.84
+       결과 표시 글자는 이김 8.78/7.75 · 잃음 7.90/11.90 이고, 신호 그림은 판 위에서
+       라이트 원 4.59 · X 5.93 / 다크 원 9.18 · X 9.30 이라 모양이 색과 무관하게 읽힌다.
+     하한은 양 테마 3.0(큰 글자·아이콘 WCAG)이고 위 값 전부 그 위다. 검사는 이 숫자를 베끼지
+     않고 ★소스에서 읽어 다시 계산한다 — 값을 옮겨 적으면 그때부터 검사가 계약이 아니라 사본을 잰다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#db2777; --sig-ink:#be185d; --sig-soft:#fce7f3; --on-sig:#ffffff;
+    --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
+    --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
+    --pad:#fdf2f8; --pad-line:#ec4899; --pad-ink:#831843;
+    --go:#15803d; --go-soft:#dcfce7; --hold:#b91c1c; --hold-soft:#fee2e2;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f472b6; --sig-ink:#f9a8d4; --sig-soft:#831843; --on-sig:#500724;
+      --good:#34d399; --good-ink:#bbf7d0; --good-soft:#14532d;
+      --warn:#fbbf24; --bad:#fca5a5; --bad-ink:#fecaca; --bad-soft:#4c1d1d;
+      --pad:#2a0f22; --pad-line:#db2777; --pad-ink:#fce7f3;
+      --go:#34d399; --go-soft:#14532d; --hold:#fca5a5; --hold-soft:#4c1d1d;
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em;flex:1 1 auto;min-width:0;line-height:1.2}
+  h1 small{display:block;color:var(--muted);font-weight:400;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-btns{display:flex;gap:6px;flex:0 0 auto}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer;white-space:nowrap}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:6px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .score b{display:block;font-size:1.2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+  .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}
+  .ad-rect{width:300px;height:250px;margin:10px auto}
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  /* ---- ★판 · 이 게임의 핵심 계약이 이 몇 줄에 있다 ------------------------------
+     두 사람은 한 화면을 위아래로 나눠 마주 본다. 위쪽 절반은 180도 돌려 그린다.
+     ★두 절반이 같아야 한다 — 한쪽이 조금이라도 크거나 가까우면 그것이 곧 승패다. 그래서
+       ①행을 1fr 1fr 로 나눠 ★구조로 같게 만들고(px 를 두 번 적지 않는다)
+       ②두 절반의 마크업을 동일하게 두고 회전만 다르게 하며
+       ③판이 도는 동안 머리줄·광고·본문을 접어 ★화면 전체를 판이 쓰게 한다.
+         (머리줄이 남으면 위쪽 절반이 늘 작다 · 그 차이가 게임을 망친다)
+     ★신호는 판 한가운데에 ★하나만 둔다 — 절반마다 따로 그리면 두 그림이 다른 순간에 서고
+       그 차이가 승패가 된다. 대신 신호 그림은 ★180도 회전 대칭(꽉 찬 원 · X)이라 어느 쪽에서
+       보아도 같다. 글자는 회전 대칭이 아니므로 절반마다 제 방향으로 따로 둔다 —
+       ★상태와 시각은 가운데 하나가 정하고, 두 글자는 그 상태를 같은 프레임에 받아 적는다. */
+  .tg-board{position:relative;width:100%;max-width:min(100%,520px);height:min(62dvh,520px);
+       display:grid;grid-template-rows:1fr 1fr;gap:10px}
+  body.tg-running .tg-board{height:100dvh;max-width:100%;gap:8px;padding:8px}
+  body.tg-running header,body.tg-running .scores,body.tg-running .ad-slot,
+  body.tg-running section.content,body.tg-running footer,body.tg-running .tg-help{display:none}
+  body.tg-running main{padding:0;max-width:100%}
+  .tg-half{position:relative;display:flex;align-items:center;justify-content:center;min-height:0;min-width:0}
+  /* ★위쪽만 180도 · 축 정렬 회전이라 렌더된 폭·높이는 보존된다(치수 대조가 회전을 통과한다) */
+  .tg-half.tg-top{transform:rotate(180deg)}
+  .tg-press{width:100%;height:100%;min-height:96px;border:3px solid var(--pad-line);border-radius:20px;
+       background:var(--pad);color:var(--pad-ink);display:flex;flex-direction:column;align-items:center;
+       justify-content:center;gap:6px;font-family:inherit;cursor:pointer;padding:10px;
+       touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  .tg-press:focus-visible{outline:3px solid var(--sig);outline-offset:3px}
+  .tg-press:active{transform:scale(.995)}
+  .tg-name{font-size:.72rem;font-weight:700;letter-spacing:.04em;color:var(--muted-2)}
+  .tg-score{font-size:2.2rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .tg-lbl{font-size:1rem;font-weight:700;min-height:1.4em;text-align:center}
+  /* 결과가 드러난 순간 — ★테두리 색과 함께 글자가 바뀐다(색만으로 말하지 않는다) */
+  .tg-press.tg-win{border-color:var(--go);background:var(--go-soft)}
+  .tg-press.tg-lose{border-color:var(--hold);background:var(--hold-soft)}
+  /* ---- ★신호 · 판 한가운데 하나 ---- */
+  .tg-signal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+       width:min(34%,140px);aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+       pointer-events:none;z-index:3}
+  .tg-signal svg{width:100%;height:100%;display:block}
+  .tg-help{color:var(--muted);font-size:.78rem;text-align:center;margin:0;max-width:32em}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card-box h2{margin:0 0 6px;font-size:1.5rem}
+  .card-box .big{font-size:2.2rem;font-weight:800;color:var(--sig-ink);line-height:1.15;font-variant-numeric:tabular-nums}
+  .card-box .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card-box .marks{font-size:.95rem;letter-spacing:.02em;margin:4px 0;line-height:1.5;word-break:break-word;font-variant-numeric:tabular-nums;white-space:pre-line}
+  .card-box .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .hp-stat[hidden]{display:none!important}
+  .card-box .hp-stat b{font-weight:600}
+  .card-box .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .card-box .reason{font-size:.95rem;font-weight:600;margin:2px 0 6px;min-height:1.2em;color:var(--muted-2)}
+  /* ★결과 문안은 두 사람이 마주 본 채로 읽는다 — 위쪽 사람 몫을 180도 돌려 한 벌 더 둔다 */
+  .tg-mirror{transform:rotate(180deg);background:var(--sig-soft);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:12px}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[disabled]{opacity:.5;cursor:default}
+  .btn[hidden]{display:none}
+  .stats3{display:flex;gap:6px;margin:10px 0 4px}
+  .stats3 div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .stats3 b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums;word-break:keep-all}
+  .stats3 span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  section.content a{color:var(--muted-2)}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center;max-width:520px}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(84px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  @media (max-width:400px){
+    header .ibtn .lbl{display:none}
+    header .ibtn{padding:5px 8px}
+  }
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  @media (prefers-reduced-motion: reduce){
+    .toast{transition:none}
+    .btn:active,.ibtn:active,.tg-press:active{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">같이 한판</span> <small id="subtitle" data-i18n="subtitle">한 화면을 반으로 갈라 둘이 겨루는 반응 게임</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 <span class="lbl">다른 게임</span></a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="bestNow">–</b><span data-i18n="bestLbl">연습 최고</span></div>
+  <div class="score"><b id="modeNow">–</b><span data-i18n="modeLbl">모드</span></div>
+  <div class="score"><b id="roundNow">–</b><span data-i18n="roundLbl">라운드</span></div>
+</div>
+
+<main>
+  <!-- ★판 · 위쪽 절반(회전) · 아래쪽 절반 · 가운데 신호 하나 -->
+  <div class="tg-board" id="board">
+    <div class="tg-half tg-top" id="halfTop">
+      <button class="tg-press" id="press1" type="button">
+        <span class="tg-name" id="name1">–</span>
+        <span class="tg-score" id="score1">0</span>
+        <span class="tg-lbl" id="lbl1">–</span>
+      </button>
+    </div>
+    <div class="tg-half tg-bottom" id="halfBottom">
+      <button class="tg-press" id="press0" type="button">
+        <span class="tg-name" id="name0">–</span>
+        <span class="tg-score" id="score0">0</span>
+        <span class="tg-lbl" id="lbl0">–</span>
+      </button>
+    </div>
+    <!-- ★신호는 하나다 · 그림은 180도 회전 대칭이라 두 사람에게 같게 보인다 -->
+    <div class="tg-signal" id="signal" aria-hidden="true"></div>
+  </div>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="tg-help" id="help" data-i18n="hint">신호가 <strong>꽉 찬 원</strong>이면 먼저 누르는 쪽이 1점 · <strong>X</strong>면 누르는 쪽이 실점 · 신호 전에 누르면 부정출발</p>
+</main>
+
+<!-- 결과 -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card-box">
+    <!-- ★위쪽 사람 몫 · 같은 값을 180도 돌려 한 벌 더 적는다(둘이 마주 본 채로 읽는다) -->
+    <div class="tg-mirror"><div class="big" id="finalBigTop">0</div><div class="reason" id="finalLineTop"></div></div>
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <div class="big" id="finalBig">0</div>
+    <div class="reason" id="finalLine"></div>
+    <div class="marks" id="marks"></div>
+    <div class="new" id="newBest"></div>
+    <div class="stats3">
+      <div><b id="nScore">0</b><span data-i18n="scoreLbl">점수</span></div>
+      <div><b id="nRounds">0</b><span data-i18n="roundsLbl">라운드</span></div>
+      <div><b id="nAvg">–</b><span data-i18n="avgLbl">평균 반응</span></div>
+    </div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- 시작 -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card-box">
+    <h2 id="startTitle" data-i18n="title2">같이 한판</h2>
+    <div class="sub" data-i18n="startSub">기기 하나를 두 사람이 <strong>마주 보고</strong> 놓으세요. 화면 위아래가 각자의 자리입니다.<br>신호가 뜨면 먼저 누르는 쪽이 1점, <strong>X</strong>에 누르면 상대에게 1점입니다.</div>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnVersus" data-i18n="versus">👥 둘이 한판 (자유)</button>
+    <button class="btn ghost" id="btnSolo" data-i18n="solo">🙋 혼자 연습</button>
+    <p class="sub" id="soloHint" style="margin:6px 0 0"></p>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.together.today">–</b>판 · 누적 <b data-hp="plays.together.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">기기 하나를 가운데 놓고 두 사람이 <strong>마주 보고</strong> 앉습니다. 화면은 위아래로 나뉘어 각자 한 칸씩 맡고, 위쪽 칸은 마주 앉은 사람이 바로 읽도록 <strong>180도 돌려</strong> 그립니다. 자기 칸 아무 데나 누르면 그것이 여러분의 버튼입니다.</p>
+  <p data-i18n="how2">한 라운드는 이렇습니다. 잠깐의 <strong>대기</strong> 뒤 화면 한가운데에 신호가 뜹니다. <strong>꽉 찬 원</strong>이면 먼저 누르는 쪽이 1점이고, <strong>X</strong>면 누르는 쪽이 실점해 상대가 1점을 가져갑니다. 둘 다 참으면 그 라운드는 점수 없이 넘어갑니다. 대기 중에 누르는 <strong>부정출발</strong>도 상대에게 1점입니다.</p>
+  <p data-i18n="how3">한 판은 <strong>7라운드</strong>이고 <strong>먼저 4점</strong>이면 그 자리에서 끝납니다. 7라운드를 다 치렀는데 점수가 같으면 <strong>서든데스</strong>로 이어져 먼저 1점을 내는 쪽이 이깁니다. 신호는 색이 아니라 <strong>모양</strong>으로 말하고, 그 모양은 180도 돌려도 같아 두 사람에게 똑같이 보입니다.</p>
+  <p data-i18n="how4">혼자 왔다면 <strong>혼자 연습</strong>을 고르세요. 위쪽 자리를 페이스메이커가 대신 맡습니다. 판정은 둘이 할 때와 똑같은 길을 지나고 상대만 바뀝니다. 연습에서는 <strong>가장 빠른 평균 반응</strong>이 기록으로 남습니다. 키보드로도 됩니다 — 아래쪽은 Space 나 아래쪽 화살표, 위쪽은 위쪽 화살표입니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 도전이 열립니다. 그날의 날짜로 라운드마다의 대기 시간과 신호 종류가 모두 정해지고, 전 세계 모든 플레이어가 같은 판을 받습니다. 판을 정하는 데는 날짜만 쓰입니다 — 누가 언제 열든, 몇 번을 다시 열든 그날의 판은 달라지지 않습니다. <strong>연습 모드는 오늘의 판을 쓰지 않습니다</strong> — 미리 연습한 사람이 대기 시간을 알고 앉으면 그 판이 공정하지 않기 때문입니다.</p>
+  <h2 data-i18n="tipsTitle">요령</h2>
+  <details><summary data-i18n="tip1q">손가락을 화면에서 떼고 기다리세요</summary><p data-i18n="tip1a">화면에 손을 얹고 있으면 조금이라도 빨리 눌리는 대신 부정출발의 위험이 커집니다. 대기 시간은 매 라운드 다르게 뽑히므로 &lsquo;슬슬 나올 때가 됐다&rsquo;는 감은 자주 틀립니다.</p></details>
+  <details><summary data-i18n="tip2q">X를 기억하세요</summary><p data-i18n="tip2a">열 번 중 세 번쯤은 참아야 하는 신호입니다. 반사로만 누르면 그 세 번에서 상대에게 점수를 그냥 줍니다. 원인지 X인지 한 박자 확인하는 사람이 결국 앞섭니다.</p></details>
+  <details><summary data-i18n="tip3q">지고 있어도 끝난 것이 아닙니다</summary><p data-i18n="tip3a">부정출발과 X 실점은 상대에게 점수를 주므로, 앞서는 쪽일수록 서두르다 잃기 쉽습니다. 3점을 먼저 채운 쪽이 조급해지는 순간이 뒤집을 자리입니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">한쪽 자리가 더 유리하지 않나요?</summary><p data-i18n="faq1a">그러지 않도록 만들었습니다. 화면을 정확히 반으로 나누고 두 칸을 같은 모양·같은 크기로 그리며, 판이 도는 동안에는 머리줄과 광고를 접어 두 칸이 화면을 똑같이 나눠 씁니다. 신호도 한가운데에 <strong>하나만</strong> 두어 두 사람에게 같은 순간 보이고, 그 그림은 180도 돌려도 같은 모양입니다. 이 대칭은 실제 브라우저에서 두 칸의 렌더된 치수를 재는 검사로 매번 확인합니다.</p></details>
+  <details><summary data-i18n="faq2q">둘이 동시에 누르면 어떻게 되나요?</summary><p data-i18n="faq2a">브라우저가 두 입력에 찍어 준 시각을 비교해 <strong>먼저 누른 쪽</strong>이 가져갑니다. 두 시각이 완전히 같으면 그 라운드는 점수 없이 넘어가고, 그런 일이 몇 번 있었는지는 결과 화면에 함께 적습니다. 화면을 다시 그린 횟수가 아니라 실제로 흐른 시간으로 재기 때문에 기기가 느려도 손해를 보지 않습니다.</p></details>
+  <details><summary data-i18n="faq3q">혼자서도 할 수 있나요?</summary><p data-i18n="faq3a">네. <strong>혼자 연습</strong>을 고르면 위쪽 자리를 페이스메이커가 맡습니다. 판정 규칙은 둘이 할 때와 완전히 같고 상대만 바뀝니다. 페이스메이커의 반응 시간도 판을 짤 때 미리 정해지므로 같은 판이면 같게 움직입니다. 연습에서는 가장 빠른 평균 반응이 기록으로 남고, 둘이 하는 판은 그 기록을 건드리지 않습니다 — 자리를 바꿔 앉으면 그 값이 누구 것인지 알 수 없기 때문입니다.</p></details>
+  <details><summary data-i18n="faq4q">색을 잘 구별하지 못해도 할 수 있나요?</summary><p data-i18n="faq4a">네. 신호는 색이 아니라 <strong>모양</strong>으로 말합니다 — 꽉 찬 원은 &lsquo;가라&rsquo;, X는 &lsquo;참아라&rsquo;입니다. 두 모양은 두께와 형태가 아주 달라 흑백으로 보아도 갈립니다. 각자의 칸에는 그 순간의 지시가 <strong>글자로도</strong> 함께 적힙니다.</p></details>
+  <details><summary data-i18n="faq5q">기록은 어디에 저장되나요?</summary><p data-i18n="faq5a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로는 판수 집계와 함께 어느 게임인지와 고른 모드·이긴 쪽의 점수·치른 라운드 수·걸린 시간 같은 플레이 통계가, 그리고 언어를 바꾸면 그 사실이 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 브라우저 데이터를 지우면 기록도 함께 지워집니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a>에 최신 목록으로 유지합니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 같이 한판 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·판정에는 관여하지 않는다. 태그가 아직 실리지 않았거나 차단됐으면 조용히 지나간다. */
+const GA_GAME = 'together';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ======================= ★시계 =======================
+   이 게임은 ★반응 시간이 곧 승패다. 그래서 시간은 전부 ★흐른 시간으로만 잰다 —
+   프레임을 세어 더하지 않고, 신호가 뜨는 순간을 애니메이션 콜백에 맡기지도 않는다:
+   · 신호가 뜰 시각을 라운드 시작 때 ★미리 못박고, 타이머가 일찍 깨면 남은 만큼 다시 건다.
+   · 늦게 깨면 그 늦음을 알아채 ★마감 시각으로 신호를 확정한다(깨어난 시각이 아니다).
+     늦은 몫(lateMs)은 따로 적어 둔다 — 두 사람은 같은 화면을 보므로 늦음도 ★둘에게 같다.
+   · 도장은 브라우저가 입력 사건에 찍어 준 event.timeStamp 를 먼저 쓴다(우리 코드가 실행되기까지의
+     지연이 끼지 않는다 · performance.now() 와 같은 원점이라 그대로 뺄 수 있다). 도장이 없거나
+     터무니없으면 그 자리에서 performance.now() 로 물러선다. */
+const nowMs = () => performance.now();
+const STAMP_TOLERANCE_MS = 1000;   /* 도장이 지금과 이만큼 넘게 벌어져 있으면 믿지 않는다 */
+function stampOf(ev){
+  const t = nowMs();
+  if (!ev) return t;
+  const s = ev.timeStamp;
+  if (typeof s === 'number' && isFinite(s) && s > 0 && Math.abs(t - s) <= STAMP_TOLERANCE_MS) return s;
+  return t;
+}
+
+/* ======================= 판의 규격(순수 상수) ======================= */
+const ROUNDS = 7;                /* 한 판의 기본 라운드 수 */
+const WIN = 4;                   /* 먼저 이 점수에 닿으면 그 자리에서 끝난다 */
+/* ★선추첨 라운드 · 서든데스용이다. 7라운드가 홀수여도 ★무득점 라운드가 있어 동점이 날 수 있다
+   (참아라에서 둘 다 참거나, 가라인데 둘 다 안 누르는 라운드). 그래서 라운드를 넉넉히 미리 뽑아
+   두고 동점이면 이어서 치른다 — ★난수는 판을 짤 때 전부 소진된다는 규칙은 그대로다.
+   20라운드를 다 쓰고도 동점이면 ★무승부로 끝난다고 못박는다(그 자리를 비워 두면 영영 안 밟히는
+   가지가 생기고, 그런 가지의 뮤테이션은 공허하게 통과한다). */
+const PLAN_ROUNDS = 20;
+const WAIT_MIN = 1200, WAIT_MAX = 3500;   /* 신호까지의 대기 · 예측 가능하면 부정출발이 무의미해진다 */
+const GO_CHANCE = 0.7;           /* 가라 70% · 참아라 30%(참아라가 너무 잦으면 아무도 안 누른다) */
+const RESPONSE_MS = 2000;        /* 신호 뒤 응답 상한 · 사람 반응은 통상 250~400ms 라 넉넉하다 */
+/* 페이스메이커(혼자 연습의 상대) — ★판정 경로는 대전과 같은 것을 쓰고 상대만 대체한다 */
+const PACER_MIN = 320, PACER_MAX = 520;   /* 사람 평균 언저리 · 혼자여도 이길 수 있어야 한다 */
+const PACER_HOLD_PRESS = 0.2;    /* 참아라에서 페이스메이커가 누르는 확률(사람에게 기회를 준다) */
+const FEEDBACK_MS = 1100;        /* 결과를 보여 주는 시간 — ★연출일 뿐, 논리는 누른 순간 확정됐다 */
+/* 두 자리 — 아래쪽이 0, 위쪽이 1이다. 자리는 판 내내 바뀌지 않는다. */
+const BOTTOM = 0, TOP = 1;
+const OTHER = i => (i === BOTTOM ? TOP : BOTTOM);
+/* 신호 두 종류 · ★모양이 뜻을 지닌다(색은 거들 뿐이다) */
+const SIG_GO = 'go', SIG_HOLD = 'hold';
+
+/* ★신호 그림 — 둘 다 ★180도 회전 대칭이라 마주 앉은 두 사람에게 같은 모양으로 보인다.
+   이것이 '신호를 가운데 하나만 두어도 되는' 근거다. 색은 거들 뿐이고 모양이 말한다. */
+const SIGNAL_SVG = {
+  go:   '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="var(--go)"/></svg>',
+  hold: '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M22 22 L78 78 M78 22 L22 78" stroke="var(--hold)" stroke-width="18" stroke-linecap="round" fill="none"/></svg>',
+  wait: '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40" fill="none" stroke="var(--pad-line)" stroke-width="8" stroke-dasharray="10 12"/></svg>'
+};
+
+/* ======================= i18n(UI) ======================= */
+const I18N = {
+  ko: {
+    docTitle:'같이 한판 — 한 화면을 반으로 갈라 둘이 겨루는 반응 게임 | Two on One Screen',
+    title:'같이 한판', title2:'같이 한판', subtitle:'한 화면을 반으로 갈라 둘이 겨루는 반응 게임',
+    home:'🏠 <span class="lbl">다른 게임</span>', langBtn:'EN',
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    bestLbl:'연습 최고', modeLbl:'모드', roundLbl:'라운드',
+    scoreLbl:'점수', roundsLbl:'라운드', avgLbl:'평균 반응',
+    result:'결과', again:'다시 하기', share:'결과 공유',
+    versus:'👥 둘이 한판 (자유)', solo:'🙋 혼자 연습',
+    startSub:'기기 하나를 두 사람이 <strong>마주 보고</strong> 놓으세요. 화면 위아래가 각자의 자리입니다.<br>신호가 뜨면 먼저 누르는 쪽이 1점, <strong>X</strong>에 누르면 상대에게 1점입니다.',
+    hint:'신호가 <strong>꽉 찬 원</strong>이면 먼저 누르는 쪽이 1점 · <strong>X</strong>면 누르는 쪽이 실점 · 신호 전에 누르면 부정출발',
+    statPlays:'오늘 <b data-hp="plays.together.today">–</b>판 · 누적 <b data-hp="plays.together.total">–</b>판',
+    secUnit:'초',
+    soloHint:'혼자 왔나요? 페이스메이커가 위쪽 자리를 맡습니다 — 판정 규칙은 그대로입니다',
+    nameBottom:'아래쪽', nameTop:'위쪽', namePacer:'페이스메이커', nameYou:'나',
+    lblWait:'기다리세요', lblGo:'누르세요!', lblHold:'참으세요!',
+    lblWin:'+1점', lblLose:'상대에게 1점', lblFalse:'부정출발!', lblNone:'무득점',
+    lblReady:'준비', lblDone:'끝',
+    modeDaily:'도전', modeVersus:'대전', modeSolo:'연습',
+    roundChip:(k, n) => `${k} / ${n}`,
+    dailyBtn:no => `🔥 오늘의 도전 #${no}`,
+    dailyDoneBtn:no => `✅ 오늘의 도전 #${no} 완료`,
+    dailyHint:'둘이 마주 보고 · 하루 한 번 · 모두가 같은 판',
+    dailyHintDone:'오늘 도전은 이미 마쳤습니다 — 자유 대전과 연습은 계속할 수 있어요',
+    bigVersus:(a, b) => `${a} : ${b}`,
+    winnerBottom:'아래쪽 승리', winnerTop:'위쪽 승리', winnerDraw:'무승부',
+    winnerYou:'내가 이겼다', winnerPacer:'페이스메이커 승리',
+    finalLineVersus:(rounds, sec) => `${rounds}라운드 · ${sec}초`,
+    finalLineSolo:(avg, rounds) => `평균 반응 ${avg}초 · ${rounds}라운드`,
+    marksLine:(a, b) => `아래쪽 ${a} : ${b} 위쪽`,
+    marksTie:n => `같은 순간에 누른 라운드 ${n}회`,
+    marksFalse:(a, b) => `부정출발 아래쪽 ${a}회 · 위쪽 ${b}회`,
+    resultSubDaily:no => `오늘의 도전 #${no}`,
+    resultSubVersus:'자유 대전', resultSubSolo:'혼자 연습',
+    newBest:'🎉 연습 최고 기록 경신!',
+    copied:'결과를 복사했습니다',
+    dailyShare:(no, a, b, marks) => `같이 한판 #${no}\n${a} : ${b}\n${marks}\n`,
+    freeShare:(a, b, marks) => `같이 한판\n${a} : ${b}\n${marks}\n`,
+    soloShare:(avg, marks) => `같이 한판 혼자 연습\n평균 반응 ${avg}초\n${marks}\n`,
+    sayWait:k => `${k}라운드, 기다리세요`,
+    sayGo:'가라 신호',
+    sayHold:'참아라 신호',
+    sayRound:(a, b) => `아래쪽 ${a}점, 위쪽 ${b}점`,
+    sayEnd:t => `끝, ${t}`,
+    ariaSoundOn:'효과음 끄기', ariaSoundOff:'효과음 켜기', ariaLang:'언어 바꾸기', ariaHome:'다른 게임 보러 가기',
+    ariaPressBottom:'아래쪽 자리 버튼', ariaPressTop:'위쪽 자리 버튼',
+    howTitle:'게임 방법', dailyTitle:'오늘의 도전', tipsTitle:'요령', faqTitle:'자주 묻는 질문',
+    how1:'기기 하나를 가운데 놓고 두 사람이 <strong>마주 보고</strong> 앉습니다. 화면은 위아래로 나뉘어 각자 한 칸씩 맡고, 위쪽 칸은 마주 앉은 사람이 바로 읽도록 <strong>180도 돌려</strong> 그립니다. 자기 칸 아무 데나 누르면 그것이 여러분의 버튼입니다.',
+    how2:'한 라운드는 이렇습니다. 잠깐의 <strong>대기</strong> 뒤 화면 한가운데에 신호가 뜹니다. <strong>꽉 찬 원</strong>이면 먼저 누르는 쪽이 1점이고, <strong>X</strong>면 누르는 쪽이 실점해 상대가 1점을 가져갑니다. 둘 다 참으면 그 라운드는 점수 없이 넘어갑니다. 대기 중에 누르는 <strong>부정출발</strong>도 상대에게 1점입니다.',
+    how3:'한 판은 <strong>7라운드</strong>이고 <strong>먼저 4점</strong>이면 그 자리에서 끝납니다. 7라운드를 다 치렀는데 점수가 같으면 <strong>서든데스</strong>로 이어져 먼저 1점을 내는 쪽이 이깁니다. 신호는 색이 아니라 <strong>모양</strong>으로 말하고, 그 모양은 180도 돌려도 같아 두 사람에게 똑같이 보입니다.',
+    how4:'혼자 왔다면 <strong>혼자 연습</strong>을 고르세요. 위쪽 자리를 페이스메이커가 대신 맡습니다. 판정은 둘이 할 때와 똑같은 길을 지나고 상대만 바뀝니다. 연습에서는 <strong>가장 빠른 평균 반응</strong>이 기록으로 남습니다. 키보드로도 됩니다 — 아래쪽은 Space 나 아래쪽 화살표, 위쪽은 위쪽 화살표입니다.',
+    dailyDesc:'매일 자정에 새 도전이 열립니다. 그날의 날짜로 라운드마다의 대기 시간과 신호 종류가 모두 정해지고, 전 세계 모든 플레이어가 같은 판을 받습니다. 판을 정하는 데는 날짜만 쓰입니다 — 누가 언제 열든, 몇 번을 다시 열든 그날의 판은 달라지지 않습니다. <strong>연습 모드는 오늘의 판을 쓰지 않습니다</strong> — 미리 연습한 사람이 대기 시간을 알고 앉으면 그 판이 공정하지 않기 때문입니다.',
+    tip1q:'손가락을 화면에서 떼고 기다리세요',
+    tip1a:'화면에 손을 얹고 있으면 조금이라도 빨리 눌리는 대신 부정출발의 위험이 커집니다. 대기 시간은 매 라운드 다르게 뽑히므로 &lsquo;슬슬 나올 때가 됐다&rsquo;는 감은 자주 틀립니다.',
+    tip2q:'X를 기억하세요',
+    tip2a:'열 번 중 세 번쯤은 참아야 하는 신호입니다. 반사로만 누르면 그 세 번에서 상대에게 점수를 그냥 줍니다. 원인지 X인지 한 박자 확인하는 사람이 결국 앞섭니다.',
+    tip3q:'지고 있어도 끝난 것이 아닙니다',
+    tip3a:'부정출발과 X 실점은 상대에게 점수를 주므로, 앞서는 쪽일수록 서두르다 잃기 쉽습니다. 3점을 먼저 채운 쪽이 조급해지는 순간이 뒤집을 자리입니다.',
+    faq1q:'한쪽 자리가 더 유리하지 않나요?',
+    faq1a:'그러지 않도록 만들었습니다. 화면을 정확히 반으로 나누고 두 칸을 같은 모양·같은 크기로 그리며, 판이 도는 동안에는 머리줄과 광고를 접어 두 칸이 화면을 똑같이 나눠 씁니다. 신호도 한가운데에 <strong>하나만</strong> 두어 두 사람에게 같은 순간 보이고, 그 그림은 180도 돌려도 같은 모양입니다. 이 대칭은 실제 브라우저에서 두 칸의 렌더된 치수를 재는 검사로 매번 확인합니다.',
+    faq2q:'둘이 동시에 누르면 어떻게 되나요?',
+    faq2a:'브라우저가 두 입력에 찍어 준 시각을 비교해 <strong>먼저 누른 쪽</strong>이 가져갑니다. 두 시각이 완전히 같으면 그 라운드는 점수 없이 넘어가고, 그런 일이 몇 번 있었는지는 결과 화면에 함께 적습니다. 화면을 다시 그린 횟수가 아니라 실제로 흐른 시간으로 재기 때문에 기기가 느려도 손해를 보지 않습니다.',
+    faq3q:'혼자서도 할 수 있나요?',
+    faq3a:'네. <strong>혼자 연습</strong>을 고르면 위쪽 자리를 페이스메이커가 맡습니다. 판정 규칙은 둘이 할 때와 완전히 같고 상대만 바뀝니다. 페이스메이커의 반응 시간도 판을 짤 때 미리 정해지므로 같은 판이면 같게 움직입니다. 연습에서는 가장 빠른 평균 반응이 기록으로 남고, 둘이 하는 판은 그 기록을 건드리지 않습니다 — 자리를 바꿔 앉으면 그 값이 누구 것인지 알 수 없기 때문입니다.',
+    faq4q:'색을 잘 구별하지 못해도 할 수 있나요?',
+    faq4a:'네. 신호는 색이 아니라 <strong>모양</strong>으로 말합니다 — 꽉 찬 원은 &lsquo;가라&rsquo;, X는 &lsquo;참아라&rsquo;입니다. 두 모양은 두께와 형태가 아주 달라 흑백으로 보아도 갈립니다. 각자의 칸에는 그 순간의 지시가 <strong>글자로도</strong> 함께 적힙니다.',
+    faq5q:'기록은 어디에 저장되나요?',
+    faq5a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로는 판수 집계와 함께 어느 게임인지와 고른 모드·이긴 쪽의 점수·치른 라운드 수·걸린 시간 같은 플레이 통계가, 그리고 언어를 바꾸면 그 사실이 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 브라우저 데이터를 지우면 기록도 함께 지워집니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a>에 최신 목록으로 유지합니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개',
+    footer:'© 2026 같이 한판 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.'
+  },
+  en: {
+    docTitle:'Two on One Screen — split the screen and see who reacts first | 같이 한판',
+    title:'Two on One Screen', title2:'Two on One Screen', subtitle:'Split one screen and race each other to react',
+    home:'🏠 <span class="lbl">More games</span>', langBtn:'한국어',
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    bestLbl:'Practice best', modeLbl:'Mode', roundLbl:'Round',
+    scoreLbl:'Score', roundsLbl:'Rounds', avgLbl:'Avg reaction',
+    result:'Result', again:'Play again', share:'Share result',
+    versus:'👥 Two players (free)', solo:'🙋 Practice alone',
+    startSub:'Put one device between you and sit <strong>facing each other</strong>. The top and bottom halves are your sides.<br>On the signal the first to press scores; press on an <strong>X</strong> and the point goes to the other side.',
+    hint:'A <strong>filled circle</strong> means the first press scores · an <strong>X</strong> means the presser loses the point · pressing early is a false start',
+    statPlays:'<b data-hp="plays.together.today">–</b> today · <b data-hp="plays.together.total">–</b> all-time',
+    secUnit:'s',
+    soloHint:'Here on your own? A pacemaker takes the top side — the rules stay exactly the same',
+    nameBottom:'Bottom', nameTop:'Top', namePacer:'Pacemaker', nameYou:'You',
+    lblWait:'Wait for it', lblGo:'Press!', lblHold:'Hold!',
+    lblWin:'+1 point', lblLose:'Point to the other side', lblFalse:'False start!', lblNone:'No point',
+    lblReady:'Ready', lblDone:'Done',
+    modeDaily:'Daily', modeVersus:'Versus', modeSolo:'Practice',
+    roundChip:(k, n) => `${k} / ${n}`,
+    dailyBtn:no => `🔥 Daily challenge #${no}`,
+    dailyDoneBtn:no => `✅ Daily #${no} done`,
+    dailyHint:'Face each other · one attempt a day · the same game for everyone',
+    dailyHintDone:'Today’s challenge is done — free versus and practice are still open',
+    bigVersus:(a, b) => `${a} : ${b}`,
+    winnerBottom:'Bottom wins', winnerTop:'Top wins', winnerDraw:'Draw',
+    winnerYou:'You win', winnerPacer:'Pacemaker wins',
+    finalLineVersus:(rounds, sec) => `${rounds} rounds · ${sec} s`,
+    finalLineSolo:(avg, rounds) => `${avg} s per reaction · ${rounds} rounds`,
+    marksLine:(a, b) => `Bottom ${a} : ${b} Top`,
+    marksTie:n => `${n} round(s) pressed at the very same instant`,
+    marksFalse:(a, b) => `False starts — bottom ${a}, top ${b}`,
+    resultSubDaily:no => `Daily challenge #${no}`,
+    resultSubVersus:'Free versus', resultSubSolo:'Practice alone',
+    newBest:'🎉 New practice best!',
+    copied:'Result copied',
+    dailyShare:(no, a, b, marks) => `Two on One Screen #${no}\n${a} : ${b}\n${marks}\n`,
+    freeShare:(a, b, marks) => `Two on One Screen\n${a} : ${b}\n${marks}\n`,
+    soloShare:(avg, marks) => `Two on One Screen — practice\n${avg} s per reaction\n${marks}\n`,
+    sayWait:k => `Round ${k}, wait for it`,
+    sayGo:'Go signal',
+    sayHold:'Hold signal',
+    sayRound:(a, b) => `Bottom ${a}, top ${b}`,
+    sayEnd:t => `Done, ${t}`,
+    ariaSoundOn:'Turn sound off', ariaSoundOff:'Turn sound on', ariaLang:'Change language', ariaHome:'Browse other games',
+    ariaPressBottom:'Bottom side button', ariaPressTop:'Top side button',
+    howTitle:'How to play', dailyTitle:'Daily challenge', tipsTitle:'Tips', faqTitle:'FAQ',
+    how1:'Put one device between you and sit <strong>facing each other</strong>. The screen splits into a top and a bottom side, one each, and the top half is drawn <strong>rotated 180 degrees</strong> so the person opposite reads it the right way up. Anywhere in your own half is your button.',
+    how2:'A round goes like this. After a short <strong>wait</strong>, a signal appears in the middle of the screen. On a <strong>filled circle</strong> the first side to press takes a point; on an <strong>X</strong> the side that presses loses the point to the other. If neither presses, the round passes with no score. Pressing during the wait is a <strong>false start</strong> and also gives the point away.',
+    how3:'A game is <strong>seven rounds</strong>, and reaching <strong>four points</strong> ends it on the spot. If the score is level after seven rounds it goes to <strong>sudden death</strong>, where the next point wins. The signal speaks in <strong>shape</strong> rather than colour, and both shapes look the same rotated 180 degrees, so both players see exactly the same thing.',
+    how4:'On your own? Choose <strong>practice alone</strong> and a pacemaker takes the top side. The judging runs through exactly the same path as a two-player game; only the opponent changes. Practice records your <strong>fastest average reaction</strong>. The keyboard works too — Space or the down arrow for the bottom side, the up arrow for the top.',
+    dailyDesc:'A new challenge opens at midnight. The date alone fixes the wait before each signal and which signal it is, and every player in the world gets the same game. Only the date feeds the picker — no matter who plays when, or how many times the page is reopened, the day’s game never changes. <strong>Practice mode never uses the day’s game</strong>: someone who had practised it would sit down already knowing the waits, and that game would no longer be fair.',
+    tip1q:'Keep your finger off the glass while you wait',
+    tip1a:'Resting a finger on the screen buys you a few milliseconds and costs you far more in false starts. The wait is drawn afresh every round, so the feeling that it is "about due" is wrong more often than not.',
+    tip2q:'Remember the X',
+    tip2a:'Roughly three signals in ten are ones you must not press. Playing on pure reflex hands those three straight to your opponent. The player who takes the extra beat to check circle-or-X comes out ahead.',
+    tip3q:'Being behind is not being beaten',
+    tip3a:'False starts and X presses give points away, so the side in front has the most to lose by rushing. The moment the player on three points gets impatient is the moment the game turns.',
+    faq1q:'Does one side have an advantage?',
+    faq1a:'It is built so that it does not. The screen is split exactly in half, the two sides are drawn with identical markup and size, and while a game is running the header and ads are folded away so the two halves share the screen equally. The signal sits in the middle as a <strong>single element</strong>, so both players see it at the same instant, and its shape is unchanged by a 180-degree rotation. This symmetry is checked on every build by measuring the rendered size of both halves in a real browser.',
+    faq2q:'What if both press at once?',
+    faq2a:'The timestamps the browser attaches to the two inputs are compared and the <strong>earlier press</strong> takes it. If the two are exactly equal the round passes with no score, and the result screen tells you how often that happened. Everything is measured in elapsed time rather than frames drawn, so a slower device is not a handicap.',
+    faq3q:'Can I play on my own?',
+    faq3a:'Yes. Choose <strong>practice alone</strong> and a pacemaker takes the top side. The rules are exactly those of a two-player game; only the opponent changes. The pacemaker’s reaction times are fixed when the game is laid out, so the same game plays the same way. Practice records your fastest average reaction, and two-player games never touch that record — when players swap sides there is no way to say whose number it would be.',
+    faq4q:'Can I play if I have trouble telling colours apart?',
+    faq4a:'Yes. The signal speaks in <strong>shape</strong>, not colour — a filled circle means go, an X means hold. The two are so different in weight and form that they separate in black and white. Each side also spells out the instruction of the moment in <strong>words</strong> in its own half.',
+    faq5q:'Where are my results stored?',
+    faq5a:'Only in the browser on the device you are using. What goes to the server is the play counter plus play statistics — which game, the mode you chose, the winning score, how many rounds were played and how long it took — and, if you switch language, that fact; none of it identifies you personally. Clearing your browser data clears your results too. The list of what is stored and what is sent is kept current in the <a href="/privacy/">privacy policy</a>.',
+    navPrivacy:'Privacy policy', navAbout:'About',
+    footer:'© 2026 Two on One Screen · Privacy: results stay on your device; third-party cookies (Google and others) may be used to serve ads.'
+  }
+};
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } };
+
+/* ======================= 소리 ======================= */
+let soundOn = localStorage.getItem('tg.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const t0 = actx.currentTime + delay;
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(gain, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sReady = () => { beep(440, .05, 'sine', .03); };
+const sGo    = () => { beep(880, .08, 'triangle', .045); vib(12); };
+const sHold  = () => { beep(300, .08, 'sine', .04); vib(12); };
+const sWin   = () => { beep(988, .07, 'triangle', .045); vib(10); };
+const sFoul  = () => { beep(170, .13, 'sawtooth', .035); vib([16, 36, 16]); };
+const sDone  = () => { beep(659, .09, 'triangle', .045); beep(988, .14, 'triangle', .04, .09); vib([20,40,20]); };
+
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   /* 2026-08-23 = #1 (다른 게임과 동일 기준일) */
+const pad2 = n => String(n).padStart(2,'0');
+function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const dailySeedKey = (d=new Date()) => 'hanpango-daily-together-' + dayKey(d);
+
+/* ★판을 짤 때 난수를 **전부** 뽑는다 — 라운드마다 대기·신호 종류·페이스메이커의 반응과 성향이다.
+   플레이 중의 어떤 행동(누르기·참기·기다리기·언어 바꾸기)도 난수를 소비하지 않는다.
+   ★씨앗에는 날짜만 들어간다 — 시각이 섞이면 같은 날인데 몇 시에 열었는지로 판이 갈린다.
+   ★페이스메이커 몫도 여기서 함께 뽑는다 · 연습 모드는 그 값을 쓰고 대전은 쓰지 않을 뿐이라
+     두 모드가 ★같은 판 구조를 지난다(판정 경로를 갈라 두지 않기 위해서다). */
+function makePlan(rnd){
+  const rounds = [];
+  for (let r = 0; r < PLAN_ROUNDS; r++){
+    const wait = WAIT_MIN + Math.floor(rnd() * (WAIT_MAX - WAIT_MIN + 1));
+    const sig = rnd() < GO_CHANCE ? SIG_GO : SIG_HOLD;
+    const pacerMs = PACER_MIN + Math.floor(rnd() * (PACER_MAX - PACER_MIN + 1));
+    const pacerPressesOnHold = rnd() < PACER_HOLD_PRESS;
+    rounds.push({ wait, sig, pacerMs, pacerPressesOnHold });
+  }
+  return { rounds };
+}
+const dailyPlan = seedKey => makePlan(mulberry32(hashStr(String(seedKey))));
+/* 자유 대전·연습도 판을 짤 때 한 번에 다 뽑는다(원천만 다르다) */
+const freePlan = () => makePlan(mulberry32((Math.random() * 4294967296) >>> 0));
+
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('tg.daily')||'null'); }catch(_){ return null; } };
+function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && r.result); }
+function saveDaily(result){
+  localStorage.setItem('tg.daily', JSON.stringify({ date: runDay, no: runNo, result }));
+}
+function loadBest(){
+  try{
+    const raw = localStorage.getItem('tg.best');
+    if (!raw) return null;
+    const v = JSON.parse(raw);
+    return (v && typeof v.avgMs === 'number' && isFinite(v.avgMs)) ? v : null;
+  }catch(_){ return null; }
+}
+function saveBest(rec){ localStorage.setItem('tg.best', JSON.stringify(rec)); }
+/* ★연습 기록은 ★이긴 판에서만 · 평균 반응이 빠를수록 좋다.
+   ★대전 판은 이 값을 건드리지 않는다 — 자리를 바꿔 앉으면 그 값의 임자가 없어진다. */
+const betterThan = (a, b) => !!a && a.won === true && (!b || a.avgMs < b.avgMs);
+
+/* ======================= 상태 ======================= */
+let mode = 'versus';         /* 'daily' | 'versus' | 'solo' */
+let phase = 'idle';          /* 'idle' | 'wait'(대기) | 'signal'(신호 · 응답 받는 중) | 'gap'(결과 연출) | 'done' */
+let plan = { rounds: [] };
+let round = 0;               /* 지금 라운드의 자리(0부터) */
+let score = [0, 0];          /* [아래쪽, 위쪽] */
+let log = [];                /* 라운드마다 { round, sig, by, kind, ms } */
+let tieCount = 0;            /* ★같은 도장으로 비긴 라운드 수(관측) */
+let falseStarts = [0, 0];
+let runStart = 0, endStamp = 0;
+let waitStart = 0;           /* 이번 라운드의 대기 시작 도장 */
+let signalDue = 0;           /* ★신호가 뜰 시각 — 대기 시작 때 미리 못박는다 */
+let signalStamp = 0;         /* 신호가 뜬 것으로 확정한 시각(= signalDue) */
+let lateMs = 0;              /* 타이머가 마감보다 늦게 깬 몫(관측 · 두 사람에게 같다) */
+let resolved = null;         /* 이번 라운드의 판정 { by, kind, ms, stamp } */
+let sigTimer = 0, limitTimer = 0, gapTimer = 0, pacerTimer = 0;
+let runDay = '', runNo = 0;
+let seedKeyNow = '';
+let lastResult = null;
+let overShown = false;
+
+const roundNow = () => plan.rounds[round] || null;
+const isSolo = () => mode === 'solo';
+/* ★자리 이름 · 연습에서는 위쪽이 페이스메이커다(자리 자체는 그대로 둘이다) */
+const sideName = i => isSolo() ? (i === BOTTOM ? T('nameYou') : T('namePacer'))
+                               : (i === BOTTOM ? T('nameBottom') : T('nameTop'));
+
+/* ======================= 그리기 =======================
+   ★여기서 하는 일은 오직 그리기다. 판정은 아래 순수한 자리에서 도장으로만 이뤄진다. */
+function paintSignal(){
+  const r = roundNow();
+  let svg = '';
+  if (phase === 'signal' && r) svg = SIGNAL_SVG[r.sig];
+  else if (phase === 'wait') svg = SIGNAL_SVG.wait;
+  $('signal').innerHTML = svg;
+}
+function labelFor(i){
+  if (phase === 'idle') return T('lblReady');
+  if (phase === 'done') return T('lblDone');
+  if (phase === 'wait') return T('lblWait');
+  if (phase === 'signal'){ const r = roundNow(); return r && r.sig === SIG_GO ? T('lblGo') : T('lblHold'); }
+  /* 결과 연출 — 이 칸이 얻었는가 잃었는가를 ★글자로 말한다(색만으로 말하지 않는다) */
+  if (!resolved) return T('lblNone');
+  if (resolved.kind === 'none') return T('lblNone');
+  if (resolved.kind === 'false-start') return resolved.by === i ? T('lblFalse') : T('lblWin');
+  if (resolved.kind === 'hold-press') return resolved.by === i ? T('lblLose') : T('lblWin');
+  return resolved.by === i ? T('lblWin') : T('lblNone');
+}
+function paintHalves(){
+  for (const i of [BOTTOM, TOP]){
+    $('name' + i).textContent = sideName(i);
+    $('score' + i).textContent = String(score[i]);
+    $('lbl' + i).textContent = labelFor(i);
+    $('press' + i).setAttribute('aria-label', i === BOTTOM ? T('ariaPressBottom') : T('ariaPressTop'));
+  }
+  /* 이긴 쪽·잃은 쪽 표시는 연출 구간에만 붙는다 */
+  for (const i of [BOTTOM, TOP]){
+    const el = $('press' + i);
+    el.classList.remove('tg-win', 'tg-lose');
+    if (phase === 'gap' && resolved && resolved.kind !== 'none'){
+      const gained = (resolved.kind === 'go-win') ? (resolved.by === i) : (resolved.by !== i);
+      el.classList.add(gained ? 'tg-win' : 'tg-lose');
+    }
+  }
+}
+function paintHud(){
+  const b = loadBest();
+  $('bestNow').textContent = b ? (secText(b.avgMs) + T('secUnit')) : '–';
+  $('modeNow').textContent = mode === 'daily' ? T('modeDaily') : (mode === 'solo' ? T('modeSolo') : T('modeVersus'));
+  $('roundNow').textContent = (phase === 'idle') ? '–' : T('roundChip', Math.min(round + 1, PLAN_ROUNDS), ROUNDS);
+}
+function updateSubtitle(){ $('subtitle').textContent = T('subtitle'); }
+function paintAll(){ paintSignal(); paintHalves(); paintHud(); }
+
+/* ======================= 한 라운드 =======================
+   ★신호가 뜰 시각을 대기 시작 때 못박고, 타이머가 일찍 깨면 남은 만큼 다시 건다.
+     늦게 깨면 ★마감 시각으로 신호를 확정한다 — 두 사람이 같은 화면을 보므로 늦음은 둘에게 같다. */
+function clearTimers(){
+  for (const t of [sigTimer, limitTimer, gapTimer, pacerTimer]) if (t) clearTimeout(t);
+  sigTimer = limitTimer = gapTimer = pacerTimer = 0;
+}
+function beginRound(){
+  const r = roundNow();
+  if (!r) return;
+  resolved = null;
+  phase = 'wait';
+  waitStart = nowMs();
+  signalDue = waitStart + r.wait;
+  signalStamp = 0; lateMs = 0;
+  paintAll();
+  say(T('sayWait', round + 1));
+  sReady();
+  scheduleSignal();
+}
+function scheduleSignal(){
+  if (sigTimer) clearTimeout(sigTimer);
+  const left = signalDue - nowMs();
+  sigTimer = setTimeout(onSignalDue, left > 0 ? left : 0);
+}
+function onSignalDue(){
+  sigTimer = 0;
+  if (phase !== 'wait') return;
+  const t = nowMs();
+  /* ★일찍 깨어났으면 신호를 띄우지 않는다 — 남은 시간만큼 다시 건다.
+     대기가 정해진 것보다 ★짧아지는 일은 이 한 줄이 막는다(짧아지면 부정출발이 억울해진다). */
+  if (t < signalDue){ scheduleSignal(); return; }
+  lateMs = t - signalDue;
+  signalStamp = signalDue;        /* ★신호는 마감 시각으로 확정한다 */
+  phase = 'signal';
+  paintAll();
+  const r = roundNow();
+  if (r.sig === SIG_GO){ sGo(); say(T('sayGo')); } else { sHold(); say(T('sayHold')); }
+  /* 응답 상한 — 아무도 누르지 않으면 무득점으로 라운드를 닫는다 */
+  limitTimer = setTimeout(onResponseLimit, RESPONSE_MS);
+  /* ★연습 모드의 상대 · 같은 onPress 로 들어간다(판정 경로를 따로 만들지 않는다).
+     ★도장은 '페이스메이커가 반응했을 시각'(신호 + pacerMs)으로 준다 — 타이머가 늦게 깨어도
+       사람에게 불리해지지 않는다(이미 사람이 눌러 라운드가 끝났으면 이 입력은 아무 일도 안 한다). */
+  if (isSolo() && (r.sig === SIG_GO || r.pacerPressesOnHold)){
+    pacerTimer = setTimeout(() => {
+      pacerTimer = 0;
+      onPress(TOP, { timeStamp: signalStamp + r.pacerMs, pacer: true });
+    }, r.pacerMs);
+  }
+}
+function onResponseLimit(){
+  limitTimer = 0;
+  if (phase !== 'signal') return;
+  resolveRound({ by: null, kind: 'none', ms: null, stamp: signalStamp + RESPONSE_MS });
+}
+
+/* ★눌렀다 — 누른 순간의 도장으로 재고, ★논리는 이 자리에서 즉시 확정한다.
+   부정출발도 같은 도장 기준이다. 연출(결과 표시) 때문에 미루면 빠른 입력이 낡은 상태 위에서 돈다. */
+function onPress(i, ev){
+  if (overShown) return;
+  const stamp = stampOf(ev);
+  /* ★같은 순간에 눌렀는가 — 먼저 들어온 입력이 라운드를 이미 확정했더라도 도장이 ★완전히 같으면
+     둘은 동시에 누른 것이라 무득점으로 되돌린다. ★이 검사는 국면 판정보다 ★앞에 와야 한다 —
+     확정과 동시에 국면이 연출(gap)로 넘어가므로 뒤에 두면 ★영영 닿지 않는 가지가 된다
+     (2026-09-05 착수 연기시험이 바로 이것을 잡았다). 늦게 온 입력은 여기서 걸리지 않는다. */
+  if (resolved && resolved.tie !== true && resolved.by !== null && resolved.by !== i &&
+      resolved.stamp === stamp && (resolved.kind === 'go-win' || resolved.kind === 'hold-press')){
+    undoScore(resolved);
+    tieCount += 1;
+    resolved = { by: null, kind: 'none', ms: null, stamp, tie: true };
+    if (log.length) log[log.length - 1] = { round: round + 1, sig: roundNow() ? roundNow().sig : null,
+                                            by: null, kind: 'none', ms: null, tie: true };
+    paintAll();
+    return;
+  }
+  if (phase === 'wait'){
+    /* ★부정출발 — 대기 시작부터 신호 표시 직전까지 누르면 상대가 1점 */
+    falseStarts[i] += 1;
+    resolveRound({ by: i, kind: 'false-start', ms: null, stamp });
+    return;
+  }
+  if (phase !== 'signal') return;
+  const r = roundNow();
+  const ms = Math.max(0, Math.round(stamp - signalStamp));
+  /* 이미 확정된 라운드에 늦게 온 입력은 아무 일도 하지 않는다 — 먼저 누른 쪽이 가져간다
+     (도장이 완전히 같은 경우는 이 함수 첫머리에서 이미 처리했다). */
+  if (resolved) return;
+  if (r.sig === SIG_GO) resolveRound({ by: i, kind: 'go-win', ms, stamp });
+  else resolveRound({ by: i, kind: 'hold-press', ms, stamp });
+}
+
+/* 점수는 판정 종류가 정한다 — 가라에서 먼저 누른 쪽이 얻고, 참아라·부정출발은 ★상대가 얻는다 */
+function scoreFor(res){
+  if (!res || res.kind === 'none' || res.by === null) return null;
+  return res.kind === 'go-win' ? res.by : OTHER(res.by);
+}
+function undoScore(res){
+  const s = scoreFor(res);
+  if (s !== null) score[s] -= 1;
+}
+function resolveRound(res){
+  if (resolved) return;
+  resolved = res;
+  const s = scoreFor(res);
+  if (s !== null) score[s] += 1;
+  log.push({ round: round + 1, sig: roundNow() ? roundNow().sig : null, by: res.by, kind: res.kind, ms: res.ms });
+  phase = 'gap';
+  clearTimeout(limitTimer); limitTimer = 0;
+  clearTimeout(pacerTimer); pacerTimer = 0;
+  if (res.kind === 'false-start') sFoul();
+  else if (res.kind === 'hold-press') sFoul();
+  else if (res.kind === 'go-win') sWin();
+  paintAll();
+  say(T('sayRound', score[BOTTOM], score[TOP]));
+  const done = gameOver();
+  if (done){ finishRun(res.stamp, done); return; }
+  gapTimer = setTimeout(() => { gapTimer = 0; if (phase !== 'gap') return; round += 1; beginRound(); }, FEEDBACK_MS);
+}
+
+/* ★판이 끝났는가 — 순수 판정이다.
+   ①먼저 WIN 점 ②기본 라운드를 다 치렀고 점수가 다르면 높은 쪽 ③동점이면 서든데스로 이어간다
+   ④선추첨 라운드를 다 쓰면 무승부(그 자리를 비워 두지 않는다). */
+function gameOver(){
+  const played = round + 1;
+  if (score[BOTTOM] >= WIN) return { winner: BOTTOM, why: 'target' };
+  if (score[TOP] >= WIN) return { winner: TOP, why: 'target' };
+  if (played >= ROUNDS && score[BOTTOM] !== score[TOP])
+    return { winner: score[BOTTOM] > score[TOP] ? BOTTOM : TOP, why: played > ROUNDS ? 'sudden' : 'rounds' };
+  if (played >= PLAN_ROUNDS) return { winner: null, why: 'draw' };
+  return null;
+}
+
+/* ======================= 한 판 ======================= */
+function beginRun(m, stamp){
+  clearTimers();
+  mode = m;
+  const t0 = new Date();
+  runDay = (m === 'daily') ? dayKey(t0) : '';
+  runNo  = (m === 'daily') ? dailyNo(t0) : 0;
+  seedKeyNow = (m === 'daily') ? dailySeedKey(t0) : '';
+  /* ★연습은 언제나 자유 씨앗이다 — 오늘의 판을 미리 연습하면 대기 시간을 알고 앉는 셈이라
+     그 판이 공정하지 않게 된다(같은 판을 두 사람이 받는 것이 오늘의 도전의 전부다). */
+  plan = (m === 'daily') ? dailyPlan(seedKeyNow) : freePlan();
+  round = 0; score = [0, 0]; log = []; tieCount = 0; falseStarts = [0, 0];
+  lastResult = null;
+  runStart = (typeof stamp === 'number' && isFinite(stamp)) ? stamp : nowMs();
+  endStamp = 0;
+  clearToast();
+  document.body.classList.add('tg-running');
+  ga('game_start', { game: GA_GAME, mode: m });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+  beginRound();
+}
+
+function finishRun(stamp, done){
+  clearTimers();
+  phase = 'done';
+  endStamp = stamp;
+  document.body.classList.remove('tg-running');
+  const mine = log.filter(x => x.kind === 'go-win' && x.by === BOTTOM && typeof x.ms === 'number');
+  const avgMs = mine.length ? Math.round(mine.reduce((s, x) => s + x.ms, 0) / mine.length) : 0;
+  const r = {
+    mode, no: runNo, day: runDay,
+    score: score.slice(), rounds: log.length, ms: Math.round(stamp - runStart),
+    winner: done.winner, why: done.why, avgMs, wins: mine.length,
+    ties: tieCount, falseStarts: falseStarts.slice(),
+    log: log.slice(), best: false, endedAt: stamp
+  };
+  if (mode === 'daily' && !dailyDoneToday()){
+    saveDaily({ score: score.slice(), rounds: r.rounds, ms: r.ms, winner: done.winner });
+  }
+  /* ★연습 최고 기록은 ★이긴 판에서만 · 대전(오늘의 도전 포함)은 이 값을 건드리지 않는다 */
+  if (mode === 'solo'){
+    const cand = { avgMs, won: done.winner === BOTTOM, rounds: r.rounds, date: dayKey() };
+    if (cand.won && avgMs > 0 && betterThan(cand, loadBest())){ saveBest(cand); r.best = true; }
+  }
+  lastResult = r;
+  ga('game_end', { mode, score: Math.max(score[BOTTOM], score[TOP]), rounds: r.rounds, ms: r.ms });
+  sDone();
+  say(T('sayEnd', winnerText(r)));
+  paintAll();
+  renderOver();
+  show('over');
+}
+
+/* ======================= 결과 화면 ======================= */
+const secText = ms => (Math.round(ms / 100) / 10).toFixed(1);
+function winnerText(r){
+  if (r.winner === null) return T('winnerDraw');
+  if (r.mode === 'solo') return r.winner === BOTTOM ? T('winnerYou') : T('winnerPacer');
+  return r.winner === BOTTOM ? T('winnerBottom') : T('winnerTop');
+}
+function renderOver(){
+  const r = lastResult; if (!r) return;
+  const big = T('bigVersus', r.score[BOTTOM], r.score[TOP]);
+  const line = (r.mode === 'solo') ? T('finalLineSolo', secText(r.avgMs), r.rounds)
+                                   : T('finalLineVersus', r.rounds, secText(r.ms));
+  $('finalBig').textContent = big;
+  $('finalLine').textContent = winnerText(r) + ' · ' + line;
+  /* ★위쪽 사람 몫 · 같은 값을 돌려 한 벌 더 적는다(둘이 마주 본 채로 읽는다) */
+  $('finalBigTop').textContent = big;
+  $('finalLineTop').textContent = winnerText(r) + ' · ' + line;
+  $('nScore').textContent = r.score[BOTTOM] + ':' + r.score[TOP];
+  $('nRounds').textContent = String(r.rounds);
+  $('nAvg').textContent = r.avgMs ? (secText(r.avgMs) + T('secUnit')) : '–';
+  $('marks').textContent = marksOf(r);
+  $('finalSub').textContent = (r.mode === 'daily') ? T('resultSubDaily', r.no)
+                              : (r.mode === 'solo' ? T('resultSubSolo') : T('resultSubVersus'));
+  $('newBest').textContent = r.best ? T('newBest') : '';
+  $('btnAgain').textContent = T('again');
+  $('btnShare').textContent = T('share');
+  $('overTitle').textContent = T('result');
+}
+/* 공유·결과의 판별 줄 — 수치를 글자로 담는다(그림 문자만으로는 무엇이 좋은지 알 수 없다).
+   ★같은 순간에 눌러 비긴 라운드 수도 적는다 — '드물다' 는 우리가 재 보지 않은 말이라 세어 둔다. */
+function marksOf(r){
+  const rows = [T('marksLine', r.score[BOTTOM], r.score[TOP])];
+  if (r.falseStarts[BOTTOM] || r.falseStarts[TOP]) rows.push(T('marksFalse', r.falseStarts[BOTTOM], r.falseStarts[TOP]));
+  if (r.ties) rows.push(T('marksTie', r.ties));
+  return rows.join('\n');
+}
+
+/* ======================= 창(오버레이) ======================= */
+function show(id){
+  const o = $(id); o.classList.add('show');
+  overShown = true;
+  setOutsideInert(true);
+  const f = o.querySelector('button:not([disabled]):not([hidden]), a[href]');
+  if (f) try { f.focus({ preventScroll:true }); } catch(e){}
+}
+function hide(id){
+  $(id).classList.remove('show');
+  overShown = $('start').classList.contains('show') || $('over').classList.contains('show');
+  if (!overShown) setOutsideInert(false);
+}
+function setOutsideInert(on){
+  for (const el of document.querySelectorAll('body > header, body > main, body > section, body > footer, body > .ad-slot, body > .scores')){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+  }
+}
+function say(msg){ $('srSummary').textContent = msg; }
+let toastTimer = 0;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toastTimer = 0; t.classList.remove('show'); }, 1800);
+}
+function clearToast(){
+  if (toastTimer){ clearTimeout(toastTimer); toastTimer = 0; }
+  $('toast').classList.remove('show');
+}
+
+/* ======================= 입력 =======================
+   ★누르는 순간을 잰다 — 손가락이 닿는 순간(pointerdown)과 키가 내려가는 순간(keydown)이다.
+     click 은 손을 뗄 때 나므로 쓰지 않는다(누르고 있는 동안이 통째로 오차가 된다). */
+for (const i of [BOTTOM, TOP]){
+  const b = $('press' + i);
+  b.addEventListener('pointerdown', ev => { if (ev.button != null && ev.button !== 0) return; onPress(i, ev); });
+  b.addEventListener('keydown', ev => {
+    if (ev.key !== 'Enter' && ev.key !== ' ' && ev.key !== 'Spacebar') return;
+    if (ev.repeat) return;
+    ev.preventDefault();
+    onPress(i, ev);
+  });
+}
+/* 키보드 — 아래쪽은 Space·아래쪽 화살표, 위쪽은 위쪽 화살표다(한 키보드를 둘이 나눠 쓴다) */
+const KEY_SIDE = { ' ':BOTTOM, 'Spacebar':BOTTOM, 'ArrowDown':BOTTOM, 'ArrowUp':TOP };
+document.addEventListener('keydown', ev => {
+  const side = KEY_SIDE[ev.key];
+  if (side === undefined) return;
+  if (ev.repeat) return;
+  if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  if (overShown) return;
+  ev.preventDefault();
+  onPress(side, ev);
+});
+
+/* ======================= 시작 화면 ======================= */
+function refreshStart(){
+  const no = dailyNo(), done = dailyDoneToday();
+  $('btnDaily').textContent = done ? T('dailyDoneBtn', no) : T('dailyBtn', no);
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint');
+  $('btnVersus').textContent = T('versus');
+  $('btnSolo').textContent = T('solo');
+  $('soloHint').textContent = T('soloHint');
+}
+$('btnDaily').onclick = ev => { hide('start'); beginRun('daily', stampOf(ev)); };
+$('btnVersus').onclick = ev => { hide('start'); beginRun('versus', stampOf(ev)); };
+$('btnSolo').onclick = ev => { hide('start'); beginRun('solo', stampOf(ev)); };
+$('btnAgain').onclick = ev => {
+  hide('over');
+  beginRun(mode === 'daily' ? 'versus' : mode, stampOf(ev));
+};
+
+/* ======================= 언어·소리 ======================= */
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  $('btnLang2').textContent = T('langBtn');
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  if (window.hpStats) window.hpStats();
+}
+function applyA11yLabels(){
+  for (const id of ['btnSound','btnSound2']){
+    const b = $(id); if (!b) continue;
+    b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  }
+  for (const id of ['btnLang','btnLang2']){ const l = $(id); if (l) l.setAttribute('aria-label', T('ariaLang')); }
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+}
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyLang();
+  refreshStart();
+  updateSubtitle();
+  /* ★진행 중이면 글자만 새 언어로 바꾼다 — 판(대기·신호)과 ★타이머는 건드리지 않는다
+     (언어를 바꿔 대기 시간을 늘리거나 신호를 다시 뽑을 수 없다). */
+  paintAll();
+  if (lastResult && $('over').classList.contains('show')) renderOver();
+  ga('lang_switch', { lang });
+}
+$('btnLang').onclick = toggleLang;
+$('btnLang2').onclick = toggleLang;
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('tg.sound', soundOn ? '1' : '0');
+  const face = soundOn ? '🔊' : '🔇';
+  $('btnSound').textContent = face; $('btnSound2').textContent = face;
+  applyA11yLabels();
+  if (soundOn) beep(660, .06, 'sine', .04);
+}
+$('btnSound').onclick = toggleSound;
+$('btnSound2').onclick = toggleSound;
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnSound2').textContent = soundOn ? '🔊' : '🔇';
+
+/* ======================= 공유 ======================= */
+function shareText(r, url){
+  const marks = marksOf(r);
+  return ((r.mode === 'daily') ? T('dailyShare', r.no, r.score[BOTTOM], r.score[TOP], marks)
+        : (r.mode === 'solo')  ? T('soloShare', secText(r.avgMs), marks)
+                               : T('freeShare', r.score[BOTTOM], r.score[TOP], marks)) + url;
+}
+async function doShare(){
+  const url = location.href.split('#')[0];
+  const r = lastResult;
+  if (!r) return;
+  try{
+    if (navigator.share){
+      await navigator.share({ title: T('docTitle'), text: shareText(r, '').trimEnd(), url });
+    } else { await navigator.clipboard.writeText(shareText(r, url)); toast(T('copied')); }
+  }catch(_){}
+}
+$('btnShare').onclick = doShare;
+
+/* ======================= 기동 ======================= */
+applyLang();
+plan = dailyPlan(dailySeedKey());     /* 시작 화면 뒤에 보여 줄 오늘의 판(아직 판이 시작된 것은 아니다) */
+refreshStart();
+paintAll(); updateSubtitle();
+if ($('start').classList.contains('show')) show('start');
+
+/* ======================= 검증 창구(관측 전용) =======================
+   ★배포되는 이 창구에는 **읽기만 하는 getter 와 순수 함수** 만 둔다. 판을 시작하거나 라운드를
+     넘기거나 시간을 흐르게 하는 **상태 변경 명령은 여기에 두지 않는다** — 검증 하네스는 이 판을
+     진짜 입력 사건(pointerdown·keydown)으로 두드려서 확인한다. 반환값은 전부 사본이다. 외부 전송 0. */
+const copy = o => JSON.parse(JSON.stringify(o));
+window.__tg = {
+  const: () => ({ ROUNDS, WIN, PLAN_ROUNDS, WAIT_MIN, WAIT_MAX, GO_CHANCE, RESPONSE_MS,
+                  PACER_MIN, PACER_MAX, PACER_HOLD_PRESS, FEEDBACK_MS,
+                  BOTTOM, TOP, SIG_GO, SIG_HOLD, DAILY_EPOCH, STAMP_TOLERANCE_MS }),
+  state: () => ({ mode, phase, round, score: score.slice(), log: copy(log), tieCount,
+                  falseStarts: falseStarts.slice(), runStart, endStamp,
+                  waitStart, signalDue, signalStamp, lateMs, resolved: copy(resolved),
+                  runDay, runNo, seedKey: seedKeyNow, overShown }),
+  /* 순수 함수 창구 — 하네스는 이것과 별개로 자기 셈을 들고 재검한다 */
+  scoreFor: res => scoreFor(res),
+  plan: k => copy(dailyPlan(String(k))),
+  planNow: () => copy(plan),
+  seedKey: d => dailySeedKey(d ? new Date(d) : new Date()),
+  dailyNo: d => dailyNo(d ? new Date(d) : new Date()),
+  seedDraws: (key, n) => { const f = mulberry32(hashStr(String(key))); return Array.from({length:n}, () => +f().toFixed(9)); },
+  daily: () => ({ done: dailyDoneToday(), rec: copy(dailyRec()), no: dailyNo() }),
+  best: () => copy(loadBest()),
+  betterThan: (a, b) => betterThan(a, b),
+  result: () => copy(lastResult),
+  marks: () => lastResult ? marksOf(lastResult) : '',
+  shareText: () => lastResult ? shareText(lastResult, 'https://hanpango.com/together/') : '',
+  /* ★화면에 실제로 들어간 글과 모양 — 제품이 쓰는 자리를 그대로 준다.
+     ★신호는 ★하나의 자리에서 읽는다(두 절반이 각자 그리지 않는다는 것을 밖에서 볼 수 있어야 한다). */
+  signalHtml: () => $('signal').innerHTML,
+  signalCount: () => document.querySelectorAll('.tg-signal').length,
+  labels: () => [$('lbl0').textContent, $('lbl1').textContent],
+  names: () => [$('name0').textContent, $('name1').textContent],
+  scores: () => [$('score0').textContent, $('score1').textContent],
+  marked: () => [0, 1].map(i => $('press' + i).classList.contains('tg-win') ? 'win'
+                              : ($('press' + i).classList.contains('tg-lose') ? 'lose' : '')),
+  rotated: () => [$('halfBottom').classList.contains('tg-top'), $('halfTop').classList.contains('tg-top')],
+  shown: id => $(id).classList.contains('show'),
+  running: () => document.body.classList.contains('tg-running'),
+  reduceMotion: () => reduceMotion(),
+  sound: () => soundOn,
+  lang: () => lang
+};
+})();
+</script>
+</body>
+</html>

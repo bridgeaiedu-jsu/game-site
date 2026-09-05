@@ -1,0 +1,32 @@
+{
+  "_why": "분류가 색을 정한다(오너 승인 2026-09-05). 검사기는 이 파일을 읽어 games.json 의 category 와 대조한다 — 값을 검사기 안에 베껴 두면 그때부터 검사가 계약이 아니라 사본을 잰다.",
+  "_source": "round/PALETTE_by_category.md (master 236 · 대비비 실측)",
+  "contrastFloor": 3.0,
+  "_floorWhy": "큰 글자·아이콘 WCAG 하한 3.0 · 양 테마 모두에 적용한다(현행 보라의 다크 3.11 이 사실상 바닥선이었다)",
+  "categories": {
+    "quick": {
+      "ko": "30초 한판",
+      "sig": "#e11d48"
+    },
+    "puzzle": {
+      "ko": "머리 한판",
+      "sig": "#2563eb"
+    },
+    "sense": {
+      "ko": "감각 한판",
+      "sig": "#7c3aed"
+    },
+    "stress": {
+      "ko": "스트레스 한판",
+      "sig": "#ea580c"
+    },
+    "word": {
+      "ko": "말 한판",
+      "sig": "#059669"
+    },
+    "two-player": {
+      "ko": "2인용",
+      "sig": "#db2777"
+    }
+  }
+}

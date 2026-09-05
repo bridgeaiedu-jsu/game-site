@@ -543,5 +543,33 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "together",
+    "path": "/together/",
+    "title": {
+      "ko": "같이 한판",
+      "en": "Two on One Screen"
+    },
+    "desc": {
+      "ko": "한 화면을 위아래로 갈라 마주 보고 겨루는 2인용 반응 게임 — 신호에 먼저 누르면 1점, 참아야 할 신호에 누르면 실점",
+      "en": "A two-player reaction game on a single screen — press first to score, but press on the hold signal and the point goes to the other side"
+    },
+    "thumb": "/together/thumb.webp",
+    "playtime": {
+      "ko": "한 판 1분",
+      "en": "1 min a round"
+    },
+    "maxMinutes": 1,
+    "daily": true,
+    "solo": false,
+    "category": "two-player",
+    "released": "2026-09-05",
+    "tags": [
+      "reaction",
+      "party",
+      "casual",
+      "daily"
+    ]
   }
 ]
