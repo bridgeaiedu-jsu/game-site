@@ -13,6 +13,9 @@
 <meta property="og:description" content="숫자를 단서로 지뢰를 피해 칸을 여는 논리 퍼즐 — 찍기 없이 풀리는 판만 냅니다. 설치 없이 바로 플레이.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://hanpango.com/minesweeper/">
+<meta property="og:image" content="https://hanpango.com/minesweeper/thumb.webp">
+<meta property="og:image:width" content="640">
+<meta property="og:image:height" content="640">
 <link rel="canonical" href="https://hanpango.com/minesweeper/">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/svg+xml" href="/icon.svg">
@@ -339,6 +342,25 @@ const I18N = {
     statPlays:'오늘 <b data-hp="plays.minesweeper.today">–</b>판 · 누적 <b data-hp="plays.minesweeper.total">–</b>판',
     howTitle:'게임 방법', guessTitle:'왜 찍지 않아도 되나요', dailyTitle:'오늘의 도전', tipsTitle:'요령', faqTitle:'자주 묻는 질문',
     footer:'© 2026 지뢰찾기 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    how1:'칸을 탭하면 열립니다. 열린 칸의 숫자는 그 칸에 맞닿은 여덟 칸에 지뢰가 몇 개 있는지를 뜻합니다. 숫자가 없는(빈) 칸을 열면 주변이 한꺼번에 펼쳐집니다. 지뢰가 있다고 확신하는 칸에는 깃발을 꽂아 두세요 — 화면 아래 「🚩 깃발」 버튼을 켜면 탭이 깃발 꽂기로 바뀝니다(길게 누르기로도 됩니다). 지뢰가 아닌 칸을 모두 열면 이깁니다.',
+    how2:'숫자 칸을 두 번 탭하면 「코드 열기」가 됩니다 — 그 숫자와 주변에 꽂은 깃발 수가 같을 때만 나머지 이웃이 한꺼번에 열립니다. 깃발을 잘못 꽂아 두었다면 이때 지뢰를 밟게 되니 확신이 있을 때만 쓰세요. 키보드로도 됩니다: 방향키로 이동, Space 로 열기, F 로 깃발, Enter 로 코드 열기.',
+    how3:'난이도는 셋입니다 — 쉬움 9×9 에 지뢰 10개, 보통 12×16 에 30개, 어려움 14×20 에 55개. 시간은 첫 탭에 시작하고, 점수는 걸린 시간입니다(짧을수록 좋습니다). 판을 지면 잘못 꽂은 깃발에는 ✗ 가 표시되고 지뢰 위치가 모두 드러납니다.',
+    guessDesc:'보통의 지뢰찾기는 마지막에 두 칸 중 하나를 찍어야 하는 상황이 생깁니다. 이 게임은 판을 만들 때마다 「숫자만 보고 논리로 끝까지 풀 수 있는가」를 컴퓨터가 먼저 풀어 보고, 풀리는 판만 내보냅니다. 풀리지 않으면 지뢰를 다시 뿌려서 다시 검사합니다. 그래서 남는 칸이 애매해 보이더라도, 어딘가에는 반드시 논리로 확정할 수 있는 칸이 있습니다. 아주 드물게 정해진 횟수 안에 풀리는 판을 찾지 못하면 화면 위에 「오늘은 일부 추측 필요」라고 알려 드립니다.',
+    dailyDesc:'매일 자정에 새 판이 열립니다. 전 세계 모든 플레이어가 같은 판(난이도 보통)을 받고, 하루에 한 번만 도전할 수 있습니다. ★오늘의 판은 시작 칸까지 미리 정해져 있어 누구나 완전히 같은 판을 풉니다(자유 모드는 처음 탭한 칸이 반드시 안전하도록 지뢰를 다시 배치합니다). 하다가 나가도 이 기기에 진행이 저장되어 시작 화면의 이어하기로 계속할 수 있습니다. 결과를 이모지 한 줄로 공유해 친구와 겨뤄 보세요. 연속으로 도전하면 🔥 스트릭이 쌓입니다.',
+    tip1q:'숫자와 깃발 수를 맞춰 보세요',
+    tip1a:'숫자가 1인데 옆에 깃발이 하나 꽂혀 있다면, 그 숫자에 맞닿은 나머지 칸은 모두 안전합니다. 반대로 닫힌 칸 수가 숫자와 같다면 그 칸은 모두 지뢰입니다. 이 두 규칙만으로 이 게임의 모든 판이 끝까지 풀립니다.',
+    tip2q:'모서리와 벽을 먼저',
+    tip2a:'벽이나 모서리에 붙은 숫자는 맞닿은 칸이 적어 확정하기 쉽습니다. 막히면 열린 영역의 가장자리를 따라가며 숫자 하나하나에 위 규칙을 적용해 보세요.',
+    tip3q:'코드 열기로 빨라집니다',
+    tip3a:'깃발을 정확히 꽂았다면 숫자 두 번 탭으로 주변을 한꺼번에 열 수 있습니다. 시간을 크게 줄여 주지만, 깃발이 하나라도 틀리면 그대로 지뢰를 밟습니다.',
+    faq1q:'설치가 필요한가요?',
+    faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'기록은 어디에 저장되나요?',
+    faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로는 판수 집계와 함께 어느 게임인지와 점수·연 칸 수·걸린 시간·난이도·승패·지뢰 수·깃발 수·오늘의 도전 여부와 연속 일수 같은 플레이 통계가, 그리고 언어를 바꾸면 그 사실이 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 브라우저 데이터를 지우면 진행과 기록도 함께 지워집니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a>에 최신 목록으로 유지합니다.',
+    faq3q:'첫 탭에서 지뢰를 밟을 수 있나요?',
+    faq3a:'아니요. 자유 모드는 처음 탭한 칸과 그 이웃 여덟 칸에 지뢰를 두지 않도록 배치를 다시 합니다. 오늘의 도전은 시작 칸이 미리 정해져 있고 그 자리는 언제나 안전합니다.',
+    faq4q:'소리를 끌 수 있나요?',
+    faq4a:'네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 효과음은 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 「동작 줄이기」를 켜면 펼침·흔들림 연출도 꺼집니다.',
     navPrivacy:'개인정보처리방침', navAbout:'소개'
   },
   en: {
@@ -382,6 +404,24 @@ const I18N = {
     statPlays:'<b data-hp="plays.minesweeper.today">–</b> today · <b data-hp="plays.minesweeper.total">–</b> all-time',
     howTitle:'How to play', guessTitle:'Why you never have to guess', dailyTitle:'Daily challenge', tipsTitle:'Tips', faqTitle:'FAQ',
     footer:'© 2026 Minesweeper · Privacy: progress is stored on this device only; third-party cookies (Google) may be used for ads.',
+    how1:'Tap a square to open it. The number on an opened square tells you how many mines sit in the eight squares touching it. Open a blank square with no number and the area around it unfolds at once. Plant a flag on any square you are sure holds a mine — turn on the 🚩 Flag button at the bottom and a tap plants a flag instead (a long press works too). Open every square that is not a mine and you win.',
+    how2:'Double-tap a numbered square to chord — the remaining neighbours open all at once, but only when the flags around it match that number. If a flag is in the wrong place you will step on a mine, so chord only when you are sure. The keyboard works too: arrow keys to move, Space to open, F to flag, Enter to chord.',
+    how3:'There are three difficulties — Easy is 9×9 with 10 mines, Normal is 12×16 with 30, and Hard is 14×20 with 55. The clock starts on your first tap and your score is the time taken, so shorter is better. If you hit a mine, misplaced flags are marked with an ✗ and all mine locations are revealed.',
+    guessDesc:'Standard minesweeper often leaves you with a 50/50 guess at the end. This game solves every generated board beforehand to ensure logic alone can carry you to the finish, delivering only boards that do. If a board is unsolvable, the mines are reshuffled and tested again. So no matter how tricky the remaining squares look, there is always a square that logic can resolve. On the rare occasion no solvable board is found within the retry limit, a notice at the top will let you know that guessing may be required.',
+    dailyDesc:'A new board opens at midnight. Every player in the world gets the same board (Normal difficulty) and one attempt a day. ★The daily board has its opening square fixed in advance, so everyone solves exactly the same board (free play instead rearranges the mines so that the square you tap first is always safe). Leave partway through and your progress is kept on this device, so you can carry on with Resume on the start screen. Share your result as a single line of emoji and compare with friends. Playing on consecutive days builds a 🔥 streak.',
+    tip1q:'Match the number against the flags',
+    tip1a:'If a square shows 1 and a flag is already placed next to it, all other squares touching it are safe. Conversely, if the number of unopened squares equals the clue, all of them are mines. These two rules alone are enough to solve every board in this game.',
+    tip2q:'Corners and edges first',
+    tip2a:'Numbers along an edge or in a corner touch fewer squares, making them easier to solve. When you are stuck, follow the perimeter of the opened area and apply the rules above to one number at a time.',
+    tip3q:'Chording makes you faster',
+    tip3a:'Once your flags are placed correctly, double-tapping a number clears all surrounding squares at once. It saves a lot of time, but a single misplaced flag will detonate a mine immediately.',
+    faq1q:'Do I need to install anything?',
+    faq1a:'No. It runs straight in your browser. Add it to your home screen and it behaves like an app.',
+    faq2q:'Where are my records stored?',
+    faq3q:'Can I hit a mine on the very first tap?',
+    faq3a:'No. Free play rearranges the board so that neither the square you tap first nor its eight neighbours hold a mine. The daily challenge has its opening square fixed in advance, and that square is always safe.',
+    faq4q:'Can I turn the sound off?',
+    faq4a:'Yes. The speaker button at the top right turns it off and on, and that choice is kept for your next visit. The effects are made by the browser on the spot, so there are no audio files to download. Turning on Reduce Motion on your device also switches off the unfold and shake animations.',
     navPrivacy:'Privacy policy', navAbout:'About'
   }
 };
