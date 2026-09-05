@@ -55,10 +55,12 @@ function gameSource(html){
     if (/type\s*=\s*"application\/ld\+json"/.test(attrs)) continue;
     out.push(m[2]);
   }
-  return out.find(s => s.indexOf('window.__gm') >= 0) || null;
+  /* ★부분 문자열로 고르지 않는다 — head 인라인에도 window.__gmPayload 가 있어 그쪽이 먼저 잡힌다.
+     고르는 기준은 ★창구를 여는 자리다(window.__gm = {). */
+  return out.find(s => s.indexOf('window.__gm = {') >= 0) || null;
 }
 let SRC = gameSource(RAW);
-if (!SRC){ console.error('게임 스크립트(window.__gm 을 여는 인라인 <script>)를 찾지 못했다'); process.exit(2); }
+if (!SRC){ console.error('게임 스크립트(window.__gm = { 을 여는 인라인 <script>)를 찾지 못했다'); process.exit(2); }
 
 /* ------------------------------------------------------------ 뮤테이션(고의 결함 · 임시 사본에만)
    각 항목은 '어느 검사가 이것을 잡아야 하는가'(catcher)를 함께 못박는다 — 다른 검사가 우연히
@@ -148,6 +150,49 @@ const MUTATIONS = {
     catcher: '판이 다 차면 무승부로 끝난다',
     apply: s => s.replace("  else if (moves.length === CELLS){ ended = 'draw'; winInfo = null; endStamp = nowMs(); }",
                           "  else if (false){ ended = 'draw'; winInfo = null; endStamp = nowMs(); }")
+  },
+  /* ── ② 링크 이어두기 — ★거부해야 할 것을 통과시키는 쪽이 위험하다 */
+  'm-link-range': {
+    why: '★불법 통과 — 판 밖 칸 번호(>=225)를 걸러내지 않는다',
+    catcher: '불법 수열은 거부한다(판을 그리지 않는다)',
+    apply: s => s.replace("    if (!(idx >= 0 && idx < CELLS)) return { ok: false, why: 'range' };   /* ② 판 밖 */",
+                          "    if (false) return { ok: false, why: 'range' };")
+  },
+  'm-link-dup': {
+    why: '★불법 통과 — 같은 자리에 두 번 둔 수열을 받아들인다',
+    catcher: '불법 수열은 거부한다(판을 그리지 않는다)',
+    apply: s => s.replace("    if (b[idx] !== EMPTY) return { ok: false, why: 'dup' };               /* ③ 겹침 */",
+                          "    if (false) return { ok: false, why: 'dup' };")
+  },
+  'm-link-afterend': {
+    why: '★불법 통과 — 이미 끝난 판 뒤의 수를 받아들인다',
+    catcher: '불법 수열은 거부한다(판을 그리지 않는다)',
+    apply: s => s.replace("    if (ended) return { ok: false, why: 'afterend' };                     /* ④ 끝난 뒤의 수 */",
+                          "    if (false) return { ok: false, why: 'afterend' };")
+  },
+  'm-link-b64': {
+    why: '★불법 통과 — 알파벳 밖 글자를 0 으로 접어 넣는다(깨진 링크가 판이 된다)',
+    catcher: '불법 수열은 거부한다(판을 그리지 않는다)',
+    apply: s => s.replace("    if (v < 0) return null;                 /* ① 알파벳 밖 글자 — 해독하지 않는다 */",
+                          "    if (v < 0) continue;")
+  },
+  'm-link-roundtrip': {
+    why: '왕복이 깨진다(마지막 한 바이트를 흘린다)',
+    catcher: '링크 수열은 왕복해도 그대로다',
+    apply: s => s.replace('function encodeMoves(list){ return b64urlFromBytes(Array.from(list).map(v => v | 0)); }',
+                          'function encodeMoves(list){ const a = Array.from(list).map(v => v | 0); return b64urlFromBytes(a.slice(0, Math.max(0, a.length - 1))); }')
+  },
+  'm-link-undo-others': {
+    why: '받은 수(남의 수)까지 무를 수 있다',
+    catcher: '받은 수는 무를 수 없다',
+    apply: s => s.replace("  if (moves.length <= baseLen) return 'notyours';",
+                          "  if (false) return 'notyours';")
+  },
+  'm-link-draw-anyway': {
+    why: '불법 링크인데도 판을 그린다(거부가 무력해진다)',
+    catcher: '불법 링크로는 판을 만들지 않는다',
+    apply: s => s.replace("  const why = adopt(p);\n  if (why){ toast(T('badLink')); return false; }",
+                          "  const why = adopt(p);\n  if (why){ toast(T('badLink')); moves = [0, 1, 2]; cells = replay(moves); linkMode = true; hide('start'); return true; }")
   },
   /* ── ★음성 대조군 — 계약이 아닌 것을 건드린다. 이쪽은 ★조용해야(rc=0) 한다.
      붉어야 할 것만 시험하면 '무엇을 건드려도 붉는' 검사기가 만점을 받는다. */
@@ -289,7 +334,10 @@ function boot(opts){
     addEventListener: () => {}, removeEventListener: () => {},
     navigator: nav, localStorage,
     matchMedia: () => ({ matches: !!opts.reduceMotion }),
-    location: { href: 'https://hanpango.com/gomoku/' },
+    location: { href: 'https://hanpango.com/gomoku/', origin: 'https://hanpango.com',
+                pathname: '/gomoku/', search: '', hash: opts.hash || '' },
+    __gmPayload: opts.payload || null,
+    history: { replaceState: () => {} },
     performance: performanceStub,
     confirm: () => (opts.confirm === undefined ? true : opts.confirm),
     setTimeout: setTimeoutStub, clearTimeout: clearTimeoutStub,
@@ -297,6 +345,7 @@ function boot(opts){
   };
   const sandbox = {
     window: win, document: doc, localStorage, navigator: nav,
+    history: win.history,
     HTMLElement: HTMLElementStub, location: win.location, performance: performanceStub,
     getComputedStyle: () => ({ getPropertyValue: () => '#123456' }),
     setTimeout: setTimeoutStub, clearTimeout: clearTimeoutStub,
@@ -753,6 +802,108 @@ function checkChrome(){
   else bad('탭 정거장은 커서 한 곳뿐이다', JSON.stringify(tab).slice(0, 80));
 }
 
+
+/* =====================================================================
+   검사 (라) — ② 링크 이어두기 (남이 만든 URL 을 믿지 않는다)
+   ===================================================================== */
+function checkLink(){
+  const api = boot({});
+  const gm = api.gm;
+
+  /* 왕복 — 인코드한 것을 디코드하면 같은 수열이 나온다 */
+  {
+    const seqs = [[112], [112, 113, 127, 128], [0, 224, 14, 210, 7, 100, 3, 9]];
+    let bad0 = 0, one = null;
+    for (const seq of seqs){
+      const got = gm.decode(gm.encode(seq));
+      if (!got.ok || got.moves.join(',') !== seq.join(',')){ bad0++; if (!one) one = { seq, got }; }
+    }
+    /* ★길이별 왕복은 ★부호화만 잰다(codec) — 규칙 검증(decode)까지 태우면 표본 자체가
+       다섯을 잇는 순간 '옳은 거부' 가 붉게 찍힌다(실제로 그랬다 · 붉은 것은 표본이었다).
+       길이가 3의 배수가 아닐 때 패딩 자리에서 잘 깨지므로 1~40 을 전부 돌린다. */
+    for (let n = 1; n <= 40; n++){
+      const seq = Array.from({ length: n }, (_, i) => (i * 7 + 3) % (N * N));
+      const back = gm.codec(gm.encode(seq));
+      if (!back || back.join(',') !== seq.join(',')){ bad0++; if (!one) one = { n, back }; }
+    }
+    if (bad0) bad('링크 수열은 왕복해도 그대로다', '어긋난 표본 ' + bad0 + '건 — 예: ' + JSON.stringify(one));
+    else ok('링크 수열은 왕복해도 그대로다', '손으로 적은 합법 수열 3종은 decode 까지, 길이 1~40 은 부호화(codec)로 — 전부 그대로 돌아온다');
+  }
+
+  /* 용량 — 60수 링크가 URL 실용 한계 안에 있는가(티켓 §3 의 계산을 ★다시 잰다) */
+  {
+    const seq = Array.from({ length: 60 }, (_, i) => (i * 3 + 5) % N * N);
+    const url = gm.link(seq);
+    const payload = gm.encode(seq);
+    if (payload.length <= 84 && url.length <= 2000)
+      ok('60수 링크가 URL 한계 안에 있다', '수열 60바이트 → base64url ' + payload.length + '자 · 링크 전체 ' + url.length + '자(한계 2,000)');
+    else bad('60수 링크가 URL 한계 안에 있다', 'payload ' + payload.length + '자 · url ' + url.length + '자');
+  }
+
+  /* ★불법 수열 — 거부해야 한다(판을 그리지 않는다) */
+  {
+    const cases = [
+      ['base64', '깨진 글자가 섞였다', 'AAA*BBB'],
+      ['base64', '남은 비트가 한 글자를 넘는다(잘린 문자열)', 'AAAAA'],
+      ['range', '칸 번호가 판 밖이다(>=225)', gm.encode([112, 250])],
+      ['dup', '같은 자리에 두 번 두었다', gm.encode([112, 113, 112])],
+      ['afterend', '이미 끝난 판 뒤에 수가 더 있다', gm.encode([45, 60, 46, 61, 47, 62, 48, 63, 49, 80])],
+      ['empty', '수가 하나도 없다', '']
+    ];
+    let wrong = 0, one = null;
+    for (const [why, what, payload] of cases){
+      const got = gm.decode(payload);
+      if (got.ok || got.why !== why){ wrong++; if (!one) one = { what, want: why, got }; }
+    }
+    if (wrong) bad('불법 수열은 거부한다(판을 그리지 않는다)', '어긋남 ' + wrong + '건 — 예: ' + JSON.stringify(one));
+    else ok('불법 수열은 거부한다(판을 그리지 않는다)', '깨진 base64 2종 · 판 밖 · 중복 · 끝난 뒤의 수 · 빈 수열 — 여섯 표본 전부 사유까지 맞게 거부');
+  }
+
+  /* 받은 판을 이어받는다 — 판이 그려지고, 차례는 수열이 정한다 */
+  {
+    const seq = [112, 113, 127, 128, 142];
+    const a = boot({ payload: gm.encode(seq) });
+    const st = a.gm.state();
+    if (st.moves.join(',') === seq.join(',') && a.gm.linkMode() && a.gm.baseLen() === seq.length && !a.gm.shown('start'))
+      ok('받은 링크로 판을 이어받는다', seq.length + '수를 그대로 이어받고 시작 화면을 지났다');
+    else bad('받은 링크로 판을 이어받는다', JSON.stringify({ moves: st.moves, linkMode: a.gm.linkMode(), baseLen: a.gm.baseLen() }));
+
+    /* ★받은 수는 무를 수 없다 — 무르기는 내가 둔 수의 구제 수단이다 */
+    const before = a.gm.state().moves.length;
+    a.click('btnUndo');
+    if (a.gm.state().moves.length === before) ok('받은 수는 무를 수 없다', '수열 ' + before + ' 그대로');
+    else bad('받은 수는 무를 수 없다', '남의 수가 물러졌다(' + before + ' → ' + a.gm.state().moves.length + ')');
+
+    /* 내가 한 수 둔 뒤에는 그 한 수만 무를 수 있다 */
+    a.tap(50);
+    const mine = a.gm.state().moves.length;
+    a.click('btnUndo');
+    const after = a.gm.state();
+    if (mine === before + 1 && after.moves.length === before) ok('받은 판에서도 내가 둔 수는 무를 수 있다', before + '+1 → ' + after.moves.length);
+    else bad('받은 판에서도 내가 둔 수는 무를 수 있다', JSON.stringify({ before, mine, after: after.moves.length }));
+  }
+
+  /* ★불법 링크로는 판을 만들지 않는다 — 시작 화면에 머문다 */
+  {
+    const a = boot({ payload: 'AAA*BBB' });
+    const st = a.gm.state();
+    if (st.moves.length === 0 && a.gm.shown('start') && !a.gm.linkMode())
+      ok('불법 링크로는 판을 만들지 않는다', '수열 0 · 시작 화면 그대로');
+    else bad('불법 링크로는 판을 만들지 않는다', JSON.stringify({ moves: st.moves.length, start: a.gm.shown('start'), linkMode: a.gm.linkMode() }));
+  }
+
+  /* 링크 버튼은 한 수라도 두어야 열린다 */
+  {
+    const a = boot({});
+    a.click('btnStart');
+    const before = a.gm.linkDisabled();
+    a.tap(112);
+    const after = a.gm.linkDisabled();
+    if (before === true && after === false) ok('링크 버튼은 한 수부터 열린다', '0수 잠김 → 1수 열림');
+    else bad('링크 버튼은 한 수부터 열린다', '0수 ' + before + ' · 1수 ' + after);
+  }
+}
+
 /* ------------------------------------------------------------ 실행 */
 console.log('오목 한판 검증 — 대상 ' + HTML + (MUTATION ? ('  [뮤테이션 ' + MUTATION + ']') : ''));
 console.log('');
@@ -764,6 +915,9 @@ checkRules();
 console.log('');
 console.log('(다) 화면과 키보드');
 checkChrome();
+console.log('');
+console.log('(라) 링크 이어두기 — 남이 만든 URL');
+checkLink();
 console.log('');
 console.log('결과: 통과 ' + pass + ' · 미달 ' + fail + ' · 판정 불가 ' + indet);
 

@@ -23,6 +23,43 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="hp-ga-disclosure" content="game_start:game; game_end:result,moves,ms; lang_switch:lang">
 <meta name="hp-ga-labels" content="game=어느 게임인지|which game; result=판이 끝난 방식|how the game ended; moves=둔 수|stones played; ms=걸린 시간(밀리초)|elapsed milliseconds; lang=언어|language">
+<!-- ★링크에 담긴 수열을 주소에서 즉시 걷어낸다(광고·분석 스크립트보다 먼저 실행되는 자리다).
+     HTML 파서는 문서에 적힌 순서대로 스크립트를 실행하므로, 아래 광고 스크립트가 location.href 를 읽는
+     시점에는 주소에 이미 수열(#p=…)이 없다 — 경합이 아니라 순서 계약이다.
+     걷어낸 값은 window.__gmPayload 에만 남고, 본문 스크립트가 그 값으로 판을 만든다.
+     ★이 블록은 아래 ADSENSE·GA4 태그보다 반드시 위에 있어야 한다(자리를 옮기면 유출이 되살아난다).
+     (사다리타기 ladder/index.html 의 같은 배선을 본보기로 삼았다.) -->
+<!-- data-cfasync="false" — Cloudflare Rocket Loader 가 켜지면 일반 script 실행을 window.onload 로
+     미루는데, 그러면 이 인라인이 광고 스크립트보다 먼저 돈다는 순서 계약 자체가 무너진다. -->
+<script data-cfasync="false">
+  window.__gmPayload = null;
+  /* ★제거는 한 곳에서만 한다 — 최초 파싱 때도, 이미 열린 탭에서 주소만 #p=… 로 바뀔 때도 이 함수가 돈다. */
+  window.__gmTakeHash = function(){
+    try {
+      /* ★값 전체를 집는다(& 앞까지) — 허용 글자만 집으면 깨진 링크가 조용히 잘려
+         ★합법인 다른 판이 된다. 합법성은 디코더 한 곳에서만 판정한다. */
+      var m = /(?:^|[#&])p=([^&]*)/.exec(location.hash || '');
+      if (!m) return null;
+      history.replaceState(null, '', location.pathname + location.search);
+      window.__gmPayload = m[1];
+      return m[1];
+    } catch (e) { return null; }
+  };
+  window.__gmTakeHash();
+  (function(){
+    var relay = function(){
+      var p = window.__gmTakeHash();
+      if (!p) return;
+      try { window.dispatchEvent(new CustomEvent('gm:payload', { detail: p })); }
+      catch (e) {
+        var ev = document.createEvent('Event'); ev.initEvent('gm:payload', false, false);
+        window.dispatchEvent(ev);
+      }
+    };
+    window.addEventListener('hashchange', relay);
+    window.addEventListener('popstate', relay);
+  })();
+</script>
 <!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
 <!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
@@ -234,6 +271,7 @@
   <div class="gb-acts">
     <button class="ibtn" id="btnUndo" type="button">↩ 무르기 (1회)</button>
     <button class="ibtn" id="btnNew" type="button">새 판</button>
+    <button class="ibtn" id="btnLink" type="button">🔗 이어두기 링크</button>
   </div>
 
   <p id="srSummary" class="sr-only" aria-live="polite"></p>
@@ -395,6 +433,13 @@ const I18N = {
     result:'결과', again:'다시 하기 (선공 교대)', share:'결과 공유', viewBoard:'🔍 판 보기',
     startBtn:'⚫ 둘이 한판', newGame:'새 판',
     undo:'↩ 무르기 (1회)', undoLeft:n => `↩ 무르기 (${n}회)`, undoNone:'↩ 무르기 (다 씀)',
+    linkBtn:'🔗 이어두기 링크', linkCopied:'링크를 복사했습니다 — 상대에게 보내세요',
+    linkEmpty:'한 수라도 두어야 링크가 생깁니다', linkFail:'복사하지 못했습니다',
+    badLink:'링크를 읽을 수 없어 판을 만들지 않았습니다', linkAdopted:'받은 판을 이어서 둡니다',
+    turnOfLink:stone => `${stone} 차례 — 당신 차례입니다`,
+    winTitleLink:stone => `${stone} 승리`,
+    undoNotYours:'받은 수는 무를 수 없습니다 — 내가 둔 수만 무릅니다',
+    linkSub:'이 링크를 보내면 상대가 그 판을 이어서 둡니다',
     startSub:'기기 하나를 사이에 두고 두 사람이 <strong>번갈아</strong> 둡니다. <strong>흑이 먼저</strong>입니다.<br>가로·세로·대각선으로 <strong>다섯 알</strong>을 먼저 이으면 그 자리에서 이깁니다.',
     startHint:'설명은 필요 없습니다 — 누르면 그 자리에 돌이 놓입니다',
     hint:'가로·세로·대각선 어느 방향으로든 <strong>다섯 알</strong>을 먼저 이으면 이깁니다 · 여섯 알 이상도 승리입니다',
@@ -465,6 +510,13 @@ const I18N = {
     result:'Result', again:'Play again (colours swap)', share:'Share result', viewBoard:'🔍 View the board',
     startBtn:'⚫ Two-player game', newGame:'New board',
     undo:'↩ Undo (1 left)', undoLeft:n => `↩ Undo (${n} left)`, undoNone:'↩ Undo (used)',
+    linkBtn:'🔗 Link to continue', linkCopied:'Link copied — send it to the other player',
+    linkEmpty:'Play at least one stone to make a link', linkFail:'Could not copy',
+    badLink:'That link could not be read, so no board was made', linkAdopted:'Continuing the board you received',
+    turnOfLink:stone => `${stone} to play — it is your turn`,
+    winTitleLink:stone => `${stone} wins`,
+    undoNotYours:'You cannot take back a stone you received — only your own',
+    linkSub:'Send this link and the other player continues that board',
     startSub:'Put one device between you and take turns. <strong>Black moves first</strong>.<br>Line up <strong>five stones</strong> in any direction — across, down or diagonally — and you win on the spot.',
     startHint:'No instructions needed — tap an intersection and a stone lands there',
     hint:'Line up <strong>five stones</strong> in any direction to win · six or more also counts',
@@ -572,6 +624,9 @@ let runStart = 0, endStamp = 0;
 let cur = 7 * N + 7;         /* 키보드 커서 — 천원(가운데)에서 시작한다 */
 let overShown = true;
 
+let linkMode = false;        /* 받은 링크로 이어 두는 중인가(자리 번호 대신 '당신' 으로 말한다) */
+let baseLen = 0;             /* ★받은 수열의 길이 — 이 아래로는 무를 수 없다(남의 수다) */
+
 const stoneOfTurn = n => (n % 2 === 0 ? BLACK : WHITE);   /* ★흑선: 0번째 수가 흑이다 */
 const turnStone = () => stoneOfTurn(moves.length);
 const playerOf = stone => (stone === BLACK ? blackPlayer : (blackPlayer === 1 ? 2 : 1));
@@ -582,6 +637,87 @@ function replay(list){
   const b = new Array(CELLS).fill(EMPTY);
   for (let k = 0; k < list.length; k++) b[list[k]] = stoneOfTurn(k);
   return b;
+}
+
+
+/* =======================================================================
+   ★링크 이어두기 — 수열이 유일한 상태다.
+   판을 통째로 인코딩하지 않는다. 수열이면 차례·무르기·마지막 수 표시·복기가 전부 공짜로
+   따라오고, 판 인코딩은 그중 아무것도 주지 않는다. 한 수는 0~224 라 ★1바이트면 충분하고
+   (225 < 256), 색은 저장하지 않는다 — 수의 홀짝이 정한다(흑선).
+   60수 = 60바이트 → base64url 80자 남짓(URL 실용 한계 2,000자의 5% 미만).
+
+   ★받은 링크를 믿지 않는다. 남이 만든 URL 이므로 다음을 하나라도 어기면 ★판을 그리지 않고
+   거부한다 — 이건 보안이 아니라 계약이다(불법 수열로 만든 판은 오목이 아니다):
+     ① base64url 이 아니거나 해독되지 않는다     ④ 이미 끝난 판 뒤에 수가 더 있다
+     ② 칸 번호가 판 밖이다(>=225)                ⑤ 수가 하나도 없거나 225를 넘는다
+     ③ 같은 자리에 두 번 두었다
+   ======================================================================= */
+const B64URL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+function b64urlFromBytes(bytes){
+  let out = '';
+  for (let i = 0; i < bytes.length; i += 3){
+    const a = bytes[i], b = bytes[i + 1], c = bytes[i + 2];
+    out += B64URL[a >> 2];
+    out += B64URL[((a & 3) << 4) | ((b === undefined ? 0 : b) >> 4)];
+    if (b === undefined) break;
+    out += B64URL[((b & 15) << 2) | ((c === undefined ? 0 : c) >> 6)];
+    if (c === undefined) break;
+    out += B64URL[c & 63];
+  }
+  return out;
+}
+function bytesFromB64url(str){
+  const bytes = [];
+  let acc = 0, bits = 0;
+  for (const ch of String(str)){
+    const v = B64URL.indexOf(ch);
+    if (v < 0) return null;                 /* ① 알파벳 밖 글자 — 해독하지 않는다 */
+    acc = (acc << 6) | v; bits += 6;
+    if (bits >= 8){ bits -= 8; bytes.push((acc >> bits) & 255); }
+  }
+  if (bits >= 6) return null;               /* ① 남은 비트가 한 글자를 넘는다 = 깨진 문자열 */
+  return bytes;
+}
+function encodeMoves(list){ return b64urlFromBytes(Array.from(list).map(v => v | 0)); }
+/* 돌려주는 것: { ok:true, moves, ended, win } 또는 { ok:false, why } */
+function decodeMoves(payload){
+  const bytes = bytesFromB64url(payload);
+  if (bytes === null) return { ok: false, why: 'base64' };
+  if (!bytes.length) return { ok: false, why: 'empty' };
+  if (bytes.length > CELLS) return { ok: false, why: 'toolong' };
+  const b = new Array(CELLS).fill(EMPTY);
+  let ended = null, win = null;
+  for (let k = 0; k < bytes.length; k++){
+    const idx = bytes[k];
+    if (!(idx >= 0 && idx < CELLS)) return { ok: false, why: 'range' };   /* ② 판 밖 */
+    if (b[idx] !== EMPTY) return { ok: false, why: 'dup' };               /* ③ 겹침 */
+    if (ended) return { ok: false, why: 'afterend' };                     /* ④ 끝난 뒤의 수 */
+    b[idx] = stoneOfTurn(k);
+    const w = winLineAt(b, idx);
+    if (w){ ended = 'win'; win = w; }
+    else if (k + 1 === CELLS){ ended = 'draw'; }
+  }
+  return { ok: true, moves: bytes, ended, win };
+}
+function linkOf(list){
+  const base = (location.origin || '') + (location.pathname || '/gomoku/');
+  return base + '#p=' + encodeMoves(list);
+}
+/* 받은 판을 그대로 이어받는다 — 검증을 통과한 수열만 여기까지 온다 */
+function adopt(payload){
+  const got = decodeMoves(String(payload || ''));
+  if (!got.ok) return got.why;
+  moves = got.moves.slice();
+  cells = replay(moves);
+  ended = got.ended;
+  winInfo = got.win || null;
+  undoLeft = UNDO_MAX;
+  baseLen = moves.length;          /* ★여기까지는 남의 수다 — 무르기가 넘어가지 못한다 */
+  linkMode = true;
+  runStart = nowMs(); endStamp = ended ? nowMs() : 0;
+  cur = moves[moves.length - 1];
+  return null;
 }
 
 /* ======================= 착수 =======================
@@ -606,6 +742,8 @@ function undo(){
   if (ended) return 'ended';
   if (undoLeft <= 0) return 'used';
   if (!moves.length) return 'empty';
+  /* ★받은 수열까지 되돌리면 남의 수를 무르는 것이 된다 — 무르기는 내가 둔 수의 구제 수단이다 */
+  if (moves.length <= baseLen) return 'notyours';
   const idx = moves.pop();
   cells[idx] = EMPTY;
   undoLeft--;
@@ -620,6 +758,7 @@ function reset(swap){
   undoLeft = UNDO_MAX;
   runStart = 0; endStamp = 0;
   cur = 7 * N + 7;
+  linkMode = false; baseLen = 0;
   if (swap) blackPlayer = (blackPlayer === 1 ? 2 : 1);
 }
 
@@ -668,7 +807,8 @@ function paintBar(){
   $('bar').classList.toggle('gb-over', !!ended);
   if (ended === 'win'){
     dot.className = 'gb-dot ' + (winInfo.stone === BLACK ? 'b' : 'w');
-    txt.textContent = T('winTitle', stoneName(winInfo.stone), T('playerNo', playerOf(winInfo.stone)));
+    txt.textContent = linkMode ? T('winTitleLink', stoneName(winInfo.stone))
+                               : T('winTitle', stoneName(winInfo.stone), T('playerNo', playerOf(winInfo.stone)));
     sub.textContent = T('turnSubOver');
   } else if (ended === 'draw'){
     dot.className = 'gb-dot none';
@@ -677,7 +817,8 @@ function paintBar(){
   } else {
     const s = turnStone();
     dot.className = 'gb-dot ' + (s === BLACK ? 'b' : 'w');
-    txt.textContent = T('turnOf', stoneName(s), T('playerNo', playerOf(s)));
+    txt.textContent = linkMode ? T('turnOfLink', stoneName(s))
+                               : T('turnOf', stoneName(s), T('playerNo', playerOf(s)));
     sub.textContent = T('turnSubPlay');
   }
   cnt.textContent = T('countLine', moves.length, CELLS - moves.length);
@@ -686,6 +827,8 @@ function paintBar(){
   ub.disabled = !!ended || undoLeft <= 0 || moves.length === 0;
   $('board').classList.toggle('gb-done', !!ended);
   $('btnNew').textContent = T('newGame');
+  $('btnLink').textContent = T('linkBtn');
+  $('btnLink').disabled = moves.length === 0;
 }
 function dirName(dir){
   if (dir[0] === 1 && dir[1] === 0) return T('dirRow');
@@ -750,7 +893,9 @@ function timeText(ms){
 }
 function renderOver(){
   const win = ended === 'win';
-  const big = win ? T('winTitle', stoneName(winInfo.stone), T('playerNo', playerOf(winInfo.stone))) : T('drawTitle');
+  const big = win ? (linkMode ? T('winTitleLink', stoneName(winInfo.stone))
+                              : T('winTitle', stoneName(winInfo.stone), T('playerNo', playerOf(winInfo.stone))))
+                  : T('drawTitle');
   const line = win ? T('winLine', winInfo.line.length, dirName(winInfo.dir)) : T('drawLine');
   $('finalBig').textContent = big;
   $('finalBigTop').textContent = big;
@@ -818,6 +963,14 @@ $('btnNew').onclick = () => {
 function confirmNew(){
   try { return window.confirm(T('newAsk')); } catch(e){ return true; }
 }
+$('btnLink').onclick = async () => {
+  if (!moves.length){ toast(T('linkEmpty')); return; }
+  const url = linkOf(moves);
+  try {
+    if (navigator.share) await navigator.share({ title: T('docTitle'), text: T('linkSub'), url });
+    else { await navigator.clipboard.writeText(url); toast(T('linkCopied')); }
+  } catch(_) { toast(T('linkFail')); }
+};
 $('btnUndo').onclick = () => {
   const before = moves.length ? cells[moves[moves.length - 1]] : EMPTY;
   const r = undo();
@@ -825,6 +978,7 @@ $('btnUndo').onclick = () => {
   sBad();
   if (r === 'used') toast(T('undoUsed'));
   else if (r === 'ended') toast(T('undoEnded'));
+  else if (r === 'notyours') toast(T('undoNotYours'));
   else toast(T('undoEmpty'));
 };
 function focusCur(){ try { cellEls[cur].focus({ preventScroll: true }); } catch(e){} }
@@ -898,9 +1052,35 @@ $('btnShare').onclick = doShare;
 $('btnBoard').onclick = () => { hide('over'); paint(); focusCur(); };
 
 /* ======================= 기동 ======================= */
+/* 받은 링크가 있으면 그 판으로 시작한다. ★해독에 실패하면 판을 만들지 않고 시작 화면에 머문다 —
+   '어떻게든 그려 주는' 것이 친절이 아니다. 불법 수열로 만든 판은 오목이 아니기 때문이다. */
+function bootFromHash(){
+  const p = window.__gmPayload || (/(?:^|[#&])p=([^&]*)/.exec(location.hash || '') || [])[1];
+  if (!p) return false;
+  const why = adopt(p);
+  if (why){ toast(T('badLink')); return false; }
+  hide('start');
+  if (!started){ started = true; ga('game_start', { game: GA_GAME });
+    if (window.hpHit) window.hpHit('play', GA_GAME); }
+  toast(T('linkAdopted'));
+  if (ended) { renderOver(); show('over'); }
+  return true;
+}
+/* 이미 열려 있는 탭의 주소가 다른 판 링크로 바뀐 경우 — head 인라인이 걷어낸 뒤 알려 준다 */
+window.addEventListener('gm:payload', e => {
+  const p = (e && e.detail) ? String(e.detail) : (window.__gmPayload || '');
+  if (!p) return;
+  const why = adopt(p);
+  if (why){ toast(T('badLink')); return; }
+  hide('over');
+  toast(T('linkAdopted'));
+  paint();
+  if (ended) { renderOver(); show('over'); }
+});
 applyLang();
+const fromLink = bootFromHash();
 paint();
-if ($('start').classList.contains('show')) show('start');
+if (!fromLink && $('start').classList.contains('show')) show('start');
 
 /* ======================= 검증 창구(관측 전용) =======================
    ★배포되는 이 창구에는 **읽기만 하는 getter 와 순수 함수** 만 둔다. 돌을 놓거나 판을 지우는
@@ -933,6 +1113,16 @@ window.__gm = {
   undoDisabled: () => !!$('btnUndo').disabled,
   undoText: () => $('btnUndo').textContent,
   shareText: () => (ended ? shareText('https://hanpango.com/gomoku/') : ''),
+  /* 링크 이어두기 — 순수 함수와 상태 관측 */
+  encode: list => encodeMoves(Array.from(list)),
+  /* ★부호화만 따로 볼 수 있는 창구 — 규칙 검증(decode)과 다른 계약이라 따로 잰다 */
+  codec: p => bytesFromB64url(String(p)),
+  decode: p => copy(decodeMoves(String(p))),
+  link: list => linkOf(Array.from(list)),
+  linkMode: () => linkMode,
+  baseLen: () => baseLen,
+  payload: () => (window.__gmPayload || null),
+  linkDisabled: () => !!$('btnLink').disabled,
   shown: id => $(id).classList.contains('show'),
   overShown: () => overShown,
   reduceMotion: () => reduceMotion(),
