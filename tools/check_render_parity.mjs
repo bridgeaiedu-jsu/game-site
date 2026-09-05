@@ -431,6 +431,9 @@ async function measure(htmlPath){
     return { fatal: String(e && e.message ? e.message : e) };
   } finally {
     kill();
+    /* ★측정을 여러 번 도는 자기시험에서 exit 청취자가 쌓여 경고가 난다 — 쓰고 나면 뗀다
+       (판정에는 영향이 없지만 게이트 출력에 잡음을 남기면 진짜 신호가 묻힌다). */
+    try { process.removeListener('exit', kill); } catch(_){}
     /* ★크롬이 죽는 데 잠깐 걸려 첫 삭제는 잠금에 막힌다(실측: 임시 프로필 2개가 남았다).
        프로세스는 죽었으니 위험은 없지만 쓰레기를 남기지 않는다 — 짧게 물러서서 몇 번 더 시도한다. */
     for (let t = 0; t < 5; t++){
