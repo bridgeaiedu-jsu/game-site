@@ -11,10 +11,12 @@ donate-qr.png
 /gen_err.txt
 /gen_out.json
 
-# 실브라우저 촬영 — 지그는 남기고 사본은 막는다
-# _shot-frame.html 은 매개변수(?src=&n=)로 도는 재사용 지그다. _mobile-test.html 과 같은 종이라 커밋한다.
-# _shot-*.html 사본(예: _shot-dark.html)은 대문 index.html 의 파생 복제다 — 이 저장소는 이미
-# 대문 사본이 어긋나는 병을 앓아 check_home_sync.mjs 를 만들었다. 아무 게이트도 안 보는 네 번째
-# 사본을 저장소에 들이지 않는다.
+# 실브라우저 촬영 — 루트의 대문 사본만 막는다
+# _shot-*.html 사본(예: _shot-dark.html)은 대문 index.html 의 파생 복제다. 이 저장소는 이미
+# 대문 사본이 어긋나는 병을 앓아 check_home_sync.mjs 를 만들었다 — 아무 게이트도 안 보는
+# 네 번째 사본을 들이지 않는다.
+# ★촬영 지그는 tools/shot-frame.html 로 옮겨졌다(루트에 두면 iframe 조립 src 를
+#   check_page_assets 가 정적으로 못 풀어 rc=2 가 난다 · worker 244 실측). 이 패턴 밖이라
+#   예외 규칙이 필요 없다 — 이름이 아니라 ★위치로 갈린다.
 /_shot-*.html
-!/_shot-frame.html
+
