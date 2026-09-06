@@ -237,7 +237,10 @@ export function render(board, cfg = CFG) {
 
 /* ── 글로 적은 판을 읽어 들이기 (예비 판을 ★소스에 박아 두기 위해) ───── */
 export function parseBoard(rows, cfg = CFG) {
-  const H = rows.length, W = rows[0].length;
+  /* ★계산형 첨자(rows[0])를 쓰지 않는다 — 개인정보 검사기가 '무슨 키를 다루는지 판정 불가' 로
+     떨어진다(2026-09-06 실측 check_privacy_storage rc=2). 구조 분해면 뜻이 그대로다. */
+  const [firstRow] = rows;
+  const H = rows.length, W = firstRow.length;
   const wall = new Uint8Array(W * H);
   const goals = [], boxes = [];
   let player = -1;

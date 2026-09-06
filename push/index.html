@@ -27,18 +27,20 @@
 </script>
 <style>
   /* ── 색 토큰 ────────────────────────────────────────────────────────
-     분류는 ★머리 한판(puzzle)이고 시그니처 색은 ★정본(tools/palette_by_category.json)의
-     puzzle 값 #2563eb 다. ★색 값을 여기서 새로 고르지 않는다 — 정본이 정하고 검사기가 대조한다. */
+     분류는 ★머리 한판(puzzle)이다. 아래 --sig 4토큰은 ★내가 고른 값이 아니라
+     tools/palette_gen.py 가 정본(tools/palette_by_category.json · puzzle #1554e0)에서
+     ★산출한 값을 옮긴 것이다(master RULING-PUSH-COLOR-2). ★여기서 색을 새로 고르지 않는다 —
+     정본이 정하고 tools/check_palette.py 가 대조한다. */
   :root{
     --bg:#ffffff; --fg:#111827; --muted:#6b7280; --line:#e5e7eb; --card:#f9fafb;
-    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
-    --wall:#cbd5e1; --floor:#f1f5f9; --goal-line:#1d4ed8;
+    --sig:#0e3895; --sig-ink:#082054; --sig-soft:#dae4fc; --on-sig:#ffffff;
+    --wall:#cbd5e1; --floor:#f1f5f9; --goal-line:var(--sig-ink);   /* ★판 토큰도 시그니처에서 끌어온다 — 손으로 고른 색을 남기지 않는다 */
   }
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#0c0a24; --fg:#f3f4f6; --muted:#9ca3af; --line:#26254a; --card:#141234;
-      --sig:#6c9bf5; --sig-ink:#a9c6fb; --sig-soft:#17265a; --on-sig:#0b1020;
-      --wall:#2b3350; --floor:#181a3a; --goal-line:#a9c6fb;
+      --sig:#5288ff; --sig-ink:#99b9ff; --sig-soft:#162b5a; --on-sig:#111827;
+      --wall:#2b3350; --floor:#181a3a; --goal-line:var(--sig-ink);
     }
   }
   *{box-sizing:border-box}
@@ -399,7 +401,10 @@ function render(board, cfg = CFG) {
 
 /* ── 글로 적은 판을 읽어 들이기 (예비 판을 ★소스에 박아 두기 위해) ───── */
 function parseBoard(rows, cfg = CFG) {
-  const H = rows.length, W = rows[0].length;
+  /* ★계산형 첨자(rows[0])를 쓰지 않는다 — 개인정보 검사기가 '무슨 키를 다루는지 판정 불가' 로
+     떨어진다(2026-09-06 실측 check_privacy_storage rc=2). 구조 분해면 뜻이 그대로다. */
+  const [firstRow] = rows;
+  const H = rows.length, W = firstRow.length;
   const wall = new Uint8Array(W * H);
   const goals = [], boxes = [];
   let player = -1;
