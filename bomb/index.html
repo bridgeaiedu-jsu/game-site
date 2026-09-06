@@ -485,21 +485,23 @@ function plan(seed, players, pool){
   /* ② 미션 수열 — 반복 상한을 ★뽑는 자리에서 건다.
      전 수열을 다시 뽑는 복구 가지를 만들지 않는다: 그런 가지는 거의 안 밟히고,
      그것을 겨냥한 뮤테이션은 아무것도 깨지 않은 채 통과해 버린다. */
+  /* ★반복창을 목록 크기에서 ★파생시킨다 — 상수를 그대로 쓰면 목록이 창보다 짧아지는 날
+     후보가 0이 되고, 그것을 뒤에서 주워 담는 복구 가지는 ★도달 불가라 아무것도 지키지 못한다
+     (31종·창 4 에서는 후보가 항상 27 이상이었다 — 그 가지를 지운 사본도 초록이었다).
+     여기서 창을 pool.length - 1 로 눌러 두면 후보는 ★언제나 1개 이상이 보장된다.
+     4종 이하 언어가 나중에 들어와도 규칙이 그날을 이미 막아 둔다. */
+  var win = Math.min(REPEAT_WINDOW, pool.length - 1);
   var missions = [];
   for (var i = 0; i < MISSION_COUNT; i++){
-    var recent = missions.slice(Math.max(0, missions.length - REPEAT_WINDOW));
+    var recent = missions.slice(Math.max(0, missions.length - win));
     var allowed = [];
     for (var j = 0; j < pool.length; j++){
       if (recent.indexOf(pool[j]) < 0) allowed.push(pool[j]);
     }
-    /* 목록이 반복창보다 짧아 남는 것이 없으면 창을 좁히지 않고 ★전체에서 뽑는다.
-       (이 저장소의 목록은 31개라 실제로는 일어나지 않지만, 목록을 줄이는 사람이
-        조용한 무한루프를 만나지 않도록 규칙을 여기 적어 둔다.) */
-    if (!allowed.length) allowed = pool.slice();
     missions.push(allowed[Math.floor(rnd() * allowed.length)]);
   }
 
-  return { seed: seed >>> 0, players: players, fuseMs: fuseMs, missions: missions };
+  return { seed: seed >>> 0, players: players, fuseMs: fuseMs, missions: missions, window: win };
 }
 
 /* ── 상태 ────────────────────────────────────────────────────────────────
@@ -753,11 +755,16 @@ window.__bmb = {
     };
   },
   snapshot: function(){
+    /* ★읽기 전용 사본이다. startedAt 을 함께 내보내는 이유: 도화선 불변을 fuseMs 동일성으로만
+       재면 ★시작 시각을 앞당기는 변이에 초록이 된다(폭발 시각 = startedAt + fuseMs).
+       두 값을 함께 내야 검사가 ★폭발 시각 자체를 단언할 수 있다. 쓰기 입구는 없다. */
     return {
       phase: state.phase, players: state.players, holder: state.holder,
       passes: state.passes, stage: state.stage,
       fuseMs: state.planned ? state.planned.fuseMs : null,
-      seed: state.planned ? state.planned.seed : null
+      seed: state.planned ? state.planned.seed : null,
+      startedAt: state.startedAt || null,
+      window: state.planned ? state.planned.window : null
     };
   }
 };

@@ -75,15 +75,29 @@ const MUTATIONS = {
     why: '반복 상한을 뽑는 자리에서 걷는다 — 같은 미션이 연달아 나올 수 있게 된다',
     target: 'repeat-cap-at-draw-site',
     apply: s => s.replace(
-      'var recent = missions.slice(Math.max(0, missions.length - REPEAT_WINDOW));',
+      'var recent = missions.slice(Math.max(0, missions.length - win));',
       'var recent = [];')
   },
   'm-repeat-cap-resample': {
     why: '반복 상한을 ★전 수열 재추첨으로 바꾼다 — 안 밟히는 복구 가지를 만든다',
     target: 'repeat-cap-at-draw-site',
     apply: s => s.replace(
-      '    if (!allowed.length) allowed = pool.slice();\n    missions.push(allowed[Math.floor(rnd() * allowed.length)]);',
+      '    missions.push(allowed[Math.floor(rnd() * allowed.length)]);',
       '    missions.push(pool[Math.floor(rnd() * pool.length)]);\n    if (missions.length > 1 && missions[missions.length - 1] === missions[missions.length - 2]) { missions.length = 0; i = -1; }')
+  },
+  'm-window-not-derived': {
+    why: '반복창을 목록 크기에서 파생시키지 않고 상수로 되돌린다 — 짧은 목록에서 후보가 0이 된다',
+    target: 'repeat-cap-at-draw-site',
+    apply: s => s.replace(
+      'var win = Math.min(REPEAT_WINDOW, pool.length - 1);',
+      'var win = REPEAT_WINDOW;')
+  },
+  'm-start-time-drift': {
+    why: '★시작 시각을 앞당긴다 — fuseMs 는 그대로라 길이만 재는 단언은 초록이지만 ★폭발 시각이 당겨진다',
+    target: 'action-consumes-no-randomness',
+    apply: s => s.replace(
+      '  state.passes += 1;',
+      '  state.startedAt -= 500;' + String.fromCharCode(10) + '  state.passes += 1;')
   },
   'm-seconds-on-screen': {
     why: '남은 시간을 화면에 수로 적는다 — 마지막 사람이 계산으로 피할 수 있게 된다',
@@ -91,6 +105,18 @@ const MUTATIONS = {
     apply: s => s.replace(
       "  if (elFuseWord) elFuseWord.textContent = T(STAGE_TEXT[state.stage]);",
       "  if (elFuseWord) elFuseWord.textContent = T(STAGE_TEXT[state.stage]) + ' ' + Math.ceil((state.planned ? state.planned.fuseMs - (Date.now() - state.startedAt) : 0) / 1000) + 's';")
+  },
+  'm-seconds-into-turn': {
+    why: '남은 초를 도화선 자리가 아니라 ★차례 자리에 흘린다 — 사정거리가 짧은 검사는 이걸 놓친다',
+    target: 'never-reveals-time-left',
+    apply: s => s.replace(
+      "  if (elTurnWho) elTurnWho.textContent = T('turnWho', state.holder + 1);",
+      "  if (elTurnWho) elTurnWho.textContent = T('turnWho', state.holder + 1) + ' ' + Math.ceil((state.planned ? state.planned.fuseMs - (Date.now() - state.startedAt) : 0) / 1000);")
+  },
+  'm-rename-rnd-to-roll': {
+    why: '★조용해야 하는 대조군 — plan 안의 rnd 를 roll 로 개명한다(행동은 한 톨도 안 바뀐다)',
+    expect: 'quiet',
+    apply: s => s.replace(new RegExp('\\brnd\\b', 'g'), 'roll')
   },
   'm-lang-list-shared': {
     why: '영어 미션 목록을 한국어 목록으로 덮는다 — 한쪽만 빠진 항목을 못 보게 만든다',
@@ -123,7 +149,7 @@ const MUTATIONS = {
 };
 
 if (has('--list-mutations')) {
-  Object.keys(MUTATIONS).forEach(k => console.log(k.padEnd(24) + MUTATIONS[k].target.padEnd(32) + MUTATIONS[k].why));
+  Object.keys(MUTATIONS).forEach(k => console.log(k.padEnd(24) + (MUTATIONS[k].target || '(quiet-control)').padEnd(32) + MUTATIONS[k].why));
   process.exit(0);
 }
 
@@ -141,7 +167,7 @@ if (MUTATION) {
   RAW = m.apply(RAW);
   if (RAW === before) { console.error('주입 실패(앵커가 안 맞는다): ' + MUTATION); process.exit(2); }
   console.log('※ 뮤테이션 주입: ' + MUTATION + ' — ' + m.why);
-  console.log('※ 지목한 검사: ' + m.target);
+  console.log('※ 지목한 검사: ' + (m.target || '(quiet-control · 아무 검사도 붉으면 안 된다)'));
 }
 
 /* ------------------------------------------------------------ 게임 스크립트 꺼내기 */
@@ -169,7 +195,7 @@ function mkEl(id) {
     fire(t, ev) { (this.listeners[t] || []).forEach(f => f(ev || { target: this })); }
   };
 }
-function makeWorld() {
+function makeWorld(opts) {
   const els = {};
   ['start', 'play', 'over', 'whoPick', 'fuse', 'fuseWord', 'fuseIcon', 'mission', 'turnWho',
     'passCount', 'btnPass', 'loser', 'loserSub', 'nPlayers', 'nPasses', 'nTime', 'btnStart',
@@ -194,6 +220,14 @@ function makeWorld() {
     addEventListener: () => {}, Math, Date, console, JSON
   };
   win.window = win;
+  /* ★재현성은 ★하네스에서 만든다 — 제품에 씨앗 주입구를 뚫지 않는다.
+     배포본은 crypto.getRandomValues 가 없으면 Math.random 으로 떨어지므로, 이 스텁의
+     Math.random 만 고정하면 ★같은 판이 다시 나온다. 조작 훅은 검사기 쪽에 있어야 한다. */
+  if (opts && typeof opts.fixedRandom === 'number'){
+    const fixed = opts.fixedRandom;
+    win.Math = Object.create(Math);
+    win.Math.random = () => fixed;
+  }
   vm.createContext(win);
   try { vm.runInContext(SRC, win, { filename: 'bomb-inline.js' }); }
   catch (e) { console.error('스크립트 실행 실패: ' + e.message); process.exit(2); }
@@ -248,9 +282,14 @@ check('action-consumes-no-randomness', () => {
   const b = w.win.__bmb.snapshot();
   /* 같은 씨앗으로 다시 짠 판이 넘기기 뒤에도 그대로인가 — 판의 내용은 씨앗과 인원만의 함수다 */
   const again = w.win.__bmb.plan(a.seed, a.players, w.win.__bmb.missions.ko);
-  const ok = a.seed === b.seed && a.fuseMs === b.fuseMs && again.fuseMs === a.fuseMs && b.passes === 25;
+  /* ★fuseMs 동일성만 재면 ★시작 시각을 앞당기는 변이에 초록이 된다 — 사람이 겪는 것은
+     길이가 아니라 ★폭발 시각(startedAt + fuseMs)이다. 두 값을 함께 잰다. */
+  const boomA = a.startedAt + a.fuseMs, boomB = b.startedAt + b.fuseMs;
+  const ok = a.seed === b.seed && a.fuseMs === b.fuseMs && again.fuseMs === a.fuseMs &&
+             b.passes === 25 && a.startedAt === b.startedAt && boomA === boomB;
   return { ok, detail: '넘기기 25회 · fuseMs ' + a.fuseMs + ' -> ' + b.fuseMs +
-    ' · 씨앗 ' + a.seed + ' -> ' + b.seed + ' · 재현 ' + again.fuseMs };
+    ' · 시작시각 ' + a.startedAt + ' -> ' + b.startedAt +
+    ' · ★폭발 시각 ' + boomA + ' -> ' + boomB + ' · 씨앗 ' + a.seed + ' -> ' + b.seed };
 });
 
 /* ── ③ 반복 상한이 ★뽑는 자리에 걸려 있는가 ────────────────────────────
@@ -266,16 +305,46 @@ check('repeat-cap-at-draw-site', () => {
       }
     }
   }
-  /* 난수 소비량 — 도화선 1 + 미션 MISSION_COUNT 개. 재추첨이 있으면 이보다 커진다. */
-  let draws = 0;
-  const counting = (function () { const r = bmb.makeRng(4242); return function () { draws++; return r(); }; })();
-  const planSrc = String(bmb.plan);
-  const usesRnd = /rnd\(\)/.test(planSrc);
-  bmb.plan(4242, 4, bmb.missions.ko);
-  const expectDraws = 1 + C.MISSION_COUNT;
-  const ok = violations === 0 && usesRnd;
+  /* ★철자를 보지 않는다. 앞서 이 검사는 String(plan) 안에 'rnd()' 라는 ★글자가 있는지를 봤는데,
+     그것은 대리물이라 ★rnd 를 roll 로 개명한 무해한 사본에서 거짓 실패를 냈다(리뷰어 실측).
+     대신 ★행동을 본다: 같은 씨앗이면 같은 수열이고(난수를 쓴다는 뜻이자 결정론이라는 뜻),
+     다른 씨앗이면 대체로 다른 수열이다(상수를 돌려주는 가짜가 아니다). */
+  const sameSeed = bmb.plan(4242, 4, bmb.missions.ko).missions.join('|') ===
+                   bmb.plan(4242, 4, bmb.missions.ko).missions.join('|');
+  let differing = 0;
+  for (let s = 0; s < 50; s++) {
+    if (bmb.plan(s, 4, bmb.missions.ko).missions.join('|') !==
+        bmb.plan(s + 1000, 4, bmb.missions.ko).missions.join('|')) differing++;
+  }
+  const usesRnd = sameSeed && differing >= 48;
+  /* ★창이 목록 크기에서 파생되는가 — 짧은 목록을 넣어 직접 확인한다.
+     상수를 그대로 쓰면 후보가 0이 되어 undefined 가 섞이고, 재추첨 구현이면 ★끝나지 않는다.
+     ★그래서 시간 제한을 걸고 부른다 — 끝나지 않는 것도 결함이지 '아직 안 끝났다' 가 아니다.
+     (시간 제한은 ★검사기의 안전장치다. 제품 안에는 시간 기반 분기를 두지 않는다.) */
+  const tiny = ['가', '나', '다'];                       /* 3종 < REPEAT_WINDOW(4) */
+  let tp = null, tinyErr = '';
+  try {
+    W.win.__tinyPool = tiny;
+    tp = vm.runInContext('window.__bmb.plan(7, 4, window.__tinyPool)', W.win, { timeout: 3000 });
+  } catch (e) { tinyErr = e.message; }
+  const tinyOk = !!tp && tp.missions.length === C.MISSION_COUNT &&
+                 tp.missions.every(m => tiny.indexOf(m) >= 0) &&
+                 tp.window === Math.min(C.REPEAT_WINDOW, tiny.length - 1);
+  let tinyViol = 0;
+  if (tp) for (let i = 1; i < tp.missions.length; i++) if (tp.missions[i] === tp.missions[i - 1]) tinyViol++;
+  const ok = violations === 0 && usesRnd && tinyOk && tinyViol === 0;
+  /* ★왜 붉은지를 줄에서 읽을 수 있어야 한다 — '위반 0' 만 찍히면 다음 사람이 이유를 못 읽는다. */
+  const why = [];
+  if (violations !== 0) why.push('반복창 위반 ' + violations);
+  if (!usesRnd) why.push('결정론·변이 대조 실패(같은 씨앗 동일 ' + sameSeed + ' · 다른 씨앗이 다른 비율 ' + differing + '/50)');
+  if (!tinyOk) why.push('짧은 목록 파생 실패' + (tp ? '' : '(★끝나지 않았다: ' + tinyErr + ')'));
+  if (tinyViol !== 0) why.push('짧은 목록 인접 반복 ' + tinyViol);
   return { ok, detail: '표본 ' + plans + '판 x ' + C.MISSION_COUNT + '자리 · 반복창(' +
-    C.REPEAT_WINDOW + ') 위반 ' + violations + ' · 기대 난수 소비 ' + expectDraws + '회' };
+    C.REPEAT_WINDOW + ') 위반 ' + violations +
+    ' · 같은 씨앗 재현 ' + sameSeed + ' · 다른 씨앗이 다른 수열 ' + differing + '/50' +
+    ' · ★3종 목록에서 창 파생 ' + (tp ? tp.window : '★끝나지 않았다') + '(기대 ' + Math.min(C.REPEAT_WINDOW, tiny.length - 1) +
+    ') · 길이 ' + (tp ? tp.missions.length : '-') + ' · 인접 반복 ' + tinyViol +
+    (why.length ? '  ★미달 사유: ' + why.join(' / ') : '') };
 });
 
 /* 재추첨 가지를 따로 잰다 — 난수를 세는 발생기를 제품 함수에 ★넘겨서. */
@@ -326,27 +395,61 @@ check('missions-drawn-from-own-language', () => {
 
 /* ── ⑤ 남은 시간을 ★수로 알려주지 않는가 ──────────────────────────────── */
 check('never-reveals-time-left', () => {
-  const w = makeWorld();
-  w.els.btnStart.fire('click');
-  const seen = [];
-  /* 판 전체를 훑으며 화면에 실리는 글자를 모은다 — 단계 문구가 바뀌는 자리를 전부 지난다 */
-  const realNow = Date.now;
-  const t0 = realNow();
-  const fuse = w.win.__bmb.snapshot().fuseMs;
-  for (let i = 1; i <= 20; i++) {
-    Date.now = () => t0 + Math.floor(fuse * i / 21);
-    w.els.btnPass.fire('click');
-    seen.push(String(w.els.fuseWord.textContent), String(w.els.fuseIcon.textContent),
-              String(w.els.turnWho.textContent), String(w.els.mission.textContent));
+  /* ★사정거리를 네 자리 전부로 넓힌다. 앞서 이 검사는 도화선 두 자리만 봐서, 남은 초를
+     ★차례 자리에 흘린 사본이 통과했다(리뷰어 실측).
+     ★가르는 방법: 같은 판(같은 씨앗)을 ★서로 다른 시각에 같은 횟수만큼 넘겨 놓고
+     네 자리의 글자를 대조한다. 차례·넘긴 횟수는 넘기기로만 정해지므로 두 판이 같아야 하고,
+     남은 시간이 어디로든 새면 ★두 판의 글자가 갈린다. 수의 유무로는 못 가른다(차례에도 수가 있다). */
+  const slots = ['fuseWord', 'fuseIcon', 'turnWho', 'passCount', 'mission'];
+  const runAt = (fracs) => {
+    const w = makeWorld({ fixedRandom: 0.4242 });     /* ★같은 판을 두 번 세운다 */
+    const realNow = Date.now;
+    const t0 = realNow();
+    Date.now = () => t0;
+    w.els.btnStart.fire('click');
+    const fuse = w.win.__bmb.snapshot().fuseMs;
+    const shots = [];
+    for (const f of fracs) {
+      Date.now = () => t0 + Math.floor(fuse * f);
+      w.els.btnPass.fire('click');
+      shots.push(slots.map(id => String(w.els[id].textContent)));
+    }
+    Date.now = realNow;
+    return { shots, fuse };
+  };
+  const early = runAt([0.02, 0.05, 0.08]);
+  const late  = runAt([0.30, 0.55, 0.78]);
+  /* ★도화선 두 자리는 시각에 따라 달라지는 것이 ★설계다(세 단계로 알려 준다) — 대조에서 뺀다.
+     대신 그 두 자리는 아래에서 ★닫힌 집합(단계 3종)인지로 잰다. 시간 정보가 그 자리로 새면
+     값의 가짓수가 3을 넘는다. 나머지 세 자리(차례·횟수·미션)는 ★넘기기로만 정해지므로
+     두 시각에서 글자가 같아야 한다. */
+  const timeFree = [2, 3, 4];       /* turnWho · passCount · mission */
+  const diffs = [];
+  for (let i = 0; i < early.shots.length; i++) {
+    for (const j of timeFree) {
+      if (early.shots[i][j] !== late.shots[i][j]) {
+        diffs.push(slots[j] + '@넘기기' + (i + 1) + ': ' + JSON.stringify(early.shots[i][j]) +
+                   ' vs ' + JSON.stringify(late.shots[i][j]));
+      }
+    }
   }
-  Date.now = realNow;
-  /* 차례·넘긴 횟수는 수를 써도 된다(그것은 남은 시간이 아니다). 잡으려는 것은
-     ★도화선 자리(fuseWord·fuseIcon)에 수가 실리는 것이다. */
-  const fuseTexts = seen.filter((_, i) => i % 4 === 0 || i % 4 === 1);
-  const withDigits = fuseTexts.filter(t => /\d/.test(t));
-  return { ok: withDigits.length === 0,
-    detail: '도화선 표시 ' + fuseTexts.length + '표본 · 수가 실린 것 ' + withDigits.length +
-      (withDigits.length ? ' — ' + JSON.stringify(withDigits.slice(0, 3)) : '') };
+  /* 도화선 자리: 수가 ★아예 없어야 하고, 값의 가짓수가 ★단계 수(3)를 넘으면 안 된다.
+     시간을 그 자리로 흘리면 값이 시각마다 달라져 가짓수가 곧 3을 넘는다. */
+  const fuseDigits = [];
+  const wordSet = new Set(), iconSet = new Set();
+  const sweep = runAt([0.05, 0.20, 0.35, 0.50, 0.60, 0.70, 0.80, 0.90, 0.95]);
+  for (const sh of early.shots.concat(late.shots, sweep.shots)) {
+    if (/\d/.test(sh[0])) fuseDigits.push(sh[0]);
+    if (/\d/.test(sh[1])) fuseDigits.push(sh[1]);
+    wordSet.add(sh[0]); iconSet.add(sh[1]);
+  }
+  const closed = wordSet.size <= 3 && iconSet.size <= 3;
+  return { ok: diffs.length === 0 && fuseDigits.length === 0 && closed,
+    detail: '같은 판을 ★이른 시각과 늦은 시각에 각각 3회 넘겨 ' + (timeFree.length * 3) + '칸 대조(시간과 무관해야 하는 자리) · 갈린 칸 ' +
+      diffs.length + ' · 도화선 자리에 실린 수 ' + fuseDigits.length +
+      ' · 도화선 문구 가짓수 ' + wordSet.size + '/아이콘 ' + iconSet.size + '(상한 3) ' +
+      (diffs.length ? '  ★시간 유출: ' + JSON.stringify(diffs.slice(0, 3)) : '') +
+      (fuseDigits.length ? '  ★도화선에 수: ' + JSON.stringify(fuseDigits.slice(0, 2)) : '') };
 });
 
 /* 단계는 셋뿐이고, 시작 직후는 반드시 calm 이다(★검사기가 경계를 다시 계산해 대조한다) */
@@ -485,6 +588,16 @@ console.log('==== verify_bomb: 잰 것 ' + results.length + ' · PASS ' + (resul
 
 if (MUTATION) {
   const target = MUTATIONS[MUTATION].target;
+  if (MUTATIONS[MUTATION].expect === 'quiet') {
+    /* ★조용해야 하는 대조군 — 행동을 바꾸지 않는 사본이다. 여기서 붉어지면 그 검사는
+       계약이 아니라 ★철자를 보고 있다는 뜻이다(거짓 실패). 붉은 자리만 붉어야 한다. */
+    if (fails.length) {
+      console.error('★조용해야 할 대조군인데 붉어진 검사가 있다: ' + fails.map(r => r.name).join(', '));
+      process.exit(3);
+    }
+    console.log('※ 대조군 ' + MUTATION + ' — 아무 검사도 붉어지지 않았다(기대대로)');
+    process.exit(0);
+  }
   if (!ran.has(target)) {
     console.error('★지목한 검사가 아예 돌지 않았다(앵커 노후화): ' + target);
     process.exit(2);

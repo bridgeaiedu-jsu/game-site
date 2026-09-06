@@ -20,7 +20,10 @@
           · 2 = 판정 불가가 하나라도 있다(rc=2) 또는 하네스를 세울 수 없다
 """
 import argparse
+import hashlib
+import io
 import os
+import re
 import subprocess
 import sys
 
@@ -30,6 +33,22 @@ VERIFY = os.path.join(ROOT, 'tools', 'verify_bomb.js')
 
 def run(args):
     return subprocess.run(args, cwd=ROOT, capture_output=True, text=True, encoding='utf-8', errors='replace')
+
+
+def source_denominators():
+    """★검사 분모와 겨냥 분모를 ★소스에서 뽑는다(손으로 적은 목록은 게이트가 못 된다).
+
+    러너가 뮤테이션 분모만 보면, 겨냥 뮤테이션이 없는 검사가 늘어도 표는 계속 초록이다.
+    그래서 여기서 ★차집합(미겨냥 검사)을 함께 찍는다 — 미측정을 숨기지 않고 세어서 보인다.
+    """
+    try:
+        src = io.open(VERIFY, encoding='utf-8').read()
+    except OSError as e:
+        return None, None, None, '검사기를 읽지 못했다: %s' % e
+    checks = re.findall(r"check\(\s*'([^']+)'", src)
+    targets = set(re.findall(r"target:\s*'([^']+)'", src))
+    digest = hashlib.sha256(io.open(VERIFY, 'rb').read()).hexdigest()[:16]
+    return checks, targets, digest, None
 
 
 def list_mutations():
@@ -56,7 +75,23 @@ def main():
             return 2
         names = [a.only]
 
-    print('분모(기계 열거) = %d 종' % len(names))
+    checks, targets, vhash, cerr = source_denominators()
+    if cerr:
+        print('판정 불가 — ' + cerr)
+        return 2
+    untargeted = [c for c in checks if c not in targets]
+    stale = sorted(t for t in targets if t not in checks)
+
+    print('검사기 sha256(앞 16) = %s   ★대상과 함께 이 해시도 고정해 적어라' % vhash)
+    print('뮤테이션 분모(기계 열거) = %d 종' % len(names))
+    print('검사 분모(기계 열거)     = %d 종 · 겨냥된 검사 %d · ★미겨냥(미측정) %d'
+          % (len(checks), len(checks) - len(untargeted), len(untargeted)))
+    if untargeted:
+        print('  ★미측정 검사(통과로 세지 않는다):')
+        for c in untargeted:
+            print('    - %s' % c)
+    if stale:
+        print('  ★겨냥 이름이 검사 목록에 없다(앵커 노후화): %s' % ', '.join(stale))
     print('')
     print('%-24s %-34s %-4s %s' % ('뮤테이션', '지목한 검사', 'rc', '판정'))
     print('-' * 96)
@@ -70,7 +105,9 @@ def main():
             if ln.startswith('※ 지목한 검사: '):
                 target = ln.replace('※ 지목한 검사: ', '').strip()
         if p.returncode == 0:
-            verdict = '잡았다'; caught += 1
+            quiet = 'quiet-control' in target
+            verdict = '조용했다(대조군 · 기대대로)' if quiet else '잡았다'
+            caught += 1
         elif p.returncode == 3:
             verdict = '★못 잡았다(검사가 공허하다)'; vacuous += 1
         elif p.returncode == 2:
@@ -78,15 +115,19 @@ def main():
         else:
             verdict = '★알 수 없는 rc'; indet += 1
         rows.append((n, target, p.returncode, verdict, (p.stderr or '').strip()[:200]))
-        print('%-24s %-34s %-4d %s' % (n, target or '(못 읽음)', p.returncode, verdict))
+        print('%-24s %-34s %-4d %s' % (n, target or '(quiet-control · 조용해야 한다)', p.returncode, verdict))
 
     print('')
-    print('==== 잰 것 %d · 잡았다 %d · 못 잡았다 %d · 판정 불가 %d ====' %
+    print('==== 뮤테이션: 잰 것 %d · 잡았다 %d · 못 잡았다 %d · 판정 불가 %d ====' %
           (len(names), caught, vacuous, indet))
+    print('==== 검사: 전체 %d · 겨냥 %d · ★미측정 %d (미측정은 통과가 아니다) ===='
+          % (len(checks), len(checks) - len(untargeted), len(untargeted)))
     for n, t, rc, v, err in rows:
         if rc == 2 and err:
             print('  판정 불가 사유 %s: %s' % (n, err))
 
+    if stale:
+        return 2          # 겨냥 이름이 검사에 없다 = 앵커 노후화 = ★판정 불가
     if indet:
         return 2
     return 1 if vacuous else 0
