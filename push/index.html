@@ -22,6 +22,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- 공개 카운터 — 판수를 보내고 판수 줄을 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"밀어서 정리","alternateName":"Push It Right","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
 </script>
@@ -83,6 +85,8 @@
        padding:10px 16px;font-size:.95rem;cursor:pointer}
   .btn.primary{background:var(--sig);color:var(--on-sig);border-color:var(--sig)}
   .hint{color:var(--muted);font-size:.86rem;text-align:center;margin:10px 4px}
+  .hp-stat{color:var(--muted);font-size:.82rem;text-align:center;margin:4px 4px 0}
+  .hp-stat[hidden]{display:none!important}   /* ★display 를 선언했으니 가드가 함께 있어야 한다 */
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
   #over{display:none;margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
@@ -135,6 +139,7 @@
 </div>
 
 <p class="hint" id="hint" data-i18n="hint">상자를 밀어 점선 자리에 모두 올리면 끝납니다 · 화면을 쓸거나 버튼을 누르세요</p>
+<p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.push.today">–</b>판 · 누적 <b data-hp="plays.push.total">–</b>판</p>
 <p class="sr-only" id="srLive" aria-live="polite"></p>
 
 <div id="over">
@@ -475,23 +480,29 @@ const I18N = {
        undoLbl:'되돌리기', undo:'↩ 되돌리기', reset:'처음부터',
        hint:'상자를 밀어 점선 자리에 모두 올리면 끝납니다 · 화면을 쓸거나 버튼을 누르세요',
        done:'다 맞췄습니다', rMinLbl:'최소 밀기', rMineLbl:'당신의 밀기', rStepsLbl:'걸음', rUndoLbl:'되돌리기',
+       statPlays:'오늘 <b data-hp="plays.push.today">–</b>판 · 누적 <b data-hp="plays.push.total">–</b>판',
        share:'결과 공유', again:'다시 풀기' },
   en:{ title:'Push It Right', subtitle:'Boxes can only be pushed, never pulled — everyone gets the same board today',
        home:'🏠 More games', dayLbl:'Today', minLbl:'Best', pushUnit:' pushes', yourLbl:'You', pushUnit2:' pushes',
        undoLbl:'Undos', undo:'↩ Undo', reset:'Restart',
        hint:'Push every box onto a dashed square · swipe the board or use the buttons',
        done:'Solved', rMinLbl:'fewest pushes', rMineLbl:'your pushes', rStepsLbl:'steps', rUndoLbl:'undos',
+       statPlays:'<b data-hp="plays.push.today">–</b> today · <b data-hp="plays.push.total">–</b> all-time',
        share:'Share result', again:'Play again' },
 };
-let lang = (navigator.language || 'ko').startsWith('ko') ? 'ko' : 'en';
+let lang = localStorage.getItem('bp.lang') || ((navigator.language || '').toLowerCase().startsWith('ko') ? 'ko' : 'en');
 function applyLang(){
   document.documentElement.lang = lang;
   for (const el of document.querySelectorAll('[data-i18n]')) {
     const k = el.getAttribute('data-i18n');
-    if (I18N[lang][k] !== undefined) el.textContent = I18N[lang][k];
+    if (I18N[lang][k] === undefined) continue;
+    /* 판수 줄만 ★태그가 들어 있다(숫자 자리를 <b data-hp> 로 잡는다) — 그 줄만 innerHTML 이다 */
+    if (k === 'statPlays') el.innerHTML = I18N[lang][k]; else el.textContent = I18N[lang][k];
   }
   $('btnLang').textContent = lang === 'ko' ? 'EN' : '한국어';
   if (state && state.solved) showResult();
+  localStorage.setItem('bp.lang', lang);
+  if (window.hpStats) window.hpStats();   /* ★언어를 바꾸면 숫자를 다시 채운다 */
 }
 
 /* ── 오늘 ─────────────────────────────────────────────────────────────
@@ -506,6 +517,10 @@ function dayNumber(key){
   const [y, m, d] = key.split('-').map(Number);
   return Math.round((Date.UTC(y, m - 1, d) - base) / 86400000) + 1;
 }
+
+/* ── 계기(GA·공개 카운터) — ★없어도 게임이 안 깨지게 전부 가드를 단다 ───── */
+const GA_GAME = 'push';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
 
 /* ── 판 상태 ──────────────────────────────────────────────────────────
    ★플레이 중 난수 소비 0 — 여기에 rng 이 없다. 판은 선굴림으로 이미 다 정해져 있다. */
@@ -524,6 +539,12 @@ const solvedNow = s => s.boxes.every(b => s.goals.includes(b));
 function move(d){
   if (!state || state.solved) return false;
   const s = state, dest = s.player + d;
+  if (!s.counted) {
+    /* ★한 판의 시작은 ★첫 조작이다 — 판을 열어만 둔 것을 판수로 세지 않는다 */
+    s.counted = true;
+    ga('game_start', { game: GA_GAME, min: s.minPushes });
+    if (window.hpHit) window.hpHit('play', GA_GAME);
+  }
   if (s.wall[dest]) return false;
   const bi = s.boxes.indexOf(dest);
   if (bi >= 0) {

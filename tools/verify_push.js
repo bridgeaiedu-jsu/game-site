@@ -216,8 +216,15 @@ function makeWorld() {
     },
     addEventListener: () => {},
   };
+  const store = {};
   const win = {
     document: doc, navigator: { language: 'ko-KR' },
+    /* 제품이 언어를 저장한다(bp.lang) — 하네스도 그 자리를 준다. ★값을 미리 심지 않는다 */
+    localStorage: {
+      getItem: k => (k in store ? store[k] : null),
+      setItem: (k, v) => { store[k] = String(v); },
+      removeItem: k => { delete store[k]; },
+    },
     setTimeout: () => 0, setInterval: () => 0, clearInterval: () => {},
     addEventListener: () => {}, Math, Date, console, JSON,
   };
