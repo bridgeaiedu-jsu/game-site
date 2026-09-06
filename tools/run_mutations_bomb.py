@@ -38,6 +38,40 @@ def run(args):
     return subprocess.run(args, cwd=ROOT, capture_output=True, text=True, encoding='utf-8', errors='replace')
 
 
+def fingerprint(path):
+    """★지문은 ★기준을 낱말로 달고 다닌다 — 값만 적으면 남의 재현과 어긋난다.
+
+    작업트리 sha256 은 체크아웃 줄끝(CRLF/LF)을 타서 같은 커밋에서도 사람마다 다르다.
+    그래서 ★셋을 함께 찍는다: 작업트리 바이트 · ★커밋된 바이트 · git 객체 id.
+    뒤의 둘은 줄끝 변환과 무관해서 ★재현에 쓸 값이고, 앞의 하나는 ★지금 돌린 바이트다.
+    (2026-09-06 R2: 같은 증거 폴더에서 한 파일은 작업트리 값, 다른 파일은 블롭 값을 써서
+     같은 대상이 두 값으로 적혔다 — 기준을 안 적었기 때문이다.)
+    """
+    try:
+        wt = hashlib.sha256(io.open(path, 'rb').read()).hexdigest()[:16]
+    except OSError as e:
+        return {'wt': '읽지 못함(%s)' % e, 'blob_sha256': '-', 'oid': '-'}
+    rel = os.path.relpath(path, ROOT).replace(os.sep, '/')
+    oid = run(['git', 'rev-parse', 'HEAD:' + rel])
+    blob = subprocess.run(['git', 'cat-file', 'blob', 'HEAD:' + rel],
+                          cwd=ROOT, capture_output=True)
+    return {
+        'wt': wt,
+        'blob_sha256': (hashlib.sha256(blob.stdout).hexdigest()[:16]
+                        if blob.returncode == 0 else '커밋에 없다'),
+        'oid': (oid.stdout or '').strip()[:16] if oid.returncode == 0 else '커밋에 없다',
+    }
+
+
+def fingerprint_line(label, path, fp):
+    rel = os.path.relpath(path, ROOT).replace(os.sep, '/')
+    return chr(10).join([
+        label,
+        '    sha256(★작업트리 파일)   = %s   ← 지금 돌린 바이트(줄끝 변환을 탄다)' % fp['wt'],
+        '    sha256(★커밋된 바이트)   = %s   ← ★재현에 쓸 값' % fp['blob_sha256'],
+        '    git 객체 id (HEAD:%s) = %s' % (rel, fp['oid']),
+    ])
+
 def source_denominators():
     """★검사 분모와 겨냥 분모를 ★소스에서 뽑는다(손으로 적은 목록은 게이트가 못 된다).
 
@@ -50,7 +84,7 @@ def source_denominators():
         return None, None, None, '검사기를 읽지 못했다: %s' % e
     checks = re.findall(r"check\(\s*'([^']+)'", src)
     targets = set(re.findall(r"target:\s*'([^']+)'", src))
-    digest = hashlib.sha256(io.open(VERIFY, 'rb').read()).hexdigest()[:16]
+    digest = fingerprint(VERIFY)
     return checks, targets, digest, None
 
 
@@ -68,11 +102,18 @@ def locked_items():
     items = data.get('items')
     if not isinstance(items, list) or not items:
         return None, None, None, '잠근 항 정본에 items 가 없다 — 대조할 것이 없다'
-    aux = data.get('auxiliary')
-    if not isinstance(aux, list):
+    aux_raw = data.get('auxiliary')
+    if not isinstance(aux_raw, list):
         return None, None, None, ('잠근 항 정본에 auxiliary 선언이 없다 — 보조 검사를 ★명시하지 않으면 '
                                   '주인 없는 검사와 구별할 수 없다')
-    digest = hashlib.sha256(io.open(LOCKED, 'rb').read()).hexdigest()[:16]
+    # ★보조는 {name, why} 다 — 이름만 적히면 진짜 계약을 ★조용히 보조로 강등할 수 있다.
+    #   옮겨 담는 행위가 ★사유를 남기게 만든다(2026-09-06 R2).
+    aux = []
+    for a in aux_raw:
+        if not isinstance(a, dict) or not a.get('name') or not a.get('why'):
+            return None, None, None, ('auxiliary 항목은 {name, why} 여야 한다 — 사유 없는 강등을 막는다: %r' % (a,))
+        aux.append(a)
+    digest = fingerprint(LOCKED)
     return items, aux, digest, None
 
 
@@ -131,12 +172,13 @@ def main():
     # ★방향 2 — 검사인데 어느 항도 안 짊어지고 ★보조로도 선언되지 않았다(미선언).
     #   이 방향이 ★판정을 짊어져야 한다. 표시만 하면 ★정본에서 항을 지워 구멍을 없앨 수 있다 —
     #   지우는 순간 그 검사가 미선언이 되어 ★즉시 붉어지게 만든다(흔적 없이 못 지운다).
-    check_no_item = [c for c in checks if c not in borne and c not in aux]
-    aux_declared = [c for c in checks if c in aux]
-    aux_stale = [c for c in aux if c not in checkset]
+    aux_names = {a['name']: a['why'] for a in aux}
+    check_no_item = [c for c in checks if c not in borne and c not in aux_names]
+    aux_declared = [c for c in checks if c in aux_names]
+    aux_stale = [n for n in aux_names if n not in checkset]
 
-    print('검사기 sha256(앞 16)     = %s   ★대상과 함께 이 해시도 고정해 적어라' % vhash)
-    print('잠근 항 정본 sha256(앞16) = %s   (%s)' % (lhash, os.path.relpath(LOCKED, ROOT)))
+    print(fingerprint_line('검사기 지문 ★대상과 함께 고정해 적어라', VERIFY, vhash))
+    print(fingerprint_line('잠근 항 정본 지문', LOCKED, lhash))
     print('뮤테이션 분모(기계 열거) = %d 종' % len(names))
     print('검사 분모(기계 열거)     = %d 종 · 겨냥된 검사 %d · ★미겨냥(미측정) %d'
           % (len(checks), len(checks) - len(untargeted), len(untargeted)))
@@ -150,16 +192,37 @@ def main():
     print('잠근 항 정본(기계 열거) = %d 항  ★양방향 차집합:' % len(items))
     print('  ← 항인데 ★짊어지는 검사가 없다     %d' % len(item_no_check))
     for it in item_no_check:
-        print('      #%s %s   (짊어져야 할 검사: %s ← ★없다)'
-              % (it.get('id'), it.get('name'), it.get('bearing_check')))
+        # ★배열을 읽는다 — 단수 필드를 읽어 'None' 을 찍으면 ★무엇을 만들어야 하는지 알려주는
+        #   바로 그 문장이 비어 버린다(2026-09-06 R2).
+        want = ', '.join(it.get('bearing_checks') or []) or '(정본에 이름조차 없다)'
+        print('      #%s %s   (짊어져야 할 검사: %s ← ★검사 목록에 없다)'
+              % (it.get('id'), it.get('name'), want))
     print('  → 검사인데 ★어느 항도 안 짊어지고 보조 선언도 없다(미선언)   %d' % len(check_no_item))
     for c in check_no_item:
         print('      %s   ★미선언 — 항을 짊어지든지 auxiliary 에 선언하든지 해야 한다' % c)
-    print('  · 보조로 ★선언된 검사 %d: %s' % (len(aux_declared), ', '.join(aux_declared) or '없음'))
+    print('  · 보조로 ★선언된 검사 %d:' % len(aux_declared))
+    for c in aux_declared:
+        print('      %s   ← 사유: %s' % (c, aux_names[c]))
+    if not aux_declared:
+        print('      없음')
     if aux_stale:
         print('  · ★auxiliary 에 있는데 검사 목록에 없는 이름: %s (정본 노후화)' % ', '.join(aux_stale))
     print('  ★두 방향 모두 판정을 짊어진다 — 항을 지우면 그것을 짊어지던 검사가 ★미선언이 되어')
     print('    즉시 붉어진다. 구멍을 없애려면 ★정본에 흔적이 남는다.')
+    print('')
+    # ★무변이 기준선 1회 — 표를 돌리기 ★전에 세운다.
+    #   앞서는 판정 불가를 잡는 것이 ★대조군 실행뿐이었다. 그러면 안전망이 계약이 아니라
+    #   ★목록 구성에 얹힌다 — 대조군을 목록에서 빼는 것만으로 rc=0 이 된다(2026-09-06 R2 실측).
+    #   무변이 실행은 ★어떤 목록으로 돌리든 늘 있으므로 여기서 끊으면 대조군 존재와 무관해진다.
+    base = run(['node', VERIFY, '--html', a.html])
+    if base.returncode == 2:
+        print('판정 불가 — ★무변이 기준선이 rc=2 다(검사를 세울 수 없다). 뮤테이션 표는 돌리지 않는다.')
+        print('  ' + ((base.stderr or base.stdout or '').strip().splitlines() or [''])[-1][:300])
+        return 2
+    if base.returncode != 0:
+        print('★미달 — 무변이 기준선이 붉다(rc=%d). 안 건드린 제품이 이미 계약을 깬다.' % base.returncode)
+        return 1
+    print('무변이 기준선 rc=0 — ★표를 돌리기 전에 세웠다(대조군 존재와 무관한 안전망)')
     print('')
     print('%-24s %-34s %-4s %s' % ('뮤테이션', '지목한 검사', 'rc', '판정'))
     print('-' * 96)
