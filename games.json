@@ -620,5 +620,32 @@
       "two-player",
       "party"
     ]
+  },
+  {
+    "id": "bomb",
+    "path": "/bomb/",
+    "title": {
+      "ko": "폭탄 돌리기",
+      "en": "Pass the Bomb"
+    },
+    "desc": {
+      "ko": "3~6명이 폰 하나를 돌려 가며 미션에 답하는 파티 게임 — 도화선이 얼마나 남았는지는 아무도 모르고, 터지는 순간 들고 있던 사람이 진다",
+      "en": "A party game for three to six people passing one phone — nobody knows how much fuse is left, and whoever holds it when it blows loses"
+    },
+    "thumb": "/bomb/thumb.webp",
+    "playtime": {
+      "ko": "한 판 1~2분",
+      "en": "1–2 min a round"
+    },
+    "maxMinutes": 2,
+    "daily": false,
+    "category": "group",
+    "released": "2026-09-06",
+    "tags": [
+      "party",
+      "group",
+      "casual",
+      "timing"
+    ]
   }
 ]

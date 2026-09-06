@@ -61,6 +61,8 @@ const PRECACHE = [
   '/together/thumb.webp',
   '/gomoku/',
   '/gomoku/thumb.webp',
+  '/bomb/',
+  '/bomb/thumb.webp',
   '/today/',
   '/privacy/',
   '/about/',
