@@ -237,8 +237,10 @@ export function render(board, cfg = CFG) {
 
 /* ── 글로 적은 판을 읽어 들이기 (예비 판을 ★소스에 박아 두기 위해) ───── */
 export function parseBoard(rows, cfg = CFG) {
-  /* ★계산형 첨자(rows[0])를 쓰지 않는다 — 개인정보 검사기가 '무슨 키를 다루는지 판정 불가' 로
-     떨어진다(2026-09-06 실측 check_privacy_storage rc=2). 구조 분해면 뜻이 그대로다. */
+  /* ★검사기 그물 결함 우회 — 금지가 아니다(바로 아래 :412 도 rows[y][x] 를 쓴다).
+     check_privacy_storage 가 ★지역 배열인 수신자를 '미해결' 통에 넣어 rows[0].length 를
+     저장소 호출로 오인하고 판정 불가(rc=2)를 냈다(2026-09-06 실측). 구조 분해면 뜻이 그대로다.
+     ★T0911(round/tickets/T0911-privacy-scanner-net.md) 로 그물을 고치면 ★rows[0] 로 되돌릴 것. */
   const [firstRow] = rows;
   const H = rows.length, W = firstRow.length;
   const wall = new Uint8Array(W * H);

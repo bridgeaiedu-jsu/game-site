@@ -35,13 +35,13 @@
      정본이 정하고 tools/check_palette.py 가 대조한다. */
   :root{
     --bg:#ffffff; --fg:#111827; --muted:#6b7280; --line:#e5e7eb; --card:#f9fafb;
-    --sig:#0e3895; --sig-ink:#082054; --sig-soft:#dae4fc; --on-sig:#ffffff;
+    --sig:#0e3691; --sig-ink:#081e4f; --sig-soft:#dae4fb; --on-sig:#ffffff;
     --wall:#cbd5e1; --floor:#f1f5f9; --goal-line:var(--sig-ink);   /* ★판 토큰도 시그니처에서 끌어온다 — 손으로 고른 색을 남기지 않는다 */
   }
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#0c0a24; --fg:#f3f4f6; --muted:#9ca3af; --line:#26254a; --card:#141234;
-      --sig:#5288ff; --sig-ink:#99b9ff; --sig-soft:#162b5a; --on-sig:#111827;
+      --sig:#4d84ff; --sig-ink:#94b5ff; --sig-soft:#162b5a; --on-sig:#111827;
       --wall:#2b3350; --floor:#181a3a; --goal-line:var(--sig-ink);
     }
   }
@@ -122,15 +122,15 @@
 </div>
 
 <!-- 판 — 진행 중에 바뀌는 자리라 data-i18n 을 붙이지 않는다(언어 전환이 판을 덮으면 안 된다) -->
-<div id="board" role="application" aria-label="밀어서 정리 판"></div>
+<div id="board" role="application" data-i18n-aria="ariaBoard" aria-label="밀어서 정리 판"></div>
 
 <div class="pad">
   <span></span>
-  <button id="up" type="button" aria-label="위로">↑</button>
+  <button id="up" type="button" data-i18n-aria="ariaUp" aria-label="위로">↑</button>
   <span></span>
-  <button id="left" type="button" aria-label="왼쪽으로">←</button>
-  <button id="down" type="button" aria-label="아래로">↓</button>
-  <button id="right" type="button" aria-label="오른쪽으로">→</button>
+  <button id="left" type="button" data-i18n-aria="ariaLeft" aria-label="왼쪽으로">←</button>
+  <button id="down" type="button" data-i18n-aria="ariaDown" aria-label="아래로">↓</button>
+  <button id="right" type="button" data-i18n-aria="ariaRight" aria-label="오른쪽으로">→</button>
 </div>
 
 <div class="row">
@@ -406,8 +406,10 @@ function render(board, cfg = CFG) {
 
 /* ── 글로 적은 판을 읽어 들이기 (예비 판을 ★소스에 박아 두기 위해) ───── */
 function parseBoard(rows, cfg = CFG) {
-  /* ★계산형 첨자(rows[0])를 쓰지 않는다 — 개인정보 검사기가 '무슨 키를 다루는지 판정 불가' 로
-     떨어진다(2026-09-06 실측 check_privacy_storage rc=2). 구조 분해면 뜻이 그대로다. */
+  /* ★검사기 그물 결함 우회 — 금지가 아니다(바로 아래 :412 도 rows[y][x] 를 쓴다).
+     check_privacy_storage 가 ★지역 배열인 수신자를 '미해결' 통에 넣어 rows[0].length 를
+     저장소 호출로 오인하고 판정 불가(rc=2)를 냈다(2026-09-06 실측). 구조 분해면 뜻이 그대로다.
+     ★T0911(round/tickets/T0911-privacy-scanner-net.md) 로 그물을 고치면 ★rows[0] 로 되돌릴 것. */
   const [firstRow] = rows;
   const H = rows.length, W = firstRow.length;
   const wall = new Uint8Array(W * H);
@@ -481,6 +483,8 @@ const I18N = {
        hint:'상자를 밀어 점선 자리에 모두 올리면 끝납니다 · 화면을 쓸거나 버튼을 누르세요',
        done:'다 맞췄습니다', rMinLbl:'최소 밀기', rMineLbl:'당신의 밀기', rStepsLbl:'걸음', rUndoLbl:'되돌리기',
        statPlays:'오늘 <b data-hp="plays.push.today">–</b>판 · 누적 <b data-hp="plays.push.total">–</b>판',
+       ariaBoard:'밀어서 정리 판', ariaUp:'위로', ariaDown:'아래로', ariaLeft:'왼쪽으로', ariaRight:'오른쪽으로',
+       cellWall:'벽', cellBoxDone:'자리에 놓인 상자', cellBox:'상자', cellGoal:'빈 자리', cellMe:'나', cellFloor:'바닥',
        share:'결과 공유', again:'다시 풀기' },
   en:{ title:'Push It Right', subtitle:'Boxes can only be pushed, never pulled — everyone gets the same board today',
        home:'🏠 More games', dayLbl:'Today', minLbl:'Best', pushUnit:' pushes', yourLbl:'You', pushUnit2:' pushes',
@@ -488,6 +492,8 @@ const I18N = {
        hint:'Push every box onto a dashed square · swipe the board or use the buttons',
        done:'Solved', rMinLbl:'fewest pushes', rMineLbl:'your pushes', rStepsLbl:'steps', rUndoLbl:'undos',
        statPlays:'<b data-hp="plays.push.today">–</b> today · <b data-hp="plays.push.total">–</b> all-time',
+       ariaBoard:'Push It Right board', ariaUp:'up', ariaDown:'down', ariaLeft:'left', ariaRight:'right',
+       cellWall:'wall', cellBoxDone:'box on its spot', cellBox:'box', cellGoal:'empty spot', cellMe:'you', cellFloor:'floor',
        share:'Share result', again:'Play again' },
 };
 let lang = localStorage.getItem('bp.lang') || ((navigator.language || '').toLowerCase().startsWith('ko') ? 'ko' : 'en');
@@ -498,6 +504,12 @@ function applyLang(){
     if (I18N[lang][k] === undefined) continue;
     /* 판수 줄만 ★태그가 들어 있다(숫자 자리를 <b data-hp> 로 잡는다) — 그 줄만 innerHTML 이다 */
     if (k === 'statPlays') el.innerHTML = I18N[lang][k]; else el.textContent = I18N[lang][k];
+  }
+  /* ★aria-label 도 언어를 탄다 — 눈으로 읽는 글만 번역하고 낭독기가 읽는 글을 한국어로 두면
+     영어 사용자에게는 화면과 소리가 다른 언어로 말한다(2026-09-07 리뷰 지적). */
+  for (const el of document.querySelectorAll('[data-i18n-aria]')) {
+    const k = el.getAttribute('data-i18n-aria');
+    if (I18N[lang][k] !== undefined) el.setAttribute('aria-label', I18N[lang][k]);
   }
   $('btnLang').textContent = lang === 'ko' ? 'EN' : '한국어';
   if (state && state.solved) showResult();
@@ -591,8 +603,9 @@ function draw(){
     c.className = 'cell' + (s.wall[i] ? ' wall' : '') + (goal.has(i) && !box.has(i) ? ' goal' : '')
       + (box.has(i) ? (goal.has(i) ? ' boxdone' : ' box') : '');
     g.textContent = box.has(i) ? (goal.has(i) ? '✓' : '📦') : (i === s.player ? '🙂' : '');
-    c.setAttribute('aria-label', s.wall[i] ? '벽' : box.has(i) ? (goal.has(i) ? '자리에 놓인 상자' : '상자')
-      : goal.has(i) ? '빈 자리' : (i === s.player ? '나' : '바닥'));
+    const T = k => I18N[lang][k];
+    c.setAttribute('aria-label', s.wall[i] ? T('cellWall') : box.has(i) ? (goal.has(i) ? T('cellBoxDone') : T('cellBox'))
+      : goal.has(i) ? T('cellGoal') : (i === s.player ? T('cellMe') : T('cellFloor')));
   }
   $('myPush').textContent = s.pushes;
   $('undoCnt').textContent = s.undos;

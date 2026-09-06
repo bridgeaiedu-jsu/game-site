@@ -247,11 +247,70 @@ def check_within_category(spec, games, pages):
     return bad
 
 
+# ── 검사 5 ────────────────────────────────────────────────────────────────
+def check_prototype_margin(spec, games, pages):
+    """계약 첫째 문장을 ★원형 거리로 잰다(정본 prototype).
+
+    ★1-NN(가장 가까운 이웃 카드)은 이 계약의 대리물이다 — 옆에 무엇이 있느냐로 답이 바뀐다.
+    원형 거리는 ★그 카드가 자기 종류로 읽히는가를 직접 묻는다.
+    ★규격(원형 정의·임계)은 전부 정본에서 읽는다 — 여기에 베끼지 않는다.
+    """
+    pr = spec.get('prototype')
+    if not pr:
+        raise Indeterminate('정본에 prototype 규격이 없다 — 원형을 세울 수 없다')
+    if pr.get('metric') != 'ciede2000':
+        raise Indeterminate(f"모르는 척도다: {pr.get('metric')}")
+    for k in ('light', 'dark', 'margin_min', 'margin_warn'):
+        if k not in pr:
+            raise Indeterminate(f'정본 prototype 에 {k} 가 없다')
+    if pr['light'] != 'category.sig' or pr['dark'] != 'representative.dark.--sig':
+        raise Indeterminate(f"모르는 원형 정의다: light={pr['light']} · dark={pr['dark']}")
+    floor = float(pr['margin_min'])
+    warn = float(pr['margin_warn'])
+
+    cats = {}
+    for g in games:
+        cats.setdefault(g['category'], []).append(g['id'])
+    protos = {0: {}, 1: {}}
+    for cat, ids in cats.items():
+        base = spec['categories'][cat]['sig']
+        same = [i for i in ids if pages[i][0]['--sig'].lower() == base.lower()]
+        rep = (same or ids)[0]
+        protos[0][cat] = base                      # 라이트 원형 = 정본 기준색
+        protos[1][cat] = pages[rep][1]['--sig']    # 다크 원형 = 대표 게임의 다크 --sig
+
+    bad, thin = [], []
+    for g in games:
+        gid, own = g['id'], g['category']
+        for theme, tname in ((0, '라이트'), (1, '다크')):
+            sig = pages[gid][theme]['--sig']
+            dists = {c: ciede2000(sig, p) for c, p in protos[theme].items()}
+            nearest = min(dists, key=dists.get)
+            other = min((v for c, v in dists.items() if c != own), default=0.0)
+            margin = other - dists[own]
+            if nearest != own:
+                bad.append(f"{tname} {gid}({sig}) 가 ★자기 원형({own})보다 {nearest} 원형에 가깝다 "
+                           f"— 자기 {dists[own]:.2f} vs {nearest} {dists[nearest]:.2f}")
+            elif margin + 1e-9 < floor:
+                bad.append(f"{tname} {gid}({sig}) 의 원형 여유 {margin:.2f} < {floor} "
+                           f"— 지각 임계 밑이라 색만으로 종류를 못 가린다")
+            elif margin + 1e-9 < warn:
+                thin.append((margin, f"{tname} {gid} 여유 {margin:.2f}"))
+    if thin:
+        thin.sort()
+        print(f"    [WARN] 원형 여유가 얇은 카드 {len(thin)}개(하한 {floor} 는 넘었으나 {warn} 미만) "
+              f"— 최소 {thin[0][1]}")
+        for _, line in thin[1:]:
+            print(f"           {line}")
+    return bad
+
+
 CHECKS = [
     ('1 분류 일치', check_category_match),
     ('2 대비비 하한', check_contrast),
     ('3 다크 변형 정합', check_dark_variant),
     ('4 분류 안 구별', check_within_category),
+    ('5 분류 간 원형 여유', check_prototype_margin),
 ]
 
 

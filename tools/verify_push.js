@@ -45,11 +45,18 @@ const MUTATIONS = {
       '    s.player = dest; s.steps++;\n  }'),
   },
   'm-push-through-wall': {
-    why: '벽 너머로 밀 수 있게 한다 — 상자가 벽을 뚫는다',
-    target: 'walls-stop-everything',
+    why: '벽 너머로 밀 수 있게 한다 — 상자가 벽을 뚫는다(★상자 반쪽만 겨냥한다)',
+    target: 'walls-stop-boxes',
     apply: s => s.replace(
       '    if (s.wall[beyond] || s.boxes.includes(beyond)) return false;',
       '    if (s.boxes.includes(beyond)) return false;'),
+  },
+  'm-player-walks-through-wall': {
+    why: '사람이 벽을 통과하게 한다 — ★사람 반쪽만 겨냥한다(상자 반쪽은 조용해야 한다)',
+    target: 'walls-stop-the-player',
+    apply: s => s.replace(
+      '  if (s.wall[dest]) return false;',
+      '  if (s.wall[dest] && s.boxes.indexOf(dest) >= 0) return false;'),
   },
   'm-play-consumes-randomness': {
     why: '플레이 중 난수를 소비하게 한다 — 행동이 판을 바꾼다(bomb 에서 잠근 것과 같은 계약)',
@@ -407,42 +414,88 @@ async function main() {
         ' (상자는 플레이어가 들어간 칸에서 같은 방향 한 칸으로만 움직여야 한다)' };
   });
 
-  /* ⑧ 벽은 사람과 상자를 모두 막는다 — ★벽 배치를 창구에서 받아 직접 잰다 */
-  check('walls-stop-everything', () => {
-    /* ★벽에 대고 실제로 밀어 봐야 뜻이 생긴다 — 마구 눌러서는 그 자리에 가지도 못한다.
-       하네스가 ★벽을 등진 상자를 찾아 그 방향으로 밀러 간다. 시도 0회면 통과로 세지 않는다. */
+  /* ⑧-1 벽은 ★사람을 막는다.
+     ★앞선 판에서 나는 사람 시험과 상자 시험을 ★OR 로 묶어 'measured' 하나로 판정했다 —
+     그러면 상자 쪽이 0회여도 사람 쪽만으로 초록이 된다. ★OR 은 각각보다 항상 헐겁다
+     (2026-09-07 reviewer-claude-1 적발 · master 확인). 그래서 ★둘로 갈랐고,
+     ★각 반쪽은 자기 시도 수가 0이면 그 반쪽만 ★판정 불가(통과 아님)로 끝난다. */
+  check('walls-stop-the-player', () => {
     const W2 = makeWorld(), p = W2.win.__psh;
     const wall = p.wall(), CFG2 = p.consts(), Wd = CFG2.W;
     const nameOf = d => (d === -Wd ? 'up' : d === Wd ? 'down' : d === -1 ? 'left' : 'right');
-    let tried = 0, bad = 0, moved = 0;
-    for (let round = 0; round < 6; round++) {
-      const s0 = p.snapshot();
-      let plan = null;
-      for (const b of s0.boxes) {
-        for (const d of [-Wd, Wd, -1, 1]) {
-          if (!wall[b + d]) continue;                     /* 상자 너머가 ★벽인 방향만 노린다 */
-          const stand = b - d;
-          if (wall[stand] || s0.boxes.includes(stand)) continue;
-          const path = walk(wall, s0.boxes, s0.player, stand, Wd);
-          if (!path) continue;
-          plan = { path, d, box: b }; break;
-        }
-        if (plan) break;
+    const s0 = p.snapshot();
+    let target = null, into = null;
+    for (let cell = 0; cell < wall.length && !target; cell++) {
+      if (wall[cell] || s0.boxes.includes(cell)) continue;
+      for (const d of [-Wd, Wd, -1, 1]) {
+        if (!wall[cell + d]) continue;
+        const path = walk(wall, s0.boxes, s0.player, cell, Wd);
+        if (!path) continue;
+        target = { cell, path }; into = d; break;
       }
-      if (!plan) break;
-      for (const step of plan.path) { W2.els[nameOf(step)].fire('click'); moved++; }
-      const before = p.snapshot();
-      W2.els[nameOf(plan.d)].fire('click');
-      const after = p.snapshot();
-      tried++;
-      if (after.boxes.some(b => wall[b])) bad++;                      /* 상자가 벽 안으로 */
-      if (wall[after.player]) bad++;                                  /* 사람이 벽 안으로 */
-      if (after.boxes.join() !== before.boxes.join()) bad++;          /* 벽 쪽으로 밀렸다 */
-      break;                                                          /* 한 번이면 충분하다 */
     }
-    return { ok: tried > 0 && bad === 0,
-      detail: '★벽을 등진 상자를 찾아 밀어 본 횟수 ' + tried + '(0이면 공허라 통과로 안 센다) · ' +
-        '가는 길 ' + moved + '걸음 · ★벽을 뚫은 횟수 ' + bad };
+    if (!target) {
+      return { ok: false, indeterminate: true,
+        detail: '★못 쟀다: 벽에 붙을 수 있는 칸으로 가는 길이 없다(이 반쪽은 통과로 세지 않는다)' };
+    }
+    for (const step of target.path) W2.els[nameOf(step)].fire('click');
+    const a0 = p.snapshot();
+    W2.els[nameOf(into)].fire('click');
+    const a1 = p.snapshot();
+    let bad = 0;
+    if (a1.player !== a0.player) bad++;                 /* 벽으로 걸어 들어갔다 */
+    if (wall[a1.player]) bad++;
+    if (a1.boxes.join() !== a0.boxes.join()) bad++;     /* 벽을 밀며 상자가 움직였다 */
+    return { ok: bad === 0,
+      detail: '벽 앞까지 ' + target.path.length + '걸음 걸어가 벽 쪽으로 1회 눌렀다 · ★위반 ' + bad };
+  });
+
+  /* ⑧-2 벽은 ★상자를 막는다. 상자를 ★벽에 닿을 때까지 밀어 본다. */
+  check('walls-stop-boxes', () => {
+    const W2 = makeWorld(), p = W2.win.__psh;
+    const wall = p.wall(), CFG2 = p.consts(), Wd = CFG2.W;
+    const nameOf = d => (d === -Wd ? 'up' : d === Wd ? 'down' : d === -1 ? 'left' : 'right');
+    const s0 = p.snapshot();
+    /* 그 방향으로 계속 밀면 ★언젠가 벽에 닿는 상자를 고른다(중간에 다른 상자가 없어야 한다) */
+    let plan = null;
+    for (const b of s0.boxes) {
+      for (const d of [-Wd, Wd, -1, 1]) {
+        const stand = b - d;
+        if (wall[stand] || s0.boxes.includes(stand)) continue;
+        let cur = b + d, hitsWall = false;
+        while (true) {
+          if (wall[cur]) { hitsWall = true; break; }
+          if (s0.boxes.includes(cur)) break;
+          cur += d;
+        }
+        if (!hitsWall) continue;
+        const path = walk(wall, s0.boxes, s0.player, stand, Wd);
+        if (!path) continue;
+        plan = { b, d, path }; break;
+      }
+      if (plan) break;
+    }
+    if (!plan) {
+      return { ok: false, indeterminate: true,
+        detail: '★못 쟀다: 밀어서 벽에 닿게 할 수 있는 상자가 이 판에 없다(이 반쪽은 통과로 세지 않는다)' };
+    }
+    for (const step of plan.path) W2.els[nameOf(step)].fire('click');
+    let pushes = 0, bad = 0, guard = 0;
+    while (guard++ < 12) {
+      const b0 = p.snapshot();
+      W2.els[nameOf(plan.d)].fire('click');
+      const b1 = p.snapshot();
+      if (b1.boxes.some(x => wall[x])) bad++;           /* 상자가 벽 안으로 */
+      if (wall[b1.player]) bad++;
+      if (b0.boxes.join() === b1.boxes.join()) break;   /* 상자가 멈췄다(벽에 닿았다) */
+      pushes++;
+    }
+    if (pushes === 0) {
+      return { ok: false, indeterminate: true,
+        detail: '★못 쟀다: 고른 상자를 한 번도 밀지 못했다(이 반쪽은 통과로 세지 않는다)' };
+    }
+    return { ok: bad === 0,
+      detail: '상자를 벽 쪽으로 ' + pushes + '회 밀어 멈출 때까지 갔다 · ★벽을 뚫은 횟수 ' + bad };
   });
   /* ⑨ 되돌리기는 ★직전 상태를 그대로 되돌린다 */
   check('undo-restores-the-previous-state', () => {
