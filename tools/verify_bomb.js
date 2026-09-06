@@ -118,6 +118,25 @@ const MUTATIONS = {
     expect: 'quiet',
     apply: s => s.replace(new RegExp('\\brnd\\b', 'g'), 'roll')
   },
+  'm-a11y-same-icon': {
+    why: '단계 아이콘 셋을 ★같게 만든다 — 색만 남고 모양이 단계를 말하지 못한다',
+    target: 'accessibility-not-color-alone',
+    apply: s => s.replace(
+      "var STAGE_ICON = { calm: '🧨', warm: '✨', hot: '🔥' };",
+      "var STAGE_ICON = { calm: '🧨', warm: '🧨', hot: '🧨' };")
+  },
+  'm-a11y-no-aria-live': {
+    why: 'aria-live 를 지운다 — 단계 변화가 낭독기에 전달되지 않는다',
+    target: 'accessibility-not-color-alone',
+    apply: s => s.replace(' data-stage="calm" aria-live="polite">', ' data-stage="calm">')
+  },
+  'm-a11y-anim-outside-media': {
+    why: '깜박임을 ★prefers-reduced-motion 블록 밖으로 꺼낸다 — 줄여 달라는 요청을 무시한다',
+    target: 'accessibility-not-color-alone',
+    apply: s => s.replace(
+      '  @media (prefers-reduced-motion: no-preference){' + String.fromCharCode(10) + '    .fuse[data-stage="hot"]{animation:pulse 1s ease-in-out infinite}',
+      '  .fuse[data-stage="hot"]{animation:pulse 1s ease-in-out infinite}' + String.fromCharCode(10) + '  @media (prefers-reduced-motion: no-preference){')
+  },
   'm-lang-list-shared': {
     why: '영어 미션 목록을 한국어 목록으로 덮는다 — 한쪽만 빠진 항목을 못 보게 만든다',
     target: 'mission-lists-are-per-language',
@@ -149,7 +168,11 @@ const MUTATIONS = {
 };
 
 if (has('--list-mutations')) {
-  Object.keys(MUTATIONS).forEach(k => console.log(k.padEnd(24) + (MUTATIONS[k].target || '(quiet-control)').padEnd(32) + MUTATIONS[k].why));
+  /* ★기계가 읽는 출력은 ★칸 너비에 기대지 않는다 — 이름이 폭을 넘으면 다음 칸과 붙어
+     호출자가 이름을 통째로 잘못 읽는다(2026-09-06 실측: m-a11y-anim-outside-media 25자).
+     구분자는 ★탭이다. 사람이 읽는 정렬은 그다음 문제다. */
+  Object.keys(MUTATIONS).forEach(k => console.log(
+    [k, MUTATIONS[k].target || '(quiet-control)', MUTATIONS[k].why].join(String.fromCharCode(9))));
   process.exit(0);
 }
 
@@ -236,14 +259,21 @@ function makeWorld(opts) {
 }
 
 /* ------------------------------------------------------------ 채점판 */
-const results = [];   /* {name, ok, detail} */
+const results = [];   /* {name, ok, indeterminate, detail} */
 const ran = new Set();
+/* ★검사 하나가 '못 쟀다' 로 끝날 수 있다 — 그것은 ★미달이 아니다.
+   시간 제한에 걸린 탐침, 세울 수 없었던 하네스가 그 경우다. 미달(1)과 같은 칸에 넣으면
+   호출자가 '깨졌다' 와 '못 봤다' 를 구별하지 못하고, ★못 본 것을 고치려 들게 된다. */
 function check(name, fn) {
   ran.add(name);
-  let ok = false, detail = '';
-  try { const r = fn(); ok = !!(r && r.ok); detail = (r && r.detail) || ''; }
-  catch (e) { ok = false; detail = '예외: ' + e.message; }
-  results.push({ name, ok, detail });
+  let ok = false, indeterminate = false, detail = '';
+  try {
+    const r = fn();
+    ok = !!(r && r.ok);
+    indeterminate = !!(r && r.indeterminate);
+    detail = (r && r.detail) || '';
+  } catch (e) { ok = false; detail = '예외: ' + e.message; }
+  results.push({ name, ok, indeterminate, detail });
 }
 
 const W = makeWorld();
@@ -332,6 +362,13 @@ check('repeat-cap-at-draw-site', () => {
                  tp.window === Math.min(C.REPEAT_WINDOW, tiny.length - 1);
   let tinyViol = 0;
   if (tp) for (let i = 1; i < tp.missions.length; i++) if (tp.missions[i] === tp.missions[i - 1]) tinyViol++;
+  /* ★시간 제한에 걸린 것은 '틀렸다' 가 아니라 ★'못 쟀다' 다. 미달로 세면 다음 사람이
+     제품을 고치려 들지만, 실제로 필요한 것은 ★탐침을 다시 세우는 일이다. */
+  if (!tp && /timed out|Script execution timed out/i.test(tinyErr)) {
+    return { ok: false, indeterminate: true,
+      detail: '★못 쟀다(판정 불가): 짧은 목록 탐침이 시간 제한에 걸렸다 — ' + tinyErr +
+        ' · 나머지 표본은 잼(반복창 위반 ' + violations + ' · 같은 씨앗 재현 ' + sameSeed + ')' };
+  }
   const ok = violations === 0 && usesRnd && tinyOk && tinyViol === 0;
   /* ★왜 붉은지를 줄에서 읽을 수 있어야 한다 — '위반 0' 만 찍히면 다음 사람이 이유를 못 읽는다. */
   const why = [];
@@ -576,15 +613,80 @@ check('observation-window-is-read-only', () => {
       ' · 스냅샷 수정 뒤 제품 phase ' + after.phase };
 });
 
+/* ── ⑫ 잠근 #7 접근성 — ★색만으로 알리지 않는다 ────────────────────────
+   대비비는 ★색상 차이를 판정하지 못한다. 색각 이상·흑백 화면·저조도에서도 ★무엇이 골라졌는지와
+   ★도화선이 어느 단계인지가 읽혀야 한다. 그래서 색 말고 ★모양과 글자가 함께 말하는지를 잰다.
+   그리고 움직임은 ★prefers-reduced-motion 을 존중해야 한다 — 멀미·전정기관 문제를 가진 사람에게
+   깜박임은 취향이 아니라 접근 장벽이다. */
+check('accessibility-not-color-alone', () => {
+  const css = (RAW.match(/<style>([\s\S]*?)<\/style>/) || [, ''])[1];
+  const bad = [];
+
+  /* (1) 고른 인원이 ★색 말고 글자·모양으로도 표시되는가 */
+  const pressedBlocks = css.match(/\[aria-pressed="true"\][^{}]*\{[^{}]*\}/g) || [];
+  const hasGlyph = /\[aria-pressed="true"\]::(?:after|before)\s*\{[^{}]*content\s*:/.test(css);
+  const hasShape = pressedBlocks.some(b => /border-width\s*:/.test(b));
+  if (!hasGlyph && !hasShape) {
+    bad.push('선택 상태가 ★색만으로 표시된다(글자·테두리 굵기 어느 것도 없다)');
+  }
+
+  /* (2) 도화선 단계가 ★아이콘(모양)과 ★문구(글자) 양쪽에서 갈리는가 — 색은 세지 않는다 */
+  const iconMap = (RAW.match(/var STAGE_ICON = \{([^}]*)\}/) || [, ''])[1];
+  const iconVals = (iconMap.match(/'([^']*)'/g) || []).map(x => x.slice(1, -1));
+  const textMap = (RAW.match(/var STAGE_TEXT = \{([^}]*)\}/) || [, ''])[1];
+  const textKeys = (textMap.match(/'([^']*)'/g) || []).map(x => x.slice(1, -1));
+  if (new Set(iconVals).size !== iconVals.length || iconVals.length < 3) {
+    bad.push('단계 아이콘이 서로 다르지 않다(모양이 단계를 말하지 못한다): ' + JSON.stringify(iconVals));
+  }
+  if (new Set(textKeys).size !== textKeys.length || textKeys.length < 3) {
+    bad.push('단계 문구 키가 서로 다르지 않다(글자가 단계를 말하지 못한다): ' + JSON.stringify(textKeys));
+  }
+
+  /* (3) 도화선 자리가 ★낭독기에 전달되는가 — 색이 바뀌는 것은 화면을 못 보는 사람에게 무의미하다 */
+  const fuseTag = (RAW.match(/<div[^>]*id="fuse"[^>]*>/) || [''])[0];
+  const hasLive = /aria-live\s*=/.test(fuseTag);
+  if (!hasLive) bad.push('도화선 자리에 aria-live 가 없다(단계 변화가 낭독되지 않는다)');
+
+  /* (4) 움직임이 ★prefers-reduced-motion 안에 갇혀 있는가.
+     ★블록을 통째로 파싱하지 않는다 — 중첩 중괄호를 정규식으로 세면 그 자체가 결함원이 된다.
+     대신 ★줄 순서로 본다: animation 을 선언한 줄이 reduced-motion 미디어 줄보다 ★뒤에 있고
+     그 미디어 블록이 닫히기 전인가. 여는 괄호와 닫는 괄호를 세어 블록의 끝을 찾는다. */
+  const lines = css.split(String.fromCharCode(10));
+  let depth = 0, inRm = false, animAll = 0, animInRm = 0;
+  for (const ln of lines) {
+    if (/@media\s*\(prefers-reduced-motion:/.test(ln)) { inRm = true; depth = 0; }
+    if (/animation\s*:/.test(ln)) { animAll++; if (inRm) animInRm++; }
+    for (const ch of ln) {
+      if (ch === '{') depth++;
+      else if (ch === '}') { depth--; if (inRm && depth <= 0) { inRm = false; } }
+    }
+  }
+  if (animAll > animInRm) {
+    bad.push('애니메이션 ' + animAll + '건 중 ' + animInRm + '건만 prefers-reduced-motion 안에 있다 — 밖의 것은 그 요청을 무시한다');
+  }
+
+  return { ok: bad.length === 0,
+    detail: '선택표시(글자 ' + hasGlyph + ' · 테두리 ' + hasShape + ') · 단계 아이콘 ' +
+      JSON.stringify(iconVals) + ' · 단계 문구키 ' + textKeys.length + '종 · aria-live ' + hasLive +
+      ' · animation ' + animInRm + '/' + animAll + ' 이 reduced-motion 안' +
+      (bad.length ? '  ★미달: ' + bad.join(' / ') : '') };
+});
+
 /* ------------------------------------------------------------ 판정 */
-const fails = results.filter(r => !r.ok);
+const indets = results.filter(r => r.indeterminate);
+const fails = results.filter(r => !r.ok && !r.indeterminate);
 console.log('');
 for (const r of results) {
-  console.log((r.ok ? '  PASS  ' : '  FAIL  ') + r.name.padEnd(34) + (r.detail || ''));
+  const tag = r.indeterminate ? '  INDET ' : (r.ok ? '  PASS  ' : '  FAIL  ');
+  console.log(tag + r.name.padEnd(34) + (r.detail || ''));
 }
 console.log('');
-console.log('==== verify_bomb: 잰 것 ' + results.length + ' · PASS ' + (results.length - fails.length) +
-            ' · FAIL ' + fails.length + ' ====');
+console.log('==== verify_bomb: 잰 것 ' + results.length + ' · PASS ' + (results.length - fails.length - indets.length) +
+            ' · FAIL ' + fails.length + ' · ★INDET(못 쟀다) ' + indets.length + ' ====');
+if (indets.length && !MUTATION) {
+  console.error('★판정 불가가 있다 — 통과로 세지 않는다(rc=2): ' + indets.map(r => r.name).join(', '));
+  process.exit(2);
+}
 
 if (MUTATION) {
   const target = MUTATIONS[MUTATION].target;
