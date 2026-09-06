@@ -6,6 +6,9 @@
  */
 /* ── ★전방 BFS(독립 계기) — 시작 판에서 해답까지 최소 ★밀기 수 ─────────
    생성기의 역방향 코드를 부르지 않는다. 밀기 규칙을 여기서 다시 적는다. */
+/* ★반환 규약: >=0 최소 밀기 수 · -1 ★해가 없다(다 뒤졌는데 못 찾았다) · -2 ★못 쟀다(상한 초과).
+   ★둘을 한 값으로 묶으면 호출자가 '틀렸다' 와 '못 봤다' 를 구별하지 못한다(T0913 P3).
+   상한은 인자로 받고, 하네스가 낮춰 ★그 경로를 실제로 밟을 수 있다(탈출구 시험). */
 export function solveMinPushes(wall, boxes0, player0, goals, cfg, cap = 200000) {
   const { W } = cfg;
   const goalKey = goals.slice().sort((a, b) => a - b).join(',');
@@ -53,5 +56,5 @@ export function solveMinPushes(wall, boxes0, player0, goals, cfg, cap = 200000) 
     }
     frontier = next;
   }
-  return -1;                                        /* ★못 풀었다 = 막힌 판(또는 상한 초과) */
+  return (seen.size >= cap) ? -2 : -1;              /* -2 ★상한 초과(못 쟀다) · -1 ★해가 없다 */
 }

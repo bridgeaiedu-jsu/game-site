@@ -148,6 +148,37 @@ const MUTATIONS = {
   },
 };
 
+/* ─────────────────────────────────────────── ★기대표는 정본에서 읽는다
+   '어느 뮤테이션을 어느 검사가 잡아야 하는가' 는 ★계약이지 코드가 아니다. 검사기 안에 두면
+   그 항의 ★검출 증명만 지워도 정본에 흔적이 남지 않는다(2026-09-07 reviewer-claude-1 적발).
+   ⇒ 여기서는 ★주입 함수만 갖고, target·expect 는 tools/push_mutation_expectations.json 이 정한다.
+   ★못 읽으면 rc=2 로 멈춘다 — 통과로 세지 않는다. ★양방향 대조도 여기서 한다. */
+const EXPECT_FILE = path.join(ROOT, 'tools', 'push_mutation_expectations.json');
+let EXPECT;
+try { EXPECT = JSON.parse(fs.readFileSync(EXPECT_FILE, 'utf8')); }
+catch (e) { console.error('판정 불가 — 기대표 정본을 못 읽었다(' + EXPECT_FILE + '): ' + e.message); process.exit(2); }
+if (!EXPECT.mutations || typeof EXPECT.mutations !== 'object') {
+  console.error('판정 불가 — 기대표 정본에 mutations 가 없다'); process.exit(2);
+}
+{
+  const inCode = Object.keys(MUTATIONS).sort();
+  const inCanon = Object.keys(EXPECT.mutations).sort();
+  const onlyCode = inCode.filter(k => !inCanon.includes(k));
+  const onlyCanon = inCanon.filter(k => !inCode.includes(k));
+  if (onlyCode.length || onlyCanon.length) {
+    console.error('판정 불가 — 기대표와 검사기가 갈렸다(★양방향 차집합): ' +
+      '검사기에만 ' + JSON.stringify(onlyCode) + ' · 정본에만 ' + JSON.stringify(onlyCanon));
+    process.exit(2);
+  }
+  for (const k of inCode) {
+    const e = EXPECT.mutations[k];
+    if (e.expect === 'quiet') { MUTATIONS[k].expect = 'quiet'; delete MUTATIONS[k].target; }
+    else if (e.expect === 'caught-by' && e.target) { MUTATIONS[k].target = e.target; delete MUTATIONS[k].expect; }
+    else { console.error('판정 불가 — 기대표 항목이 모양을 안 지킨다: ' + k + ' ' + JSON.stringify(e)); process.exit(2); }
+    if (e.why) MUTATIONS[k].why = e.why;
+  }
+}
+
 if (has('--list-mutations')) {
   Object.keys(MUTATIONS).forEach(k => console.log(
     [k, MUTATIONS[k].target || '(quiet-control)', MUTATIONS[k].why].join(TAB)));
@@ -359,7 +390,15 @@ async function main() {
   check('min-pushes-matches-independent-solver', () => {
     const today = psh.snapshot();
     const wall = Uint8Array.from(psh.wall());
-    const fwd = solveMinPushes(wall, today.boxes, today.player, today.goals, CFG);
+    /* ★상한은 하네스가 낮출 수 있다 — 그래야 ★판정 불가 경로를 실제로 밟아 볼 수 있다(T0913 P3).
+       제품에는 훅이 없다: 상한은 ★검사기 쪽 풀이기의 인자다. */
+    const cap = Number(process.env.PUSH_SOLVER_CAP || 200000);
+    const fwd = solveMinPushes(wall, today.boxes, today.player, today.goals, CFG, cap);
+    if (fwd === -2) {
+      return { ok: false, indeterminate: true,
+        detail: '★못 쟀다(판정 불가): 독립 풀이기가 상태 상한 ' + cap + ' 을 넘겼다 — ' +
+          '못 쟀다는 것과 틀렸다는 것은 다르다' };
+    }
     const same = fwd === today.minPushes;
     return { ok: fwd > 0 && same,
       detail: '오늘 판(' + today.key + '): 제품 ' + today.minPushes + '밀기 · ★독립 풀이기 ' + fwd +

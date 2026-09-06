@@ -117,6 +117,25 @@ def locked_items():
     return items, aux, digest, None
 
 
+def expectations():
+    """뮤테이션 ★기대표 정본을 읽는다 — 검사기 안이 아니라 밖에서.
+
+    ★없거나 못 읽으면 rc=2 다(통과로 세지 않는다). 이 파일이 '어느 뮤테이션을 어느 검사가
+    잡아야 하는가' 를 정하고, 러너는 그것과 실제 검사 목록을 ★양방향으로 대조한다.
+    """
+    path_ = os.path.join(ROOT, 'tools', 'push_mutation_expectations.json')
+    try:
+        with io.open(path_, encoding='utf-8') as f:
+            data = json.load(f)
+    except (OSError, ValueError) as e:
+        return None, '기대표 정본을 못 읽었다(%s): %s' % (path_, e)
+    if not isinstance(data.get('mutations'), dict) or not data['mutations']:
+        return None, '기대표 정본에 mutations 가 없다'
+    if 'requires_targeted' not in data:
+        return None, '기대표 정본에 requires_targeted 가 없다 — 미겨냥을 어떻게 셀지 정해지지 않았다'
+    return data, None
+
+
 def list_mutations():
     p = run(['node', VERIFY, '--list-mutations'])
     if p.returncode != 0:
@@ -154,8 +173,22 @@ def main():
     if cerr:
         print('판정 불가 — ' + cerr)
         return 2
-    untargeted = [c for c in checks if c not in targets]
+    exp, eerr = expectations()
+    if eerr:
+        print('판정 불가 — ' + eerr)
+        return 2
+    exempt = set(exp.get('exempt_from_targeting') or [])
+    # ★겨냥 집합은 ★정본에서 온다 — 검사기 소스에서 뽑으면 '기대표를 밖으로 뺐다' 가 말뿐이 된다
+    #   (2026-09-07 실측: 정본에서 겨냥을 옮겨도 소스 정규식이 옛 값을 읽어 미겨냥이 0 으로 나왔다).
+    targets = set(v.get('target') for v in exp['mutations'].values() if v.get('target'))
+    canon_names = set(exp['mutations'].keys())
+    canon_targets = set(v.get('target') for v in exp['mutations'].values() if v.get('target'))
+    # ★양방향 — 정본에만 있는 뮤테이션 / 검사기에만 있는 뮤테이션
+    only_canon = sorted(canon_names - set(names))
+    only_code = sorted(set(names) - canon_names)
+    untargeted = [c for c in checks if c not in targets and c not in exempt]
     stale = sorted(t for t in targets if t not in checks)
+    stale_canon = sorted(t for t in canon_targets if t not in checks)
 
     items, aux, lhash, lerr = locked_items()
     if lerr:
@@ -179,11 +212,19 @@ def main():
 
     print(fingerprint_line('검사기 지문 ★대상과 함께 고정해 적어라', VERIFY, vhash))
     print(fingerprint_line('잠근 항 정본 지문', LOCKED, lhash))
-    print('뮤테이션 분모(기계 열거) = %d 종' % len(names))
+    print(fingerprint_line('기대표 정본 지문', os.path.join(ROOT, 'tools', 'push_mutation_expectations.json'),
+                           fingerprint(os.path.join(ROOT, 'tools', 'push_mutation_expectations.json'))))
+    print('뮤테이션 분모(기계 열거) = %d 종 · 기대표 정본 %d 종 · ★정본에만 %d · ★검사기에만 %d'
+          % (len(names), len(canon_names), len(only_canon), len(only_code)))
+    if only_canon or only_code:
+        print('  ★갈렸다 — 정본에만: %s · 검사기에만: %s' % (only_canon or '없음', only_code or '없음'))
     print('검사 분모(기계 열거)     = %d 종 · 겨냥된 검사 %d · ★미겨냥(미측정) %d'
           % (len(checks), len(checks) - len(untargeted), len(untargeted)))
     if untargeted:
-        print('  ★미측정 검사(통과로 세지 않는다):')
+        # ★2026-09-07(T0913): 미겨냥은 이제 ★rc 가 말한다 — 사람이 이 줄을 눈으로 읽어
+        #   증거에 붙이던 임시 조치는 여기서 끝난다(목적을 다한 임시 게이트를 남기면
+        #   다음 사람이 rc 대신 눈을 믿는다 · reviewer-claude-1).
+        print('  ★미측정 검사(★rc 로 판정한다 — 면제는 정본 exempt_from_targeting 에 이름으로 적어야 한다):')
         for c in untargeted:
             print('    - %s' % c)
     if stale:
@@ -274,8 +315,13 @@ def main():
             print('  판정 불가 사유 %s: %s' % (n, err))
 
     # ★판정 불가를 ★먼저 돌린다 — 못 쟀으면 틀렸다고 말할 수 없다.
-    if stale or aux_stale:
+    if stale or aux_stale or stale_canon:
+        if stale_canon:
+            print('  ★기대표 정본이 없는 검사를 겨냥한다(노후화): %s' % ', '.join(stale_canon))
         return 2          # 이름이 검사 목록에 없다 = 정본·앵커 노후화 = ★판정 불가
+    if only_canon or only_code:
+        print('  ★판정 불가: 기대표와 검사기가 갈렸다 — 어느 쪽이 계약인지 알 수 없다')
+        return 2
     if indet:
         return 2
     if item_no_check:
@@ -286,6 +332,11 @@ def main():
     if check_no_item:
         print('  ★미달: 미선언 검사 %d개(위 목록) — 항을 짊어지든 보조로 선언하든 해야 한다'
               % len(check_no_item))
+        return 1
+    if exp.get('requires_targeted') and untargeted:
+        # ★미겨냥 0 을 ★rc 가 말한다(T0913). 겨냥이 없는 검사는 ★그 검사가 살아 있는지
+        #   아무도 모른다 — 지워도 표가 초록이다.
+        print('  ★미달: 겨냥 뮤테이션이 없는 검사 %d개 — %s' % (len(untargeted), ', '.join(untargeted)))
         return 1
     # ★공허(③)와 거짓 실패(④)는 둘 다 미달이지만 ★고칠 곳이 다르다 —
     #   공허는 검사를 강화해야 하고, 거짓 실패는 판정을 대리물에서 행동으로 되돌려야 한다.
