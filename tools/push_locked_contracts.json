@@ -1,0 +1,107 @@
+{
+  "_why": "「밀어서 정리」가 잠근 항의 ★정본이다. 검사기 안에 두면 검사기가 자기를 채점하고, 항을 지우는 것과 검사를 지우는 것이 ★한 손에서 일어난다. 그래서 밖에 둔다 — tools/run_mutations_push.py 가 이 파일을 읽어 검사 목록과 ★양방향으로 대조한다.",
+  "_bidirectional": "한 방향만 보면 구멍을 없앨 수 있다. 두 방향(항인데 검사 없음 / 검사인데 항에 없음)을 함께 찍는다.",
+  "_scope": "제품이 지킨다고 선언한 계약만 적는다. 검사기의 내부 편의는 항이 아니다.",
+  "items": [
+    {
+      "id": 1,
+      "name": "상자는 ★밀릴 때만 움직인다(당길 수 없다)",
+      "why": "당길 수 있으면 되돌릴 수 없는 실수가 사라지고 게임의 정체가 바뀐다. 계획해서 미는 재미가 통째로 없어진다",
+      "bearing_checks": [
+        "box-moves-only-when-pushed"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "벽은 사람과 상자를 모두 막는다",
+      "why": "벽을 뚫으면 최소 수 계산이 거짓이 된다 — 우리가 자랑하는 수치가 근거를 잃는다",
+      "bearing_checks": [
+        "walls-stop-everything"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "플레이 행동은 난수를 ★한 톨도 소비하지 않는다(선굴림)",
+      "why": "행동이 난수를 쓰면 같은 씨앗이 같은 판을 주지 않고, 오늘의 판을 겨룬다는 말이 성립하지 않는다",
+      "bearing_checks": [
+        "play-consumes-no-randomness"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "판 짜기는 시계를 읽지 않는다",
+      "why": "느린 기기에서만 결과가 갈린다. 시계는 ★오늘이 며칠인지 정할 때 한 자리에서만 읽는다",
+      "bearing_checks": [
+        "plan-does-not-read-clock",
+        "clock-is-read-in-one-place"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "같은 날짜는 같은 판을 준다",
+      "why": "모두가 같은 판을 푼다는 것이 이 게임의 사회적 계약이다",
+      "bearing_checks": [
+        "same-date-same-board"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "오늘의 판은 ★어떤 날짜에도 존재한다",
+      "why": "씨앗의 3분의 1은 조건에 맞는 판을 못 만든다. 재시도와 예비 판이 없으면 판이 없는 날이 생긴다",
+      "bearing_checks": [
+        "daily-board-exists-for-any-date"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "우리가 말하는 최소 수는 ★참이다",
+      "why": "'최소 12밀기 · 당신 15밀기' 는 우리가 아는 값이라 자랑할 수 있다 — 그 값이 틀리면 자랑이 거짓말이 된다. 그래서 ★독립 계기가 다시 푼다",
+      "bearing_checks": [
+        "min-pushes-matches-independent-solver"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "되돌리기는 ★직전 상태를 그대로 되돌린다",
+      "why": "되돌릴 수 없는 실수가 있는 게임에서 되돌리기가 거짓이면 사람은 판을 버린다",
+      "bearing_checks": [
+        "undo-restores-the-previous-state"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "상태를 ★색만으로 알리지 않는다(모양·글자를 함께 쓴다) · 접근성",
+      "why": "색각 이상·흑백 화면·저조도에서 목표 자리와 놓인 상자가 읽혀야 한다",
+      "bearing_checks": [
+        "not-color-alone"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "움직임 줄이기를 존중한다",
+      "why": "멀미·전정기관 문제를 가진 사람에게 움직임은 취향이 아니라 접근 장벽이다",
+      "bearing_checks": [
+        "respects-reduced-motion"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "관측 창구는 ★읽기 전용이다 — 배포본에 판을 바꾸는 뒷문을 남기지 않는다",
+      "why": "검사를 쉽게 하려고 낸 창구가 조작 API 로 남으면 제품이 계약을 잃는다(bomb 에서 승격한 항)",
+      "bearing_checks": [
+        "observation-window-is-read-only"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "생성기는 ★한 곳에서만 정의된다(제품 사본 = 도구 원본)",
+      "why": "같은 코드가 두 곳에 있으면 언젠가 갈라지고, 그때부터 검사기는 ★다른 게임을 재게 된다",
+      "bearing_checks": [
+        "product-copy-equals-tool-source"
+      ]
+    }
+  ],
+  "_bearing_checks": "한 검사가 여러 항을 짊어질 수 있고 한 항을 여러 검사가 나눠 짊어질 수도 있다 — 그래서 배열이다.",
+  "auxiliary": [],
+  "_auxiliary": "잠근 항을 짊어지지 않는 ★보조 검사를 여기 {name, why} 로 ★명시 선언한다. 지금은 없다 — 검사 13종이 모두 항을 짊어진다. 선언되지 않은 검사는 미달이다."
+}

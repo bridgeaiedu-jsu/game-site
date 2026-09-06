@@ -67,6 +67,9 @@ console.log('  ★상한 N=%d → P(N번 전부 실패)=p^N = %s · 기대 일�
   CFG.SEED_TRIES, pAll.toExponential(2), (pAll * 731).toFixed(3),
   (pAll * dates.length).toFixed(3), dates.length);
 console.log('  (참고) 관측 최대 시도 %d — ★이것은 표본의 운이지 여유가 아니다', maxAttempt);
+/* ★이 계산이 서 있는 전제를 함께 적는다(2026-09-06 master) — 지우면 다음 사람이 못 본다. */
+console.log('  ★전제: p^N 은 ★시도끼리 독립임을 전제한다. 지금은 seedForDate 가 FNV-1a 로 섞어 타당하지만,');
+console.log('        ★씨앗 전진 방식을 바꾸면(예: seed+1 같은 약한 전진) 연속 시도가 상관되어 이 수치는 ★무효다.');
 console.log('  걸린 시간 %dms (날짜당 %sms)', ms, (ms / dates.length).toFixed(1));
 console.log('');
 console.log('  시도 횟수 분포: ' + [...attemptHist.keys()].sort((a, b) => a - b)

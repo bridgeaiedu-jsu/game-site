@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>밀어서 정리 — 상자를 밀어 자리에 맞추는 오늘의 창고 퍼즐 | Push It Right</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 퍼즐. 상자는 밀 수만 있고 당길 수 없습니다. 오늘의 판은 모두에게 같고, 최소 몇 번 밀면 되는지를 우리가 알고 있어 당신의 기록과 나란히 보여 줍니다 — 되돌리기는 얼마든지.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="밀어서 정리 — 상자를 밀어 자리에 맞추는 오늘의 창고 퍼즐 | Push It Right">
+<meta property="og:description" content="오늘의 판은 최소 몇 밀기일까요. 당신은 몇 번에 끝냈습니까.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/push/">
+<meta property="og:image" content="https://hanpango.com/push/thumb.webp">
+<meta property="og:image:width" content="640">
+<meta property="og:image:height" content="640">
+<link rel="canonical" href="https://hanpango.com/push/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"밀어서 정리","alternateName":"Push It Right","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ────────────────────────────────────────────────────────
+     분류는 ★머리 한판(puzzle)이고 시그니처 색은 ★정본(tools/palette_by_category.json)의
+     puzzle 값 #2563eb 다. ★색 값을 여기서 새로 고르지 않는다 — 정본이 정하고 검사기가 대조한다. */
+  :root{
+    --bg:#ffffff; --fg:#111827; --muted:#6b7280; --line:#e5e7eb; --card:#f9fafb;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --wall:#cbd5e1; --floor:#f1f5f9; --goal-line:#1d4ed8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --fg:#f3f4f6; --muted:#9ca3af; --line:#26254a; --card:#141234;
+      --sig:#6c9bf5; --sig-ink:#a9c6fb; --sig-soft:#17265a; --on-sig:#0b1020;
+      --wall:#2b3350; --floor:#181a3a; --goal-line:#a9c6fb;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif}
+  .wrap{max-width:560px;margin:0 auto;padding:12px 14px 40px}
+  header{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  h1{font-size:1.25rem;margin:.2em 0}
+  h1 small{display:block;font-size:.78rem;font-weight:400;color:var(--muted)}
+  .spacer{flex:1}
+  .ibtn{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;
+        padding:6px 10px;font-size:.85rem;cursor:pointer;text-decoration:none}
+  .ibtn:focus-visible,button:focus-visible{outline:3px solid var(--sig);outline-offset:3px}
+
+  .chips{display:flex;gap:8px;margin:10px 0 6px;flex-wrap:wrap}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:.83rem}
+  .chip b{color:var(--sig-ink);font-variant-numeric:tabular-nums}
+
+  /* 판 — 정사각 격자. 칸 크기는 화면 폭에서 나온다(360px 에서도 한 손으로 닿는다). */
+  #board{display:grid;gap:2px;background:var(--line);border:2px solid var(--line);border-radius:12px;
+         padding:2px;margin:8px auto;touch-action:none;width:min(94vw,420px);aspect-ratio:1/1}
+  .cell{background:var(--floor);border-radius:4px;display:flex;align-items:center;justify-content:center;
+        font-size:min(5.4vw,26px);line-height:1;user-select:none}
+  .cell.wall{background:var(--wall)}
+  /* ★목표 칸은 ★색만으로 말하지 않는다 — 점선 테두리(모양)와 가운데 점(글자)이 함께 말한다 */
+  .cell.goal{outline:2px dashed var(--goal-line);outline-offset:-4px}
+  .cell.goal::after{content:"·";color:var(--goal-line);font-weight:700}
+  .cell.box::after,.cell.boxdone::after,.cell.man::after{content:none}
+  .cell.box{background:var(--sig-soft)}
+  /* ★맞은 상자는 색이 아니라 ★글자(✓)와 ★테두리 두께로 구별된다 */
+  .cell.boxdone{background:var(--sig);color:var(--on-sig);box-shadow:inset 0 0 0 3px var(--sig-ink)}
+  .glyph{pointer-events:none}
+
+  .pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);
+       gap:8px;justify-content:center;margin:10px auto 4px}
+  .pad button{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:12px;
+              font-size:1.25rem;cursor:pointer}
+  .pad button:active{background:var(--sig-soft)}
+  .row{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:12px;
+       padding:10px 16px;font-size:.95rem;cursor:pointer}
+  .btn.primary{background:var(--sig);color:var(--on-sig);border-color:var(--sig)}
+  .hint{color:var(--muted);font-size:.86rem;text-align:center;margin:10px 4px}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+  #over{display:none;margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+  #over.show{display:block}
+  #over h2{margin:.1em 0 .4em;font-size:1.1rem}
+  .nums{display:flex;gap:14px;flex-wrap:wrap;margin:.5em 0}
+  .nums div{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:96px}
+  .nums b{display:block;font-size:1.4rem;color:var(--sig-ink);font-variant-numeric:tabular-nums}
+  .nums span{font-size:.78rem;color:var(--muted)}
+
+  /* 움직임은 ★줄여 달라는 요청을 존중한다 */
+  .cell{transition:background .12s ease}
+  @media (prefers-reduced-motion: reduce){
+    .cell{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1><span data-i18n="title">밀어서 정리</span>
+    <small data-i18n="subtitle">상자는 밀 수만 있고 당길 수 없습니다 — 오늘의 판은 모두에게 같습니다</small></h1>
+  <span class="spacer"></span>
+  <a class="ibtn" href="/" data-i18n="home">🏠 다른 게임</a>
+  <button class="ibtn" id="btnLang" type="button">EN</button>
+</header>
+
+<div class="chips">
+  <span class="chip"><span data-i18n="dayLbl">오늘의 판</span> <b id="dayNo">–</b></span>
+  <span class="chip"><span data-i18n="minLbl">최소</span> <b id="minPush">–</b><span data-i18n="pushUnit">밀기</span></span>
+  <span class="chip"><span data-i18n="yourLbl">당신</span> <b id="myPush">0</b><span data-i18n="pushUnit2">밀기</span></span>
+  <span class="chip"><span data-i18n="undoLbl">되돌리기</span> <b id="undoCnt">0</b></span>
+</div>
+
+<!-- 판 — 진행 중에 바뀌는 자리라 data-i18n 을 붙이지 않는다(언어 전환이 판을 덮으면 안 된다) -->
+<div id="board" role="application" aria-label="밀어서 정리 판"></div>
+
+<div class="pad">
+  <span></span>
+  <button id="up" type="button" aria-label="위로">↑</button>
+  <span></span>
+  <button id="left" type="button" aria-label="왼쪽으로">←</button>
+  <button id="down" type="button" aria-label="아래로">↓</button>
+  <button id="right" type="button" aria-label="오른쪽으로">→</button>
+</div>
+
+<div class="row">
+  <button class="btn" id="btnUndo" type="button" data-i18n="undo">↩ 되돌리기</button>
+  <button class="btn" id="btnReset" type="button" data-i18n="reset">처음부터</button>
+</div>
+
+<p class="hint" id="hint" data-i18n="hint">상자를 밀어 점선 자리에 모두 올리면 끝납니다 · 화면을 쓸거나 버튼을 누르세요</p>
+<p class="sr-only" id="srLive" aria-live="polite"></p>
+
+<div id="over">
+  <h2 data-i18n="done">다 맞췄습니다</h2>
+  <div class="nums">
+    <div><b id="rMin">–</b><span data-i18n="rMinLbl">최소 밀기</span></div>
+    <div><b id="rMine">–</b><span data-i18n="rMineLbl">당신의 밀기</span></div>
+    <div><b id="rSteps">–</b><span data-i18n="rStepsLbl">걸음</span></div>
+    <div><b id="rUndo">–</b><span data-i18n="rUndoLbl">되돌리기</span></div>
+  </div>
+  <p id="verdict" style="margin:.2em 0 .6em"></p>
+  <div class="row" style="justify-content:flex-start">
+    <button class="btn primary" id="btnShare" type="button" data-i18n="share">결과 공유</button>
+    <button class="btn" id="btnAgain" type="button" data-i18n="again">다시 풀기</button>
+  </div>
+</div>
+</div>
+
+<script type="module">
+/* ══════════════════════════════════════════════════════════════════════
+   ★생성기 사본 — 정의처는 ★tools/push_gen.mjs 다.
+   아래 GEN-BEGIN…GEN-END 사이는 그 파일의 바이트에서 ★행머리 'export ' 만 뗀 것이고,
+   ★tools/push_embed.mjs 가 넣는다(손으로 고치지 마라).
+   검사기 verify_push.js 가 ★같은 변환을 적용해 두 사본이 같은지 대조한다 —
+   두 곳에 따로 적으면 그때부터 ★서로 다른 게임이 된다.
+   ══════════════════════════════════════════════════════════════════════ */
+/* GEN-BEGIN */
+/* push_gen.mjs — 「밀어서 정리」 판 생성기 (★생성기가 곧 게임이다)
+ *
+ * ★이 파일이 생성기의 ★유일한 정의처다. 제품(/push/index.html)은 이 코드를 그대로 품고,
+ * 검사기가 ★두 사본이 같은지 대조한다 — 두 곳에 따로 적으면 그때부터 서로 다른 게임이 된다.
+ *
+ * ★핵심 설계: ★역방향 생성 + ★역방향 너비우선탐색(BFS).
+ *   해답 배치(상자가 전부 목표 위)에서 ★거꾸로 당기며 BFS 하면,
+ *   만나는 모든 상태의 ★깊이가 곧 ★그 판을 풀 때 필요한 ★최소 밀기 수다
+ *   (당기기는 밀기의 역연산이고, 도달 가능성은 정규화된 상태에서 대칭이다).
+ *   ⇒ 판을 만들면서 ★최소 수를 동시에 안다. 나중에 풀이기를 따로 돌릴 필요가 없다.
+ *   ⇒ ★해가 없는 판이 원리적으로 안 나온다(해답에서 거꾸로 왔으므로 돌아가는 길이 늘 있다).
+ *      ★그래도 믿지 않고 ★전방 BFS 로 따로 재서 대조한다(cross-check.mjs).
+ *
+ * ★난수 계약(bomb 과 동일):
+ *   - ★선굴림: 난수는 ★판을 짤 때 전부 굴린다. 플레이 중 난수 소비 0.
+ *   - ★시간 기반 분기 0: 여기서 Date/performance 를 읽지 않는다.
+ *   - 같은 씨앗은 같은 판을 준다.
+ *
+ * 좌표: 인덱스 i = y * W + x. 벽은 바깥 테두리 + 내부 벽 몇 개.
+ */
+
+const CFG = {
+  W: 8,            /* 전체 폭(테두리 포함) */
+  H: 8,            /* 전체 높이(테두리 포함) */
+  BOX_MIN: 2,      /* 상자 수를 ★씨앗이 고른다(2~3) — 난이도 '칸' 대신 ★분포를 넓히는 방법 */
+  BOX_MAX: 3,      /* ★상한을 계약으로 잠근다 — 상자 4·방 9x9 는 40씨앗도 120초에 못 끝냈다(실측) */
+  INNER_WALL_MAX: 4,
+  MIN_PUSHES: 10,  /* 이보다 쉬우면 버린다 */
+  MAX_PUSHES: 40,  /* 이보다 어려우면 버린다(한 판 길이 상한) */
+  SEED_TRIES: 16,  /* ★날짜 하나에 허용하는 ★결정론 재시도 횟수(시간 기반 재시도 금지).
+                      ★8 → 16(2026-09-06 master 판정): 실패율 p=0.332 에서 p^8x731 ≈ 0.11일/2년은
+                      '약 18년에 하루' 라 ★운에 기대는 값이었다. p^16 이면 사실상 0 이고,
+                      비용은 최악 16x43ms ≈ 0.7초인데 ★그 경로는 거의 가지 않는다.
+                      ★예비 판 가지는 그대로 둔다 — 하네스가 계속 밟아야 검사가 산다. */
+  ROUNDS: 1,       /* ★한 판에 묶는 작은 판 수 — ★미측정. 사람이 재기 전에는 1 이다(★상수 하나로만 존재) */
+};
+
+/* ── 씨앗 난수 (mulberry32) — 같은 씨앗 같은 수열 ───────────────────── */
+function makeRng(seed) {
+  let a = seed >>> 0;
+  return function rng() {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const pick = (rng, arr) => arr[Math.floor(rng() * arr.length) % arr.length];
+
+/* ── 방 만들기 ──────────────────────────────────────────────────────── */
+function makeRoom(rng, cfg) {
+  const { W, H } = cfg;
+  const wall = new Uint8Array(W * H);
+  for (let x = 0; x < W; x++) { wall[x] = 1; wall[(H - 1) * W + x] = 1; }
+  for (let y = 0; y < H; y++) { wall[y * W] = 1; wall[y * W + W - 1] = 1; }
+
+  const inner = [];
+  for (let y = 2; y < H - 2; y++) for (let x = 2; x < W - 2; x++) inner.push(y * W + x);
+
+  const nWalls = Math.floor(rng() * (cfg.INNER_WALL_MAX + 1));
+  for (let k = 0; k < nWalls; k++) {
+    const c = pick(rng, inner);
+    if (wall[c]) continue;
+    wall[c] = 1;
+    if (!connected(wall, cfg)) wall[c] = 0;   /* 방을 끊는 벽은 물린다 */
+  }
+  return wall;
+}
+
+function floors(wall) {
+  const out = [];
+  for (let i = 0; i < wall.length; i++) if (!wall[i]) out.push(i);
+  return out;
+}
+
+function connected(wall, cfg) {
+  const f = floors(wall);
+  if (f.length < 12) return false;
+  const seen = new Set([f[0]]);
+  const st = [f[0]];
+  const { W } = cfg;
+  while (st.length) {
+    const c = st.pop();
+    for (const d of [-1, 1, -W, W]) {
+      const n = c + d;
+      if (!wall[n] && !seen.has(n)) { seen.add(n); st.push(n); }
+    }
+  }
+  return seen.size === f.length;
+}
+
+/* ── 플레이어가 갈 수 있는 칸 + ★정규화 대표값 ──────────────────────
+   소코반의 상태는 (상자 배치, 플레이어 위치)지만, 플레이어가 상자를 안 밀고
+   돌아다니는 것은 판을 바꾸지 않는다. 그래서 ★플레이어가 닿는 영역의 ★최솟값 하나로
+   대표시킨다 — 이걸 안 하면 같은 판을 수십 번 다시 세게 된다. */
+function reach(wall, boxSet, from, W) {
+  const seen = new Set([from]);
+  const st = [from];
+  let min = from;
+  while (st.length) {
+    const c = st.pop();
+    if (c < min) min = c;
+    for (const d of [-1, 1, -W, W]) {
+      const n = c + d;
+      if (wall[n] || boxSet.has(n) || seen.has(n)) continue;
+      seen.add(n); st.push(n);
+    }
+  }
+  return { seen, rep: min };
+}
+
+const keyOf = (boxes, rep) => boxes.join(',') + '|' + rep;
+
+/* ── ★역방향 BFS — 해답에서 거꾸로 당기며 모든 판과 ★최소 밀기 수를 얻는다 ──
+   당기기 한 번 = 플레이어가 상자 반대편 칸에 서서 뒤로 물러나며 상자를 끌어오는 것.
+   전방의 '밀기' 와 정확히 역연산이라, 여기서 잰 깊이가 ★최소 밀기 수다. */
+function reverseBfs(wall, goals, cfg, limitStates = 60000) {
+  const { W } = cfg;
+  const startBoxes = goals.slice().sort((a, b) => a - b);
+  const out = [];                  /* {boxes, playerRep, depth} */
+  const seen = new Set();
+  const q = [];
+
+  /* 해답 상태에서 플레이어가 설 수 있는 모든 영역을 시작점으로 넣는다 */
+  const boxSet0 = new Set(startBoxes);
+  for (const f of floors(wall)) {
+    if (boxSet0.has(f)) continue;
+    const { rep } = reach(wall, boxSet0, f, W);
+    const k = keyOf(startBoxes, rep);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    q.push({ boxes: startBoxes, rep, depth: 0 });
+  }
+
+  let head = 0;
+  while (head < q.length && seen.size < limitStates) {
+    const cur = q[head++];
+    out.push(cur);
+    const boxSet = new Set(cur.boxes);
+    const { seen: area } = reach(wall, boxSet, cur.rep, W);
+
+    for (const b of cur.boxes) {
+      for (const d of [-1, 1, -W, W]) {
+        /* 상자를 d 방향으로 ★당기려면: 플레이어가 b+d 에 서 있어야 하고(그 칸이 비어야 하고),
+           물러날 칸 b+2d 도 비어야 한다. 그러면 상자는 b → b+d 로 온다. */
+        const stand = b + d, back = b + 2 * d;
+        if (wall[stand] || boxSet.has(stand)) continue;
+        if (wall[back] || boxSet.has(back)) continue;
+        if (!area.has(stand)) continue;              /* 플레이어가 거기까지 못 간다 */
+        const nb = cur.boxes.filter(x => x !== b).concat(stand).sort((p, q2) => p - q2);
+        const nSet = new Set(nb);
+        const { rep } = reach(wall, nSet, back, W);
+        const k = keyOf(nb, rep);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        q.push({ boxes: nb, rep, depth: cur.depth + 1 });
+      }
+    }
+  }
+  return { states: out, exhausted: head >= q.length, seenCount: seen.size };
+}
+
+/* ── 시작 데드락 판정(독립 계기) ────────────────────────────────────
+   ★해가 있는지와 별개로, "이 상자는 이미 못 움직인다" 를 ★따로 잰다.
+   구석에 박힌 상자(두 직교 방향이 벽)가 목표 위가 아니면 그 판은 이미 죽었다. */
+function cornerDeadlock(wall, boxes, goals, cfg) {
+  const { W } = cfg;
+  const goalSet = new Set(goals);
+  for (const b of boxes) {
+    if (goalSet.has(b)) continue;
+    const up = wall[b - W], dn = wall[b + W], lf = wall[b - 1], rt = wall[b + 1];
+    if ((up && lf) || (up && rt) || (dn && lf) || (dn && rt)) return true;
+  }
+  return false;
+}
+
+/* ── 판 하나 만들기 ─────────────────────────────────────────────────
+   반환: null 이면 이 씨앗에서는 조건에 맞는 판을 못 만들었다(이유를 함께 준다). */
+function generate(seed, cfg = CFG) {
+  const rng = makeRng(seed);
+  const wall = makeRoom(rng, cfg);
+  const f = floors(wall);
+  const nBoxes = cfg.BOX_MIN + Math.floor(rng() * (cfg.BOX_MAX - cfg.BOX_MIN + 1));
+  if (f.length < nBoxes + 4) return { ok: false, why: '바닥이 좁다' };
+
+  /* 목표 칸 — 구석은 피한다(구석 목표는 판을 시시하게 만든다) */
+  const cand = f.filter(c => !cornerDeadlock(wall, [c], [], cfg));
+  if (cand.length < nBoxes) return { ok: false, why: '목표 자리가 모자라다' };
+  const goals = [];
+  while (goals.length < nBoxes) {
+    const c = pick(rng, cand);
+    if (!goals.includes(c)) goals.push(c);
+  }
+  goals.sort((a, b) => a - b);
+
+  const { states, exhausted, seenCount } = reverseBfs(wall, goals, cfg);
+  const band = states.filter(s => s.depth >= cfg.MIN_PUSHES && s.depth <= cfg.MAX_PUSHES
+                                  && !cornerDeadlock(wall, s.boxes, goals, cfg));
+  if (!band.length) return { ok: false, why: '난이도 띠에 드는 판이 없다', maxDepth: states.length ? states[states.length - 1].depth : 0 };
+
+  /* 띠 안에서 ★가장 깊은 것을 고른다(같은 깊이가 여럿이면 난수로 하나) */
+  const maxD = band.reduce((m, s) => Math.max(m, s.depth), 0);
+  const top = band.filter(s => s.depth === maxD);
+  const chosen = top[Math.floor(rng() * top.length) % top.length];
+
+  /* 플레이어 시작 칸 — 대표값이 아니라 ★실제 칸 하나를 고정해서 낸다 */
+  const boxSet = new Set(chosen.boxes);
+  const playerCells = [...reach(wall, boxSet, chosen.rep, cfg.W).seen].sort((a, b) => a - b);
+  const player = playerCells[Math.floor(rng() * playerCells.length) % playerCells.length];
+
+  return {
+    ok: true, seed, wall, goals, nBoxes,
+    boxes: chosen.boxes, player,
+    minPushes: chosen.depth,
+    statesSeen: seenCount, exhausted,
+  };
+}
+
+/* ── 판을 글로 옮기기(사람이 읽고 검사기가 재는 형식) ───────────────── */
+function render(board, cfg = CFG) {
+  const { W, H } = cfg;
+  const goalSet = new Set(board.goals), boxSet = new Set(board.boxes);
+  const rows = [];
+  for (let y = 0; y < H; y++) {
+    let line = '';
+    for (let x = 0; x < W; x++) {
+      const i = y * W + x;
+      if (board.wall[i]) line += '#';
+      else if (boxSet.has(i)) line += goalSet.has(i) ? '*' : '$';
+      else if (i === board.player) line += goalSet.has(i) ? '+' : '@';
+      else line += goalSet.has(i) ? '.' : ' ';
+    }
+    rows.push(line);
+  }
+  return rows.join('\n');
+}
+
+/* ── 글로 적은 판을 읽어 들이기 (예비 판을 ★소스에 박아 두기 위해) ───── */
+function parseBoard(rows, cfg = CFG) {
+  const H = rows.length, W = rows[0].length;
+  const wall = new Uint8Array(W * H);
+  const goals = [], boxes = [];
+  let player = -1;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const ch = rows[y][x], i = y * W + x;
+    if (ch === '#') wall[i] = 1;
+    if (ch === '.' || ch === '*' || ch === '+') goals.push(i);
+    if (ch === '$' || ch === '*') boxes.push(i);
+    if (ch === '@' || ch === '+') player = i;
+  }
+  return { ok: true, seed: null, wall, goals: goals.sort((a, b) => a - b),
+           boxes: boxes.sort((a, b) => a - b), player, nBoxes: boxes.length, W, H };
+}
+
+/* ── ★예비 판 — 상한에 닿았을 때 ★실제로 쓰는 판 ─────────────────────
+   ★'있을 수 없음' 으로 두지 않는다. 안 밟히는 복구 가지는 ★공허해서, 그 가지를 겨냥한
+   뮤테이션이 통과해 버린다(2026-09-06 master 판정). 그래서 ①제품에 ★박아 두고
+   ②하네스가 SEED_TRIES 를 1 로 ★낮춰 그 가지를 ★실제로 밟는다(★제품에 훅을 뚫지 않는다).
+   이 판은 씨앗 1 이 낸 판을 고정한 것이고, 검사기가 ★풀리는지·최소 수가 맞는지 따로 잰다. */
+const FALLBACK_ROWS = [
+  '########',
+  '#      #',
+  '# #   .#',
+  '# $$@  #',
+  '# # .  #',
+  '# $  # #',
+  '#    . #',
+  '########',
+];
+const FALLBACK_MIN_PUSHES = 13;
+
+/* ── 날짜 → 씨앗 (결정론 · 시계를 읽지 않는다 · 날짜 문자열만 받는다) ─── */
+/* ★씨앗 전진 방식을 바꾸려는 사람에게: 날짜 계약의 안전 수치(p^N)는 ★시도끼리 독립임을
+   전제로 계산된다. FNV-1a 는 attempt 가 1 늘 때 결과를 크게 흩어 그 전제를 세운다.
+   ★seed+1 같은 약한 전진으로 바꾸면 연속 시도가 ★상관되고 p^N 이 안전을 과대평가한다 —
+   바꾸려면 push_dates.mjs 의 수치를 ★다시 세우고 판정을 받아라(2026-09-06 master). */
+function seedForDate(dateStr, attempt) {
+  /* FNV-1a 32비트 — 날짜와 시도 번호만으로 정해진다. ★시간 기반 재시도가 아니다. */
+  let h = 0x811c9dc5;
+  const src = dateStr + '#' + attempt;
+  for (let i = 0; i < src.length; i++) {
+    h ^= src.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h >>> 0;
+}
+
+/* ── ★오늘의 판 — 어떤 날짜에도 판이 있어야 한다(잠근 항) ──────────────
+   씨앗 하나가 실패하면 ★정해진 규칙으로 다음 씨앗을 만든다(선굴림 안에서 끝난다).
+   SEED_TRIES 번 다 실패하면 ★예비 판을 쓴다 — 그래서 ★없는 날이 없다. */
+function dailyBoard(dateStr, cfg = CFG) {
+  const tries = Math.max(1, cfg.SEED_TRIES | 0);
+  for (let attempt = 0; attempt < tries; attempt++) {
+    const b = generate(seedForDate(dateStr, attempt), cfg);
+    if (b.ok) return { ...b, dateStr, attempts: attempt + 1, usedFallback: false };
+  }
+  const fb = parseBoard(FALLBACK_ROWS, cfg);
+  return { ...fb, dateStr, attempts: tries, usedFallback: true, minPushes: FALLBACK_MIN_PUSHES };
+}
+
+/* GEN-END */
+
+/* ── 여기부터 제품(화면) ─────────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+const I18N = {
+  ko:{ title:'밀어서 정리', subtitle:'상자는 밀 수만 있고 당길 수 없습니다 — 오늘의 판은 모두에게 같습니다',
+       home:'🏠 다른 게임', dayLbl:'오늘의 판', minLbl:'최소', pushUnit:'밀기', yourLbl:'당신', pushUnit2:'밀기',
+       undoLbl:'되돌리기', undo:'↩ 되돌리기', reset:'처음부터',
+       hint:'상자를 밀어 점선 자리에 모두 올리면 끝납니다 · 화면을 쓸거나 버튼을 누르세요',
+       done:'다 맞췄습니다', rMinLbl:'최소 밀기', rMineLbl:'당신의 밀기', rStepsLbl:'걸음', rUndoLbl:'되돌리기',
+       share:'결과 공유', again:'다시 풀기' },
+  en:{ title:'Push It Right', subtitle:'Boxes can only be pushed, never pulled — everyone gets the same board today',
+       home:'🏠 More games', dayLbl:'Today', minLbl:'Best', pushUnit:' pushes', yourLbl:'You', pushUnit2:' pushes',
+       undoLbl:'Undos', undo:'↩ Undo', reset:'Restart',
+       hint:'Push every box onto a dashed square · swipe the board or use the buttons',
+       done:'Solved', rMinLbl:'fewest pushes', rMineLbl:'your pushes', rStepsLbl:'steps', rUndoLbl:'undos',
+       share:'Share result', again:'Play again' },
+};
+let lang = (navigator.language || 'ko').startsWith('ko') ? 'ko' : 'en';
+function applyLang(){
+  document.documentElement.lang = lang;
+  for (const el of document.querySelectorAll('[data-i18n]')) {
+    const k = el.getAttribute('data-i18n');
+    if (I18N[lang][k] !== undefined) el.textContent = I18N[lang][k];
+  }
+  $('btnLang').textContent = lang === 'ko' ? 'EN' : '한국어';
+  if (state && state.solved) showResult();
+}
+
+/* ── 오늘 ─────────────────────────────────────────────────────────────
+   ★시계를 읽는 곳은 여기 ★한 군데다. 생성기는 ★날짜 문자열만 받는다 —
+   판 짜기가 시계를 읽으면 느린 기기에서 결과가 갈린다(잠근 항). */
+function todayKey(now = new Date()){
+  const t = new Date(now.getTime() + (now.getTimezoneOffset() + 540) * 60000); /* KST 고정 */
+  return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
+}
+function dayNumber(key){
+  const base = Date.UTC(2026, 0, 1);
+  const [y, m, d] = key.split('-').map(Number);
+  return Math.round((Date.UTC(y, m - 1, d) - base) / 86400000) + 1;
+}
+
+/* ── 판 상태 ──────────────────────────────────────────────────────────
+   ★플레이 중 난수 소비 0 — 여기에 rng 이 없다. 판은 선굴림으로 이미 다 정해져 있다. */
+let state = null;
+function loadBoard(key){
+  const b = dailyBoard(key);
+  state = {
+    key, wall: b.wall, W: CFG.W, H: CFG.H,
+    goals: b.goals.slice(), boxes: b.boxes.slice(), player: b.player,
+    minPushes: b.minPushes, usedFallback: !!b.usedFallback, attempts: b.attempts,
+    pushes: 0, steps: 0, undos: 0, hist: [], solved: false,
+  };
+}
+const solvedNow = s => s.boxes.every(b => s.goals.includes(b));
+
+function move(d){
+  if (!state || state.solved) return false;
+  const s = state, dest = s.player + d;
+  if (s.wall[dest]) return false;
+  const bi = s.boxes.indexOf(dest);
+  if (bi >= 0) {
+    const beyond = dest + d;
+    if (s.wall[beyond] || s.boxes.includes(beyond)) return false;
+    s.hist.push({ player: s.player, boxes: s.boxes.slice(), pushes: s.pushes, steps: s.steps });
+    s.boxes[bi] = beyond; s.player = dest; s.pushes++; s.steps++;
+  } else {
+    s.hist.push({ player: s.player, boxes: s.boxes.slice(), pushes: s.pushes, steps: s.steps });
+    s.player = dest; s.steps++;
+  }
+  if (solvedNow(s)) s.solved = true;
+  draw();
+  return true;
+}
+function undo(){
+  const s = state;
+  if (!s || !s.hist.length || s.solved) return false;
+  const h = s.hist.pop();
+  s.player = h.player; s.boxes = h.boxes; s.pushes = h.pushes; s.steps = h.steps;
+  s.undos++;
+  draw();
+  return true;
+}
+function reset(){ loadBoard(state.key); draw(); }
+
+/* ── 그리기 ───────────────────────────────────────────────────────────
+   ★상태를 색만으로 알리지 않는다: 사람=🙂 · 상자=📦 · 맞은 상자=✓(+테두리) · 목표=점선+· */
+function draw(){
+  const s = state, bd = $('board');
+  bd.style.gridTemplateColumns = 'repeat(' + s.W + ',1fr)';
+  if (bd.childElementCount !== s.W * s.H) {
+    bd.textContent = '';
+    for (let i = 0; i < s.W * s.H; i++) {
+      const c = document.createElement('div');
+      c.className = 'cell'; c.id = 'c' + i;
+      c.appendChild(Object.assign(document.createElement('span'), { className: 'glyph' }));
+      bd.appendChild(c);
+    }
+  }
+  const goal = new Set(s.goals), box = new Set(s.boxes);
+  for (let i = 0; i < s.W * s.H; i++) {
+    const c = $('c' + i), g = c.firstChild;
+    c.className = 'cell' + (s.wall[i] ? ' wall' : '') + (goal.has(i) && !box.has(i) ? ' goal' : '')
+      + (box.has(i) ? (goal.has(i) ? ' boxdone' : ' box') : '');
+    g.textContent = box.has(i) ? (goal.has(i) ? '✓' : '📦') : (i === s.player ? '🙂' : '');
+    c.setAttribute('aria-label', s.wall[i] ? '벽' : box.has(i) ? (goal.has(i) ? '자리에 놓인 상자' : '상자')
+      : goal.has(i) ? '빈 자리' : (i === s.player ? '나' : '바닥'));
+  }
+  $('myPush').textContent = s.pushes;
+  $('undoCnt').textContent = s.undos;
+  $('minPush').textContent = s.minPushes;
+  $('dayNo').textContent = dayNumber(s.key);
+  $('srLive').textContent = (lang === 'ko')
+    ? ('밀기 ' + s.pushes + '회 · 남은 상자 ' + s.boxes.filter(b => !goal.has(b)).length + '개')
+    : (s.pushes + ' pushes · ' + s.boxes.filter(b => !goal.has(b)).length + ' boxes left');
+  if (s.solved) showResult(); else $('over').classList.remove('show');
+}
+
+function showResult(){
+  const s = state;
+  $('rMin').textContent = s.minPushes; $('rMine').textContent = s.pushes;
+  $('rSteps').textContent = s.steps; $('rUndo').textContent = s.undos;
+  const extra = s.pushes - s.minPushes;
+  $('verdict').textContent = (lang === 'ko')
+    ? (extra === 0 ? '최소 밀기로 끝냈습니다 — 더 줄일 수 없습니다.' : '최소보다 ' + extra + '번 더 밀었습니다.')
+    : (extra === 0 ? 'Solved in the fewest possible pushes.' : extra + ' pushes more than the minimum.');
+  $('over').classList.add('show');
+}
+function shareText(){
+  const s = state;
+  return (lang === 'ko')
+    ? '밀어서 정리 #' + dayNumber(s.key) + ' — 최소 ' + s.minPushes + '밀기 · 나 ' + s.pushes + '밀기\nhttps://hanpango.com/push/'
+    : 'Push It Right #' + dayNumber(s.key) + ' — best ' + s.minPushes + ' · me ' + s.pushes + '\nhttps://hanpango.com/push/';
+}
+
+/* ── 조작: 버튼 · 키보드 · 쓸기(한 손) ────────────────────────────────── */
+const DIRS = () => ({ up: -CFG.W, down: CFG.W, left: -1, right: 1 });
+for (const k of ['up', 'down', 'left', 'right']) $(k).addEventListener('click', () => move(DIRS()[k]));
+addEventListener('keydown', e => {
+  const m = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' }[e.key];
+  if (m) { e.preventDefault(); move(DIRS()[m]); }
+  if (e.key === 'z' || e.key === 'Z') undo();
+});
+let sx = 0, sy = 0, sT = false;
+const bd = $('board');
+bd.addEventListener('pointerdown', e => { sx = e.clientX; sy = e.clientY; sT = true; });
+bd.addEventListener('pointerup', e => {
+  if (!sT) return; sT = false;
+  const dx = e.clientX - sx, dy = e.clientY - sy;
+  if (Math.abs(dx) < 18 && Math.abs(dy) < 18) return;
+  const d = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+  move(DIRS()[d]);
+});
+$('btnUndo').addEventListener('click', undo);
+$('btnReset').addEventListener('click', reset);
+$('btnAgain').addEventListener('click', reset);
+$('btnLang').addEventListener('click', () => { lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); draw(); });
+$('btnShare').addEventListener('click', async () => {
+  const t = shareText();
+  try { if (navigator.share) { await navigator.share({ text: t }); return; } } catch (_) {}
+  try { await navigator.clipboard.writeText(t); } catch (_) {}
+});
+
+/* ── 시작 ─────────────────────────────────────────────────────────────── */
+loadBoard(todayKey());
+applyLang();
+draw();
+
+/* ── ★관측 창구 — ★읽기 전용이다(판을 바꾸는 뒷문을 남기지 않는다) ──────
+   스냅샷은 ★사본이고, set/force/inject/seed 계열 이름을 두지 않는다. */
+const copy = v => JSON.parse(JSON.stringify(v));
+window.__psh = {
+  consts: () => copy(CFG),
+  snapshot: () => ({ key: state.key, pushes: state.pushes, steps: state.steps, undos: state.undos,
+                     solved: state.solved, minPushes: state.minPushes, boxes: state.boxes.slice(),
+                     goals: state.goals.slice(), player: state.player, usedFallback: state.usedFallback,
+                     attempts: state.attempts }),
+  /* ★순수 질의다 — 제품 상태를 건드리지 않는다(state 를 쓰지도 읽지도 않는다).
+     두 번째 인자는 ★상수 주입 자리다: 하네스가 SEED_TRIES 를 1 로 낮춰 ★예비 판 가지를
+     실제로 밟아 볼 수 있다. ★판을 바꾸는 훅이 아니다 — 돌려주는 것은 사본이고, 이 호출로
+     오늘의 판은 한 톨도 변하지 않는다(안 밟히는 복구 가지를 남기지 않기 위한 자리다). */
+  boardFor: (key, cfgOverride) => {
+    const cfg = cfgOverride ? Object.assign({}, CFG, cfgOverride) : CFG;
+    const b = dailyBoard(String(key), cfg);
+    return { minPushes: b.minPushes, boxes: b.boxes.slice(), goals: b.goals.slice(),
+             player: b.player, attempts: b.attempts, usedFallback: !!b.usedFallback }; },
+  todayKey: iso => todayKey(iso ? new Date(iso) : new Date()),
+  dayNumber: k => dayNumber(String(k)),
+  /* 방 모양도 ★사본으로 준다 — 검사기가 판을 세워 ★독립 계기로 다시 풀 수 있어야 한다.
+     읽기 전용이다: Array.from 이 사본을 만들고, 고쳐도 제품의 Uint8Array 는 그대로다. */
+  wall: () => Array.from(state.wall),
+  glyphs: () => Array.from(document.querySelectorAll('#board .glyph')).map(g => g.textContent),
+  classesOf: i => document.getElementById('c' + i).className,
+  srText: () => $('srLive').textContent,
+  shareText: () => shareText(),
+  lang: () => lang,
+};
+</script>
+</body>
+</html>

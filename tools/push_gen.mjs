@@ -270,6 +270,10 @@ export const FALLBACK_ROWS = [
 export const FALLBACK_MIN_PUSHES = 13;
 
 /* ── 날짜 → 씨앗 (결정론 · 시계를 읽지 않는다 · 날짜 문자열만 받는다) ─── */
+/* ★씨앗 전진 방식을 바꾸려는 사람에게: 날짜 계약의 안전 수치(p^N)는 ★시도끼리 독립임을
+   전제로 계산된다. FNV-1a 는 attempt 가 1 늘 때 결과를 크게 흩어 그 전제를 세운다.
+   ★seed+1 같은 약한 전진으로 바꾸면 연속 시도가 ★상관되고 p^N 이 안전을 과대평가한다 —
+   바꾸려면 push_dates.mjs 의 수치를 ★다시 세우고 판정을 받아라(2026-09-06 master). */
 export function seedForDate(dateStr, attempt) {
   /* FNV-1a 32비트 — 날짜와 시도 번호만으로 정해진다. ★시간 기반 재시도가 아니다. */
   let h = 0x811c9dc5;
