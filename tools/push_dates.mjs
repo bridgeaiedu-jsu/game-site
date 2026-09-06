@@ -52,6 +52,21 @@ console.log('  ★판이 없는 날            %d', missing);
 console.log('  ★못 푸는 판              %d', unsolved);
 console.log('  ★두 계기 불일치          %d', mismatch);
 console.log('  예비 판을 쓴 날          %d (기본 SEED_TRIES=%d)', fallbackUsed, CFG.SEED_TRIES);
+/* ★'여유' 를 ★세지 말고 ★계산해서 찍는다(2026-09-06 master 판정).
+   '관측 최대 6 / 상한 8 ⇒ 여유 2' 는 ★운을 여유로 읽게 만든다 — 관측 최대는 표본의 운이지
+   설계 여유가 아니다. 대신 ★시도 분포에서 실패율 p 를 역산하고, 상한 N 으로 ★P(전부 실패)=p^N 과
+   ★기대 일수를 찍는다. 그러면 p 가 바뀌는 날 ★여유가 저절로 다시 계산된다. */
+const totalTries = [...attemptHist].reduce((a, [k, v]) => a + k * v, 0);
+const successes = [...attemptHist].reduce((a, [, v]) => a + v, 0);
+const pFail = totalTries ? (totalTries - successes) / totalTries : 0;   /* 최대가능도 추정 */
+const maxAttempt = Math.max(0, ...attemptHist.keys());
+const pAll = Math.pow(pFail, CFG.SEED_TRIES);
+console.log('  ★실패율 p(시도 분포에서 역산) %s  = (총 시도 %d - 성공 %d) / 총 시도',
+  pFail.toFixed(4), totalTries, successes);
+console.log('  ★상한 N=%d → P(N번 전부 실패)=p^N = %s · 기대 일수 %s일/2년(731일) · %s일/이번 %d일',
+  CFG.SEED_TRIES, pAll.toExponential(2), (pAll * 731).toFixed(3),
+  (pAll * dates.length).toFixed(3), dates.length);
+console.log('  (참고) 관측 최대 시도 %d — ★이것은 표본의 운이지 여유가 아니다', maxAttempt);
 console.log('  걸린 시간 %dms (날짜당 %sms)', ms, (ms / dates.length).toFixed(1));
 console.log('');
 console.log('  시도 횟수 분포: ' + [...attemptHist.keys()].sort((a, b) => a - b)
