@@ -236,18 +236,21 @@ def main():
         print('  ★갈렸다 — 정본에만: %s · 검사기에만: %s' % (only_canon or '없음', only_code or '없음'))
     print('검사 분모(기계 열거)     = %d 종 · 겨냥된 검사 %d · ★면제 %d · ★미겨냥(미측정) %d'
           % (len(checks), len(targeted_checks), len(exempt_checks), len(untargeted)))
-    # ★면제 목록을 ★찍는다 — 안 찍히면 요약이 건강한 상태와 글자 하나 다르지 않다(2026-09-07 R2).
-    if exempt_checks:
-        print('  ★겨냥 면제된 검사(★통과가 아니라 면제다 — 사유와 함께 남긴다):')
-        for c in exempt_checks:
-            print('    - %s   ← 사유: %s' % (c, exempt_why[c]))
+    # ★면제 절은 ★언제나 찍는다 — 0건이어도 '없음' 을 남긴다(형제 auxiliary 와 같은 모양).
+    #   R2 결함의 본질은 ★안 보이는 것이었다. 있을 때만 찍으면 ★조용한 요약(미측정 0) 뒤에
+    #   면제가 숨는다 — ★빈 목록의 명시가 곧 부재의 증거다(2026-09-07 R3 reviewer-claude-1).
+    print('  ★겨냥 면제된 검사(★통과가 아니라 면제다 — 사유와 함께 남긴다) %d:' % len(exempt_checks))
+    for c in exempt_checks:
+        print('    - %s   ← 사유: %s' % (c, exempt_why[c]))
+    if not exempt_checks:
+        print('    없음')
     if exempt_stale:
         print('  ★면제 이름이 검사 목록에 없다(정본 노후화): %s' % ', '.join(exempt_stale))
     if untargeted:
         # ★2026-09-07(T0913): 미겨냥은 이제 ★rc 가 말한다 — 사람이 이 줄을 눈으로 읽어
         #   증거에 붙이던 임시 조치는 여기서 끝난다(목적을 다한 임시 게이트를 남기면
         #   다음 사람이 rc 대신 눈을 믿는다 · reviewer-claude-1).
-        print('  ★미측정 검사(★rc 로 판정한다 — 면제는 정본 exempt_from_targeting 에 이름으로 적어야 한다):')
+        print('  ★미측정 검사(★rc 로 판정한다 — 면제는 정본 exempt_from_targeting 에 ★{name, why} 로 적어야 한다 — 이름만이면 rc=2):')
         for c in untargeted:
             print('    - %s' % c)
     if stale:
@@ -333,8 +336,12 @@ def main():
     print('  ★겨냥 뮤테이션만의 검출 수 = ① = %d (대조군 %d 은 여기 안 들어간다)' % (caught, quiet_ok))
     print('==== 검사: 전체 %d · 겨냥 %d · ★면제 %d · ★미측정 %d (면제도 미측정도 통과가 아니다) ===='
           % (len(checks), len(targeted_checks), len(exempt_checks), len(untargeted)))
-    for c in exempt_checks:
-        print('  ★면제 %s ← 사유: %s' % (c, exempt_why[c]))
+    # ★꼬리 요약에서도 면제 절을 ★언제나 찍는다(0건이면 '면제 없음').
+    if exempt_checks:
+        for c in exempt_checks:
+            print('  ★면제 %s ← 사유: %s' % (c, exempt_why[c]))
+    else:
+        print('  ★면제 없음(면제 목록이 비어 있다 — ★이 줄이 부재의 증거다)')
     for n, t, rc, v, err in rows:
         if rc == 2 and err:
             print('  판정 불가 사유 %s: %s' % (n, err))
