@@ -133,6 +133,17 @@ def expectations():
         return None, '기대표 정본에 mutations 가 없다'
     if 'requires_targeted' not in data:
         return None, '기대표 정본에 requires_targeted 가 없다 — 미겨냥을 어떻게 셀지 정해지지 않았다'
+    # ★면제도 {name, why} 다 — 형제 auxiliary 와 같은 규율이다(2026-09-07 R2 reviewer-claude-1).
+    #   이름만 적히면 잠근 항의 ★검출 증명을 한 줄로 면제하고도 정본에 ★사유가 남지 않는다.
+    #   면제는 흔적을 남긴다(_exempt_why) — 그 문장을 ★코드가 참으로 만든다.
+    ex_raw = data.get('exempt_from_targeting')
+    if not isinstance(ex_raw, list):
+        return None, ('기대표 정본에 exempt_from_targeting 이 배열로 없다 — 면제를 '
+                      '★명시하지 않으면 미겨냥과 구별할 수 없다')
+    for e in ex_raw:
+        if not isinstance(e, dict) or not e.get('name') or not e.get('why'):
+            return None, ('exempt_from_targeting 항목은 {name, why} 여야 한다 — '
+                          '사유 없는 면제를 막는다: %r' % (e,))
     return data, None
 
 
@@ -177,7 +188,8 @@ def main():
     if eerr:
         print('판정 불가 — ' + eerr)
         return 2
-    exempt = set(exp.get('exempt_from_targeting') or [])
+    exempt_why = {e['name']: e['why'] for e in (exp.get('exempt_from_targeting') or [])}
+    exempt = set(exempt_why)
     # ★겨냥 집합은 ★정본에서 온다 — 검사기 소스에서 뽑으면 '기대표를 밖으로 뺐다' 가 말뿐이 된다
     #   (2026-09-07 실측: 정본에서 겨냥을 옮겨도 소스 정규식이 옛 값을 읽어 미겨냥이 0 으로 나왔다).
     targets = set(v.get('target') for v in exp['mutations'].values() if v.get('target'))
@@ -186,7 +198,11 @@ def main():
     # ★양방향 — 정본에만 있는 뮤테이션 / 검사기에만 있는 뮤테이션
     only_canon = sorted(canon_names - set(names))
     only_code = sorted(set(names) - canon_names)
+    targeted_checks = [c for c in checks if c in targets]
+    exempt_checks = [c for c in checks if c not in targets and c in exempt]
     untargeted = [c for c in checks if c not in targets and c not in exempt]
+    # ★면제 이름이 검사 목록에 없다 = 정본 노후화 = 판정 불가. 형제 aux_stale 과 같은 규칙이다.
+    exempt_stale = sorted(n for n in exempt_why if n not in set(checks))
     stale = sorted(t for t in targets if t not in checks)
     stale_canon = sorted(t for t in canon_targets if t not in checks)
 
@@ -218,8 +234,15 @@ def main():
           % (len(names), len(canon_names), len(only_canon), len(only_code)))
     if only_canon or only_code:
         print('  ★갈렸다 — 정본에만: %s · 검사기에만: %s' % (only_canon or '없음', only_code or '없음'))
-    print('검사 분모(기계 열거)     = %d 종 · 겨냥된 검사 %d · ★미겨냥(미측정) %d'
-          % (len(checks), len(checks) - len(untargeted), len(untargeted)))
+    print('검사 분모(기계 열거)     = %d 종 · 겨냥된 검사 %d · ★면제 %d · ★미겨냥(미측정) %d'
+          % (len(checks), len(targeted_checks), len(exempt_checks), len(untargeted)))
+    # ★면제 목록을 ★찍는다 — 안 찍히면 요약이 건강한 상태와 글자 하나 다르지 않다(2026-09-07 R2).
+    if exempt_checks:
+        print('  ★겨냥 면제된 검사(★통과가 아니라 면제다 — 사유와 함께 남긴다):')
+        for c in exempt_checks:
+            print('    - %s   ← 사유: %s' % (c, exempt_why[c]))
+    if exempt_stale:
+        print('  ★면제 이름이 검사 목록에 없다(정본 노후화): %s' % ', '.join(exempt_stale))
     if untargeted:
         # ★2026-09-07(T0913): 미겨냥은 이제 ★rc 가 말한다 — 사람이 이 줄을 눈으로 읽어
         #   증거에 붙이던 임시 조치는 여기서 끝난다(목적을 다한 임시 게이트를 남기면
@@ -308,14 +331,16 @@ def main():
     print('  ④ ★거짓 실패(대조군이 붉다)  %d' % false_fail)
     print('  ⑤ ★판정 불가(못 세웠다)      %d' % indet)
     print('  ★겨냥 뮤테이션만의 검출 수 = ① = %d (대조군 %d 은 여기 안 들어간다)' % (caught, quiet_ok))
-    print('==== 검사: 전체 %d · 겨냥 %d · ★미측정 %d (미측정은 통과가 아니다) ===='
-          % (len(checks), len(checks) - len(untargeted), len(untargeted)))
+    print('==== 검사: 전체 %d · 겨냥 %d · ★면제 %d · ★미측정 %d (면제도 미측정도 통과가 아니다) ===='
+          % (len(checks), len(targeted_checks), len(exempt_checks), len(untargeted)))
+    for c in exempt_checks:
+        print('  ★면제 %s ← 사유: %s' % (c, exempt_why[c]))
     for n, t, rc, v, err in rows:
         if rc == 2 and err:
             print('  판정 불가 사유 %s: %s' % (n, err))
 
     # ★판정 불가를 ★먼저 돌린다 — 못 쟀으면 틀렸다고 말할 수 없다.
-    if stale or aux_stale or stale_canon:
+    if stale or aux_stale or exempt_stale or stale_canon:
         if stale_canon:
             print('  ★기대표 정본이 없는 검사를 겨냥한다(노후화): %s' % ', '.join(stale_canon))
         return 2          # 이름이 검사 목록에 없다 = 정본·앵커 노후화 = ★판정 불가

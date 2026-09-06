@@ -5,7 +5,7 @@
   "_requires": "requires_targeted=true 이면 ★모든 검사가 최소 하나의 겨냥 뮤테이션을 가져야 한다(미겨냥 0 을 ★rc 가 말한다 · 사람 눈이 아니라).",
   "requires_targeted": true,
   "exempt_from_targeting": [],
-  "_exempt_why": "겨냥 면제는 ★여기 이름으로 적는다(빈 배열이면 면제 없음). 면제는 흔적을 남긴다.",
+  "_exempt_why": "겨냥 면제는 ★{name, why} 로 적는다(빈 배열이면 면제 없음). 이름만 적힌 항목은 러너가 ★rc=2(판정 불가)로 거부한다 — 형제 auxiliary 와 같은 규율이다. 면제는 보고 요약에 ★별도 통으로 찍히고, 검사 목록에 없는 이름은 정본 노후화로 ★rc=2 다. 면제는 흔적을 남긴다.",
   "mutations": {
     "m-pull-allowed": {
       "expect": "caught-by",
