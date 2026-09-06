@@ -599,11 +599,17 @@ function boom(){
 /* ★넘기기 — 난수를 ★소비하지 않는다. 인덱스만 움직인다. */
 function pass(){
   if (state.phase !== 'running') return;
+  /* ★만료를 ★먼저 본다. 화면 갱신은 200ms 간격의 틱이 하므로 도화선이 다한 시점과
+     다음 틱 사이에 ★최대 200ms 의 창이 있고, 그 창에서 누른 탭이 폭탄을 넘겨 버리면
+     ★무고한 다음 사람이 진다 — 지는 사람이 한 칸 밀린다.
+     논리는 입력 시점에 ★현재 시계로 확정하고, 미룰 것은 화면뿐이다. */
+  tick();
+  if (state.phase !== 'running') return;
   state.passes += 1;
   state.holder = (state.holder + 1) % state.players;
   paintTurn();
   beep(420, 45);
-  /* 넘긴 직후에도 터질 수 있다 — 시계는 넘기기와 무관하게 흐른다 */
+  /* 넘긴 뒤에 도화선이 다할 수도 있다 — 시계는 넘기기와 무관하게 흐른다 */
   tick();
 }
 
@@ -667,9 +673,11 @@ function applyLang(){
   var bl = $('btnLang');
   if (bl) bl.innerHTML = '🌐 <span class="lbl">' + (lang === 'ko' ? 'EN' : '한국어') + '</span>';
   if (state.phase === 'running'){
-    /* ★진행 중이면 미션 목록도 그 언어의 것으로 바뀌어야 하지만, ★이미 굴린 수열은
-       바꾸지 않는다 — 판의 내용은 시작 때 정해졌다. 지금 언어의 목록으로 ★같은 자리를
-       다시 그리기만 한다(수열의 길이·순서는 그대로다). */
+    /* ★진행 중인 판의 미션은 ★바꾸지 않는다 — 시작할 때 굴린 그 수열 그대로 간다.
+       바뀌는 것은 판을 감싸는 문안(차례·단계·버튼)뿐이다. 판 도중에 언어를 바꿨다고
+       손에 든 미션이 다른 것으로 갈리면, 그 사람은 방금까지 답하던 문제를 잃는다.
+       (이 규칙 때문에 미션·차례·단계 요소에는 data-i18n 을 붙이지 않는다 —
+        붙이면 위의 일괄 치환이 진행 중 내용을 사전 문안으로 덮는다.) */
     paintTurn(); paintFuse();
   }
   try { localStorage.setItem('bp.lang', lang); } catch (e) {}
