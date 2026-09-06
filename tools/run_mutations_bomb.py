@@ -64,12 +64,16 @@ def locked_items():
         with io.open(LOCKED, encoding='utf-8') as f:
             data = json.load(f)
     except (OSError, ValueError) as e:
-        return None, None, '잠근 항 정본을 읽지 못했다(%s): %s' % (LOCKED, e)
+        return None, None, None, '잠근 항 정본을 읽지 못했다(%s): %s' % (LOCKED, e)
     items = data.get('items')
     if not isinstance(items, list) or not items:
-        return None, None, '잠근 항 정본에 items 가 없다 — 대조할 것이 없다'
+        return None, None, None, '잠근 항 정본에 items 가 없다 — 대조할 것이 없다'
+    aux = data.get('auxiliary')
+    if not isinstance(aux, list):
+        return None, None, None, ('잠근 항 정본에 auxiliary 선언이 없다 — 보조 검사를 ★명시하지 않으면 '
+                                  '주인 없는 검사와 구별할 수 없다')
     digest = hashlib.sha256(io.open(LOCKED, 'rb').read()).hexdigest()[:16]
-    return items, digest, None
+    return items, aux, digest, None
 
 
 def list_mutations():
@@ -82,14 +86,18 @@ def list_mutations():
 
 
 def main():
-    global VERIFY
+    global VERIFY, LOCKED
     ap = argparse.ArgumentParser()
     ap.add_argument('--html', default=os.path.join(ROOT, 'bomb', 'index.html'))
     ap.add_argument('--only', help='이 뮤테이션 하나만 돌린다')
+    ap.add_argument('--locked', help='잠근 항 정본 경로(★자를 고정할 때 정본도 함께 고정한다 — '
+                                     '검사기만 고정하면 정본은 현재 나무 것을 읽어 두 시점이 섞인다)')
     ap.add_argument('--verify', help='검사기 경로(★리비전을 고정해 재고 싶을 때 사본을 가리킨다)')
     a = ap.parse_args()
     if a.verify:
         VERIFY = os.path.abspath(a.verify)
+    if a.locked:
+        LOCKED = os.path.abspath(a.locked)
 
     names, err = list_mutations()
     if names is None:
@@ -108,18 +116,24 @@ def main():
     untargeted = [c for c in checks if c not in targets]
     stale = sorted(t for t in targets if t not in checks)
 
-    items, lhash, lerr = locked_items()
+    items, aux, lhash, lerr = locked_items()
     if lerr:
         print('판정 불가 — ' + lerr)
         return 2
     checkset = set(checks)
     borne = {}
     for it in items:
-        borne.setdefault(it.get('bearing_check'), []).append(it)
-    # ★방향 1 — 항인데 그것을 짊어지는 검사가 없다(구멍)
-    item_no_check = [it for it in items if it.get('bearing_check') not in checkset]
-    # ★방향 2 — 검사인데 어느 항도 그것을 짊어진다고 말하지 않는다(주인 없는 검사)
-    check_no_item = [c for c in checks if c not in borne]
+        for bc in (it.get('bearing_checks') or []):
+            borne.setdefault(bc, []).append(it)
+    # ★방향 1 — 항인데 그것을 짊어지는 검사가 ★하나도 없다(구멍)
+    item_no_check = [it for it in items
+                     if not [bc for bc in (it.get('bearing_checks') or []) if bc in checkset]]
+    # ★방향 2 — 검사인데 어느 항도 안 짊어지고 ★보조로도 선언되지 않았다(미선언).
+    #   이 방향이 ★판정을 짊어져야 한다. 표시만 하면 ★정본에서 항을 지워 구멍을 없앨 수 있다 —
+    #   지우는 순간 그 검사가 미선언이 되어 ★즉시 붉어지게 만든다(흔적 없이 못 지운다).
+    check_no_item = [c for c in checks if c not in borne and c not in aux]
+    aux_declared = [c for c in checks if c in aux]
+    aux_stale = [c for c in aux if c not in checkset]
 
     print('검사기 sha256(앞 16)     = %s   ★대상과 함께 이 해시도 고정해 적어라' % vhash)
     print('잠근 항 정본 sha256(앞16) = %s   (%s)' % (lhash, os.path.relpath(LOCKED, ROOT)))
@@ -138,10 +152,14 @@ def main():
     for it in item_no_check:
         print('      #%s %s   (짊어져야 할 검사: %s ← ★없다)'
               % (it.get('id'), it.get('name'), it.get('bearing_check')))
-    print('  → 검사인데 ★어느 항도 안 짊어진다   %d' % len(check_no_item))
+    print('  → 검사인데 ★어느 항도 안 짊어지고 보조 선언도 없다(미선언)   %d' % len(check_no_item))
     for c in check_no_item:
-        print('      %s   (보조 검사이거나 ★정본에서 항이 빠진 것이다 — 사람이 가른다)' % c)
-    print('  ★한 방향만 보면 정본에서 항을 지워 구멍을 없앨 수 있다. 두 방향을 함께 찍는 이유다.')
+        print('      %s   ★미선언 — 항을 짊어지든지 auxiliary 에 선언하든지 해야 한다' % c)
+    print('  · 보조로 ★선언된 검사 %d: %s' % (len(aux_declared), ', '.join(aux_declared) or '없음'))
+    if aux_stale:
+        print('  · ★auxiliary 에 있는데 검사 목록에 없는 이름: %s (정본 노후화)' % ', '.join(aux_stale))
+    print('  ★두 방향 모두 판정을 짊어진다 — 항을 지우면 그것을 짊어지던 검사가 ★미선언이 되어')
+    print('    즉시 붉어진다. 구멍을 없애려면 ★정본에 흔적이 남는다.')
     print('')
     print('%-24s %-34s %-4s %s' % ('뮤테이션', '지목한 검사', 'rc', '판정'))
     print('-' * 96)
@@ -192,15 +210,20 @@ def main():
         if rc == 2 and err:
             print('  판정 불가 사유 %s: %s' % (n, err))
 
+    # ★판정 불가를 ★먼저 돌린다 — 못 쟀으면 틀렸다고 말할 수 없다.
+    if stale or aux_stale:
+        return 2          # 이름이 검사 목록에 없다 = 정본·앵커 노후화 = ★판정 불가
+    if indet:
+        return 2
     if item_no_check:
         # ★항인데 짊어지는 검사가 없다 = 그 계약은 ★아무도 안 재고 있다 = 미달이다.
         print('  ★미달: 잠근 항 %d개를 짊어지는 검사가 없다(위 목록) — 통과로 세지 않는다'
               % len(item_no_check))
         return 1
-    if stale:
-        return 2          # 겨냥 이름이 검사에 없다 = 앵커 노후화 = ★판정 불가
-    if indet:
-        return 2
+    if check_no_item:
+        print('  ★미달: 미선언 검사 %d개(위 목록) — 항을 짊어지든 보조로 선언하든 해야 한다'
+              % len(check_no_item))
+        return 1
     # ★공허(③)와 거짓 실패(④)는 둘 다 미달이지만 ★고칠 곳이 다르다 —
     #   공허는 검사를 강화해야 하고, 거짓 실패는 판정을 대리물에서 행동으로 되돌려야 한다.
     return 1 if (vacuous or false_fail) else 0

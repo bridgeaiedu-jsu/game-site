@@ -87,7 +87,7 @@ const MUTATIONS = {
   },
   'm-window-not-derived': {
     why: '반복창을 목록 크기에서 파생시키지 않고 상수로 되돌린다 — 짧은 목록에서 후보가 0이 된다',
-    target: 'repeat-cap-at-draw-site',
+    target: 'window-derives-from-pool-size',
     apply: s => s.replace(
       'var win = Math.min(REPEAT_WINDOW, pool.length - 1);',
       'var win = REPEAT_WINDOW;')
@@ -347,41 +347,52 @@ check('repeat-cap-at-draw-site', () => {
         bmb.plan(s + 1000, 4, bmb.missions.ko).missions.join('|')) differing++;
   }
   const usesRnd = sameSeed && differing >= 48;
-  /* ★창이 목록 크기에서 파생되는가 — 짧은 목록을 넣어 직접 확인한다.
-     상수를 그대로 쓰면 후보가 0이 되어 undefined 가 섞이고, 재추첨 구현이면 ★끝나지 않는다.
-     ★그래서 시간 제한을 걸고 부른다 — 끝나지 않는 것도 결함이지 '아직 안 끝났다' 가 아니다.
-     (시간 제한은 ★검사기의 안전장치다. 제품 안에는 시간 기반 분기를 두지 않는다.) */
-  const tiny = ['가', '나', '다'];                       /* 3종 < REPEAT_WINDOW(4) */
-  let tp = null, tinyErr = '';
-  try {
-    W.win.__tinyPool = tiny;
-    tp = vm.runInContext('window.__bmb.plan(7, 4, window.__tinyPool)', W.win, { timeout: 3000 });
-  } catch (e) { tinyErr = e.message; }
-  const tinyOk = !!tp && tp.missions.length === C.MISSION_COUNT &&
-                 tp.missions.every(m => tiny.indexOf(m) >= 0) &&
-                 tp.window === Math.min(C.REPEAT_WINDOW, tiny.length - 1);
-  let tinyViol = 0;
-  if (tp) for (let i = 1; i < tp.missions.length; i++) if (tp.missions[i] === tp.missions[i - 1]) tinyViol++;
-  /* ★시간 제한에 걸린 것은 '틀렸다' 가 아니라 ★'못 쟀다' 다. 미달로 세면 다음 사람이
-     제품을 고치려 들지만, 실제로 필요한 것은 ★탐침을 다시 세우는 일이다. */
-  if (!tp && /timed out|Script execution timed out/i.test(tinyErr)) {
-    return { ok: false, indeterminate: true,
-      detail: '★못 쟀다(판정 불가): 짧은 목록 탐침이 시간 제한에 걸렸다 — ' + tinyErr +
-        ' · 나머지 표본은 잼(반복창 위반 ' + violations + ' · 같은 씨앗 재현 ' + sameSeed + ')' };
-  }
-  const ok = violations === 0 && usesRnd && tinyOk && tinyViol === 0;
+  const ok = violations === 0 && usesRnd;
   /* ★왜 붉은지를 줄에서 읽을 수 있어야 한다 — '위반 0' 만 찍히면 다음 사람이 이유를 못 읽는다. */
   const why = [];
   if (violations !== 0) why.push('반복창 위반 ' + violations);
   if (!usesRnd) why.push('결정론·변이 대조 실패(같은 씨앗 동일 ' + sameSeed + ' · 다른 씨앗이 다른 비율 ' + differing + '/50)');
-  if (!tinyOk) why.push('짧은 목록 파생 실패' + (tp ? '' : '(★끝나지 않았다: ' + tinyErr + ')'));
-  if (tinyViol !== 0) why.push('짧은 목록 인접 반복 ' + tinyViol);
   return { ok, detail: '표본 ' + plans + '판 x ' + C.MISSION_COUNT + '자리 · 반복창(' +
     C.REPEAT_WINDOW + ') 위반 ' + violations +
     ' · 같은 씨앗 재현 ' + sameSeed + ' · 다른 씨앗이 다른 수열 ' + differing + '/50' +
-    ' · ★3종 목록에서 창 파생 ' + (tp ? tp.window : '★끝나지 않았다') + '(기대 ' + Math.min(C.REPEAT_WINDOW, tiny.length - 1) +
-    ') · 길이 ' + (tp ? tp.missions.length : '-') + ' · 인접 반복 ' + tinyViol +
     (why.length ? '  ★미달 사유: ' + why.join(' / ') : '') };
+});
+
+/* 창이 ★목록 크기에서 파생되는가 — ★독립 검사다.
+   앞서는 이 탐침이 repeat-cap-at-draw-site 안에 있었다. 그런데 재추첨 구현은 3종 목록에서
+   ★끝나지 않아 탐침이 시간 제한에 걸리고, 그러면 ★그 검사 전체가 판정 불가가 되어
+   ★같은 검사가 짊어지던 다른 계약(반복창)의 판정까지 함께 지워졌다.
+   ★한 탐침이 못 도는 것과 다른 계약을 못 재는 것은 다른 일이다. 그래서 뗐다.
+   (시간 제한은 ★검사기의 안전장치다. 제품 안에는 시간 기반 분기를 두지 않는다.) */
+check('window-derives-from-pool-size', () => {
+  const tiny = ['가', '나', '다'];                       /* 3종 < REPEAT_WINDOW(4) */
+  let tp = null, tinyErr = '';
+  try {
+    const w2 = makeWorld();
+    w2.win.__tinyPool = tiny;
+    tp = vm.runInContext('window.__bmb.plan(7, 4, window.__tinyPool)', w2.win, { timeout: 3000 });
+  } catch (e) { tinyErr = e.message; }
+  /* ★시간 제한에 걸린 것은 '틀렸다' 가 아니라 ★'못 쟀다' 다. */
+  if (!tp && /timed out|Script execution timed out/i.test(tinyErr)) {
+    return { ok: false, indeterminate: true,
+      detail: '★못 쟀다(판정 불가): 짧은 목록 탐침이 시간 제한에 걸렸다 — ' + tinyErr };
+  }
+  const wantWin = Math.min(C.REPEAT_WINDOW, tiny.length - 1);
+  const okLen = !!tp && tp.missions.length === C.MISSION_COUNT;
+  const okPool = !!tp && tp.missions.every(m => tiny.indexOf(m) >= 0);
+  const okWin = !!tp && tp.window === wantWin;
+  let adjacent = 0;
+  if (tp) for (let i = 1; i < tp.missions.length; i++) if (tp.missions[i] === tp.missions[i - 1]) adjacent++;
+  const why2 = [];
+  if (!tp) why2.push('탐침이 값을 못 돌려줬다(' + tinyErr + ')');
+  if (tp && !okWin) why2.push('창이 ' + tp.window + ' 인데 기대는 ' + wantWin + ' — 목록 크기에서 파생되지 않는다');
+  if (tp && !okLen) why2.push('수열 길이 ' + tp.missions.length + ' (기대 ' + C.MISSION_COUNT + ')');
+  if (tp && !okPool) why2.push('목록 밖 값이 섞였다');
+  if (adjacent !== 0) why2.push('인접 반복 ' + adjacent);
+  return { ok: okLen && okPool && okWin && adjacent === 0,
+    detail: '3종 목록 · 창 ' + (tp ? tp.window : '-') + '(기대 ' + wantWin + ') · 길이 ' +
+      (tp ? tp.missions.length : '-') + ' · 인접 반복 ' + adjacent +
+      (why2.length ? '  ★미달 사유: ' + why2.join(' / ') : '') };
 });
 
 /* 재추첨 가지를 따로 잰다 — 난수를 세는 발생기를 제품 함수에 ★넘겨서. */
@@ -692,7 +703,14 @@ if (MUTATION) {
   const target = MUTATIONS[MUTATION].target;
   if (MUTATIONS[MUTATION].expect === 'quiet') {
     /* ★조용해야 하는 대조군 — 행동을 바꾸지 않는 사본이다. 여기서 붉어지면 그 검사는
-       계약이 아니라 ★철자를 보고 있다는 뜻이다(거짓 실패). 붉은 자리만 붉어야 한다. */
+       계약이 아니라 ★철자를 보고 있다는 뜻이다(거짓 실패). 붉은 자리만 붉어야 한다.
+       ★단 '붉은 게 없다' 와 '전부 쟀다' 는 다른 말이다 — 못 잰 검사가 있으면 조용함을
+       근거로 쓸 수 없다. ★판정 불가를 먼저 돌린다. */
+    if (indets.length) {
+      console.error('★대조군인데 못 잰 검사가 있다(조용함을 근거로 쓸 수 없다): ' +
+                    indets.map(r => r.name).join(', '));
+      process.exit(2);
+    }
     if (fails.length) {
       console.error('★조용해야 할 대조군인데 붉어진 검사가 있다: ' + fails.map(r => r.name).join(', '));
       process.exit(3);
@@ -704,7 +722,15 @@ if (MUTATION) {
     console.error('★지목한 검사가 아예 돌지 않았다(앵커 노후화): ' + target);
     process.exit(2);
   }
-  const caught = results.find(r => r.name === target && !r.ok);
+  /* ★지목한 검사를 ★못 쟀으면 잡았다고 말할 수 없다 — 못 쟀다(2)를 잡았다(0)보다 먼저 돌린다.
+     앞서는 caught 가 INDET 를 함께 집어(INDET 도 ok=false 다) ★못 잰 검사가 '잡았다 rc=0' 이 됐다.
+     이 티켓이 없애려던 병(판정 불가를 통과로 세기)이 ★한 층 위에 그대로 있었다(리뷰어 실측). */
+  const targetIndet = results.find(r => r.name === target && r.indeterminate);
+  if (targetIndet) {
+    console.error('★지목한 검사를 못 쟀다(판정 불가): ' + target + ' — ' + (targetIndet.detail || ''));
+    process.exit(2);
+  }
+  const caught = results.find(r => r.name === target && !r.ok && !r.indeterminate);
   const collateral = fails.filter(r => r.name !== target).map(r => r.name);
   console.log('※ 지목한 검사 ' + target + ' 가 ' + (caught ? '잡았다' : '★못 잡았다'));
   if (collateral.length) console.log('※ 함께 붉어진 검사(참고): ' + collateral.join(', '));
