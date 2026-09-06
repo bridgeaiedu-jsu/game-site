@@ -129,6 +129,7 @@
   .card[href="/how-many/"]{--sig:#a172f2;--sig-ink:#7631ec}
   .card[href="/together/"]{--sig:#db2777;--sig-ink:#a01b56}
   .card[href="/gomoku/"]{--sig:#ba1f64;--sig-ink:#7d1543}
+  .card[href="/bomb/"]{--sig:#7a7200;--sig-ink:#4a4400}
   @media (prefers-color-scheme: dark){
     /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다. ★라이트 규칙 뒤에 와야 이긴다(@media 는 명시도를 안 올린다). */
     .card[href="/block-puzzle/"]{--sig:#6d90db;--sig-ink:#a7bbe9}
@@ -154,6 +155,7 @@
     .card[href="/how-many/"]{--sig:#946bda;--sig-ink:#bea5e8}
     .card[href="/together/"]{--sig:#e876a9;--sig-ink:#f2b3cf}
     .card[href="/gomoku/"]{--sig:#e25393;--sig-ink:#ec90b9}
+    .card[href="/bomb/"]{--sig:#d4c721;--sig-ink:#f2e97e}
   }
   .card.soon::before{background:var(--line)}
   .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
@@ -364,6 +366,12 @@
             <span class="badges"><span class="badge">한 판 5~10분 / 5–10 min a round</span></span></span>
           <span class="body"><h2>오목 한판 / Gomoku</h2>
             <p>한 기기에서 번갈아 두는 2인용 오목 — 가로·세로·대각으로 다섯 알을 먼저 이으면 승리, 다시 하기를 누르면 흑백이 바뀌어 선공을 번갈아 갖는다<br>Two players taking turns on one device — line up five stones to win, and the colours swap each time you play again</p></span>
+        </a></li>
+        <li><a class="card" href="/bomb/">
+          <span class="thumb"><img src="/bomb/thumb.webp" alt="폭탄 돌리기 / Pass the Bomb" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 1~2분 / 1–2 min a round</span></span></span>
+          <span class="body"><h2>폭탄 돌리기 / Pass the Bomb</h2>
+            <p>3~6명이 폰 하나를 돌려 가며 미션에 답하는 파티 게임 — 도화선이 얼마나 남았는지는 아무도 모르고, 터지는 순간 들고 있던 사람이 진다<br>A party game for three to six people passing one phone — nobody knows how much fuse is left, and whoever holds it when it blows loses</p></span>
         </a></li>
       </ul>
     </noscript>
@@ -598,6 +606,13 @@ const FALLBACK = [{
   thumb:'/gomoku/thumb.webp',
   playtime:{ko:'한 판 5~10분',en:'5–10 min a round'},
   maxMinutes:10, daily:false, solo:false, category:'two-player', released:'2026-09-05', tags:['board','strategy','two-player','party']
+},{
+  id:'bomb', path:'/bomb/',
+  title:{ko:'폭탄 돌리기',en:'Pass the Bomb'},
+  desc:{ko:'3~6명이 폰 하나를 돌려 가며 미션에 답하는 파티 게임 — 도화선이 얼마나 남았는지는 아무도 모르고, 터지는 순간 들고 있던 사람이 진다',en:'A party game for three to six people passing one phone — nobody knows how much fuse is left, and whoever holds it when it blows loses'},
+  thumb:'/bomb/thumb.webp',
+  playtime:{ko:'한 판 1~2분',en:'1–2 min a round'},
+  maxMinutes:2, daily:false, category:'group', released:'2026-09-06', tags:['party','group','casual','timing']
 }];
 
 let games = FALLBACK;
