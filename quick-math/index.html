@@ -191,7 +191,7 @@
        라벨(span)에만 붙인다. -->
   <div class="score"><b id="qNo">–</b><span data-i18n="qLbl">문제</span></div>
   <div class="score"><b id="scoreNow">–</b><span data-i18n="scoreLbl">맞힘</span></div>
-  <div class="score scorewrap" id="timeCell"><b id="timeNow">–</b><span data-i18n="timeLbl">남은 시간</span><span class="penalty" id="penalty" aria-hidden="true">−3초</span></div>
+  <div class="score scorewrap" id="timeCell"><b id="timeNow">–</b><span data-i18n="timeLbl">남은 시간</span><span class="penalty" id="penalty" aria-hidden="true"></span></div>
 </div>
 
 <main>
@@ -199,7 +199,7 @@
   <section class="qcard" id="qcard">
     <div class="qhead"><span class="chip" id="qcat">–</span><span class="chip tier" id="qtier"></span></div>
     <!-- ★식 본문에도 data-i18n 을 붙이지 않는다(같은 사유). 안내 문구는 스크립트가 넣는다. -->
-    <p class="q idle" id="qtext">시작을 누르면 첫 문제가 나옵니다.</p>
+    <p class="q idle" id="qtext" tabindex="-1">시작을 누르면 첫 문제가 나옵니다.</p>
     <ul class="opts" id="opts" role="group" aria-label="choices">
       <li><button class="opt" type="button" data-i="0" disabled><span class="t">–</span><span class="mk" aria-hidden="true"></span></button></li>
       <li><button class="opt" type="button" data-i="1" disabled><span class="t">–</span><span class="mk" aria-hidden="true"></span></button></li>
@@ -310,6 +310,11 @@ const I18N = {
     startSub:'30초 동안 암산을 몇 개나 풀 수 있을까.<br>4지선다 · 맞히면 바로 다음 · 틀리면 −3초.',
     daily:'오늘의 도전', dailyDone:'오늘의 도전 완료', practice:'연습 모드',
     idle:'시작을 누르면 첫 문제가 나옵니다.',
+    penalty:'−3초',
+    srMiss:'틀렸습니다 · 남은 시간이 3초 줄었습니다',
+    dailyReplay:'오늘의 도전은 이미 끝냈습니다 — 그날의 기록입니다',
+    notKept:'기록 안 함',
+    replayNote:'이 화면은 다시 보기입니다. 새 문제는 내일 자정에 열립니다.',
     tier1:'한 자리', tier2:'두 자리', tier3:'곱셈·나눗셈',
     newBest:'🎉 최고 기록!', copied:'결과를 복사했습니다', copyFail:'복사할 수 없습니다',
     statPlays:'오늘 <b data-hp="plays.quick-math.today">–</b>판 · 누적 <b data-hp="plays.quick-math.total">–</b>판',
@@ -349,6 +354,11 @@ const I18N = {
     startSub:'How many can you solve in 30 seconds?<br>Four choices · correct goes on · a miss costs 3s.',
     daily:'Daily challenge', dailyDone:'Daily done', practice:'Practice',
     idle:'Press start for the first question.',
+    penalty:'−3s',
+    srMiss:'Wrong · three seconds came off the clock',
+    dailyReplay:'You already finished today\'s challenge — this is that result',
+    notKept:'not kept',
+    replayNote:'This is a replay. New questions open at midnight.',
     tier1:'single digit', tier2:'double digit', tier3:'× and ÷',
     newBest:'🎉 New best!', copied:'Result copied', copyFail:'Could not copy',
     statPlays:'<b data-hp="plays.quick-math.today">–</b> today · <b data-hp="plays.quick-math.total">–</b> all-time',
@@ -411,6 +421,12 @@ function setSound(on){
 
 /* ======================= 날짜·seed ======================= */
 const pad2 = (n) => String(n).padStart(2, '0');
+/* ★하루 경계의 권위 = ★사용자의 로컬 달력이다(고정 시간대로 옮기지 않는다).
+   이 저장소의 daily 게임 22종 중 ★21종이 같은 방식이고(2026-09-07 전수 실측 ·
+   evidence/hanpango-mental-math/R1FIX/daykey_authority.txt), quick-math 도 그것을 따른다.
+   ★예외 1종: push 는 todayKey 에서 KST 로 고정한다 — 사이트 안에서 갈리는 자리라
+   master 에 보고했다. ★여기서 임의로 바꾸지 마라(바꾸면 두 게임의 하루가 서로 어긋난다).
+   검사: verify_quickmath.js '하루 경계는 로컬 달력이다'. */
 function dayKey(d){ d = d || new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
 function hashStr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -424,7 +440,17 @@ const fxRng = Math.random;
 
 function dailyRec(){ try{ return JSON.parse(localStorage.getItem('qm.daily') || 'null'); }catch(_){ return null; } }
 function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && typeof r.score === 'number'); }
-function saveDaily(score){ localStorage.setItem('qm.daily', JSON.stringify({ date: runDay, score: score })); }
+/* ★그 날짜의 기록이 이미 있는가 — 저장 가드는 ★판이 귀속된 날(runDay)로 묻는다.
+   dailyDoneToday() 는 ★지금 날짜로 묻는 별개 질문이다(버튼 문구·재열람 판정용). */
+function dailyDoneFor(day){ const r = dailyRec(); return !!(r && r.date === day && typeof r.score === 'number'); }
+/* ★하루 1회 계약(about:101 · 이 페이지 dailyDesc)을 ★여기서 닫는다 —
+   그날 최초 완주만 저장한다. 재열람·재시도가 기록을 덮으면 사용자가 세운 기록이 사라진다
+   (R1 에서 codex·gemini 가 서로 모르는 채 같은 결함을 찾았다). */
+function saveDaily(score){
+  if (dailyDoneFor(runDay)) return false;   /* ★덮어쓰지 않는다 */
+  localStorage.setItem('qm.daily', JSON.stringify({ date: runDay, score: score }));
+  return true;
+}
 
 /* ======================= 판 짜기 (★전부 여기서 굴린다) ======================= */
 function shuffle(arr, rng){ for (let i = arr.length - 1; i > 0; i--){ const j = Math.floor(rng() * (i + 1)); const t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
@@ -481,8 +507,13 @@ function makeQuestion(no, rng){
   };
 }
 
+/* ★덱 난수를 몇 번 당겼는지 센다 — 계약('행동이 난수를 소비하지 않는다')을 ★직접 재기 위해서다.
+   덱 JSON 동일성만 보면 ★덱을 안 바꾸는 소비를 못 본다(R1 codex·gemini 공통 지적).
+   ★이것은 관측이고 조작이 아니다 — 밖에서 값을 넣을 수 없다. */
+let rngUses = 0;
+function countingRng(rng){ return () => { rngUses++; return rng(); }; }
 function makeDeck(seedKey){
-  const rng = mulberry32(hashStr(seedKey));
+  const rng = countingRng(mulberry32(hashStr(seedKey)));
   const deck = [];
   for (let i = 1; i <= DECK_N; i++) deck.push(makeQuestion(i, rng));
   return deck;
@@ -495,6 +526,9 @@ let endAt = 0, running = false, rafId = 0;
 let dead = [];                 /* 지금 문제에서 이미 눌러 잠긴 보기 자리 */
 let log = [];                  /* 복습 목록 — 푼 문제 기록 */
 let best = +localStorage.getItem('qm.best') || 0;
+let replaying = false;      /* ★그날 기록 다시 보기 화면인가(새 판이 아니다) */
+let isNewBest = false;      /* 결과 문구를 언어 전환 때 다시 그리려면 상태로 들고 있어야 한다 */
+let started = false;        /* 한 판이라도 시작했는가 — HUD 문구를 다시 그릴지 정한다 */
 
 /* ★배포본의 관측 창구 — ★읽기 전용이다(getter 만 둔다).
    시험용 조작 명령은 제품에 두지 않는다. 재현성은 하네스가 자기 쪽에서 만든다. */
@@ -512,7 +546,11 @@ Object.defineProperty(window, '__quickmath', {
     get dead(){ return dead.slice(); },
     get roundMs(){ return ROUND_MS; },
     get penaltyMs(){ return PENALTY_MS; },
-    get deckN(){ return DECK_N; }
+    get deckN(){ return DECK_N; },
+    get rngUses(){ return rngUses; },
+    get dailyDone(){ return dailyDoneToday(); },
+    get dailyRecord(){ const r = dailyRec(); return r ? { date: r.date, score: r.score } : null; },
+    get replaying(){ return replaying; }
   }),
   writable: false, configurable: false
 });
@@ -580,17 +618,29 @@ function choose(i){
     /* 다음 문제는 ★즉시 그린다(연출 대기 없음) — 30초짜리 게임에서 대기는 곧 점수다. */
     paintQuestion();
   } else {
+    /* ★오답은 문제를 ★넘기지 않는다(master 253 판정). 근거 셋:
+       ①넘어가면 플레이어가 ★정답을 못 본 채 지나가 학습 피드백이 0 이 된다.
+       ②30초 판에서 -3초는 10% 이고, 틀린 보기만 잠기므로 찍기로 뚫으면 최악 9초(30%)를 태운다.
+       ③games.json desc·how1 산문이 이미 '틀리면 남은 시간 3초' 라고만 말하고 넘어간다고 안 한다.
+       검사: verify_quickmath.js '정답이면 즉시 다음 문제'(idxAfterMiss === 0). */
     missed++;
     dead.push(i);
     log.push({ a:q.a, b:q.b, op:q.op, ans:q.ans, picked:q.cells[i], ok:false });
     btn.classList.add('bad', 'shake');
     btn.querySelector('.mk').textContent = '✗';
+    /* ★N — 지금 포커스를 쥔 버튼을 그냥 비활성화하면 브라우저가 포커스를 body 로 보낸다.
+       키보드 사용자는 그 순간 자리를 잃는다. ★먼저 살아 있는 다음 보기로 옮기고 잠근다. */
+    const alive = optBtns.filter((b, j) => j !== i && !b.disabled);
+    if (alive.length) alive[0].focus(); else elQ.focus();
     btn.disabled = true;
     endAt -= PENALTY_MS;                    /* ★즉시 확정 */
     elPenalty.classList.remove('show');
     void elPenalty.offsetWidth;             /* 되감기 — 연타해도 매번 다시 뜬다 */
     elPenalty.classList.add('show');
     beep(180, 140, 'square');
+    /* ★M — 감점을 보조기술에도 알린다. 시각 배지(#penalty)는 ★aria-hidden 인 장식이고,
+       안내는 이 live 영역이 맡는다. 둘 다 읽히면 같은 사건이 두 번 낭독된다. */
+    elSR.textContent = T('srMiss') + ' · ' + fmtTime(Math.max(0, endAt - now()));
     paintTime();
     ga('qm_miss', { n: idx + 1 });
     if (now() >= endAt) endRun();
@@ -611,6 +661,7 @@ function startRun(m){
   runDay = (m === 'daily') ? dayKey(t0) : '';
   seedKeyNow = (m === 'daily') ? dailySeedKey(t0) : ('free-' + fxRng().toString(36).slice(2, 10));
   deck = makeDeck(seedKeyNow);              /* ★판을 짠다 — 이 뒤로는 난수를 쓰지 않는다 */
+  started = true;
   idx = 0; score = 0; missed = 0; dead = []; log = [];
   ovStart.classList.remove('show'); ovOver.classList.remove('show');
   elCat.textContent = (m === 'daily') ? T('daily') : T('practice');
@@ -637,15 +688,31 @@ function endRun(){
   $('nOk').textContent = String(score);
   $('nBad').textContent = String(missed);
   $('nAcc').textContent = (total ? Math.round(score * 100 / total) : 0) + '%';
-  $('newBest').textContent = '';
-  if (score > best){ best = score; localStorage.setItem('qm.best', String(best)); $('newBest').textContent = T('newBest'); }
-  $('finalSub').textContent = (mode === 'daily') ? (runDay + ' · ' + T('daily')) : T('practice');
+  isNewBest = score > best;
+  if (isNewBest){ best = score; localStorage.setItem('qm.best', String(best)); }
+  /* ★O — 판은 ★시작한 날에 귀속된다. 23:59 에 시작해 00:01 에 끝난 판은 ★어제 기록으로 저장되고,
+     그래서 사용자는 자정 뒤에 ★오늘 판을 또 할 수 있다. 이것은 계약 위반이 아니다 —
+     '하루 한 번' 은 ★그날의 판을 한 번 완주한다는 뜻이고, 어제 판을 끝낸 것은 어제의 완주다.
+     검사: verify_quickmath.js '판은 시작한 날에 귀속된다'. */
   if (mode === 'daily') saveDaily(score);
+  paintResultTexts();
   renderReview();
   ovOver.classList.add('show');
   if (window.hpStats) window.hpStats();
   ga('qm_end', { mode: mode, score: score, missed: missed });
   paintDailyHint();
+}
+
+/* ★결과 화면의 동적 문구는 여기 한 곳에서 그린다 — endRun 에서만 채우면
+   언어를 바꿨을 때 이전 언어가 남는다(R1 254 지적). applyLang 도 이것을 부른다. */
+function paintResultTexts(){
+  $('newBest').textContent = isNewBest ? T('newBest') : '';
+  if (replaying){
+    const r = dailyRec();
+    $('finalSub').textContent = (r ? r.date + ' · ' : '') + T('dailyReplay');
+  } else {
+    $('finalSub').textContent = (mode === 'daily') ? (runDay + ' · ' + T('daily')) : T('practice');
+  }
 }
 
 function renderReview(){
@@ -689,9 +756,20 @@ function applyLang(){
   /* 문안을 갈아 끼우면 숫자가 지워진다 — 바로 다시 채운다. */
   if (window.hpStats) window.hpStats();
   /* ★진행 중 화면은 applyLang 이 덮지 않는다 — 여기서 다시 그려 준다. */
-  if (running){ const q = deck[idx]; if (q) elTier.textContent = T('tier' + q.tier); elCat.textContent = (mode === 'daily') ? T('daily') : T('practice'); }
-  else { elQ.textContent = T('idle'); }
+  /* ★running 일 때만 그리면 판이 끝난 뒤 HUD 에 이전 언어가 남는다
+     (검사 '언어를 바꾸면 동적 문구가 남지 않는다' 가 잡았다). 시작한 적이 있으면 항상 다시 그린다. */
+  if (started){
+    const q = deck[Math.min(idx, Math.max(0, deck.length - 1))];
+    elTier.textContent = q ? T('tier' + q.tier) : '';
+    elCat.textContent = (mode === 'daily') ? T('daily') : T('practice');
+  } else {
+    elQ.textContent = T('idle');
+    elTier.textContent = ''; elCat.textContent = '';
+  }
   if (log.length) renderReview();
+  /* ★런타임에 채워지는 문구는 data-i18n 이 아니라 여기서 다시 그린다(양방향 계약). */
+  elPenalty.textContent = T('penalty');
+  paintResultTexts();
   paintDailyHint();
 }
 const toggleLang = () => { lang = (lang === 'ko') ? 'en' : 'ko'; applyLang(); };
@@ -707,8 +785,31 @@ function paintDailyHint(){
     ? (lang === 'ko' ? ('오늘 기록 ' + r.score + '문제 · 최고 ' + best + '문제') : ('today ' + r.score + ' · best ' + best))
     : (lang === 'ko' ? ('최고 기록 ' + best + '문제') : ('best ' + best));
 }
-$('btnDaily').onclick = () => startRun('daily');
-$('btnStart').onclick = () => startRun('free');
+/* ★A — 하루 1회 계약을 화면에서도 닫는다(master 253 설계 판정).
+   완료 상태에서는 ★새 판을 시작하지 않고 그날 결과를 다시 보여준다.
+   버튼을 죽이지 않는 이유: about 이 '그날의 기록이 남고 … 기다립니다' 라고 적었고,
+   사용자가 ★왜 못 하는지 알게 되는 편이 그 문장에 맞다.
+   ★연습 모드는 무제한 그대로다. ★저장은 그날 최초 완주만(saveDaily 안 부른다). */
+function showDailyReplay(){
+  const r = dailyRec();
+  if (!r) return false;
+  replaying = true;
+  isNewBest = false;
+  $('finalScore').textContent = String(r.score);
+  $('nOk').textContent = String(r.score);
+  /* ★안 적어 둔 값은 지어내지 않는다 — 오답 수·정확도는 저장하지 않았다. */
+  $('nBad').textContent = '–';
+  $('nAcc').textContent = '–';
+  $('review').innerHTML = '';
+  paintResultTexts();
+  ovStart.classList.remove('show');
+  ovOver.classList.add('show');
+  elSR.textContent = T('replayNote');
+  ga('qm_daily_replay', { game: GA_GAME });
+  return true;
+}
+$('btnDaily').onclick = () => { if (dailyDoneToday()){ showDailyReplay(); return; } replaying = false; startRun('daily'); };
+$('btnStart').onclick = () => { replaying = false; startRun('free'); };
 $('btnAgain').onclick = () => { ovOver.classList.remove('show'); ovStart.classList.add('show'); paintDailyHint(); };
 
 setSound(soundOn);

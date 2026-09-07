@@ -52,8 +52,8 @@ const MUTATIONS = {
     /* ★동적으로는 안 보인다 — 하네스가 시계를 고정하기 때문이다(그것이 재현성의 조건이다).
        기기 사이의 갈라짐은 ★정적 검사가 잡는다. 지목을 그 검사로 옮긴다. */
     target: '판 짜기에 시계·성능이 안 섞인다',
-    apply: s => s.replace('  const rng = mulberry32(hashStr(seedKey));',
-                          '  const rng = mulberry32(hashStr(seedKey) + (Date.now() & 7));')
+    apply: s => s.replace('  const rng = countingRng(mulberry32(hashStr(seedKey)));',
+                          '  const rng = countingRng(mulberry32(hashStr(seedKey) + (Date.now() & 7)));')
   },
   'm-seed-ignores-day': {
     why: '오늘의 도전 seed 에서 날짜를 뺀다 — 다른 날도 같은 판이 된다',
@@ -98,6 +98,55 @@ const MUTATIONS = {
     why: '선굴림 양을 60 에서 3 으로 줄인다 — 30초 안에 덱이 바닥난다',
     target: '선굴림 덱은 60문',
     apply: s => s.replace('const DECK_N = 60;', 'const DECK_N = 3;')
+  },
+  'm-choice-consumes-rng': {
+    why: '보기를 고를 때 전역 난수를 한 번 당긴다 — 덱은 안 바뀌므로 ★덱 동일성 검사로는 안 보인다',
+    target: '행동이 난수를 한 번도 안 당긴다(계수)',
+    apply: s => s.replace('    score++; paintScore();', '    Math.random(); score++; paintScore();')
+  },
+  'm-miss-advances': {
+    why: '오답에서도 다음 문제로 넘긴다 — master 253 이 확정한 반대 해석',
+    target: '정답이면 즉시 다음 문제',   /* ★지목 = :403 의 idxAfterMiss === 0 단언 */
+    apply: s => s.replace('    missed++;\r\n    dead.push(i);', '    missed++; idx++;\r\n    dead.push(i);')
+  },
+  'm-daily-replay-overwrites': {
+    why: '완료 뒤에도 daily 버튼이 새 판을 시작한다 — R1 BLOCKING 의 원형',
+    target: '완료 뒤 daily 는 새 판을 시작하지 않는다',
+    apply: s => s.replace("$('btnDaily').onclick = () => { if (dailyDoneToday()){ showDailyReplay(); return; } replaying = false; startRun('daily'); };",
+                          "$('btnDaily').onclick = () => { replaying = false; startRun('daily'); };")
+  },
+  'm-save-overwrites': {
+    /* ★두 방어가 서로를 가린다 — 버튼 가드가 막고 있어서 저장 가드만 지우면 아무 일도 안 난다
+       (한 줄만 지우는 변이는 ★공허했다 · 2026-09-07 실측). 그래서 ★둘 다 지운다. */
+    why: '버튼 가드와 저장 가드를 ★함께 없애 그날 기록을 덮어쓰게 한다 — R1 BLOCKING 의 데이터 손실 경로',
+    target: '재열람이 기록을 덮지 않는다',
+    apply: s => s
+      .replace("$('btnDaily').onclick = () => { if (dailyDoneToday()){ showDailyReplay(); return; } replaying = false; startRun('daily'); };",
+               "$('btnDaily').onclick = () => { replaying = false; startRun('daily'); };")
+      .replace('  if (dailyDoneFor(runDay)) return false;   /* ★덮어쓰지 않는다 */', '')
+  },
+  'm-daykey-utc': {
+    why: '하루 경계를 로컬에서 UTC 로 옮긴다 — 기존 21종과 갈라진다',
+    target: '하루 경계는 로컬 달력이다',
+    apply: s => s.replace("function dayKey(d){ d = d || new Date(); return d.getFullYear()",
+                          "function dayKey(d){ d = d || new Date(); d = new Date(d.getTime() - 12*3600*1000); return d.getFullYear()")
+  },
+  'm-run-belongs-to-end-day': {
+    why: '판을 끝난 날에 귀속시킨다 — 자정 넘긴 판이 오늘 기록을 먹는다',
+    target: '판은 시작한 날에 귀속된다',
+    apply: s => s.replace('  localStorage.setItem(\'qm.daily\', JSON.stringify({ date: runDay, score: score }));',
+                          '  localStorage.setItem(\'qm.daily\', JSON.stringify({ date: dayKey(), score: score }));')
+  },
+  'm-penalty-text-hardcoded': {
+    why: '감점 배지 문구를 한국어로 박아 언어 전환에 안 따라오게 한다',
+    target: '언어를 바꾸면 동적 문구가 남지 않는다',
+    apply: s => s.replace("  elPenalty.textContent = T('penalty');", "  elPenalty.textContent = '−3초';")
+  },
+  'm-focus-after-disable': {
+    why: '포커스를 옮기기 전에 버튼을 잠근다 — 키보드 사용자가 자리를 잃는다',
+    target: '오답 잠금 전에 포커스를 옮긴다(정적)',
+    apply: s => s.replace('    if (alive.length) alive[0].focus(); else elQ.focus();\r\n    btn.disabled = true;',
+                          '    btn.disabled = true;\r\n    if (alive.length) alive[0].focus(); else elQ.focus();')
   },
   'm-quiet-control': {
     why: '★대조군 — 주석 한 줄만 바꾼다. 어떤 검사도 붉으면 안 된다',
@@ -159,7 +208,10 @@ function mkEl(id) {
       const want = String(sel).replace(/^\./, '');
       return this.kids.filter(k => k.classList.contains(want));
     },
-    querySelector(sel) { return this.querySelectorAll(sel)[0] || null; }
+    querySelector(sel) { return this.querySelectorAll(sel)[0] || null; },
+    /* ★제품이 포커스를 옮긴다(N) — 스텁에 없으면 제품이 예외로 죽어 ★계기가 결함을 만든다.
+       ★단 포커스 판정 자체는 스텁으로 하지 않는다(실브라우저 증거가 정본이다). */
+    focus() { if (this.__world) this.__world.activeElement = this; }
   };
   let _cls = [];
   el.classList = {
@@ -189,10 +241,12 @@ const IDS = ['qNo', 'scoreNow', 'timeNow', 'timeCell', 'qtext', 'opts', 'qtier',
 function makeWorld(opts) {
   opts = opts || {};
   const els = {};
-  IDS.forEach(i => { els[i] = mkEl(i); });
+  const world = { activeElement: null };
+  IDS.forEach(i => { els[i] = mkEl(i); els[i].__world = world; });
   /* 보기 4개 — 실제 마크업과 같은 모양(.opt 안에 .t 와 .mk) */
   for (let i = 0; i < 4; i++) {
     const b = mkEl('opt' + i);
+    b.__world = world;
     b.className = 'opt';
     const t = mkEl(''); t.className = 't';
     const k = mkEl(''); k.className = 'mk';
@@ -222,6 +276,13 @@ function makeWorld(opts) {
     setTimeout: () => 0, clearTimeout: () => {},
     addEventListener: () => {}, Math, Date, console, JSON, Object, Array, String, Number
   };
+  /* ★전역 난수도 하네스가 센다 — 제품에 계수 훅을 뚫지 않는다(C).
+     제품이 여는 것은 ★덱 난수 계수(rngUses)뿐이고 그것은 관측이다. */
+  let randomCalls = 0;
+  const realRandom = Math.random;
+  win.Math = Object.create(Math);
+  win.Math.random = () => { randomCalls++; return realRandom(); };
+  win.__randomCalls = () => randomCalls;
   let clock = (typeof opts.startNow === 'number') ? opts.startNow : 1000;
   win.performance = { now: () => clock };
   win.__advance = ms => { clock += ms; };
@@ -230,18 +291,21 @@ function makeWorld(opts) {
     win.Date = new Proxy(Date, { get(t, p) { return p === 'now' ? () => fixed : t[p]; } });
   }
   if (opts.today instanceof Date) {
-    const D = opts.today;
+    /* ★달력은 하네스가 쥔다 — 그리고 ★움직일 수 있어야 한다(O 자정 롤오버). */
+    let D = opts.today;
     const Fake = function (...a) { return a.length ? new Date(...a) : new Date(D.getTime()); };
     Fake.now = () => D.getTime();
     Fake.prototype = Date.prototype;
     win.Date = Fake;
+    win.__setDay = d => { D = d; };
   }
   win.window = win;
   vm.createContext(win);
   try { vm.runInContext(SRC, win, { filename: 'quick-math-inline.js' }); }
   catch (e) { console.error('스크립트 실행 실패: ' + e.message); process.exit(2); }
   if (!win.__quickmath) { console.error('관측 창구(window.__quickmath)가 없다'); process.exit(2); }
-  return { win, els, doc, store, rafQ, advance: win.__advance };
+  return { win, els, doc, store, rafQ, advance: win.__advance, world,
+           randomCalls: () => win.__randomCalls(), setDay: win.__setDay };
 }
 
 /* ------------------------------------------------------------ 검사 판 */
@@ -452,11 +516,26 @@ check('판 짜기에 시계·성능이 안 섞인다', () => {
 
 /* ── ⑭ 런타임에 바뀌는 요소에 data-i18n 이 없다(정적) ──────────────────── */
 check('런타임 변경 요소에 data-i18n 이 없다', () => {
-  const bad = [];
-  const re = /<([a-z0-9]+)([^>]*\bid="(qtext|scoreNow|timeNow|qNo|qtier|finalScore)"[^>]*)>/gi;
+  /* ★그물을 id 목록으로 치지 않는다 — 새로 생긴 요소가 조용히 빠져나간다(R1 254 지적).
+     ★스크립트가 textContent/innerHTML 을 채우는 id 를 ★소스에서 파생해 전량 검사한다. */
+  const dyn = new Set();
   let m;
-  while ((m = re.exec(RAW))) { if (/data-i18n/.test(m[2])) bad.push(m[2].match(/id="([^"]+)"/)[1]); }
-  return { ok: bad.length === 0, note: bad.length ? ('★' + bad.join(',')) : '식·점수·시간·번호 칸 전부 없음' };
+  const reA = /\$\('([A-Za-z0-9_-]+)'\)\.(?:textContent|innerHTML)\s*=/g;
+  while ((m = reA.exec(SRC))) dyn.add(m[1]);
+  const reB = /\b(el[A-Z][A-Za-z0-9]*)\.(?:textContent|innerHTML)\s*=/g;
+  const alias = {};
+  let m2;
+  const reC = /\b(el[A-Z][A-Za-z0-9]*)\s*=\s*\$\('([A-Za-z0-9_-]+)'\)/g;
+  while ((m2 = reC.exec(SRC))) alias[m2[1]] = m2[2];
+  while ((m = reB.exec(SRC))) if (alias[m[1]]) dyn.add(alias[m[1]]);
+  if (dyn.size < 5) return { ok: false, note: '★파생 실패 — 동적 id 를 ' + dyn.size + '개만 찾았다(표본 미성립)' };
+  const bad = [];
+  dyn.forEach(id => {
+    const re = new RegExp('<[a-z0-9]+([^>]*\\bid="' + id + '"[^>]*)>', 'i');
+    const t = RAW.match(re);
+    if (t && /data-i18n/.test(t[1])) bad.push(id);
+  });
+  return { ok: bad.length === 0, note: bad.length ? ('★' + bad.join(',')) : ('소스 파생 동적 id ' + dyn.size + '개 전량 없음') };
 });
 
 /* ── ⑮ 관측 창구는 읽기 전용 ─────────────────────────────────────────── */
@@ -471,6 +550,158 @@ check('관측 창구는 읽기 전용', () => {
   const still = k.deck[0].ans !== -12345;
   return { ok: k.score === before && cmds.length === 0 && still,
            note: '명령 ' + cmds.length + '개 · 점수 쓰기 ' + (k.score === before ? '막힘' : '★뚫림') + ' · 덱 ' + (still ? '사본' : '★원본 노출') };
+});
+
+
+/* ── C ★행동이 난수를 소비하지 않는다 — ★계수로 직접 잰다(덱 동일성은 대리물) ── */
+check('행동이 난수를 한 번도 안 당긴다(계수)', () => {
+  const W = makeWorld({ today: new Date(2026, 5, 6) });
+  startDaily(W); must(W, '계수');
+  const k = W.win.__quickmath;
+  const afterBuild = k.rngUses;
+  const randAfterBuild = W.randomCalls();
+  if (!(afterBuild > 0)) return { ok: false, note: '★판을 짜며 덱 난수를 한 번도 안 썼다(표본 미성립)' };
+  let taps = 0;
+  for (let step = 0; step < 10 && k.running; step++) {
+    const q = k.deck[k.idx];
+    for (let i = 0; i < 4; i++) if (i !== q.correct) { tapOpt(W, i); taps++; }
+    tapOpt(W, q.correct); taps++;
+  }
+  const dRng = k.rngUses - afterBuild;
+  const dRandom = W.randomCalls() - randAfterBuild;
+  return { ok: dRng === 0 && dRandom === 0 && taps > 0,
+           note: '탭 ' + taps + '회 · 덱난수 +' + dRng + ' · 전역 Math.random +' + dRandom + ' (둘 다 0 이어야 한다)' };
+});
+
+/* ── B ★하루 경계의 권위 = 사용자의 로컬 달력 (기존 21/22 종과 같다) ── */
+check('하루 경계는 로컬 달력이다', () => {
+  const bad = [];
+  [[0, 5], [8, 30], [12, 0], [22, 15], [23, 59]].forEach(([h, mi]) => {
+    const W = makeWorld({ today: new Date(2026, 2, 15, h, mi) });
+    startDaily(W); must(W, 'tz');
+    const want = 'hanpango-daily-quick-math-2026-03-15';
+    if (W.win.__quickmath.seedKey !== want) bad.push(h + ':' + mi + ' → ' + W.win.__quickmath.seedKey);
+  });
+  /* 정적으로도 못박는다 — 시간대 보정이 들어오면 붉어진다 */
+  const seg = SRC.slice(SRC.indexOf('function dayKey'), SRC.indexOf('function dayKey') + 260);
+  if (/getTimezoneOffset|toISOString|getUTC|timeZone/.test(seg)) bad.push('★dayKey 에 시간대 보정이 들어왔다');
+  return { ok: bad.length === 0, note: bad.length ? bad.join(' / ') : '하루 5시각 전부 로컬 날짜와 일치 · 시간대 보정 0건' };
+});
+
+/* ── O ★판은 시작한 날에 귀속된다(자정 롤오버) ── */
+check('판은 시작한 날에 귀속된다', () => {
+  const D0 = new Date(2026, 6, 10, 23, 59, 0);
+  const W = makeWorld({ today: D0 });
+  startDaily(W); must(W, '롤오버');
+  const k = W.win.__quickmath;
+  const day0 = k.runDay;
+  W.setDay(new Date(2026, 6, 11, 0, 1, 0));      /* 자정을 넘긴다 */
+  W.advance(30001);
+  const fn = W.rafQ[W.rafQ.length - 1]; if (typeof fn === 'function') fn();
+  if (k.running) return { ok: false, note: '★판이 안 끝났다(표본 미성립)' };
+  const rec = k.dailyRecord;
+  const doneNow = k.dailyDone;
+  return { ok: rec && rec.date === day0 && day0 === '2026-07-10' && doneNow === false,
+           note: '저장 날짜 ' + (rec && rec.date) + ' (시작일 ' + day0 + ') · 자정 뒤 오늘 완료여부 ' + doneNow +
+                 ' → 어제 판을 끝내도 오늘 판은 열려 있다' };
+});
+
+/* ── A ★하루 1회 — 완료 뒤 daily 버튼은 새 판을 시작하지 않는다 ── */
+check('완료 뒤 daily 는 새 판을 시작하지 않는다', () => {
+  const W = makeWorld({ today: new Date(2026, 7, 3, 10, 0, 0) });
+  startDaily(W); must(W, 'A-1');
+  const k = W.win.__quickmath;
+  let solved = 0;
+  for (let i = 0; i < 7 && k.running; i++) { const q = k.deck[k.idx]; tapOpt(W, q.correct); solved++; }
+  W.advance(30001);
+  const fn = W.rafQ[W.rafQ.length - 1]; if (typeof fn === 'function') fn();
+  if (k.running) return { ok: false, note: '★첫 판이 안 끝났다(표본 미성립)' };
+  const first = k.dailyRecord;
+  if (!first || first.score !== solved) return { ok: false, note: '★첫 기록이 안 남았다(표본 미성립) ' + JSON.stringify(first) };
+  W.els.btnDaily.fire('click');
+  const after = k.dailyRecord;
+  return { ok: k.running === false && k.replaying === true && after.score === first.score,
+           note: '재클릭 뒤 running ' + k.running + ' · replaying ' + k.replaying +
+                 ' · 기록 ' + first.score + ' → ' + after.score + '(그대로여야 한다)' };
+});
+
+/* ── A ★재열람은 그날 기록을 덮지 않는다(데이터 손실 봉쇄) ── */
+check('재열람이 기록을 덮지 않는다', () => {
+  const W = makeWorld({ today: new Date(2026, 7, 4, 9, 0, 0) });
+  startDaily(W); must(W, 'A-2');
+  const k = W.win.__quickmath;
+  let solved = 0;
+  for (let i = 0; i < 9 && k.running; i++) { const q = k.deck[k.idx]; tapOpt(W, q.correct); solved++; }
+  W.advance(30001);
+  const fn = W.rafQ[W.rafQ.length - 1]; if (typeof fn === 'function') fn();
+  const before = W.store['qm.daily'];
+  W.els.btnDaily.fire('click');        /* 재열람 */
+  W.els.btnAgain.fire('click');        /* 시작 화면으로 */
+  W.els.btnDaily.fire('click');        /* 또 눌러 본다 */
+  /* ★여기서 멈추면 '아직 안 끝난 두 번째 판' 때문에 덮어쓰기가 관측되지 않는다 —
+     가드가 뚫렸을 때 실제로 저장까지 가도록 ★시계를 끝까지 밀어 준다. */
+  W.advance(30001);
+  const fn2 = W.rafQ[W.rafQ.length - 1]; if (typeof fn2 === 'function') fn2();
+  const after = W.store['qm.daily'];
+  return { ok: before === after && JSON.parse(after).score === solved,
+           note: '저장본 ' + (before === after ? '불변' : '★바뀜') + ' · 점수 ' + JSON.parse(after).score + '(맞힌 ' + solved + ')' };
+});
+
+/* ── A ★연습 모드는 완료 뒤에도 무제한이다 ── */
+check('연습 모드는 완료 뒤에도 열려 있다', () => {
+  const W = makeWorld({ today: new Date(2026, 7, 5, 9, 0, 0) });
+  startDaily(W); must(W, 'A-3');
+  const k = W.win.__quickmath;
+  W.advance(30001);
+  const fn = W.rafQ[W.rafQ.length - 1]; if (typeof fn === 'function') fn();
+  const doneBefore = k.dailyDone;
+  const rec = W.store['qm.daily'];
+  startFree(W);
+  const rec2 = W.store['qm.daily'];
+  return { ok: doneBefore === true && k.running === true && k.mode === 'free' && rec === rec2,
+           note: '완료 ' + doneBefore + ' → 연습 시작 running ' + k.running + ' mode ' + k.mode +
+                 ' · 일일 저장본 ' + (rec === rec2 ? '불변' : '★건드림') };
+});
+
+/* ── E ★거울상 — 언어를 바꾸면 동적 문구가 이전 언어로 남지 않는다 ── */
+check('언어를 바꾸면 동적 문구가 남지 않는다', () => {
+  const W = makeWorld({ today: new Date(2026, 8, 1, 9, 0, 0) });
+  startDaily(W); must(W, 'E');
+  const k = W.win.__quickmath;
+  const q = k.deck[0];
+  tapOpt(W, [0, 1, 2, 3].find(i => i !== q.correct));   /* 오답 — penalty 문구가 채워진다 */
+  W.advance(30001);
+  const fn = W.rafQ[W.rafQ.length - 1]; if (typeof fn === 'function') fn();
+  /* ko 사전에만 있는 값들을 모은다 — 구조로 뽑는다(id 하드코딩 아님) */
+  const koDict = {}, enDict = {};
+  let m;
+  const grab = (name, into) => {
+    const i = SRC.indexOf(name + ': {');
+    const seg = SRC.slice(i, SRC.indexOf('\n  }', i));
+    const re = /([A-Za-z0-9_]+)\s*:\s*'((?:[^'\\]|\\.)*)'/g;
+    while ((m = re.exec(seg))) into[m[1]] = m[2];
+  };
+  grab('ko', koDict); grab('en', enDict);
+  if (Object.keys(koDict).length < 10) return { ok: false, note: '★사전 파생 실패(표본 미성립)' };
+  W.els.btnLang.fire('click');                          /* → en */
+  const koOnly = Object.keys(koDict).filter(kk => enDict[kk] && enDict[kk] !== koDict[kk]).map(kk => koDict[kk]);
+  const leftovers = [];
+  Object.keys(W.els).forEach(id => {
+    const t = (W.els[id].textContent || '').trim();
+    if (t && koOnly.indexOf(t) >= 0) leftovers.push(id + '=' + t);
+  });
+  return { ok: leftovers.length === 0,
+           note: leftovers.length ? ('★이전 언어 잔류: ' + leftovers.join(' , ')) : ('ko 전용 문구 ' + koOnly.length + '종 대조 · 잔류 0') };
+});
+
+/* ── N ★포커스를 옮기고 나서 잠근다(정적 짝 · 판정 정본은 실브라우저) ── */
+check('오답 잠금 전에 포커스를 옮긴다(정적)', () => {
+  const i = SRC.indexOf('function choose');
+  const seg = SRC.slice(i, SRC.indexOf('optBtns.forEach((btn, i)', i));
+  const f = seg.indexOf('.focus()');
+  const d = seg.indexOf('btn.disabled = true');
+  return { ok: f >= 0 && d >= 0 && f < d,
+           note: f < 0 ? '★포커스 이동이 없다' : (d < 0 ? '★잠금이 없다' : ('focus@' + f + ' < disabled@' + d)) };
 });
 
 /* ------------------------------------------------------------ 판정 */
