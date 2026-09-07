@@ -11,222 +11,246 @@
       "expect": "caught-by",
       "target": "행동이 난수를 소비하지 않는다",
       "why": "정답을 맞힐 때마다 남은 문제를 맞힌 개수로 다시 굴린다 — 많이 틀린 사람과 다른 문제를 보게 된다",
-      "payload_sha256": "f029b4a40baacf9d655def99f040b421bbdb11ea9a3fd4e86336483f6725d285"
+      "payload_sha256": "a9bace48c8a265b72228f0d711ac92f32d899d1b65f6692d72dd58b6961c924c"
     },
     "m-deck-uses-clock": {
       "expect": "caught-by",
       "target": "판 짜기에 시계·성능·전역 난수가 안 섞인다",
       "why": "판 짜기에 시계를 섞는다 — 같은 seed 가 기기·시각마다 다른 판이 된다",
-      "payload_sha256": "e6877db25c8161dcc2dba8f3a9c9592b008f7d8de2538b2505550d8b7923f90e"
+      "payload_sha256": "bfc1de5b09b555b3e9d8c968652277fae72a72f132aa9d7b5450dd133c89b8cd"
     },
     "m-seed-ignores-day": {
       "expect": "caught-by",
       "target": "다른 날 = 다른 판",
       "why": "오늘의 도전 seed 에서 날짜를 뺀다 — 다른 날도 같은 판이 된다",
-      "payload_sha256": "40b9787b9c150a8afcc3ad7150b39464574f9b5bb781cc692107246cb0648238"
+      "payload_sha256": "5f1702b6a0e29602aefdbd16ad425a963459efba016dd1aa7ca73f27af2b6355"
     },
     "m-tier-follows-score": {
       "expect": "caught-by",
       "target": "난이도 계단은 문제 번호로만 정해진다",
       "why": "난이도를 문제 번호가 아니라 맞힌 개수로 정한다",
-      "payload_sha256": "08c302b519bfb3a32b967e3b02232932fb052cfe6317076c562dda846afb5de7"
+      "payload_sha256": "e8d8964e3c94ba2db438a30bda577686a0a5ae7c520c07e842552043ba2cdc4d"
     },
     "m-negative-answer": {
       "expect": "caught-by",
       "target": "값 범위와 연산 규칙",
       "why": "뺄셈에서 자리 교환을 없앤다 — 답이 음수가 된다",
-      "payload_sha256": "551312ee8f36441766caf93cd07ddf9dd19a189a11d738d3d473c081d9b72ae9"
+      "payload_sha256": "9c6e3158993b8277019d12a7be8e659a54c06339e288e18967e723f3a61d6a6c"
     },
     "m-division-not-exact": {
       "expect": "caught-by",
       "target": "값 범위와 연산 규칙",
       "why": "나눗셈을 딱 떨어지지 않게 만든다",
-      "payload_sha256": "cd15abb89fcedca8b164e5912027a3fe30c0bddc413cfd8cd19baec36fb5391a"
+      "payload_sha256": "b7577b083485113c5ce9a7df97a402b8afd490a49fdf0e45e030f652b1c9846c"
     },
     "m-wrong-delta-zero": {
       "expect": "caught-by",
       "target": "보기 넷 중 정답은 정확히 하나",
       "why": "오답 후보의 차이 목록에 0 을 넣는다 — 오답 자리에 정답이 들어가 보기에 정답이 둘이 된다",
-      "payload_sha256": "5f1fa6a8949d697b745b9fee40b2ae503db8588ce4fe7fdbd025f8430f07d6e3"
+      "payload_sha256": "c0a874072060a0b60e8ec32d9d64592e3f80c50a0d4900dbe33ac7ca36c6c150"
     },
     "m-penalty-wrong-amount": {
       "expect": "caught-by",
       "target": "오답 벌점은 정확히 3초",
       "why": "오답 벌점을 3초가 아니라 1초로 바꾼다",
-      "payload_sha256": "f7ac238e19496a2fb08a1555f52533149423b6cdf8f7012d4bce7bd3b0af6639"
+      "payload_sha256": "6adca8088d4dd5c38957823ca3c3b0ea472708697787ba5bbc17d3db11e95467"
     },
     "m-correct-does-not-advance": {
       "expect": "caught-by",
       "target": "정답이면 즉시 다음 문제",
       "why": "정답을 맞혀도 다음 문제로 안 넘어가게 만든다",
-      "payload_sha256": "c0a803449c9a1f3c7c905175a6fce8d21ecf29e85d843299694282121e5c8677"
+      "payload_sha256": "fb0a78ebf3fec94b2e34b9209fe2aab5d4c8134af5164ef58031aeae8ee747e9"
     },
     "m-deck-short": {
       "expect": "caught-by",
       "target": "선굴림 덱은 60문",
       "why": "선굴림 양을 60 에서 3 으로 줄인다 — 30초 안에 덱이 바닥난다",
-      "payload_sha256": "d8561aee1edf8786e5aa0518dd7a9c9144ad37023047854693d41ad5d870c1c6"
+      "payload_sha256": "12bdb3abd63a6f735ed2b82a70821b82b608600944e91e2730c5779ad6cd6239"
     },
     "m-choice-consumes-rng": {
       "expect": "caught-by",
       "target": "행동이 난수를 한 번도 안 당긴다(전역 계수)",
       "why": "보기를 고를 때 전역 난수를 한 번 당긴다 — 덱은 안 바뀌므로 ★덱 동일성 검사로는 안 보인다",
-      "payload_sha256": "6e700e916eae16c7c8f09c674f9536a06839c0bb910d6454e0002659be6f4ced"
+      "payload_sha256": "e7871a4c56a01e05f0d47b6a2596b2c64f6511ab37ecdf7ebf3ef6c698ea654a"
     },
     "m-miss-advances": {
       "expect": "caught-by",
       "target": "정답이면 즉시 다음 문제",
       "why": "오답에서도 다음 문제로 넘긴다 — master 253 이 확정한 반대 해석",
-      "payload_sha256": "f253db80675750c7b29b0ac80c0cd9f63211579644795f79a78a89f82c166078"
+      "payload_sha256": "825ef27731c4ad59e54db51f4382a0943b75e3054fa36e38f7a78ca4aae90e62"
     },
     "m-miss-locks-all": {
       "expect": "caught-by",
       "target": "오답이면 그 보기 하나만 잠긴다(동적)",
       "why": "오답에서 ★네 보기를 전부 잠근다 — 틀린 보기 하나만 죽는다는 계약이 깨진다",
-      "payload_sha256": "9c6c9c54190d46ad0dd8d0a47a95dfd9220f32c1a099fd3b4f2aa957d2de671c"
+      "payload_sha256": "ec845b47fd75cac106e35739a79cc12b249e17d56525e6bb59ee5cee8b1424f9"
     },
     "m-next-question-stays-locked": {
       "expect": "caught-by",
       "target": "오답이면 그 보기 하나만 잠긴다(동적)",
       "why": "다음 문제를 그릴 때 잠금을 안 푼다 — 한 번 틀린 자리는 판 끝까지 죽는다",
-      "payload_sha256": "23622084cce0cb90ac14985c2a8c9a5e9e8d8eecb6869928c83088f3f6530af6"
+      "payload_sha256": "59a2848d57aeddd41d117666a13a51989328e40937dfbd2a6290cc15a2e73a81"
     },
     "m-daily-replay-overwrites": {
       "expect": "caught-by",
       "target": "완료 뒤 daily 는 새 판을 시작하지 않는다",
       "why": "완료 뒤에도 daily 버튼이 새 판을 시작한다 — R1 BLOCKING 의 원형",
-      "payload_sha256": "3355a757f149996126ee5155d610a07813d8b90004d8833b8609935e23eca0fb"
+      "payload_sha256": "b6114ad22fc2dbd3fb473dc0a09b66f9ed55cad906f43053aff0656b2389fac3"
     },
     "m-save-guard-only": {
       "expect": "caught-by",
       "target": "다른 탭이 먼저 남긴 기록을 덮지 않는다(저장 가드 단독)",
       "why": "저장 가드 ★한 줄만 지운다 — 버튼 가드는 그대로 둔다(두 탭 구간의 ★안쪽 팔만 없앤다)",
-      "payload_sha256": "8081a23396f7ea6b437fc04297f2c32f83df28dc5f42447409aede2a9c818666"
+      "payload_sha256": "0b9db9681936e6b7b3d132990b9768e5b0a8a13b1bcad399ca4021a0a788d3f5"
     },
     "m-save-overwrites": {
       "expect": "caught-by",
       "target": "재열람이 기록을 덮지 않는다",
       "why": "버튼 가드와 저장 가드를 ★함께 없애 그날 기록을 덮어쓰게 한다 — R1 BLOCKING 의 데이터 손실 경로",
-      "payload_sha256": "a7fcdacada77e1f47627f96d4734987f037ef337c830d781921cc3533d6cc3fd"
+      "payload_sha256": "5bb29540024b88cece78031f0aab85cdf3946fab686e15f5bfe8d5633c43e927"
     },
     "m-daykey-utc": {
       "expect": "caught-by",
       "target": "하루 경계는 로컬 달력이다",
       "why": "하루 경계를 로컬에서 UTC 로 옮긴다 — 기존 21종과 갈라진다",
-      "payload_sha256": "87df84373301de408e126200007de4e31d709a1d7c963abb0931045389e61925"
+      "payload_sha256": "c86791b07fd0f6fb3fa794df2276ae91530d1dbffc46a485aa61a3cc74e7097d"
     },
     "m-run-belongs-to-end-day": {
       "expect": "caught-by",
       "target": "판은 시작한 날에 귀속된다",
       "why": "판을 끝난 날에 귀속시킨다 — 자정 넘긴 판이 오늘 기록을 먹는다",
-      "payload_sha256": "47df2cab2be6c0e5470e6a120ad037f3dbe87186063dd81a3983e08b8308fd96"
+      "payload_sha256": "510cf866869c82b2b5ee6358d430c1c46dab70fe75f4a8dd72108fdea56c9b74"
     },
     "m-penalty-text-hardcoded": {
       "expect": "caught-by",
       "target": "언어를 바꾸면 동적 문구가 남지 않는다",
       "why": "감점 배지 문구를 한국어로 박아 언어 전환에 안 따라오게 한다",
-      "payload_sha256": "a1aec7d344d323c5398cfb89beb2a9f8d3e2a6f30476b3b8a31df65bea123e1e"
+      "payload_sha256": "743f60763b6210655754f4f71226ab9a78994c589c79aef60f11dc2a1e22bc01"
     },
     "m-focus-after-disable": {
       "expect": "caught-by",
       "target": "오답 잠금 전에 포커스를 옮긴다(정적)",
       "why": "포커스를 옮기기 전에 버튼을 잠근다 — 키보드 사용자가 자리를 잃는다",
-      "payload_sha256": "c901e232fd60c02af6bba297e5956ca995b5ade7c61855a3e4b8ecbbd256b0fb"
+      "payload_sha256": "a42bd57f44ce4d422684d62c01b3d39892d002a8656a0013957cfe365e6063e7"
     },
     "m-replay-keeps-log": {
       "expect": "caught-by",
       "target": "재열람에 직전 판 목록이 남지 않는다",
       "why": "재열람 결과뷰가 ★직전 판의 목록을 그대로 돌려준다 — R2 Q 의 원형",
-      "payload_sha256": "8a054d9e20cf1a9002b779dca3af4b94e2ed425eafb94ebf4fa07bb9c5a04cdd"
+      "payload_sha256": "04c028cb3d75518dcf62672ed737eda6bcea46cec138aefaf5fb639b5fdcdbbe"
     },
     "m-applylang-conditional-review": {
       "expect": "quiet",
       "why": "언어 전환에서 목록을 조건부로만 다시 그린다 — ★뿌리 수리 뒤에는 무해하다(대조군)",
-      "payload_sha256": "8b4f7b92c13b50b8bd712a2df353512fb1246a4ebedd33791d95a31000d9f0b2"
+      "payload_sha256": "6f6376e96c373042cfc89578ddbc087677f30f32dcd432e5ed3c556aaf516c02"
     },
     "m-share-reads-live-state": {
       "expect": "caught-by",
       "target": "재열람 공유문이 그날 기록을 말한다",
       "why": "공유문이 결과뷰 대신 ★살아 있는 변수를 읽는다 — R2 R 의 원형",
-      "payload_sha256": "fdbbe5827e27ca39d7c86e768b801b065f7ce994a3e81caa11bdb60bcfd900d3"
+      "payload_sha256": "931abca3c48761392f146fe5caee42319a52736dab26952acb4c33a0aca77029"
     },
     "m-replay-accuracy-zero": {
       "expect": "caught-by",
       "target": "모르는 값을 지어내지 않는다",
       "why": "모르는 오답 수를 0 으로 채운다 — 정확도 100%/0% 라는 ★거짓이 나온다",
-      "payload_sha256": "ea5841e2a45eea0892bba31188305cf842bcda80c01f2289e58d7635201de840"
+      "payload_sha256": "0de3b0f5cf3eabe718acb0dbe92b81079af270b9ba25dd1617471ca6e414d111"
     },
     "m-en-missing-key": {
       "expect": "caught-by",
       "target": "ko·en 사전 키 집합이 같다",
       "why": "en 사전에서 키 둘을 뺀다 — 번역 누락이 거울상 검사를 ★무장해제하던 자리",
-      "payload_sha256": "52bf1a36d8c966ff4e3793d095f036ed83a0a07e8036f1cba5b2b8da3e89b133"
+      "payload_sha256": "da2724bf53a122982f9266aadfd8be49af79dabb3ffddf8cb5f9c14acebe5b29"
     },
     "m-deck-uses-random": {
       "expect": "caught-by",
       "target": "판 짜기에 시계·성능·전역 난수가 안 섞인다",
       "why": "판 짜기 구간에 전역 난수를 섞는다 — 같은 seed 로도 판이 갈라진다(정적 훑기가 보는 자리)",
-      "payload_sha256": "3da8dd8935d33c462590f64ced7b73988bbc071142a7df90f9147242460f3a2c"
+      "payload_sha256": "aa0767808160d608773fc82a4e2855a462192c84953caa38a2d18731afeff004"
     },
     "m-seed-includes-hour": {
       "expect": "caught-by",
       "target": "같은 날이면 시각이 달라도 같은 판",
       "why": "오늘의 도전 seed 에 ★시각을 섞는다 — 같은 날 오전과 오후가 다른 판이 된다",
-      "payload_sha256": "09dceb52439472f314b1516cbb4437649a7169242c24956d924d92200584b86f"
+      "payload_sha256": "3ee011ece1a0e23c5c12470a1f095a4af5a1aaeb4045a71ade9d556701c13f1b"
     },
     "m-dead-guard-removed": {
       "expect": "caught-by",
       "target": "잠긴 보기는 다시 세지 않는다",
       "why": "이미 잠긴 보기를 다시 세게 한다 — 같은 오답을 두 번 눌러 두 번 깎인다",
-      "payload_sha256": "daf0939f9c0fb5316c140a5d4bc89e41aa64b7a579b347d0e08298ba40f6dfd9"
+      "payload_sha256": "4ae658e642af282061e35829c81fc0432b19be975ebc629896db86f6079a0325"
     },
     "m-timeup-never-ends": {
       "expect": "caught-by",
       "target": "시간이 다 되면 판이 끝난다",
       "why": "시간이 다 돼도 판을 안 끝낸다 — 30초 계약이 사라진다",
-      "payload_sha256": "6e42fe23ffdca5961eab9aaf69eb1fcbb4af203a20cf77a8531c7f4480cfe25d"
+      "payload_sha256": "41d6b4304e265e2b3492af168079b22d4d6b045f4c48b4abf9f28a57c21a89b6"
     },
     "m-i18n-on-dynamic": {
       "expect": "caught-by",
       "target": "런타임 변경 요소에 data-i18n 이 없다",
       "why": "런타임에 내용이 바뀌는 요소(#qtext)에 data-i18n 을 단다 — 언어 전환이 진행 중 문제를 덮는다",
-      "payload_sha256": "63bd3d9a1c365c1726c9f93bb46735d73ee0dbc02a4eeae0608325fab5e3fb43"
+      "payload_sha256": "729916e311399d939cf088367b26bea5139f08a1153ff7c8f86c2fd55bfc2685"
     },
     "m-window-opens-command": {
       "expect": "caught-by",
       "target": "관측 창구는 읽기 전용",
       "why": "관측 창구에 ★명령을 하나 연다 — 읽기 전용이라는 자산이 무너진다",
-      "payload_sha256": "83c62dbb380dc5f45a8faf4507c5b3033e0249bde19941a02cd83621ce27409e"
+      "payload_sha256": "a963bebc049d49c60618817439355f355ce1bfb6210f2aafde527a330d9cacd5"
     },
     "m-practice-locked-after-daily": {
       "expect": "caught-by",
       "target": "연습 모드는 완료 뒤에도 열려 있다",
       "why": "일일 완주 뒤 연습 모드를 잠근다 — 연습은 무제한이라는 계약이 깨진다",
-      "payload_sha256": "a975e33c5f950c091c54524e3b270c02cd07b877093cf2b77cfe852e22303e2f"
+      "payload_sha256": "834662e4bca76e7592f1805a68fbe6405294aebca5db9a0a3e7f3a19bdeedcf3"
     },
     "m-quiet-control": {
       "expect": "quiet",
       "why": "★대조군 — 주석 한 줄만 바꾼다. 어떤 검사도 붉으면 안 된다",
-      "payload_sha256": "acfba6dc4bfae789ce36fbc42b7e94f9d36bf388c366bc0bd1e859499870e42c"
+      "payload_sha256": "139d66e6de1af2d56b8c481abf8dd78d0447d2870b5a90c669da3e50937bb657"
     },
     "m-lang-toggle-rebuilds-deck": {
       "expect": "caught-by",
       "target": "판 중 ★다른 행동도 난수를 안 당긴다(언어 전환·소리)",
       "why": "판 중에 언어를 바꾸면 남은 문제를 ★전역 난수로 다시 굴린다 — 탭만 굴리는 검사에는 안 보인다",
-      "payload_sha256": "abaa9f111dc846f3e29163082dd7ebccb36c070df376512c330ca60174237f11"
+      "payload_sha256": "e56434c92a52ee3ee729976aaf66d3cef7666dc27faa0572dc75c0ef9be983a6"
     },
     "m-round-shorter": {
       "expect": "caught-by",
       "target": "한 판은 30초",
       "why": "한 판을 30초에서 20초로 줄인다 — 같은 판을 견주는 기준 시간이 갈라진다",
-      "payload_sha256": "79168a71657b2445b81e6e49768af5db9dfe1397bc4a889842789faefafaa5c8"
+      "payload_sha256": "d5a213fe3b15301bbe25e700fe268d8f1c80b228a9b9a1a1f081790e1e7b1ef8"
     },
     "m-deck-shuffled-after-build": {
       "expect": "caught-by",
       "target": "같은 seed = 같은 판",
       "why": "판을 짠 ★뒤에 전역 난수로 한 번 섞는다 — 정적 훑기가 원리적으로 못 보는 자리다",
-      "payload_sha256": "474f9ee669d37b3837e358bb3314c75b94a7058d470535f3e07861321282daea"
+      "payload_sha256": "00af96b9e38f0641759998f3733d858e4720b301d40373d70e08f88862827195"
+    },
+    "m-en-extra-key": {
+      "expect": "caught-by",
+      "target": "ko·en 사전 키 집합이 같다",
+      "why": "en 사전에만 있는 키를 하나 더한다 — ko 에 없는 번역이 남는 거울상 결함(enOnly 항이 여태 분모 0 이었다)",
+      "payload_sha256": "0bb8a71ca3087181706a987426b8c5bb1b5415d8242daea02025830fe6f34d04"
+    },
+    "m-miss-locks-other": {
+      "expect": "caught-by",
+      "target": "오답이면 그 보기 하나만 잠긴다(동적)",
+      "why": "오답을 눌렀을 때 ★누른 보기 대신 다른 보기를 잠근다 — 개수 항은 통과하고 신원 항만 잡는다",
+      "payload_sha256": "251811764461a15cdafb569c8c29aa6741505f2b259c813b8732a591982b2be5"
+    },
+    "m-share-says-practice": {
+      "expect": "caught-by",
+      "target": "재열람 공유문이 그날 기록을 말한다",
+      "why": "오늘의 도전 기록을 공유하면서 문장에 연습 이라고 적는다 — 날짜·점수 항은 통과한다",
+      "payload_sha256": "2aa7d0a4bc4e244f224d86ac5e5befcf9942bf58265d8503b3500afa8dd88e1c"
+    },
+    "m-review-invents-missed": {
+      "expect": "caught-by",
+      "target": "모르는 값을 지어내지 않는다",
+      "why": "기록에 없는 틀림 수를 0 으로 지어낸다 — 정확도·공유문 항은 안 움직인다",
+      "payload_sha256": "a6bde64b731a93c2dea9e277975d5c6c2c166c897657dc57cee95bf38367baa7"
     }
   },
-  "_payload_why": "★payload_sha256 = 검사기의 apply 소스(앵커+대체문) 해시다(줄끝 정규화). 왜 있나(2026-09-07 R3 F2 실측): 검사 본문과 그 검사를 겨냥한 뮤테이션의 payload 가 ★같은 파일에 있어 ★한 손으로 함께 무르게 만들 수 있었고, 그때 이 정본은 이름·짝짓기만 봐서 ★바이트 하나 안 바뀐 채 초록이 났다. 이제 payload 가 바뀌면 정본과 갈려 ★rc=2 다. 값을 손으로 옮겨 적지 마라 — `node tools/verify_quickmath.js --payload-hashes` 가 정본이다."
+  "_payload_why": "★payload_sha256 = 검사기 소스의 ★뮤테이션 항목 블록 전체(이름·why·target·apply) 해시다(줄끝 정규화). ★계산은 러너가 검사기 소스를 직접 읽어 한다 — 검사기에게 묻지 않는다(2026-09-08 R4 F9: 검사기가 자기 지문을 계산하던 때는 훼손자가 같은 파일에서 세 곳(검사 본문·payload·해시 함수)을 고쳐 '37/37 일치' 라는 거짓 안심 문장을 받아 냈다). 값을 손으로 옮겨 적지 마라 — 갈리면 러너가 rc=2 로 멈춘다."
 }

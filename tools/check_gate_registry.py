@@ -14,8 +14,14 @@
 ■ 무엇을 재나 (계약 세 문장)
   ① tools/ 의 ★모든 파일은 `tools/gates.json` 에 정확히 한 번 선언돼 있다
      (gates · per_game · non_gate_tools 중 하나 — 비게이트는 ★사유와 함께).
-  ② `gates[]` 의 모든 항목은 DEPLOY.md 의 ★체크리스트 줄에 파일 경로가 적혀 있다.
+  ② `gates[]` ★와 `per_game[]` 의 모든 항목은 DEPLOY.md 의 ★체크리스트 줄에 파일 경로가 적혀 있다
+     (묶음표기 `tools/verify_{a,b}.js` 는 ★전개해서 센다).
   ③ DEPLOY.md 체크리스트가 부르는 `tools/…` 는 전부 gates.json 에 선언돼 있다.
+
+  ★2026-09-08 R4 F7: ② 의 분모가 `gates[]` 21종뿐이라 **per_game 30종이 그물 밖**이었다.
+  그래서 DEPLOY 에서 `verify_quickmath.js` 를 ★개명하면 ③ 에 걸리는데 ★삭제하면 아무 방향도
+  안 걸려 rc=0 이었다(리뷰어 M6·M7 실측). 하필 그 30종에 이번 라운드의 핵심 게이트 2개가 있었다.
+  이 도구의 자기 문장 "만들어 놓고 안 도는 검사는 없는 것과 같다" 가 30종에 대해 ★거짓이었다.
   집계는 ★이 파일이 세지 않는다 — gates.json 의 길이에서 파생시켜 찍는다.
 
 ■ 종료코드: 0 = 전부 성립 · 1 = 미달(등재 누락·미선언 파일) · 2 = ★판정 불가
@@ -87,6 +93,8 @@ def actual_tool_files(root):
 
 CHECKBOX = re.compile(r'^\s*-\s\[[ x]\]\s')
 TOOLREF = re.compile(r'tools/[A-Za-z0-9_./-]+')
+# ★묶음표기: tools/run_mutations_{tensec,stop}.py → 두 경로로 전개한다
+BRACE = re.compile(r'(tools/[A-Za-z0-9_./-]*)\{([^{}]+)\}([A-Za-z0-9_./-]*)')
 
 
 def deploy_checklist_refs(root):
@@ -104,15 +112,19 @@ def deploy_checklist_refs(root):
         elif in_item and ln.strip() and not ln.startswith((' ', '\t')):
             in_item = False           # 들여쓰기가 끝나면 그 항목도 끝이다
         if in_item:
-            for m in TOOLREF.findall(ln):
-                # ★중괄호·꺾쇠가 든 표기는 ★파일 이름이 아니라 묶음 표기다(run_mutations_{a,b}.py)
-                if '{' in ln[max(0, ln.find(m) - 1):ln.find(m) + len(m) + 1]:
+            # ★묶음표기를 ★전개해서 센다 — 앞서는 통째로 버려서 per_game 이 그물 밖이었다
+            for pre, body, post in BRACE.findall(ln):
+                for one in body.split(','):
+                    refs.add(pre + one.strip() + post)
+            for m in TOOLREF.finditer(ln):
+                # ★묶음표기의 ★앞토막(tools/verify_ 뒤에 '{')은 파일 이름이 아니다 — 위에서 이미 전개했다
+                if ln[m.end():m.end() + 1] == '{':
                     continue
-                refs.add(m)
+                refs.add(m.group(0))
     cleaned = set()
     for r in refs:
         r = r.rstrip('.·,)')
-        if '{' in r or '<' in r:
+        if '{' in r or '}' in r or '<' in r:
             continue
         cleaned.add(r)
     return cleaned, None
@@ -180,15 +192,18 @@ def check(root):
     if missing:
         rc2.append('선언됐는데 실재하지 않는 파일 %d건' % len(missing))
 
-    # ── 방향 ③ gates[] → DEPLOY.md 체크리스트
-    unlisted = sorted(f for f in gate_files if f not in refs)
-    print('③ 게이트인데 ★DEPLOY.md 체크리스트에 없다     %d' % len(unlisted))
+    # ── 방향 ③ gates[] ★+ per_game[] → DEPLOY.md 체크리스트
+    #   ★분모를 여기 적는다 — 분모를 안 적으면 "미등재 0" 이 무엇에 대한 0 인지 알 수 없다.
+    must_listed = gate_files + game_files
+    unlisted = sorted(f for f in must_listed if f not in refs)
+    print('③ 등재돼야 하는데 ★DEPLOY.md 체크리스트에 없다 %d  (분모 %d = 게이트 %d + 게임별 %d · 묶음표기는 전개해서 센다)'
+          % (len(unlisted), len(must_listed), len(gate_files), len(game_files)))
     for f in unlisted:
         print('      %s   ★만들어 놓고 안 도는 검사는 없는 것과 같다' % f)
     if not unlisted:
         print('      없음 (★이 줄이 부재의 증거다)')
     if unlisted:
-        rc1.append('DEPLOY 미등재 게이트 %d건' % len(unlisted))
+        rc1.append('DEPLOY 미등재 %d건(게이트+게임별)' % len(unlisted))
 
     # ── 방향 ④ DEPLOY.md 체크리스트 → 정본
     stray = sorted(r for r in refs if r not in set(declared))
@@ -206,8 +221,8 @@ def check(root):
     if rc1:
         print('★미달 — ' + ' · '.join(rc1))
         return 1
-    print('통과 · 게이트 %d종이 정본에서 파생되고 DEPLOY 체크리스트와 ★양방향으로 맞는다 '
-          '(게임별 %d · 비게이트 %d 는 사유와 함께 선언돼 있다)'
+    print('통과 · 게이트 %d종 + 게임별 %d종이 정본에서 파생되고 DEPLOY 체크리스트와 ★양방향으로 맞는다 '
+          '(비게이트 %d 는 사유와 함께 선언돼 있다)'
           % (len(gate_files), len(game_files), len(non_files)))
     return 0
 
@@ -256,6 +271,23 @@ def selftest(root):
             os.remove(os.path.join(w, victim.replace('/', os.sep)))
             return '정본이 선언한 %s 가 사라졌다(목록 노후화 → 판정 불가)' % victim
 
+        def m_del_deploy_pergame(w):
+            # ★F7 의 자리 — per_game 의 핵심 게이트를 DEPLOY 에서 ★통째로 삭제한다(개명이 아니다)
+            victim = 'tools/verify_quickmath.js'
+            p = os.path.join(w, 'DEPLOY.md')
+            t = io.open(p, encoding='utf-8', newline='').read()
+            out = [ln for ln in t.split('\n') if victim not in ln]
+            io.open(p, 'w', encoding='utf-8', newline='').write('\n'.join(out))
+            return '%s 가 DEPLOY 에서 ★통째로 삭제됐다(R4 M6 · 앞서는 rc=0 이었다)' % victim
+
+        def m_del_deploy_runner(w):
+            victim = 'tools/run_mutations_quickmath.py'
+            p = os.path.join(w, 'DEPLOY.md')
+            t = io.open(p, encoding='utf-8', newline='').read()
+            out = [ln for ln in t.split('\n') if victim not in ln]
+            io.open(p, 'w', encoding='utf-8', newline='').write('\n'.join(out))
+            return '%s 가 DEPLOY 에서 ★통째로 삭제됐다(R4 M7 · 앞서는 rc=0 이었다)' % victim
+
         def m_del_deploy(w):
             victim = d['gates'][0]['file']
             p = os.path.join(w, 'DEPLOY.md')
@@ -271,13 +303,19 @@ def selftest(root):
             io.open(p, 'w', encoding='utf-8', newline='').write(json.dumps(g, ensure_ascii=False, indent=2))
             return '비게이트에서 ★사유가 사라졌다(사유 없는 강등)'
 
-        print('검출력 자기시험 — 사례 5건(대조군 1 포함 · 임시 사본에만 심는다)')
-        results = [
-            run_case('case-quiet', m_none, 0),
-            run_case('case-ghost-file', m_ghost, 1),
-            run_case('case-missing-file', m_del_file, 2),
-            run_case('case-deploy-unlisted', m_del_deploy, 1),
-            run_case('case-nonwhy', m_no_why, 2),
+        cases = [
+            ('case-quiet', m_none, 0),
+            ('case-ghost-file', m_ghost, 1),
+            ('case-missing-file', m_del_file, 2),
+            ('case-deploy-unlisted', m_del_deploy, 1),
+            ('case-pergame-verify-deleted', m_del_deploy_pergame, 1),
+            ('case-pergame-runner-deleted', m_del_deploy_runner, 1),
+            ('case-nonwhy', m_no_why, 2),
+        ]
+        # ★머리말의 수는 ★목록의 길이에서 파생한다 — 손으로 적으면 사례가 늘어난 날 거짓이 된다
+        print('검출력 자기시험 — 사례 %d건(대조군 1 포함 · 임시 사본에만 심는다)' % len(cases))
+        results = [run_case(*c) for c in cases]
+        _unused = [
         ]
         bad = results.count(False)
         print('')

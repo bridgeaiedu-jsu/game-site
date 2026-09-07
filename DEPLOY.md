@@ -171,6 +171,15 @@ Sitemap: https://hanpango.com/sitemap.xml
          규칙 4개: 형태(`precache-url-shape`) · 디렉터리 표기(`precache-dir-form` — `/about` 처럼 후행 슬래시가 빠지면 308 로 addAll 이 깨진다) · 실재(`precache-target-exists`) · 중복(`precache-duplicate`).
    - [ ] `node tools/check_page_assets.mjs .` → **rc=0 일 때만** 통과다. 페이지가 요청시키는 동일 오리진 하위 자원(문서·`/api/`·서비스워커 스크립트 제외)이 `PRECACHE` 에 없으면 미달이다.
          조립되는 경로는 데이터 전개로 **갈음**하고, 못 푸는 조립은 통과가 아니라 **판정 불가**다.
+   - [ ] `node tools/check_overflow_360.mjs .` → **rc=0 일 때만** 통과다. 폭 **360px** 에서
+         ★어떤 요소도 자기 컨테이너를 가로로 넘지 않는지를 **실브라우저 렌더 치수**로 잰다
+         (스크롤 상자를 가진 요소 전수 · `scrollWidth <= clientWidth + 1`). 상태 셋(시작 오버레이 ·
+         판 진행 중 · 결과 오버레이)을 각각 잰다. ★사정거리를 출력 첫 줄에 찍는다 — 지금 대상은
+         `quick-math/index.html` 한 장이고 `--pages a,b` 로 늘린다. 낭독 전용(sr-only) 1px 상자는
+         ★사유와 함께 세어서 뺀다(눈에 보이는 넘침이 아니다). `--selftest` 로 검출력을 잰다.
+         ★왜 있나(2026-09-08 R4 F5): 결과 카드의 광고 자리가 고정 300px 라 카드(clientWidth 296)를
+         넘어 카드 안에 가로 스크롤이 생기고 우변이 잘렸는데, **그 계약을 재는 검사가 없어서**
+         두 라운드를 살아남았다. 선언 훑기(`max-width` 가 있는가)는 대리물이다.
    - [ ] `python3 tools/check_gate_registry.py .` → **rc=0 일 때만** 통과다. ★게이트 목록이
          `tools/gates.json`(기계 판독처)에서 ★파생되는지와, 그 목록이 이 체크리스트·`tools/` 실재
          파일과 ★양방향으로 맞는지를 잰다. `--selftest` 로 검출력을 잰다(사례 5건 · 대조군 포함).
@@ -227,7 +236,14 @@ Sitemap: https://hanpango.com/sitemap.xml
          적은 수가 아니라 `--list-mutations` 와 검사 목록에서 ★기계로 뽑고, 정본
          (`tools/quickmath_locked_contracts.json` · `tools/quickmath_mutation_expectations.json`)과
          ★양방향으로 대조한다 — 항인데 짊어지는 검사가 없거나, 검사인데 어느 항도 안 짊어지면 미달이다.
-         형제 게임도 같다: `run_mutations_{tensec,stop,fakeone,reverse,higherlower,bomb,push,four,gomoku,howmany,together}.py`.
+         형제 게임도 같다: `tools/run_mutations_{tensec,stop,fakeone,reverse,higherlower,bomb,push,four,gomoku,howmany,together}.py`
+         · 「오늘의 낱말」은 이름이 다르다: `tools/run_mutations.py`.
+   - [ ] 형제 게임의 **검증기**도 같은 규칙이다 — 그 라운드에서 손댄 게임의 것을 ★커밋본 바이트로 돌린다:
+         `tools/verify_{bomb,fakeone,four,gomoku,higherlower,howmany,justright,memory,nonogram,push,puzzle_tray,reverse,stop,tensec,together,word}.js`
+         (「빠른 셈」은 위 항목에 따로 적혀 있다).
+         ★왜 여기 적나(2026-09-08 R4 F7): 등록부의 방향③ 분모가 `gates[]` 21종뿐이라 **게임별 30종이
+         그물 밖**이었다 — DEPLOY 에서 `verify_quickmath.js` 를 ★개명하면 잡히는데 ★삭제하면 rc=0 이었다.
+         이제 분모가 `gates[] + per_game` 이고 이 묶음표기는 검사기가 ★전개해서 센다.
    - (참고 · 체크리스트 항목 아님) `gemini_timer_probe.mjs` 는 자정 예약 타이머를 가상시계로 재는
      하네스인데 **`tools/` 밖에 있다**(리뷰 산출물). 저장소 관례에 맞추는 비용이 달라 아직 들이지
      않았다 — 존재를 알리기 위해 여기 적어 둔다. 그 축은 지금 배포 체크리스트로는 **안 보인다**.

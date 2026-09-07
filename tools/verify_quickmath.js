@@ -21,7 +21,6 @@
  *   node tools/verify_quickmath.js --list-mutations
  *   node tools/verify_quickmath.js --mutate m-choice-consumes-rng
  *   node tools/verify_quickmath.js --from-commit <해시>   ★커밋본 바이트를 그대로 잰다
- *   node tools/verify_quickmath.js --payload-hashes       ★뮤테이션 payload 지문(정본 대조용)
  *   node tools/verify_quickmath.js --repo <저장소 루트>   ★사본으로 부를 때 git 이 볼 저장소
  *
  * 종료코드: 0 = 전부 통과 · 1 = 미달 있음 · 2 = 검사를 세울 수 없음(하네스·주입 실패)
@@ -299,6 +298,40 @@ const MUTATIONS = {
     target: '한 판은 30초',
     apply: s => s.replace('const ROUND_MS = 30000;', 'const ROUND_MS = 20000;')
   },
+  'm-en-extra-key': {
+    /* ★거울상 — m-en-missing-key 의 반대 방향이다(2026-09-08 R4 F8 항 훑기).
+       ko 에 없는 키가 en 에만 생기는 결함은 ★enOnly 항 하나만 잡는다. 그 항은 여태
+       어떤 변이도 기대지 않는 ★분모 0 이었다. */
+    why: 'en 사전에만 있는 키를 하나 더한다 — ko 에 없는 번역이 남는 거울상 결함',
+    target: 'ko·en 사전 키 집합이 같다',
+    apply: s => s.replace("    daily:'Daily challenge', dailyDone:'Daily done', practice:'Practice',",
+                          "    daily:'Daily challenge', dailyDone:'Daily done', practice:'Practice', qmOrphan:'orphan',")
+  },
+  'm-miss-locks-other': {
+    /* ★'하나만 잠긴다' 는 지켜지는데 ★잠기는 것이 ★누른 보기가 아닌 결함.
+       개수 항(afterMiss.length === 1)은 통과하고 ★신원 항(afterMiss[0] === wrong)만 잡는다. */
+    why: '오답을 눌렀을 때 ★누른 보기 대신 다른 보기를 잠근다 — 개수는 하나 그대로다',
+    target: '오답이면 그 보기 하나만 잠긴다(동적)',
+    apply: s => s.replace('    btn.disabled = true;',
+                          '    (alive.length ? alive[0] : btn).disabled = true;')
+  },
+  'm-share-says-practice': {
+    /* ★공유문이 날짜·점수는 맞게 적으면서 ★연습이라고 말하는 결함.
+       hasDay·hasScore 는 통과하고 ★!saysPractice 항만 잡는다. */
+    why: '오늘의 도전 기록을 공유하면서 문장에 ★연습 이라고 적는다 — 날짜·점수는 맞다',
+    target: '재열람 공유문이 그날 기록을 말한다',
+    apply: s => s.replace("  const when = (v.mode === 'daily') ? v.day : (lang === 'ko' ? '연습' : 'practice');",
+                          "  const when = ((v.mode === 'daily') ? v.day : (lang === 'ko' ? '연습' : 'practice'))"
+                          + " + (lang === 'ko' ? ' 연습' : ' practice');")
+  },
+  'm-review-invents-missed': {
+    /* ★모르는 값을 0 으로 지어내는 결함 중 ★틀림 칸만 건드린 경우.
+       정확도·공유문 항은 통과하고 ★nBad 항만 잡는다(m-replay-accuracy-zero 와 다른 자리다). */
+    why: '기록에 없는 ★틀림 수를 0 으로 지어낸다 — 정확도 칸은 그대로 – 라 다른 항은 안 움직인다',
+    target: '모르는 값을 지어내지 않는다',
+    apply: s => s.replace("    $('nBad').textContent = '–';",
+                          "    $('nBad').textContent = '0';")
+  },
   'm-quiet-control': {
     why: '★대조군 — 주석 한 줄만 바꾼다. 어떤 검사도 붉으면 안 된다',
     target: null,
@@ -307,20 +340,11 @@ const MUTATIONS = {
   }
 };
 
-/* ★payload 지문 — 뮤테이션의 ★대체문까지 정본에 못박는 값(F2 수리).
-   왜 필요한가: 검사 본문과 그 검사를 겨냥한 뮤테이션의 payload 가 ★같은 파일에 있어
-   ★한 손으로 함께 무르게 만들 수 있었다. 정본 JSON 은 이름·짝짓기만 보므로 그때
-   ★정본 바이트가 하나도 안 바뀐 채 초록이 나왔다(2026-09-07 R3 reviewer-claude-2 실측).
-   ⇒ apply 소스를 해시해 정본에 적어 두면, 함께 무르게 하는 순간 ★정본과 갈려 rc=2 다.
-   ★줄끝은 정규화한다 — CRLF 체크아웃과 LF 커밋본이 같은 값을 내야 한다. */
-function payloadHash(m) {
-  return crypto.createHash('sha256')
-               .update(String(m.apply).replace(/\r\n/g, '\n'), 'utf8').digest('hex');
-}
-if (has('--payload-hashes')) {
-  Object.keys(MUTATIONS).forEach(k => console.log([k, payloadHash(MUTATIONS[k])].join('\t')));
-  process.exit(0);
-}
+/* ★payload 지문은 ★여기서 계산하지 않는다(2026-09-08 R4 F9).
+   앞서는 이 파일이 자기 payload 해시를 계산해 러너에게 알려 줬다 — 그러면 훼손자가
+   ★같은 파일 안에서 세 곳(검사 본문 · payload · 해시 함수)을 고쳐 정본을 속일 수 있었고,
+   그때 러너는 '지문 대조 37/37 일치' 라는 ★적극적으로 틀린 안심 문장을 찍었다(리뷰어 E2 실측).
+   ⇒ 지문은 ★러너가 이 파일의 소스를 직접 읽어 계산한다. 검사기에게 묻지 않는다. */
 
 if (has('--list-mutations')) {
   /* ★탭으로 가른다 — 기계가 읽는 출력을 사람 눈의 정렬(칸 너비)에 기대게 하면, 이름이 칸을

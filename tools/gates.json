@@ -129,6 +129,12 @@
       "cmd": "브라우저 페이지 문맥에서 평가한다(예: 대문을 연 탭에서 이 파일을 evaluate) — ★node CLI 가 아니다",
       "when": "on-change:색·카드(@media 는 명시도를 안 올려 선언이 다 있어도 다크에서 라이트 색이 그려진다)",
       "why": "가상요소 ::before 배경색까지 getComputedStyle 로 ★그려진 값을 본다"
+    },
+    {
+      "file": "tools/check_overflow_360.mjs",
+      "cmd": "node tools/check_overflow_360.mjs .",
+      "when": "always",
+      "why": "폭 360px 에서 ★어떤 요소도 자기 컨테이너를 가로로 넘지 않는다(실브라우저 렌더 치수). 사정거리는 출력 첫 줄에 찍는다 — 지금은 quick-math 한 장 × 상태 3종이다."
     }
   ],
   "per_game": [
@@ -379,5 +385,6 @@
       "file": "tools/runtime-module-exports.json",
       "why": "check_functions.mjs 가 `cloudflare:` 처럼 이 Node 로 확인할 수 없는 접두를 만났을 때만 읽는 허용 목록이다. 지금 트리에는 ★없다 — 그 접두를 쓰기 시작하면 그때 만든다(없으면 rc=2 로 멈춘다)."
     }
-  ]
+  ],
+  "_direction3": "방향③(DEPLOY 등재 요구)의 분모는 ★gates[] + per_game 이다(2026-09-08 R4 F7 수리). gates[] 만 보던 때는 per_game 30종이 그물 밖이라, DEPLOY 에서 ★개명하면 잡히고 ★삭제하면 rc=0 이었다 — 하필 그 30종에 라운드의 핵심 게이트 2개가 있었다."
 }

@@ -189,6 +189,103 @@ def materialize_from_rev(rev, want):
     return out, None
 
 
+def assertion_sweep(path_):
+    """검사마다 ★판정식의 최상위 항(&&) 수를 센다 — ★손계산을 금지하기 위한 절이다.
+
+    ★왜 러너 안에 있나(2026-09-08 R4 F8): R3 보고의 "단언2+ 23/31" 은 ★어떤 도구도 산출하지 않는
+    일회성 손계산이었다. 트리 전체 grep 0건이라 ★다음 라운드에 아무도 다시 세지 않고,
+    나머지 8 이 무엇인지도 재현되지 않았다. 이제 매 실행이 이 수를 다시 낸다.
+
+    ★이 수는 대리물이다(계약의 절 수가 아니라 판정식의 항 수다). 그래서 ★판정을 짊어지지 않는다 —
+    무엇을 더 봐야 하는지 가리키는 ★후보 목록일 뿐이고, 그 사실을 출력에 함께 적는다.
+    괄호 안의 && 는 세지 않는다(함수 인자 안의 논리곱은 최상위 항이 아니다).
+    """
+    try:
+        src = io.open(path_, encoding='utf-8', newline='').read().replace(chr(13) + chr(10), chr(10))
+    except OSError as e:
+        return None, '검사기를 읽지 못했다: %s' % e
+
+    def top_terms(expr):
+        depth = n = 0
+        j = 0
+        while j < len(expr) - 1:
+            c = expr[j]
+            if c in '([{':
+                depth += 1
+            elif c in ')]}':
+                depth -= 1
+            elif depth == 0 and expr[j:j + 2] == '&&':
+                n += 1
+                j += 1
+            j += 1
+        return n + 1
+
+    starts = [(m.start(), m.group(1)) for m in re.finditer(r"^check\('([^']+)'", src, re.M)]
+    if not starts:
+        return None, '검사기 소스에서 check( 를 하나도 못 찾았다'
+    out = {}
+    for i, (pos, name) in enumerate(starts):
+        end = starts[i + 1][0] if i + 1 < len(starts) else len(src)
+        body = src[pos:end]
+        terms = []
+        for m in re.finditer(r'\bok:\s*', body):
+            j, depth, buf = m.end(), 0, []
+            while j < len(body):
+                c = body[j]
+                if c in '([{':
+                    depth += 1
+                elif c in ')]}':
+                    if depth == 0:
+                        break
+                    depth -= 1
+                elif c == ',' and depth == 0:
+                    break
+                buf.append(c)
+                j += 1
+            e = ''.join(buf).strip()
+            if e:
+                terms.append(top_terms(e))
+        out[name] = max(terms) if terms else 0
+    return out, None
+
+
+def payload_blocks(path_):
+    """검사기 소스에서 ★뮤테이션 항목 블록을 뽑는다 — 이름 → 블록 원문(줄끝 정규화).
+
+    ★왜 러너가 직접 뽑나(2026-09-08 R4 F9): 앞서는 검사기에게 `--payload-hashes` 로 물었다.
+    그러면 훼손자가 ★같은 파일 안에서 검사 본문 · payload · 해시 함수 셋을 고쳐 정본을 속이고,
+    러너는 '일치' 를 찍었다. ★재는 자와 재어지는 자가 같으면 그것은 자기채점이다.
+
+    ★경계는 줄 앵커로 잡는다 — 중괄호 깊이 세기는 대체문 문자열 안의 '{' 에 속는다
+    (예: 'function tierOf(no){ … }').  항목은 항상 두 칸 들여쓴 "  'm-…': {" 로 시작하고,
+    다음 항목이나 표의 끝(열 0 의 "};")에서 끝난다.
+    ★못 뽑으면 rc=2 다 — '대조 못 함' 을 통과로 세지 않는다.
+    """
+    try:
+        src = io.open(path_, encoding='utf-8', newline='').read().replace(chr(13) + chr(10), chr(10))
+    except OSError as e:
+        return None, '검사기를 읽지 못했다: %s' % e
+    lines = src.split(chr(10))
+    starts = [i for i, ln in enumerate(lines) if re.match(r"^  '(m-[^']+)': \{\s*$", ln)]
+    if not starts:
+        return None, '검사기 소스에서 뮤테이션 항목을 하나도 못 찾았다(표기가 바뀌었나)'
+    end_of_table = None
+    for i in range(starts[-1], len(lines)):
+        if lines[i].startswith('};'):
+            end_of_table = i
+            break
+    if end_of_table is None:
+        return None, '뮤테이션 표의 끝(열 0 의 "};")을 못 찾았다'
+    out = {}
+    for k, i in enumerate(starts):
+        j = starts[k + 1] if k + 1 < len(starts) else end_of_table
+        name = re.match(r"^  '(m-[^']+)': \{", lines[i]).group(1)
+        if name in out:
+            return None, '검사기 소스에 같은 뮤테이션 이름이 두 번 있다: %s' % name
+        out[name] = chr(10).join(lines[i:j]).rstrip() + chr(10)
+    return out, None
+
+
 def payload_gate(exp, names):
     """★뮤테이션 payload(앵커+대체문) 지문을 정본과 대조한다(2026-09-07 R3 F2).
 
@@ -196,14 +293,13 @@ def payload_gate(exp, names):
     무르게 만들었을 때 ★정본 바이트가 하나도 안 바뀐 채 초록이 난다(리뷰어 실측).
     지문이 갈리거나 정본에 없으면 ★판정 불가다 — 통과로 세지 않는다.
     """
-    pr = run(['node', VERIFY, '--repo', ROOT, '--payload-hashes'])
-    if pr.returncode != 0:
-        return 'payload 지문을 못 얻었다(rc=%d): %s' % (pr.returncode, (pr.stderr or '').strip()[:300])
-    got = {}
-    for ln in (pr.stdout or '').splitlines():
-        if '\t' in ln:
-            k, v = ln.split('\t', 1)
-            got[k.strip()] = v.strip()
+    blocks, berr = payload_blocks(VERIFY)
+    if berr:
+        return 'payload 지문을 ★소스에서 뽑지 못했다 — %s (대조 못 한 것은 통과가 아니다)' % berr
+    got = {n: hashlib.sha256(b.encode('utf-8')).hexdigest() for n, b in blocks.items()}
+    extra = sorted(set(got) - set(names))
+    if extra:
+        return '소스에는 있는데 검사기 목록에 없는 뮤테이션: %s' % ', '.join(extra)
     missing = [n for n in names if not (exp['mutations'].get(n) or {}).get('payload_sha256')]
     if missing:
         return ('정본에 payload_sha256 이 없는 뮤테이션 %d종: %s — '
@@ -218,7 +314,9 @@ def payload_gate(exp, names):
             lines.append('    %s  정본 %s… ≠ 검사기 %s…'
                          % (n, exp['mutations'][n]['payload_sha256'][:16], got[n][:16]))
         return chr(10).join(lines)
-    print('payload 지문 대조 %d/%d 일치 — 검사와 그 겨냥 뮤테이션을 함께 무르게 하면 여기서 갈린다'
+    # ★이 문장은 ★실제로 대조가 끝난 경로에서만 나온다. 위의 어느 실패든 문자열을 돌려주고,
+    #   호출자는 그것을 '판정 불가' 로 찍는다 — '일치' 를 찍는 길은 여기 하나뿐이다.
+    print('payload 지문 대조 %d/%d 일치 — ★러너가 검사기 소스를 직접 읽어 계산했다(검사기에게 묻지 않는다)'
           % (len(names), len(names)))
     return None
 
@@ -296,6 +394,7 @@ def main():
     if names is None:
         print('판정 불가 — ' + err)
         return 2
+    all_names = list(names)      # ★지문 대조의 분모 — --only 로 좁혀도 표 전체를 본다
     if a.only:
         if a.only not in names:
             print('판정 불가 — 모르는 뮤테이션: %s' % a.only)
@@ -328,7 +427,7 @@ def main():
     stale = sorted(t for t in targets if t not in checks)
     stale_canon = sorted(t for t in canon_targets if t not in checks)
 
-    perr = payload_gate(exp, names)
+    perr = payload_gate(exp, all_names)
     if perr:
         print('판정 불가 — ' + perr)
         if REV:
@@ -419,6 +518,28 @@ def main():
         print('★미달 — 무변이 기준선이 붉다(rc=%d). 안 건드린 제품이 이미 계약을 깬다.' % base.returncode)
         return 1
     print('무변이 기준선 rc=0 — ★표를 돌리기 전에 세웠다(대조군 존재와 무관한 안전망)')
+    print('')
+    # ★F8 — 단언2+ 훑기를 ★매번 기계가 센다(손계산 금지 · 이 수는 후보이지 판정이 아니다)
+    sweep, serr = assertion_sweep(VERIFY)
+    if serr:
+        print('판정 불가 — 단언 훑기를 세울 수 없다: %s' % serr)
+        return 2
+    multi = sorted(n for n, t in sweep.items() if t >= 2)
+    tcount = {}
+    for mv in exp['mutations'].values():
+        if mv.get('target'):
+            tcount[mv['target']] = tcount.get(mv['target'], 0) + 1
+    thin = [n for n in multi if tcount.get(n, 0) <= 1]
+    print('단언 훑기(★기계 산출 · 대리물 = 판정식의 최상위 && 항 수):')
+    print('  검사 %d종 중 ★단언 2개 이상 %d종 · 그중 ★겨냥 뮤테이션이 1종뿐 %d종'
+          % (len(sweep), len(multi), len(thin)))
+    for n in thin:
+        print('    후보 %s   (항 %d · 겨냥 %d종)' % (n, sweep[n], tcount.get(n, 0)))
+    if not thin:
+        print('    없음 (★이 줄이 부재의 증거다)')
+    print('  ★이 수는 ★판정을 짊어지지 않는다 — 계약의 절 수가 아니라 판정식의 항 수이기 때문이다.')
+    print('  ★항이 실제로 분모 0 인지는 그 항만 지우고 겨냥 뮤테이션을 다시 돌려 봐야 안다')
+    print('   (재현: evidence/hanpango-mental-math/R4FIX/audit_term_denominator.py).')
     print('')
     # ★표도 ★탭으로 낸다 — 이름이 칸을 넘으면 눈 정렬에 기댄 파서가 옆 칸을 함께 집는다
     print('뮤테이션\t지목한 검사\trc\t판정')
