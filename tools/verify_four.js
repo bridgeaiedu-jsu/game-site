@@ -201,6 +201,11 @@ const MUTATIONS = {
     target: 'a-round-actually-runs',
     apply: s => s.replace('  state.round += 1;', '  state.round += 0;')
   },
+  'm-seed-ignores-day': {
+    why: 'seed 에서 ★날짜를 뺀다 — 모든 날이 같은 판이 된다(오늘의 판이 거짓이 된다)',
+    target: 'different-day-different-plan',
+    apply: s => s.replace("var str = dayKey + '#' + players;", "var str = '#' + players;")
+  },
   'm-quiet-control': {
     why: '주석 한 줄만 바꾼다 — ★아무 검사도 붉으면 안 된다(음성 대조군)',
     target: null,
@@ -363,6 +368,36 @@ check('same-day-same-players-same-plan', () => {
     }
   } finally { Date.now = realNow; }
   return { ok: true, note: '3일 x 2인원 = ' + n + '쌍 · 시계를 211일 옮겨도 같다' };
+});
+
+/* ── ②-b ★다른 날짜면 다른 판 (ⓐ 의 거울상) ────────────────────────────
+   ⓐ(같은 날 같은 판)만 세우면 ★날짜를 무시하는 seedOf 가 통과한다 — 모든 날이 같은 판이어도
+   '같은 날에 같다' 는 참이기 때문이다. 그래서 반대 방향을 함께 단언한다.
+   ★씨앗 층은 결정론으로 못박고(전부 달라야 한다), 판 층은 ★세어서 찍는다 —
+   서로 다른 씨앗이 같은 수열을 낼 확률은 0 이 아니므로 '전부 다르다' 로 박으면 언젠가 흔들린다. */
+check('different-day-different-plan', () => {
+  const f = W0.win.__four;
+  const days = [];
+  for (let d = 0; d < 120; d++) {
+    const dt = new Date(Date.UTC(2026, 0, 1) + d * 86400000);
+    days.push(dt.toISOString().slice(0, 10));
+  }
+  for (const p of [3, 4]) {
+    const seeds = days.map(d => f.seedOf(d, p));
+    const uniqSeeds = new Set(seeds);
+    if (uniqSeeds.size !== days.length) {
+      return { ok: false, note: p + '인 · 120일의 씨앗 중 서로 같은 것이 있다(고유 '
+        + uniqSeeds.size + ') — 날짜가 판을 가르지 않는다' };
+    }
+  }
+  const plans3 = days.map(d => JSON.stringify(f.plan(f.seedOf(d, 3), 3).rounds));
+  const uniq3 = new Set(plans3).size;
+  const plans4 = days.map(d => JSON.stringify(f.plan(f.seedOf(d, 4), 4).rounds));
+  const uniq4 = new Set(plans4).size;
+  /* 판 층은 ★비율로 본다 — 우연한 충돌 몇 건은 결함이 아니지만, 무더기로 같아지면 결함이다. */
+  const ok = uniq3 >= days.length * 0.9 && uniq4 >= days.length * 0.9;
+  return { ok, note: '120일 · 씨앗은 3인·4인 모두 ★전부 다름 · 수열 고유 3인 '
+    + uniq3 + '/120 · 4인 ' + uniq4 + '/120' };
 });
 
 /* ── ③ 인원이 수열을 가른다 ──────────────────────────────────────────────

@@ -122,6 +122,11 @@
       "target": "a-round-actually-runs",
       "why": "라운드가 넘어가지 않는다 — 판이 영원히 첫 라운드에 머문다"
     },
+    "m-seed-ignores-day": {
+      "expect": "caught-by",
+      "target": "different-day-different-plan",
+      "why": "seed 에서 ★날짜를 뺀다 — 모든 날이 같은 판이 된다(오늘의 판이 거짓이 된다)"
+    },
     "m-quiet-control": {
       "expect": "quiet",
       "why": "주석 한 줄만 바꾼다 — ★아무 검사도 붉으면 안 된다(음성 대조군)"
