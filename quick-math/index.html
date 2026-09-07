@@ -550,7 +550,10 @@ Object.defineProperty(window, '__quickmath', {
     get rngUses(){ return rngUses; },
     get dailyDone(){ return dailyDoneToday(); },
     get dailyRecord(){ const r = dailyRec(); return r ? { date: r.date, score: r.score } : null; },
-    get replaying(){ return replaying; }
+    get replaying(){ return replaying; },
+    get shareText(){ return shareText(); },
+    get resultView(){ const v = resultView(); return { source:v.source, day:v.day, mode:v.mode,
+                       score:v.score, missed:v.missed, logLen:v.log.length }; }
   }),
   writable: false, configurable: false
 });
@@ -683,11 +686,7 @@ function endRun(){
   elTime.textContent = '0.0';
   elBarFill.style.width = '0%';
   optBtns.forEach(b => { b.disabled = true; });
-  const total = score + missed;
-  $('finalScore').textContent = String(score);
-  $('nOk').textContent = String(score);
-  $('nBad').textContent = String(missed);
-  $('nAcc').textContent = (total ? Math.round(score * 100 / total) : 0) + '%';
+  paintResultStats();
   isNewBest = score > best;
   if (isNewBest){ best = score; localStorage.setItem('qm.best', String(best)); }
   /* ★O — 판은 ★시작한 날에 귀속된다. 23:59 에 시작해 00:01 에 끝난 판은 ★어제 기록으로 저장되고,
@@ -703,22 +702,56 @@ function endRun(){
   paintDailyHint();
 }
 
+/* ★결과 화면이 읽는 값은 ★여기 한 곳에서만 만든다(R2 Q·R 의 근본 처방).
+   앞 판에서 재열람은 ★화면만 칠하고 실행 상태(log·mode·score·missed)는 그대로 뒀다 —
+   그래서 소비처마다 다른 것을 봤다: applyLang→renderReview 가 ★직전 판 목록을 되살리고
+   shareText 가 ★살아 있는 변수를 읽어 '연습 0문제'를 공유했다.
+   ★설계 선택: 소비처가 replaying 을 ★각자 묻게 하지 않는다(그러면 세 번째 소비처에서 또 터진다).
+   결과 화면 소비처는 ★전부 이 함수만 읽는다.
+   ★모르는 값은 null 이다 — 0 으로 채우면 거짓이 된다(0% 와 '모름' 은 다르다).
+   ★적용 범위: 결과 화면(점수·통계·복습목록·공유문). HUD(문제·맞힘·시간)는 판이 도는 동안의
+   표시라 재열람 대상이 아니고, saveDaily 는 dailyDoneFor 로 따로 잠근다.
+   소비처 전수는 evidence/hanpango-mental-math/R2FIX/state_consumers.txt 에 적었다. */
+function resultView(){
+  if (replaying){
+    const r = dailyRec();
+    return { source:'replay', day: r ? r.date : '', mode:'daily',
+             score: r ? r.score : 0, missed: null, log: [] };
+  }
+  return { source:'run', day: runDay, mode: mode, score: score, missed: missed, log: log };
+}
+
+/* 결과 화면의 숫자 칸 — ★모르는 값은 '–' 로 둔다(지어내지 않는다). */
+function paintResultStats(){
+  const v = resultView();
+  $('finalScore').textContent = String(v.score);
+  $('nOk').textContent = String(v.score);
+  if (v.missed === null){
+    $('nBad').textContent = '–';
+    $('nAcc').textContent = '–';
+  } else {
+    const total = v.score + v.missed;
+    $('nBad').textContent = String(v.missed);
+    $('nAcc').textContent = (total ? Math.round(v.score * 100 / total) : 0) + '%';
+  }
+}
+
 /* ★결과 화면의 동적 문구는 여기 한 곳에서 그린다 — endRun 에서만 채우면
    언어를 바꿨을 때 이전 언어가 남는다(R1 254 지적). applyLang 도 이것을 부른다. */
 function paintResultTexts(){
+  const v = resultView();
   $('newBest').textContent = isNewBest ? T('newBest') : '';
-  if (replaying){
-    const r = dailyRec();
-    $('finalSub').textContent = (r ? r.date + ' · ' : '') + T('dailyReplay');
+  if (v.source === 'replay'){
+    $('finalSub').textContent = (v.day ? v.day + ' · ' : '') + T('dailyReplay');
   } else {
-    $('finalSub').textContent = (mode === 'daily') ? (runDay + ' · ' + T('daily')) : T('practice');
+    $('finalSub').textContent = (v.mode === 'daily') ? (v.day + ' · ' + T('daily')) : T('practice');
   }
 }
 
 function renderReview(){
   const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   /* ★목록 글은 언어를 바꿔도 다시 그려지므로 data-i18n 을 쓰지 않고 그 언어로 바로 쓴다. */
-  $('review').innerHTML = log.map(r => {
+  $('review').innerHTML = resultView().log.map(r => {
     const q = esc(r.a + ' ' + r.op + ' ' + r.b + ' = ' + r.ans);
     const mine = r.ok ? '' : (lang === 'ko' ? ' · 내 답 ' : ' · you ') + esc(r.picked);
     return '<li><span class="m ' + (r.ok ? 'ok">✓' : 'bad">✗') + '</span>' +
@@ -728,11 +761,17 @@ function renderReview(){
 
 /* ======================= 공유 ======================= */
 function shareText(){
+  /* ★살아 있는 변수를 읽지 않는다 — 재열람 중에는 그 값이 직전 판(또는 초기값)이라
+     화면은 오늘 기록을 보여주는데 공유문은 다른 것을 말했다(R2 R). */
+  const v = resultView();
   const head = (lang === 'ko') ? '빠른 셈' : 'Quick Math';
-  const when = (mode === 'daily') ? runDay : (lang === 'ko' ? '연습' : 'practice');
+  const when = (v.mode === 'daily') ? v.day : (lang === 'ko' ? '연습' : 'practice');
+  /* ★정확도는 저장하지 않았다 — 모르면 항을 뺀다. 0% 로 적는 것은 거짓이다. */
+  const total = (v.missed === null) ? null : (v.score + v.missed);
+  const acc = (total === null) ? null : (total ? Math.round(v.score * 100 / total) : 0);
   const line = (lang === 'ko')
-    ? (score + '문제 · 정확도 ' + (score + missed ? Math.round(score * 100 / (score + missed)) : 0) + '%')
-    : (score + ' solved · ' + (score + missed ? Math.round(score * 100 / (score + missed)) : 0) + '% accuracy');
+    ? (v.score + '문제' + (acc === null ? '' : ' · 정확도 ' + acc + '%'))
+    : (v.score + ' solved' + (acc === null ? '' : ' · ' + acc + '% accuracy'));
   return head + ' ' + when + '\n' + line + '\nhttps://hanpango.com/quick-math/';
 }
 function toast(msg){ elToast.textContent = msg; elToast.classList.add('show'); setTimeout(() => elToast.classList.remove('show'), 1400); }
@@ -766,7 +805,8 @@ function applyLang(){
     elQ.textContent = T('idle');
     elTier.textContent = ''; elCat.textContent = '';
   }
-  if (log.length) renderReview();
+  /* ★조건을 걸면 재열람 중 ★직전 판 목록이 살아남는다(R2 Q). resultView 가 빈 목록을 준다. */
+  renderReview();
   /* ★런타임에 채워지는 문구는 data-i18n 이 아니라 여기서 다시 그린다(양방향 계약). */
   elPenalty.textContent = T('penalty');
   paintResultTexts();
@@ -795,12 +835,10 @@ function showDailyReplay(){
   if (!r) return false;
   replaying = true;
   isNewBest = false;
-  $('finalScore').textContent = String(r.score);
-  $('nOk').textContent = String(r.score);
-  /* ★안 적어 둔 값은 지어내지 않는다 — 오답 수·정확도는 저장하지 않았다. */
-  $('nBad').textContent = '–';
-  $('nAcc').textContent = '–';
-  $('review').innerHTML = '';
+  /* ★화면을 직접 칠하지 않는다 — 결과 화면 소비처는 전부 resultView 를 읽는다.
+     그래야 '화면만 칠하고 상태는 그대로' 인 구멍이 다시 생기지 않는다. */
+  paintResultStats();
+  renderReview();
   paintResultTexts();
   ovStart.classList.remove('show');
   ovOver.classList.add('show');

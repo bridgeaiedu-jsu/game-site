@@ -148,6 +148,35 @@ const MUTATIONS = {
     apply: s => s.replace('    if (alive.length) alive[0].focus(); else elQ.focus();\r\n    btn.disabled = true;',
                           '    btn.disabled = true;\r\n    if (alive.length) alive[0].focus(); else elQ.focus();')
   },
+  'm-replay-keeps-log': {
+    why: '재열람 결과뷰가 ★직전 판의 목록을 그대로 돌려준다 — R2 Q 의 원형',
+    target: '재열람에 직전 판 목록이 남지 않는다',
+    apply: s => s.replace('             score: r ? r.score : 0, missed: null, log: [] };',
+                          '             score: r ? r.score : 0, missed: null, log: log };')
+  },
+  'm-applylang-conditional-review': {
+    /* ★음성 대조군으로 박제한다(2026-09-07 실측 rc=3 공허).
+       뿌리 수리(resultView 가 재열람에서 빈 목록을 준다) 뒤로는 이 조건이 ★짐을 안 진다 —
+       조건을 되돌려도 renderReview 가 그리는 것은 여전히 빈 목록이라 아무 검사도 안 붉는다.
+       ★가짜 검출로 칸을 채우지 않고, '이건 안 잡기로 했다' 를 시험 안에 남긴다.
+       ★누가 resultView 를 되돌리면 그때는 m-replay-keeps-log 가 잡는다. */
+    why: '언어 전환에서 목록을 조건부로만 다시 그린다 — ★뿌리 수리 뒤에는 무해하다(대조군)',
+    target: null,
+    apply: s => s.replace('  renderReview();\r\n  /* ★런타임에 채워지는 문구는',
+                          '  if (log.length) renderReview();\r\n  /* ★런타임에 채워지는 문구는')
+  },
+  'm-share-reads-live-state': {
+    why: '공유문이 결과뷰 대신 ★살아 있는 변수를 읽는다 — R2 R 의 원형',
+    target: '재열람 공유문이 그날 기록을 말한다',
+    apply: s => s.replace('  const when = (v.mode === \'daily\') ? v.day : (lang === \'ko\' ? \'연습\' : \'practice\');',
+                          '  const when = (mode === \'daily\') ? runDay : (lang === \'ko\' ? \'연습\' : \'practice\');')
+  },
+  'm-replay-accuracy-zero': {
+    why: '모르는 오답 수를 0 으로 채운다 — 정확도 100%/0% 라는 ★거짓이 나온다',
+    target: '모르는 값을 지어내지 않는다',
+    apply: s => s.replace('             score: r ? r.score : 0, missed: null, log: [] };',
+                          '             score: r ? r.score : 0, missed: 0, log: [] };')
+  },
   'm-quiet-control': {
     why: '★대조군 — 주석 한 줄만 바꾼다. 어떤 검사도 붉으면 안 된다',
     target: null,
@@ -702,6 +731,74 @@ check('오답 잠금 전에 포커스를 옮긴다(정적)', () => {
   const d = seg.indexOf('btn.disabled = true');
   return { ok: f >= 0 && d >= 0 && f < d,
            note: f < 0 ? '★포커스 이동이 없다' : (d < 0 ? '★잠금이 없다' : ('focus@' + f + ' < disabled@' + d)) };
+});
+
+
+/* ── R2 준비 — 일일 완주 → 연습 완주 → 재열람 까지 몰아 놓은 세계를 만든다 ──
+   ★재열람의 위험은 '직전 판이 남긴 상태' 다. 그래서 ★중간에 연습 판을 반드시 끼운다.
+   이 도우미가 없으면 검사들이 서로 다른 표본을 쓰게 된다. */
+function replayWorld(day) {
+  const W = makeWorld({ today: day });
+  startDaily(W); must(W, 'R2-daily');
+  const k = W.win.__quickmath;
+  let solved = 0;
+  for (let i = 0; i < 5 && k.running; i++) { const q = k.deck[k.idx]; tapOpt(W, q.correct); solved++; }
+  W.advance(30001);
+  let fn = W.rafQ[W.rafQ.length - 1]; if (typeof fn === 'function') fn();
+  if (k.running) return { bad: '★일일 판이 안 끝났다' };
+  const rec = k.dailyRecord;
+  /* ★중간에 연습 한 판 — 이것이 log·mode·score·missed 를 '남의 판' 으로 채운다 */
+  W.els.btnAgain.fire('click');
+  startFree(W);
+  const q0 = k.deck[k.idx];
+  tapOpt(W, [0, 1, 2, 3].find(i => i !== q0.correct));   /* 오답 하나 */
+  tapOpt(W, k.deck[k.idx].correct);                      /* 정답 하나 */
+  W.advance(30001);
+  fn = W.rafQ[W.rafQ.length - 1]; if (typeof fn === 'function') fn();
+  const practiceLog = k.resultView.logLen;
+  /* 시작 화면으로 나갔다가 오늘의 도전을 다시 누른다 → 재열람 */
+  W.els.btnAgain.fire('click');
+  W.els.btnDaily.fire('click');
+  return { W, k, rec, solved, practiceLog };
+}
+
+/* ── Q ★재열람 중 언어를 바꿔도 '남의 판' 목록이 되살아나지 않는다 ── */
+check('재열람에 직전 판 목록이 남지 않는다', () => {
+  const S = replayWorld(new Date(2026, 9, 12, 9, 0, 0));
+  if (S.bad) return { ok: false, note: S.bad };
+  if (!(S.practiceLog > 0)) return { ok: false, note: '★연습 판이 목록을 안 남겼다(표본 미성립)' };
+  if (S.k.replaying !== true) return { ok: false, note: '★재열람 진입 실패(표본 미성립)' };
+  const beforeLang = S.W.els.review.innerHTML.length;
+  S.W.els.btnLang.fire('click');            /* ★여기서 되살아나던 자리 */
+  const afterLang = S.W.els.review.innerHTML.length;
+  return { ok: beforeLang === 0 && afterLang === 0 && S.k.resultView.logLen === 0,
+           note: '연습 판 목록 ' + S.practiceLog + '건 · 재열람 목록 길이 ' + beforeLang +
+                 ' → 언어 전환 뒤 ' + afterLang + ' (둘 다 0 이어야 한다)' };
+});
+
+/* ── R ★재열람 공유문은 그날의 기록을 말한다 ── */
+check('재열람 공유문이 그날 기록을 말한다', () => {
+  const S = replayWorld(new Date(2026, 9, 13, 9, 0, 0));
+  if (S.bad) return { ok: false, note: S.bad };
+  const txt = S.k.shareText;
+  if (!txt) return { ok: false, note: '★공유문을 못 읽었다(표본 미성립)' };
+  const hasDay = txt.indexOf(S.rec.date) >= 0;
+  const hasScore = txt.indexOf(String(S.rec.score)) >= 0;
+  const saysPractice = /연습|practice/.test(txt);
+  return { ok: hasDay && hasScore && !saysPractice,
+           note: JSON.stringify(txt) + ' · 날짜 ' + hasDay + ' · 점수 ' + hasScore + ' · 연습이라 말함 ' + saysPractice };
+});
+
+/* ── ★모르는 값을 0 으로 적지 않는다(0% 와 '모름' 은 다르다) ── */
+check('모르는 값을 지어내지 않는다', () => {
+  const S = replayWorld(new Date(2026, 9, 14, 9, 0, 0));
+  if (S.bad) return { ok: false, note: S.bad };
+  const nBad = S.W.els.nBad.textContent, nAcc = S.W.els.nAcc.textContent;
+  const txt = S.k.shareText;
+  const view = S.k.resultView;
+  return { ok: nBad === '–' && nAcc === '–' && view.missed === null && txt.indexOf('%') < 0,
+           note: 'nBad ' + JSON.stringify(nBad) + ' · nAcc ' + JSON.stringify(nAcc) +
+                 ' · view.missed ' + view.missed + ' · 공유문에 % ' + (txt.indexOf('%') >= 0) };
 });
 
 /* ------------------------------------------------------------ 판정 */
