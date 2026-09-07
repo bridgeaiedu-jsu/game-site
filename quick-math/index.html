@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>빠른 셈 — 30초 암산 4지선다 | Quick Math</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 암산 게임. 30초 동안 덧셈·뺄셈·곱셈·나눗셈을 4지선다로 연속해서 풉니다. 문제는 풀수록 어려워지고, 틀리면 남은 시간이 3초 줄어듭니다. 매일 자정에 모두가 같은 판을 받는 오늘의 도전. Free 30-second mental math game — add, subtract, multiply and divide, tap to answer, daily challenge.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="빠른 셈 — 30초 암산 4지선다 | Quick Math">
+<meta property="og:description" content="30초 안에 암산을 몇 개나 풀 수 있을까. 4지선다 탭 · 틀리면 -3초 · 매일 같은 판.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/quick-math/">
+<meta property="og:image" content="https://hanpango.com/quick-math/thumb.webp">
+<meta property="og:image:width" content="640">
+<meta property="og:image:height" content="640">
+<link rel="canonical" href="https://hanpango.com/quick-math/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- ADSENSE (1/3) — 사이트 코드(pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않는다. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"빠른 셈","alternateName":"Quick Math","url":"https://hanpango.com/quick-math/","genre":"Educational","gamePlatform":"Web browser","applicationCategory":"Game","inLanguage":["ko","en"],"description":"30초 동안 암산을 4지선다로 연속해서 푸는 게임. 매일 자정에 모두가 같은 판을 받는다.","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"}}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     분류는 ★셈 한판(math)이다. 아래 --sig 4토큰은 ★내가 고른 값이 아니라
+     tools/palette_gen.py 가 정본(tools/palette_by_category.json · math #a800ad)에서
+     ★산출한 값을 옮긴 것이다(master 253 확정 2026-09-07). ★여기서 색을 새로 고르지 않는다 —
+     고치려면 정본을 고치고 생성기를 다시 돌려라.
+     ★글자 대비: --text/--muted-2/--sig-ink/--good-ink/--bad-ink 는
+     --bg/--panel/--panel2/--good-soft/--bad-soft 위에서 4.5:1 이상이다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#a800ad; --sig-ink:#630066; --sig-soft:#fcd8fd; --on-sig:#ffffff;
+    --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
+    --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f80aff; --sig-ink:#fa51ff; --sig-soft:#58165a; --on-sig:#111827;
+      --good:#34d399; --good-ink:#bbf7d0; --good-soft:#14532d;
+      --warn:#fbbf24; --bad:#fca5a5; --bad-ink:#fecaca; --bad-soft:#4c1d1d;
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px;gap:8px}
+  /* ★min-width:0 이 없으면 flex 항목이 자기 내용보다 작아지지 않아, 제목이 길어질 때
+     제목이 아니라 ★버튼 묶음이 화면 밖으로 밀린다. 실측(360px 폭 iframe): EN 문안에서
+     문서 폭이 415px 로 넘쳤고 ko(348px)에서는 안 났다 — ko 만 보고 통과시키면 못 본다. */
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  h1 small{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:6px}
+  /* 좁은 화면에서는 부제를 접는다 — 제목과 버튼이 먼저다. */
+  @media (max-width:420px){ h1 small{display:none} }
+  /* ★EN 문안이 ko 보다 길다 — 360px 에서 머리글이 넘치지 않도록 버튼 묶음을 줄이지 않고
+     제목 쪽을 줄인다(ko 만 보고 통과시키면 EN 에서 버튼이 세로로 깨진다). */
+  .hdr-btns{display:flex;gap:6px;flex:0 0 auto}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer;white-space:nowrap}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:6px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .score b{display:block;font-size:1.2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+  .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .score.low b{color:var(--bad)}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}
+  .ad-rect{width:300px;height:250px;margin:10px auto}
+  main{width:100%;max-width:520px;padding:4px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  /* ---- 남은 시간 막대 ---- */
+  .bar{width:100%;max-width:360px;height:8px;border-radius:999px;background:var(--panel2);overflow:hidden}
+  .bar i{display:block;height:100%;width:100%;background:var(--sig);transition:width .1s linear}
+  .bar.low i{background:var(--bad)}
+  @media (prefers-reduced-motion: reduce){ .bar i{transition:none} }
+  /* ---- 문제 카드 ----
+     식은 크게(2.2rem 이상), 보기는 높이 52px 이상 — 한 손가락으로 탭한다. */
+  .qcard{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 14px 12px;display:flex;flex-direction:column;gap:10px}
+  .qhead{display:flex;justify-content:space-between;align-items:center;gap:6px;min-height:24px}
+  .chip{font-size:.72rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--muted-2);font-weight:600}
+  .chip.tier{color:var(--sig-ink);background:var(--sig-soft);border-color:transparent}
+  .q{margin:0;font-size:2.2rem;line-height:1.3;font-weight:800;text-align:center;min-height:1.4em;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+  .q.idle{color:var(--muted);font-weight:500;font-size:1.05rem;letter-spacing:0}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;list-style:none;margin:0;padding:0}
+  .opt{display:flex;align-items:center;justify-content:center;gap:6px;min-height:56px;width:100%;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);font-size:1.35rem;font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums}
+  .opt:active{transform:scale(.985)}
+  .opt[disabled]{cursor:default}
+  /* ★색만으로 알리지 않는다 — 정답/오답에 기호를 함께 넣는다(.mk). */
+  .opt .mk{font-size:1rem;font-weight:900}
+  .opt.ok{border-color:var(--good);background:var(--good-soft);color:var(--good-ink)}
+  .opt.bad{border-color:var(--bad);background:var(--bad-soft);color:var(--bad-ink);opacity:.75}
+  .opt:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+  @keyframes pop{0%{transform:scale(.96)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+  .opt.pop{animation:pop .18s ease-out}
+  .opt.shake{animation:shake .26s ease-in-out}
+  /* -3초 표시가 시간 칸 위로 떠오른다 */
+  @keyframes floatUp{0%{opacity:0;transform:translateY(4px)}25%{opacity:1}100%{opacity:0;transform:translateY(-14px)}}
+  /* ★기본은 안 보인다 — opacity 를 안 주면 애니메이션이 없는 동안에도 글자가 떠 있어
+     「남은 시간」 라벨을 덮는다(실브라우저 캡처에서만 보였다 · DOM 스텁·게이트 전부 초록이었다). */
+  .penalty{position:absolute;left:50%;transform:translateX(-50%);color:var(--bad);font-weight:800;font-size:.9rem;pointer-events:none;opacity:0}
+  .penalty.show{animation:floatUp .7s ease-out}
+  .scorewrap{position:relative}
+  .help{color:var(--muted);font-size:.78rem;text-align:center;margin:0;line-height:1.5}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card h2{margin:0 0 6px;font-size:1.5rem}
+  .card .big{font-size:2.8rem;font-weight:800;color:var(--sig-ink);line-height:1.1;font-variant-numeric:tabular-nums}
+  .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px;line-height:1.5}
+  .card .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .hp-stat[hidden]{display:none!important}
+  .card .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .card .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[hidden]{display:none}
+  .stats3{display:flex;gap:6px;margin:10px 0 4px}
+  .stats3 div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .stats3 b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums}
+  .stats3 span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* 복습 목록 — 푼 문제의 식·정답·내가 고른 답 */
+  .review{list-style:none;margin:8px 0 2px;padding:0;text-align:left;max-height:30dvh;overflow-y:auto;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+  .review li{display:grid;grid-template-columns:22px 1fr;gap:6px;padding:7px 9px;border-bottom:1px solid var(--line);font-size:.85rem;line-height:1.35}
+  .review li:last-child{border-bottom:0}
+  .review .m{font-weight:800}
+  .review .m.ok{color:var(--good-ink)} .review .m.bad{color:var(--bad-ink)}
+  .review .rq{color:var(--text);font-variant-numeric:tabular-nums}
+  .review .ra{color:var(--muted-2);font-size:.78rem}
+  .review .ra b{color:var(--sig-ink)}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  @media (prefers-reduced-motion: reduce){
+    .opt.pop,.opt.shake,.penalty.show{animation:none}
+    .toast{transition:none}
+    .btn:active,.ibtn:active,.opt:active{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">빠른 셈</span> <small id="subtitle" data-i18n="subtitle">30초 암산</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 다른 게임</a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 상단 배너 자리 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <!-- ★이 세 칸의 숫자에는 data-i18n 을 붙이지 않는다 — 언어를 바꾸면 applyLang 이
+       data-i18n 문안을 통째로 갈아 끼워 진행 중인 숫자가 안내 문구로 덮인다(선례 결함).
+       라벨(span)에만 붙인다. -->
+  <div class="score"><b id="qNo">–</b><span data-i18n="qLbl">문제</span></div>
+  <div class="score"><b id="scoreNow">–</b><span data-i18n="scoreLbl">맞힘</span></div>
+  <div class="score scorewrap" id="timeCell"><b id="timeNow">–</b><span data-i18n="timeLbl">남은 시간</span><span class="penalty" id="penalty" aria-hidden="true">−3초</span></div>
+</div>
+
+<main>
+  <div class="bar" id="bar" aria-hidden="true"><i id="barFill"></i></div>
+  <section class="qcard" id="qcard">
+    <div class="qhead"><span class="chip" id="qcat">–</span><span class="chip tier" id="qtier"></span></div>
+    <!-- ★식 본문에도 data-i18n 을 붙이지 않는다(같은 사유). 안내 문구는 스크립트가 넣는다. -->
+    <p class="q idle" id="qtext">시작을 누르면 첫 문제가 나옵니다.</p>
+    <ul class="opts" id="opts" role="group" aria-label="choices">
+      <li><button class="opt" type="button" data-i="0" disabled><span class="t">–</span><span class="mk" aria-hidden="true"></span></button></li>
+      <li><button class="opt" type="button" data-i="1" disabled><span class="t">–</span><span class="mk" aria-hidden="true"></span></button></li>
+      <li><button class="opt" type="button" data-i="2" disabled><span class="t">–</span><span class="mk" aria-hidden="true"></span></button></li>
+      <li><button class="opt" type="button" data-i="3" disabled><span class="t">–</span><span class="mk" aria-hidden="true"></span></button></li>
+    </ul>
+  </section>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="help" data-i18n="hint">보기를 눌러 답을 고르세요 · 맞히면 바로 다음 문제 · 틀리면 남은 시간 −3초 · 키보드 1~4</p>
+</main>
+
+<!-- 결과 -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card">
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <div class="big" id="finalScore">0</div>
+    <div class="sub" id="finalUnit" data-i18n="finalUnit">문제를 맞혔습니다</div>
+    <div class="new" id="newBest"></div>
+    <div class="stats3">
+      <div><b id="nOk">0</b><span data-i18n="okLbl">맞힘</span></div>
+      <div><b id="nBad">0</b><span data-i18n="badLbl">틀림</span></div>
+      <div><b id="nAcc">0%</b><span data-i18n="accLbl">정확도</span></div>
+    </div>
+    <ul class="review" id="review" aria-label="review"></ul>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 결과 화면 300×250 고정 배너(자동 팝업 금지) -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<!-- 시작 -->
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card">
+    <h2 id="startTitle" data-i18n="title2">빠른 셈</h2>
+    <div class="sub" data-i18n="startSub">30초 동안 암산을 몇 개나 풀 수 있을까.<br>4지선다 · 맞히면 바로 다음 · 틀리면 −3초.</div>
+    <button class="btn primary" id="btnDaily">오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnStart" data-i18n="start">▶ 연습 모드</button>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.quick-math.today">–</b>판 · 누적 <b data-hp="plays.quick-math.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">화면 가운데에 셈이 하나 나오고 그 아래에 답 후보가 네 개 있습니다. 맞다고 생각하는 숫자를 손가락으로 한 번 누르세요. 맞히면 그 자리에서 다음 문제로 넘어가고 「맞힘」이 1 올라갑니다. 틀리면 그 보기가 잠기고 남은 시간이 3초 줄어듭니다. 문제는 그대로 남아 있으니 다시 고르면 됩니다. 컴퓨터에서는 숫자 키 1~4로 고를 수 있습니다.</p>
+  <p data-i18n="how2">한 판은 30초입니다. 시간이 다 되면 그때까지 맞힌 개수가 점수가 됩니다. 문제는 풀수록 어려워집니다. 처음 다섯 문제는 한 자리 수 덧셈·뺄셈, 여섯 번째부터 열두 번째까지는 두 자리 수 덧셈·뺄셈, 열세 번째부터는 구구단 곱셈과 나눗셈이 섞여 나옵니다. 뺄셈의 답이 음수가 되는 일은 없고, 나눗셈은 항상 딱 떨어집니다.</p>
+  <p data-i18n="how3">판이 끝나면 맞힌 개수와 정확도, 그리고 그때까지 나온 문제를 하나씩 다시 볼 수 있는 목록이 나옵니다. 목록에는 식과 정답, 그리고 내가 고른 답이 함께 적힙니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 판이 열립니다. 그날은 전 세계 모든 플레이어가 완전히 같은 문제를 같은 순서로, 보기 위치까지 똑같이 받습니다. 판에 나올 문제와 오답 보기는 판이 시작되는 순간 한꺼번에 정해지기 때문에, 많이 틀린 사람과 적게 틀린 사람이 서로 다른 문제를 보는 일은 없습니다. 오늘의 도전은 하루에 한 번이고, 연습 모드는 횟수 제한 없이 아무 때나 할 수 있습니다.</p>
+  <h2 data-i18n="tipsTitle">잘 푸는 요령</h2>
+  <details><summary data-i18n="tip1q">두 자리 덧셈은 십의 자리부터</summary><p data-i18n="tip1a">47 + 38 을 볼 때 7 + 8 부터 하지 말고 40 + 30 = 70 을 먼저 잡으세요. 그 다음 7 + 8 = 15 를 더해 85 가 됩니다. 큰 자리를 먼저 잡으면 답의 크기를 먼저 알게 되어, 네 보기 중 두세 개는 보지 않고도 걸러집니다.</p></details>
+  <details><summary data-i18n="tip2q">끝자리만 봐도 걸러집니다</summary><p data-i18n="tip2a">보기 네 개의 끝자리가 서로 다르면 끝자리만 계산해도 답이 하나로 좁혀집니다. 6 × 7 의 끝자리는 2 이니 끝자리가 2 인 보기를 먼저 찾으세요. 전부 계산하는 것보다 훨씬 빠릅니다.</p></details>
+  <details><summary data-i18n="tip3q">틀리면 손해가 큽니다</summary><p data-i18n="tip3a">틀렸을 때 잃는 3초는 쉬운 문제 한두 개를 풀 수 있는 시간입니다. 확신이 없을 때 아무거나 찍는 것보다 반 박자 늦더라도 맞히는 쪽이 점수가 높습니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
+  <details><summary data-i18n="faq2q">기록은 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다. 브라우저 데이터를 지우면 기록도 함께 지워집니다.</p></details>
+  <details><summary data-i18n="faq3q">영어로도 할 수 있나요?</summary><p data-i18n="faq3a">네. 오른쪽 위 버튼으로 화면 글자를 영어로 바꿀 수 있습니다. 숫자로만 이루어진 게임이라 어느 언어로 해도 문제는 똑같습니다.</p></details>
+  <details><summary data-i18n="faq4q">같은 날인데 문제가 다르게 나올 수 있나요?</summary><p data-i18n="faq4a">아니요. 오늘의 도전에서 나오는 문제와 보기 순서는 날짜 하나로 정해집니다. 사람마다 다르게 나오지 않고, 같은 사람이 다시 들어와도 그날은 같은 판입니다. 연습 모드는 매번 새 판입니다.</p></details>
+  <details><summary data-i18n="faq5q">소리를 끌 수 있나요?</summary><p data-i18n="faq5a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 효과음은 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 「동작 줄이기」를 켜면 흔들림·팝 애니메이션도 꺼집니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 빠른 셈 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ─────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·채점에는 관여하지 않는다. 태그가 실리지 않았거나 차단됐으면
+   조용히 지나간다. */
+const GA_GAME = 'quick-math';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params || {}); }
+
+/* ======================= 잠근 항 (계약) =======================
+   ★① 한 판에 나올 문제와 오답 보기·보기 순서는 ★판이 시작될 때 전부 정해진다.
+      플레이어의 행동(정답·오답·탭 횟수)은 ★난수를 한 방울도 소비하지 않는다.
+      그래서 많이 틀린 사람과 적게 틀린 사람이 ★같은 문제를 본다.
+   ★② 오늘의 도전의 판은 ★날짜 하나로 정해진다 — 같은 날이면 같은 판, 다른 날이면 다른 판.
+   ★③ 재추첨 사유는 ★결정론 조건(값 범위·중복 배제)뿐이다. ★시간·성능 기반 재시도는 없다 —
+      그것을 넣으면 느린 기기에서만 재시도가 일어나 '같은 seed = 같은 판' 이 기기마다 갈라진다.
+   ★④ 난이도는 ★문제 번호로만 정해진다(맞고 틀림이 아니라).
+   ============================================================ */
+const ROUND_MS = 30000;      /* 한 판 30초 */
+const PENALTY_MS = 3000;     /* 오답 -3초 */
+const DECK_N = 60;           /* 판 시작 때 미리 굴려 두는 문제 수 — 30초에 다 풀 수 없는 양 */
+
+/* ======================= i18n ======================= */
+const I18N = {
+  ko: {
+    title:'빠른 셈', title2:'빠른 셈', subtitle:'30초 암산',
+    home:'🏠 다른 게임',
+    qLbl:'문제', scoreLbl:'맞힘', timeLbl:'남은 시간',
+    hint:'보기를 눌러 답을 고르세요 · 맞히면 바로 다음 문제 · 틀리면 남은 시간 −3초 · 키보드 1~4',
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    result:'결과', finalUnit:'문제를 맞혔습니다', again:'다시 하기', share:'결과 공유', start:'▶ 연습 모드',
+    okLbl:'맞힘', badLbl:'틀림', accLbl:'정확도',
+    startSub:'30초 동안 암산을 몇 개나 풀 수 있을까.<br>4지선다 · 맞히면 바로 다음 · 틀리면 −3초.',
+    daily:'오늘의 도전', dailyDone:'오늘의 도전 완료', practice:'연습 모드',
+    idle:'시작을 누르면 첫 문제가 나옵니다.',
+    tier1:'한 자리', tier2:'두 자리', tier3:'곱셈·나눗셈',
+    newBest:'🎉 최고 기록!', copied:'결과를 복사했습니다', copyFail:'복사할 수 없습니다',
+    statPlays:'오늘 <b data-hp="plays.quick-math.today">–</b>판 · 누적 <b data-hp="plays.quick-math.total">–</b>판',
+    navAbout:'소개', navPrivacy:'개인정보처리방침',
+    footer:'© 2026 빠른 셈 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    docTitle:'빠른 셈 — 30초 암산 4지선다 | Quick Math', langBtn:'EN',
+    howTitle:'게임 방법', dailyTitle:'오늘의 도전', tipsTitle:'잘 푸는 요령', faqTitle:'자주 묻는 질문',
+    how1:'화면 가운데에 셈이 하나 나오고 그 아래에 답 후보가 네 개 있습니다. 맞다고 생각하는 숫자를 손가락으로 한 번 누르세요. 맞히면 그 자리에서 다음 문제로 넘어가고 「맞힘」이 1 올라갑니다. 틀리면 그 보기가 잠기고 남은 시간이 3초 줄어듭니다. 문제는 그대로 남아 있으니 다시 고르면 됩니다. 컴퓨터에서는 숫자 키 1~4로 고를 수 있습니다.',
+    how2:'한 판은 30초입니다. 시간이 다 되면 그때까지 맞힌 개수가 점수가 됩니다. 문제는 풀수록 어려워집니다. 처음 다섯 문제는 한 자리 수 덧셈·뺄셈, 여섯 번째부터 열두 번째까지는 두 자리 수 덧셈·뺄셈, 열세 번째부터는 구구단 곱셈과 나눗셈이 섞여 나옵니다. 뺄셈의 답이 음수가 되는 일은 없고, 나눗셈은 항상 딱 떨어집니다.',
+    how3:'판이 끝나면 맞힌 개수와 정확도, 그리고 그때까지 나온 문제를 하나씩 다시 볼 수 있는 목록이 나옵니다. 목록에는 식과 정답, 그리고 내가 고른 답이 함께 적힙니다.',
+    dailyDesc:'매일 자정에 새 판이 열립니다. 그날은 전 세계 모든 플레이어가 완전히 같은 문제를 같은 순서로, 보기 위치까지 똑같이 받습니다. 판에 나올 문제와 오답 보기는 판이 시작되는 순간 한꺼번에 정해지기 때문에, 많이 틀린 사람과 적게 틀린 사람이 서로 다른 문제를 보는 일은 없습니다. 오늘의 도전은 하루에 한 번이고, 연습 모드는 횟수 제한 없이 아무 때나 할 수 있습니다.',
+    tip1q:'두 자리 덧셈은 십의 자리부터',
+    tip1a:'47 + 38 을 볼 때 7 + 8 부터 하지 말고 40 + 30 = 70 을 먼저 잡으세요. 그 다음 7 + 8 = 15 를 더해 85 가 됩니다. 큰 자리를 먼저 잡으면 답의 크기를 먼저 알게 되어, 네 보기 중 두세 개는 보지 않고도 걸러집니다.',
+    tip2q:'끝자리만 봐도 걸러집니다',
+    tip2a:'보기 네 개의 끝자리가 서로 다르면 끝자리만 계산해도 답이 하나로 좁혀집니다. 6 × 7 의 끝자리는 2 이니 끝자리가 2 인 보기를 먼저 찾으세요. 전부 계산하는 것보다 훨씬 빠릅니다.',
+    tip3q:'틀리면 손해가 큽니다',
+    tip3a:'틀렸을 때 잃는 3초는 쉬운 문제 한두 개를 풀 수 있는 시간입니다. 확신이 없을 때 아무거나 찍는 것보다 반 박자 늦더라도 맞히는 쪽이 점수가 높습니다.',
+    faq1q:'설치가 필요한가요?',
+    faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'기록은 어디에 저장되나요?',
+    faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다. 브라우저 데이터를 지우면 기록도 함께 지워집니다.',
+    faq3q:'영어로도 할 수 있나요?',
+    faq3a:'네. 오른쪽 위 버튼으로 화면 글자를 영어로 바꿀 수 있습니다. 숫자로만 이루어진 게임이라 어느 언어로 해도 문제는 똑같습니다.',
+    faq4q:'같은 날인데 문제가 다르게 나올 수 있나요?',
+    faq4a:'아니요. 오늘의 도전에서 나오는 문제와 보기 순서는 날짜 하나로 정해집니다. 사람마다 다르게 나오지 않고, 같은 사람이 다시 들어와도 그날은 같은 판입니다. 연습 모드는 매번 새 판입니다.',
+    faq5q:'소리를 끌 수 있나요?',
+    faq5a:'네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 효과음은 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 「동작 줄이기」를 켜면 흔들림·팝 애니메이션도 꺼집니다.'
+  },
+  en: {
+    title:'Quick Math', title2:'Quick Math', subtitle:'30-second math',
+    home:'🏠 Games',
+    qLbl:'Question', scoreLbl:'Solved', timeLbl:'Time left',
+    hint:'Tap the right answer · correct goes straight on · a miss costs 3 seconds · keys 1–4',
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    result:'Result', finalUnit:'solved', again:'Play again', share:'Share result', start:'▶ Practice',
+    okLbl:'Solved', badLbl:'Missed', accLbl:'Accuracy',
+    startSub:'How many can you solve in 30 seconds?<br>Four choices · correct goes on · a miss costs 3s.',
+    daily:'Daily challenge', dailyDone:'Daily done', practice:'Practice',
+    idle:'Press start for the first question.',
+    tier1:'single digit', tier2:'double digit', tier3:'× and ÷',
+    newBest:'🎉 New best!', copied:'Result copied', copyFail:'Could not copy',
+    statPlays:'<b data-hp="plays.quick-math.today">–</b> today · <b data-hp="plays.quick-math.total">–</b> all-time',
+    navAbout:'About', navPrivacy:'Privacy Policy',
+    footer:'© 2026 Quick Math · Privacy: scores stay on this device. Third-party cookies (Google and others) may be used to serve ads.',
+    docTitle:'Quick Math — 30-second mental math | 빠른 셈', langBtn:'한국어',
+    howTitle:'How to play', dailyTitle:'Daily challenge', tipsTitle:'Tips', faqTitle:'FAQ',
+    how1:'A sum appears in the middle of the screen with four answers below it. Tap the one you think is right. Get it right and the next question comes up at once and your solved count goes up by one. Get it wrong and that choice locks and three seconds come off the clock — the question stays, so pick again. On a computer the number keys 1 to 4 choose for you.',
+    how2:'A round lasts thirty seconds. When the clock runs out, however many you solved is your score. The questions get harder as you go: the first five are single-digit addition and subtraction, the sixth to the twelfth are double-digit addition and subtraction, and from the thirteenth on they mix times-table multiplication with division. A subtraction never gives a negative answer, and a division always comes out even.',
+    how3:'When the round ends you get your solved count, your accuracy, and a list of every question that came up. The list shows the sum, the right answer, and the answer you picked.',
+    dailyDesc:'A new round opens every midnight. For that day every player in the world gets exactly the same questions in the same order, right down to where each choice sits. Everything in the round — the questions and the wrong answers alike — is decided the moment the round starts, so someone who misses a lot and someone who misses none still see the same questions. The daily challenge is once a day; practice mode has no limit.',
+    tip1q:'For double digits, start with the tens',
+    tip1a:'Looking at 47 + 38, do not start with 7 + 8. Take 40 + 30 = 70 first, then add 7 + 8 = 15 to get 85. Settling the larger place first tells you roughly how big the answer is, which rules out two or three of the four choices before you calculate anything else.',
+    tip2q:'The last digit alone often decides it',
+    tip2a:'When the four choices end in different digits, working out only the last digit narrows it to one. The last digit of 6 × 7 is 2, so look for the choice ending in 2 first. It is much faster than computing the whole thing.',
+    tip3q:'A miss costs more than you think',
+    tip3a:'The three seconds a miss costs is enough time to solve one or two easy questions. When you are not sure, taking half a beat longer and getting it right scores better than guessing.',
+    faq1q:'Do I need to install anything?',
+    faq1a:'No. It runs straight in the browser. Add it to your home screen and it behaves like an app.',
+    faq2q:'Where are my scores stored?',
+    faq2a:'Only in the browser on the device you are using. Nothing is sent to a server. Clearing your browser data clears the scores too.',
+    faq3q:'Can I play in English?',
+    faq3a:'Yes. The button at the top right switches the interface to English. The game is nothing but numbers, so the questions are the same in either language.',
+    faq4q:'Could the questions differ on the same day?',
+    faq4a:'No. The questions and the order of the choices in the daily challenge are fixed by the date alone. They do not vary from player to player, and coming back later the same day gives you the same round. Practice mode gives a fresh round every time.',
+    faq5q:'Can I turn the sound off?',
+    faq5a:'Yes. The speaker button at the top right toggles it, and your choice is remembered next time. The effects are generated by the browser on the spot, so there are no audio files to download. Turning on Reduce Motion on your device also switches off the shake and pop animations.'
+  }
+};
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k) => I18N[lang][k];
+
+/* ======================= 요소 ======================= */
+const $ = (id) => document.getElementById(id);
+const elQNo = $('qNo'), elScore = $('scoreNow'), elTime = $('timeNow'), elTimeCell = $('timeCell');
+const elQ = $('qtext'), elOpts = $('opts'), elTier = $('qtier'), elCat = $('qcat');
+const elBar = $('bar'), elBarFill = $('barFill'), elPenalty = $('penalty');
+const elSR = $('srSummary'), elToast = $('toast');
+const ovStart = $('start'), ovOver = $('over');
+const optBtns = Array.prototype.slice.call(elOpts.querySelectorAll('.opt'));
+
+/* ======================= 소리 ======================= */
+let soundOn = localStorage.getItem('qm.sound') !== '0', actx = null;
+function beep(freq, ms, type){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type || 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(.0001, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.18, actx.currentTime + .01);
+    g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + ms / 1000);
+    o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + ms / 1000);
+  }catch(_){ /* 소리가 안 나도 게임은 그대로 돈다 */ }
+}
+function setSound(on){
+  soundOn = on; localStorage.setItem('qm.sound', on ? '1' : '0');
+  [$('btnSound'), $('btnSound2')].forEach(b => { if (b){ b.textContent = on ? '🔊' : '🔇'; b.setAttribute('aria-pressed', String(on)); } });
+}
+
+/* ======================= 날짜·seed ======================= */
+const pad2 = (n) => String(n).padStart(2, '0');
+function dayKey(d){ d = d || new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function hashStr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const dailySeedKey = (d) => 'hanpango-daily-quick-math-' + dayKey(d);
+
+/* ★난수는 두 갈래로 갈라 둔다.
+   ①deckRng — 판을 짜는 난수. 오늘의 도전은 날짜 seed 로 고정된다. makeDeck 안에서만 쓴다.
+   ②fxRng  — 연습 모드의 seed 를 뽑는 데만 쓴다. 항상 Math.random.
+   연출·플레이에서 deckRng 를 당기면 '같은 날짜 = 같은 판' 이 무너진다. */
+const fxRng = Math.random;
+
+function dailyRec(){ try{ return JSON.parse(localStorage.getItem('qm.daily') || 'null'); }catch(_){ return null; } }
+function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && typeof r.score === 'number'); }
+function saveDaily(score){ localStorage.setItem('qm.daily', JSON.stringify({ date: runDay, score: score })); }
+
+/* ======================= 판 짜기 (★전부 여기서 굴린다) ======================= */
+function shuffle(arr, rng){ for (let i = arr.length - 1; i > 0; i--){ const j = Math.floor(rng() * (i + 1)); const t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
+
+/* ★난이도는 문제 번호로만 정해진다(잠근 항 ④). */
+function tierOf(no){ return no <= 5 ? 1 : no <= 12 ? 2 : 3; }
+
+/* 오답 세 개 — ★정답 근처의 값에서 고른다.
+   ★재추첨 사유는 결정론 조건뿐이다: 음수 배제 · 정답과 같은 값 배제 · 중복 배제.
+   후보 목록에 ±1 ±2 ±3 이 항상 들어 있으므로 정답이 0 이상이면 세 개는 반드시 모인다. */
+function makeWrongs(ans, mul, rng){
+  const deltas = mul ? [1, -1, 2, -2, 3, -3, 4, -4, 6, -6, 5, -5, 8, -8]
+                     : [1, -1, 2, -2, 3, -3, 10, -10, 9, -9, 11, -11, 20, -20];
+  const pool = [];
+  for (let i = 0; i < deltas.length; i++){
+    const v = ans + deltas[i];
+    if (v < 0) continue;              /* 값 범위 */
+    if (pool.indexOf(v) >= 0) continue; /* 중복 배제 */
+    /* ★정답 배제는 따로 걸지 않는다 — 위 deltas 에 0 이 없으므로 v === ans 가 될 수 없다.
+       (걸어 두면 도달할 수 없는 방어가 되어 그 자리의 뮤테이션이 공허하게 통과한다.
+        대신 deltas 에 0 을 넣는 뮤테이션 m-wrong-delta-zero 가 이 성질을 시험한다.) */
+    pool.push(v);
+  }
+  shuffle(pool, rng);
+  return pool.slice(0, 3);
+}
+
+function makeQuestion(no, rng){
+  const t = tierOf(no);
+  let a, b, op, ans, mul = false;
+  if (t === 1){
+    op = rng() < 0.5 ? '+' : '−';
+    a = 1 + Math.floor(rng() * 9); b = 1 + Math.floor(rng() * 9);
+    if (op === '−' && b > a){ const s = a; a = b; b = s; }   /* 음수를 피한다 — 재추첨이 아니라 자리 교환 */
+    ans = (op === '+') ? a + b : a - b;
+  } else if (t === 2){
+    op = rng() < 0.5 ? '+' : '−';
+    a = 10 + Math.floor(rng() * 90); b = 10 + Math.floor(rng() * 90);
+    if (op === '−' && b > a){ const s = a; a = b; b = s; }
+    ans = (op === '+') ? a + b : a - b;
+  } else {
+    mul = true;
+    const x = 2 + Math.floor(rng() * 8), y = 2 + Math.floor(rng() * 8);  /* 2~9 구구단 */
+    if (rng() < 0.5){ op = '×'; a = x; b = y; ans = x * y; }
+    else            { op = '÷'; a = x * y; b = y; ans = x; }             /* ★항상 딱 떨어진다 */
+  }
+  const wrongs = makeWrongs(ans, mul, rng);
+  const order = shuffle([0, 1, 2, 3], rng);        /* ★보기 순서도 판 짤 때 정한다 */
+  const opts = [ans, wrongs[0], wrongs[1], wrongs[2]];
+  return {
+    no: no, tier: t, a: a, b: b, op: op, ans: ans,
+    cells: order.map(i => opts[i]),
+    correct: order.indexOf(0)                       /* 정답이 놓인 자리 */
+  };
+}
+
+function makeDeck(seedKey){
+  const rng = mulberry32(hashStr(seedKey));
+  const deck = [];
+  for (let i = 1; i <= DECK_N; i++) deck.push(makeQuestion(i, rng));
+  return deck;
+}
+
+/* ======================= 판 상태 ======================= */
+let deck = [], idx = 0, score = 0, missed = 0;
+let mode = 'daily', runDay = '', seedKeyNow = '';
+let endAt = 0, running = false, rafId = 0;
+let dead = [];                 /* 지금 문제에서 이미 눌러 잠긴 보기 자리 */
+let log = [];                  /* 복습 목록 — 푼 문제 기록 */
+let best = +localStorage.getItem('qm.best') || 0;
+
+/* ★배포본의 관측 창구 — ★읽기 전용이다(getter 만 둔다).
+   시험용 조작 명령은 제품에 두지 않는다. 재현성은 하네스가 자기 쪽에서 만든다. */
+Object.defineProperty(window, '__quickmath', {
+  value: Object.freeze({
+    get deck(){ return deck.map(q => ({ no:q.no, tier:q.tier, a:q.a, b:q.b, op:q.op, ans:q.ans, cells:q.cells.slice(), correct:q.correct })); },
+    get idx(){ return idx; },
+    get score(){ return score; },
+    get missed(){ return missed; },
+    get mode(){ return mode; },
+    get seedKey(){ return seedKeyNow; },
+    get runDay(){ return runDay; },
+    get running(){ return running; },
+    get remainMs(){ return running ? Math.max(0, endAt - now()) : 0; },
+    get dead(){ return dead.slice(); },
+    get roundMs(){ return ROUND_MS; },
+    get penaltyMs(){ return PENALTY_MS; },
+    get deckN(){ return DECK_N; }
+  }),
+  writable: false, configurable: false
+});
+
+const now = () => (window.performance && performance.now) ? performance.now() : Date.now();
+
+/* ======================= 그리기 ======================= */
+const fmtTime = (ms) => (Math.max(0, ms) / 1000).toFixed(1);
+
+function paintQuestion(){
+  const q = deck[idx];
+  if (!q){ endRun(); return; }
+  elQ.classList.remove('idle');
+  elQ.textContent = q.a + ' ' + q.op + ' ' + q.b + ' = ?';
+  elQNo.textContent = String(idx + 1);
+  elTier.textContent = T('tier' + q.tier);
+  optBtns.forEach((btn, i) => {
+    btn.disabled = false;
+    btn.className = 'opt';
+    btn.querySelector('.t').textContent = String(q.cells[i]);
+    btn.querySelector('.mk').textContent = '';
+  });
+  elSR.textContent = q.a + ' ' + q.op + ' ' + q.b;
+}
+
+function paintScore(){
+  elScore.textContent = String(score);
+}
+
+function paintTime(){
+  const left = Math.max(0, endAt - now());
+  elTime.textContent = fmtTime(left);
+  const ratio = Math.max(0, Math.min(1, left / ROUND_MS));
+  elBarFill.style.width = (ratio * 100) + '%';
+  const low = left <= 5000;
+  elBar.classList.toggle('low', low);
+  elTimeCell.classList.toggle('low', low);
+}
+
+/* ======================= 시계 ======================= */
+function tick(){
+  if (!running) return;
+  paintTime();
+  if (now() >= endAt){ endRun(); return; }
+  rafId = requestAnimationFrame(tick);
+}
+
+/* ======================= 조작 ======================= */
+/* ★논리는 즉시 확정하고 미루는 것은 화면뿐이다 — 애니메이션 때문에 채점을 뒤로 미루면
+   빠른 연타가 낡은 상태 위에서 실행된다. */
+function choose(i){
+  if (!running) return;
+  const q = deck[idx];
+  if (!q) return;
+  if (dead.indexOf(i) >= 0) return;         /* 이미 잠긴 보기 — 같은 오답을 두 번 세지 않는다 */
+  const btn = optBtns[i];
+  if (i === q.correct){
+    score++; paintScore();
+    log.push({ a:q.a, b:q.b, op:q.op, ans:q.ans, picked:q.cells[i], ok:true });
+    btn.classList.add('ok', 'pop');
+    btn.querySelector('.mk').textContent = '✓';
+    beep(880, 90, 'sine');
+    ga('qm_correct', { n: idx + 1 });
+    idx++; dead = [];
+    /* 다음 문제는 ★즉시 그린다(연출 대기 없음) — 30초짜리 게임에서 대기는 곧 점수다. */
+    paintQuestion();
+  } else {
+    missed++;
+    dead.push(i);
+    log.push({ a:q.a, b:q.b, op:q.op, ans:q.ans, picked:q.cells[i], ok:false });
+    btn.classList.add('bad', 'shake');
+    btn.querySelector('.mk').textContent = '✗';
+    btn.disabled = true;
+    endAt -= PENALTY_MS;                    /* ★즉시 확정 */
+    elPenalty.classList.remove('show');
+    void elPenalty.offsetWidth;             /* 되감기 — 연타해도 매번 다시 뜬다 */
+    elPenalty.classList.add('show');
+    beep(180, 140, 'square');
+    paintTime();
+    ga('qm_miss', { n: idx + 1 });
+    if (now() >= endAt) endRun();
+  }
+}
+
+optBtns.forEach((btn, i) => { btn.addEventListener('click', () => choose(i)); });
+window.addEventListener('keydown', (e) => {
+  if (!running) return;
+  const n = '1234'.indexOf(e.key);
+  if (n >= 0){ e.preventDefault(); choose(n); }
+});
+
+/* ======================= 판 시작·끝 ======================= */
+function startRun(m){
+  mode = m;
+  const t0 = new Date();
+  runDay = (m === 'daily') ? dayKey(t0) : '';
+  seedKeyNow = (m === 'daily') ? dailySeedKey(t0) : ('free-' + fxRng().toString(36).slice(2, 10));
+  deck = makeDeck(seedKeyNow);              /* ★판을 짠다 — 이 뒤로는 난수를 쓰지 않는다 */
+  idx = 0; score = 0; missed = 0; dead = []; log = [];
+  ovStart.classList.remove('show'); ovOver.classList.remove('show');
+  elCat.textContent = (m === 'daily') ? T('daily') : T('practice');
+  paintScore(); paintQuestion();
+  endAt = now() + ROUND_MS;
+  running = true;
+  paintTime();
+  cancelAnimationFrame(rafId); rafId = requestAnimationFrame(tick);
+  /* ★사이트 규약 — 시작 지점마다 game_start 바로 다음 줄에 가드 붙은 hpHit('play') 를 둔다
+     (tools/counter/test_pages.mjs 가 이 짝을 센다). */
+  ga('game_start', { game: GA_GAME, mode: m });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+}
+
+function endRun(){
+  if (!running) return;
+  running = false;
+  cancelAnimationFrame(rafId);
+  elTime.textContent = '0.0';
+  elBarFill.style.width = '0%';
+  optBtns.forEach(b => { b.disabled = true; });
+  const total = score + missed;
+  $('finalScore').textContent = String(score);
+  $('nOk').textContent = String(score);
+  $('nBad').textContent = String(missed);
+  $('nAcc').textContent = (total ? Math.round(score * 100 / total) : 0) + '%';
+  $('newBest').textContent = '';
+  if (score > best){ best = score; localStorage.setItem('qm.best', String(best)); $('newBest').textContent = T('newBest'); }
+  $('finalSub').textContent = (mode === 'daily') ? (runDay + ' · ' + T('daily')) : T('practice');
+  if (mode === 'daily') saveDaily(score);
+  renderReview();
+  ovOver.classList.add('show');
+  if (window.hpStats) window.hpStats();
+  ga('qm_end', { mode: mode, score: score, missed: missed });
+  paintDailyHint();
+}
+
+function renderReview(){
+  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  /* ★목록 글은 언어를 바꿔도 다시 그려지므로 data-i18n 을 쓰지 않고 그 언어로 바로 쓴다. */
+  $('review').innerHTML = log.map(r => {
+    const q = esc(r.a + ' ' + r.op + ' ' + r.b + ' = ' + r.ans);
+    const mine = r.ok ? '' : (lang === 'ko' ? ' · 내 답 ' : ' · you ') + esc(r.picked);
+    return '<li><span class="m ' + (r.ok ? 'ok">✓' : 'bad">✗') + '</span>' +
+           '<span><span class="rq">' + q + '</span><span class="ra">' + mine + '</span></span></li>';
+  }).join('');
+}
+
+/* ======================= 공유 ======================= */
+function shareText(){
+  const head = (lang === 'ko') ? '빠른 셈' : 'Quick Math';
+  const when = (mode === 'daily') ? runDay : (lang === 'ko' ? '연습' : 'practice');
+  const line = (lang === 'ko')
+    ? (score + '문제 · 정확도 ' + (score + missed ? Math.round(score * 100 / (score + missed)) : 0) + '%')
+    : (score + ' solved · ' + (score + missed ? Math.round(score * 100 / (score + missed)) : 0) + '% accuracy');
+  return head + ' ' + when + '\n' + line + '\nhttps://hanpango.com/quick-math/';
+}
+function toast(msg){ elToast.textContent = msg; elToast.classList.add('show'); setTimeout(() => elToast.classList.remove('show'), 1400); }
+$('btnShare').onclick = async () => {
+  const text = shareText();
+  try{
+    if (navigator.share){ await navigator.share({ text: text }); return; }
+    await navigator.clipboard.writeText(text); toast(T('copied'));
+  }catch(_){ toast(T('copyFail')); }
+};
+
+/* ======================= 언어 ======================= */
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = I18N[lang][k];
+  });
+  [$('btnLang'), $('btnLang2')].forEach(b => { if (b) b.textContent = T('langBtn'); });
+  localStorage.setItem('bp.lang', lang);
+  /* 문안을 갈아 끼우면 숫자가 지워진다 — 바로 다시 채운다. */
+  if (window.hpStats) window.hpStats();
+  /* ★진행 중 화면은 applyLang 이 덮지 않는다 — 여기서 다시 그려 준다. */
+  if (running){ const q = deck[idx]; if (q) elTier.textContent = T('tier' + q.tier); elCat.textContent = (mode === 'daily') ? T('daily') : T('practice'); }
+  else { elQ.textContent = T('idle'); }
+  if (log.length) renderReview();
+  paintDailyHint();
+}
+const toggleLang = () => { lang = (lang === 'ko') ? 'en' : 'ko'; applyLang(); };
+$('btnLang').onclick = toggleLang; $('btnLang2').onclick = toggleLang;
+$('btnSound').onclick = () => setSound(!soundOn); $('btnSound2').onclick = () => setSound(!soundOn);
+
+/* ======================= 시작 화면 ======================= */
+function paintDailyHint(){
+  const done = dailyDoneToday();
+  const r = dailyRec();
+  $('btnDaily').textContent = done ? T('dailyDone') : T('daily');
+  $('dailyHint').textContent = done && r
+    ? (lang === 'ko' ? ('오늘 기록 ' + r.score + '문제 · 최고 ' + best + '문제') : ('today ' + r.score + ' · best ' + best))
+    : (lang === 'ko' ? ('최고 기록 ' + best + '문제') : ('best ' + best));
+}
+$('btnDaily').onclick = () => startRun('daily');
+$('btnStart').onclick = () => startRun('free');
+$('btnAgain').onclick = () => { ovOver.classList.remove('show'); ovStart.classList.add('show'); paintDailyHint(); };
+
+setSound(soundOn);
+applyLang();
+paintDailyHint();
+
+/* 방문 1회 — hp-stats.js 가 defer 라 이 줄보다 늦게 실행된다. 화면이 준비된 뒤에 부른다. */
+const hpVisit = () => { if (window.hpHit) window.hpHit('visit'); };
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hpVisit); else hpVisit();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
