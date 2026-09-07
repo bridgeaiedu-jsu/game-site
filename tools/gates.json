@@ -164,6 +164,13 @@
       "cmd": "python3 tools/audit_term_denominator.py .",
       "when": "on-change:tools/verify_quickmath.js(느리다 — 항마다 검사기를 다시 돌린다)",
       "why": "★단언이 둘 이상인 검사의 ★각 항이 실제로 분모를 갖는지 잰다(항 하나만 지우고 그 검사를 겨냥한 뮤테이션을 다시 돌린다). 이 수치를 보고에 쓰려면 ★이 도구가 찍어야 한다 — 손계산 금지(2026-09-08 R5 F13)."
+    },
+    {
+      "file": "tools/check_theme_contrast.mjs",
+      "kind": "cli",
+      "cmd": "node tools/check_theme_contrast.mjs .",
+      "when": "always",
+      "why": "두 테마(라이트·다크)에서 ★렌더된 색으로 글자 대비비를 잰다(보통 4.5:1 · 큰 글자 3:1). CDP 의 Emulation.setEmulatedMedia 로 다크를 강제한다 — 두 라운드 동안 \"다크는 강제할 수단이 없다\" 고 적혀 있던 자리가 여기서 풀렸다(R6 B5). ★always 인 이유: 대비는 제품이 안 바뀌어도 토큰·테마가 바뀌면 깨지고, \"표면 위에 새 글자가 놓이는 변경\" 은 조건부 트리거로 못 덮는다(2026-09-08 실제 사례가 그 모양이었다)."
     }
   ],
   "per_game": [
@@ -402,6 +409,10 @@
     {
       "file": "tools/quickmath_mutation_expectations.json",
       "why": "뮤테이션 기대표 ★정본 데이터(러너가 읽는다)"
+    },
+    {
+      "file": "tools/quickmath_term_denominator_canon.json",
+      "why": "분모 0 항 수용 목록 ★정본 데이터(audit_term_denominator.py 가 읽어 판정한다)"
     },
     {
       "file": "tools/shot-frame.html",

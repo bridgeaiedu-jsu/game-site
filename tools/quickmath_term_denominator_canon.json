@@ -1,0 +1,257 @@
+{
+  "_contract": "★분모 0 인 항(= 아무 겨냥 변이도 그 항에 기대지 않는 단언)의 ★수용 목록이다. tools/audit_term_denominator.py 가 이 목록과 실측을 양방향으로 대조한다 — 선언 없는 분모 0 은 rc=1, 선언인데 지금은 분모 0 이 아니면 rc=2(노후화)다.",
+  "_why": "분모 0 자체는 대개 ★중복 관측이라 결함이 아니다. 그러나 ★사유를 적게 만들면 '결함인데 그냥 둔 것' 이 조용히 섞일 수 없다(2026-09-08 R6 B1).",
+  "_regen": "값은 손으로 옮겨 적지 마라 — 실측에서 생성한다. 항 문안이 바뀌면 노후화로 rc=2 가 난다.",
+  "accepted_zero_terms": [
+    {
+      "check": "행동이 난수를 소비하지 않는다",
+      "term": "taps > 0",
+      "why": "중복 관측 — 겨냥 변이(m-play-rebuilds-deck rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"same\" 이 짊어진다."
+    },
+    {
+      "check": "같은 seed = 같은 판",
+      "term": "key",
+      "why": "중복 관측 — 겨냥 변이(m-deck-shuffled-after-build rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"same\" 이 짊어진다."
+    },
+    {
+      "check": "다른 날 = 다른 판",
+      "term": "seeds.size === N",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-seed-ignores-day rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "다른 날 = 다른 판",
+      "term": "decks.size === N",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-seed-ignores-day rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "난이도 계단은 문제 번호로만 정해진다",
+      "term": "!moved",
+      "why": "중복 관측 — 겨냥 변이(m-tier-follows-score rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"bad.length === 0\" 이 짊어진다."
+    },
+    {
+      "check": "오답 벌점은 정확히 3초",
+      "term": "W.win.__quickmath.penaltyMs === 3000",
+      "why": "중복 관측 — 겨냥 변이(m-penalty-wrong-amount rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"Math.abs(drop - W.win.__quickmath.penaltyMs) < 1e-6\" 이 짊어진다."
+    },
+    {
+      "check": "정답이면 즉시 다음 문제",
+      "term": "idxAfterMiss === 0",
+      "why": "중복 관측 — 겨냥 변이(m-correct-does-not-advance rc=0, m-miss-advances rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"idxAfterHit === 1\" 이 짊어진다."
+    },
+    {
+      "check": "정답이면 즉시 다음 문제",
+      "term": "scored === 1",
+      "why": "중복 관측 — 겨냥 변이(m-correct-does-not-advance rc=0, m-miss-advances rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"idxAfterHit === 1\" 이 짊어진다."
+    },
+    {
+      "check": "잠긴 보기는 다시 세지 않는다",
+      "term": "(t0 - t1) === 3000",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-dead-guard-removed rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "잠긴 보기는 다시 세지 않는다",
+      "term": "t1 === t2",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-dead-guard-removed rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "잠긴 보기는 다시 세지 않는다",
+      "term": "W.win.__quickmath.missed === 1",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-dead-guard-removed rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "선굴림 덱은 60문",
+      "term": "k.deckN === 60",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-deck-short rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "선굴림 덱은 60문",
+      "term": "deckOf(W).length === 60",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-deck-short rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "한 판은 30초",
+      "term": "k.roundMs === 30000",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-round-shorter rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "한 판은 30초",
+      "term": "aliveAt299 === true",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-round-shorter rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "한 판은 30초",
+      "term": "overAt301",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-round-shorter rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "관측 창구는 읽기 전용",
+      "term": "k.score === before",
+      "why": "중복 관측 — 겨냥 변이(m-window-opens-command rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"cmds.length === 0\" 이 짊어진다."
+    },
+    {
+      "check": "관측 창구는 읽기 전용",
+      "term": "still",
+      "why": "중복 관측 — 겨냥 변이(m-window-opens-command rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"cmds.length === 0\" 이 짊어진다."
+    },
+    {
+      "check": "행동이 난수를 한 번도 안 당긴다(전역 계수)",
+      "term": "taps > 0",
+      "why": "중복 관측 — 겨냥 변이(m-choice-consumes-rng rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"dRandom === 0\" 이 짊어진다."
+    },
+    {
+      "check": "판 중 ★다른 행동도 난수를 안 당긴다(언어 전환·소리)",
+      "term": "dRandom === 0",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-lang-toggle-rebuilds-deck rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "판 중 ★다른 행동도 난수를 안 당긴다(언어 전환·소리)",
+      "term": "same",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-lang-toggle-rebuilds-deck rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "소리 설정은 다시 열어도 유지된다",
+      "term": "saved === '0'",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-sound-not-persisted rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "소리 설정은 다시 열어도 유지된다",
+      "term": "after === 'false'",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-sound-not-persisted rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "소리 설정은 다시 열어도 유지된다",
+      "term": "mark === '\\uD83D\\uDD07'",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-sound-not-persisted rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "토스트는 1.4초 뒤 스스로 사라진다",
+      "term": "still",
+      "why": "중복 관측 — 겨냥 변이(m-toast-never-hides rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"gone\" 이 짊어진다."
+    },
+    {
+      "check": "판은 시작한 날에 귀속된다",
+      "term": "rec",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-run-belongs-to-end-day rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "판은 시작한 날에 귀속된다",
+      "term": "rec.date === day0",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-run-belongs-to-end-day rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "판은 시작한 날에 귀속된다",
+      "term": "day0 === '2026-07-10'",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-run-belongs-to-end-day rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "판은 시작한 날에 귀속된다",
+      "term": "doneNow === false",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-run-belongs-to-end-day rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "완료 뒤 daily 는 새 판을 시작하지 않는다",
+      "term": "k.running === false",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-daily-replay-overwrites rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "완료 뒤 daily 는 새 판을 시작하지 않는다",
+      "term": "k.replaying === true",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-daily-replay-overwrites rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "완료 뒤 daily 는 새 판을 시작하지 않는다",
+      "term": "after.score === first.score",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-daily-replay-overwrites rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "재열람이 기록을 덮지 않는다",
+      "term": "before === after",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-save-overwrites rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "재열람이 기록을 덮지 않는다",
+      "term": "JSON.parse(after).score === solved",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-save-overwrites rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "다른 탭이 먼저 남긴 기록을 덮지 않는다(저장 가드 단독)",
+      "term": "rec.date === k.runDay",
+      "why": "중복 관측 — 겨냥 변이(m-save-guard-only rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"rec.score === OTHER\" 이 짊어진다."
+    },
+    {
+      "check": "연습 모드는 완료 뒤에도 열려 있다",
+      "term": "doneBefore === true",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-practice-locked-after-daily rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "연습 모드는 완료 뒤에도 열려 있다",
+      "term": "k.running === true",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-practice-locked-after-daily rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "연습 모드는 완료 뒤에도 열려 있다",
+      "term": "k.mode === 'free'",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-practice-locked-after-daily rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "연습 모드는 완료 뒤에도 열려 있다",
+      "term": "rec === rec2",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-practice-locked-after-daily rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "오답이면 그 보기 하나만 잠긴다(동적)",
+      "term": "afterMiss.length === 1",
+      "why": "중복 관측 — 겨냥 변이(m-miss-locks-all rc=0, m-next-question-stays-locked rc=0, m-miss-locks-other rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"afterMiss[0] === wrong\" 이 짊어진다."
+    },
+    {
+      "check": "오답 잠금 전에 포커스를 옮긴다(정적)",
+      "term": "f >= 0",
+      "why": "중복 관측 — 겨냥 변이(m-focus-after-disable rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"f < d\" 이 짊어진다."
+    },
+    {
+      "check": "오답 잠금 전에 포커스를 옮긴다(정적)",
+      "term": "d >= 0",
+      "why": "중복 관측 — 겨냥 변이(m-focus-after-disable rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"f < d\" 이 짊어진다."
+    },
+    {
+      "check": "재열람에 직전 판 목록이 남지 않는다",
+      "term": "beforeLang === 0",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-replay-keeps-log rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "재열람에 직전 판 목록이 남지 않는다",
+      "term": "afterLang === 0",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-replay-keeps-log rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "재열람에 직전 판 목록이 남지 않는다",
+      "term": "S.k.resultView.logLen === 0",
+      "why": "중복 관측(항끼리 함께 잡는다) — 겨냥 변이(m-replay-keeps-log rc=0)가 이 항 없이도 잡히고, 이 검사에는 홀로 판정을 짊어지는 항이 없다. 한 항만 지워선 안 보이는 자리다."
+    },
+    {
+      "check": "재열람 공유문이 그날 기록을 말한다",
+      "term": "hasDay",
+      "why": "중복 관측 — 겨냥 변이(m-share-reads-live-state rc=0, m-share-says-practice rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"!saysPractice\" 이 짊어진다."
+    },
+    {
+      "check": "재열람 공유문이 그날 기록을 말한다",
+      "term": "hasScore",
+      "why": "중복 관측 — 겨냥 변이(m-share-reads-live-state rc=0, m-share-says-practice rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"!saysPractice\" 이 짊어진다."
+    },
+    {
+      "check": "모르는 값을 지어내지 않는다",
+      "term": "nAcc === '–'",
+      "why": "중복 관측 — 겨냥 변이(m-replay-accuracy-zero rc=0, m-review-invents-missed rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"nBad === '–'\" 이 짊어진다."
+    },
+    {
+      "check": "모르는 값을 지어내지 않는다",
+      "term": "view.missed === null",
+      "why": "중복 관측 — 겨냥 변이(m-replay-accuracy-zero rc=0, m-review-invents-missed rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"nBad === '–'\" 이 짊어진다."
+    },
+    {
+      "check": "모르는 값을 지어내지 않는다",
+      "term": "txt.indexOf('%') < 0",
+      "why": "중복 관측 — 겨냥 변이(m-replay-accuracy-zero rc=0, m-review-invents-missed rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"nBad === '–'\" 이 짊어진다."
+    }
+  ]
+}

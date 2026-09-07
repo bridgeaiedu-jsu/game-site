@@ -332,6 +332,22 @@ const MUTATIONS = {
     apply: s => s.replace("    $('nBad').textContent = '–';",
                           "    $('nBad').textContent = '0';")
   },
+  'm-sound-not-persisted': {
+    /* ★B6 — 소리 설정이 저장되지 않으면 다시 열 때마다 소리가 켜진다.
+       R6 리뷰어 실측: 이 파일에 'sound' 문자열이 ★0건이었다(계약이 아무에게도 안 재졌다). */
+    why: '소리 설정을 저장하지 않는다 — 껐는데 다시 열면 다시 켜져 있다',
+    target: '소리 설정은 다시 열어도 유지된다',
+    apply: s => s.replace("  soundOn = on; localStorage.setItem('qm.sound', on ? '1' : '0');",
+                          '  soundOn = on;')
+  },
+  'm-toast-never-hides': {
+    /* ★B7 — 토스트가 스스로 안 사라지면 화면을 계속 덮는다.
+       ★합의 문안 재정의: 이 게임의 '못 재는 타이머' 는 자정 예약이 아니라 ★토스트 자동 숨김이다
+       (자정 타이머는 「오늘의 한판」 축 계약이고 이 게임에는 없다 — 유일한 setTimeout 이 이것이다). */
+    why: '토스트를 자동으로 숨기지 않는다 — 안내가 화면에 계속 남는다',
+    target: '토스트는 1.4초 뒤 스스로 사라진다',
+    apply: s => s.replace("setTimeout(() => elToast.classList.remove('show'), 1400);", '')
+  },
   'm-quiet-control': {
     why: '★대조군 — 주석 한 줄만 바꾼다. 어떤 검사도 붉으면 안 된다',
     target: null,
@@ -525,6 +541,8 @@ function makeWorld(opts) {
   }
   const store = Object.assign({}, opts.store || {});
   const rafQ = [];
+  const timers = [];            /* ★가상 타이머 큐(B7) — 실시간을 기다리지 않는다 */
+  let timerId = 0;
   const doc = {
     readyState: 'complete',
     documentElement: { lang: 'ko' },
@@ -540,10 +558,15 @@ function makeWorld(opts) {
       setItem: (k, v) => { store[k] = String(v); },
       removeItem: k => { delete store[k]; }
     },
-    /* ★타이머·시계는 하네스가 쥔다 — 제품에 시간 조작 훅을 뚫지 않는다. */
+    /* ★타이머·시계는 하네스가 쥔다 — 제품에 시간 조작 훅을 뚫지 않는다.
+       ★2026-09-08 R6 B7: setTimeout 이 ★무력화(() => 0)돼 있어서 그것으로 도는 계약은
+       원리적으로 안 재졌다. 이 게임에 자정 예약 타이머는 ★없고(그건 「오늘의 한판」 축이다),
+       유일한 setTimeout 은 ★토스트 자동 숨김 1400ms 다. 그래서 무력화 대신 ★가상 시계에 매단다 —
+       advance(ms) 가 시각을 옮기면서 그때까지 만기가 된 타이머를 ★순서대로 돌린다. */
     requestAnimationFrame: fn => { rafQ.push(fn); return rafQ.length; },
     cancelAnimationFrame: () => {},
-    setTimeout: () => 0, clearTimeout: () => {},
+    setTimeout: (fn, ms) => { timers.push({ id: ++timerId, at: clock + (Number(ms) || 0), fn: fn }); return timerId; },
+    clearTimeout: id => { const i = timers.findIndex(t => t.id === id); if (i >= 0) timers.splice(i, 1); },
     addEventListener: () => {}, Math, Date, console, JSON, Object, Array, String, Number
   };
   /* ★전역 난수도 하네스가 센다 — 제품에 계수 훅을 뚫지 않는다(C).
@@ -555,7 +578,17 @@ function makeWorld(opts) {
   win.__randomCalls = () => randomCalls;
   let clock = (typeof opts.startNow === 'number') ? opts.startNow : 1000;
   win.performance = { now: () => clock };
-  win.__advance = ms => { clock += ms; };
+  win.__advance = ms => {
+    clock += ms;
+    /* ★만기가 된 타이머를 ★만기 순서대로 돌린다(같은 시각이면 등록 순서) */
+    for (;;) {
+      const due = timers.filter(t => t.at <= clock).sort((a, b) => (a.at - b.at) || (a.id - b.id));
+      if (!due.length) break;
+      const t = due[0];
+      timers.splice(timers.indexOf(t), 1);
+      try { t.fn(); } catch (e) { /* 제품 예외는 검사가 따로 잡는다 */ }
+    }
+  };
   if (typeof opts.fixedNow === 'number') {
     const fixed = opts.fixedNow;
     win.Date = new Proxy(Date, { get(t, p) { return p === 'now' ? () => fixed : t[p]; } });
@@ -895,6 +928,46 @@ check('판 중 ★다른 행동도 난수를 안 당긴다(언어 전환·소리
   return { ok: dRandom === 0 && same,
            note: '판 중 언어 2회·소리 1회 · ★전역 Math.random +' + dRandom +
                  ' · 덱 ' + (same ? '동일' : '★갈라짐') };
+});
+
+/* ── F ★소리 설정은 다시 열어도 유지된다 (2026-09-08 R6 B6)
+   리뷰어 실측: 이 검사기에 'sound' 문자열이 ★0건이었다 — 제품은 지속시키는데 아무도 안 쟀다.
+   ★관측은 사용자 표면으로 한다: 버튼의 aria-pressed·표시 글자와 저장 키(qm.sound). */
+check('소리 설정은 다시 열어도 유지된다', () => {
+  const A = makeWorld({ today: new Date(2026, 6, 1) });
+  const on0 = A.els.btnSound.getAttribute('aria-pressed');
+  A.els.btnSound.fire('click');                       /* 소리를 끈다 */
+  const off = A.els.btnSound.getAttribute('aria-pressed');
+  const saved = A.win.localStorage.getItem('qm.sound');
+  if (on0 !== 'true' || off !== 'false') {
+    return { ok: false, note: '★첫 상태·토글이 예상과 다르다(표본 미성립) ' + on0 + ' → ' + off };
+  }
+  /* ★다시 연다 — 창은 새 것이고 물려주는 것은 ★저장된 것뿐이다 */
+  const B = makeWorld({ today: new Date(2026, 6, 1), store: { 'qm.sound': saved } });
+  const after = B.els.btnSound.getAttribute('aria-pressed');
+  const mark = B.els.btnSound.textContent;
+  return { ok: saved === '0' && after === 'false' && mark === '\uD83D\uDD07',
+           note: '저장 qm.sound=' + saved + ' · 다시 열었을 때 aria-pressed=' + after +
+                 ' · 표시 ' + mark + '(꺼짐 표시여야 한다)' };
+});
+
+/* ── G ★토스트는 1.4초 뒤 스스로 사라진다 (2026-09-08 R6 B7 · ★합의 문안 재정의)
+   우리 셋은 '자정 예약 타이머 실발화' 를 이 게임의 남은 사각으로 적어 왔는데, ★이 게임에는
+   자정 타이머가 없다(그것은 「오늘의 한판」 축 계약이다). 이 게임의 유일한 setTimeout 은
+   ★토스트 자동 숨김이고, 하네스가 setTimeout 을 무력화해 두어 ★한 번도 안 재졌다.
+   ⇒ 항목을 이렇게 다시 적고 ★가상 시계로 잰다(실시간을 기다리지 않는다). */
+check('토스트는 1.4초 뒤 스스로 사라진다', () => {
+  const W = makeWorld({ today: new Date(2026, 6, 2) });
+  startDaily(W);
+  W.els.btnShare.fire('click');        /* 공유 시도 — 스텁엔 클립보드가 없어 안내 토스트가 뜬다 */
+  const shown = W.els.toast.classList.contains('show');
+  if (!shown) return { ok: false, note: '★토스트가 뜨지 않았다(표본 미성립)' };
+  W.advance(1399);
+  const still = W.els.toast.classList.contains('show');
+  W.advance(2);
+  const gone = !W.els.toast.classList.contains('show');
+  return { ok: still && gone,
+           note: '1.399초 표시=' + still + '(참이어야) · 1.401초 표시=' + (!gone) + '(거짓이어야)' };
 });
 
 /* ── B ★하루 경계의 권위 = 사용자의 로컬 달력 (기존 21/22 종과 같다) ── */

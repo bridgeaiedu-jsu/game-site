@@ -42,7 +42,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
 const argv = process.argv.slice(2);
-const VALUE_FLAGS = ['--width', '--pages', '--lang', '--scenarios'];
+const VALUE_FLAGS = ['--width', '--pages', '--lang', '--scenarios', '--observe-widths'];
 const flagVal = (n, d) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : d; };
 const positional = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && VALUE_FLAGS.includes(argv[i - 1])));
 const KNOWN = VALUE_FLAGS.concat(['--selftest']);
@@ -62,6 +62,11 @@ const ROOT = path.resolve(positional[0]);
 const WIDTH = Number(flagVal('--width', '360'));
 const PAGES = flagVal('--pages', 'quick-math/index.html').split(',').map(s => s.trim()).filter(Boolean);
 const SELFTEST = argv.includes('--selftest');
+/* ★계약 폭은 360px(모바일) 하나다 — 그 폭만 ★판정한다.
+   더 좁은 폭은 ★관측으로만 적는다: 계약을 넓히는 것은 오너 결정이지 이 도구의 재량이 아니다.
+   대신 ★여유(px)를 늘 찍어서 '얼마나 아슬아슬한가' 가 보이게 한다(2026-09-08 R6 B4). */
+const OBSERVE = flagVal('--observe-widths', '320,344,352').split(',')
+                  .map(s => Number(s.trim())).filter(n => n > 0 && n !== WIDTH);
 const STATES = ['start', 'playing', 'over'];
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -89,20 +94,10 @@ function findChrome() {
 const bootScript = (lang, scenario) => `(() => {
   try { localStorage.setItem('bp.lang', ${JSON.stringify(lang)}); } catch (e) {}
   const scenario = ${JSON.stringify(scenario)};
-  /* ★최악내용은 ★제품이 실제로 낼 수 있는 최대 길이여야 한다.
-     임의로 12자리를 넣으면 ★제품이 만들 수 없는 화면을 시험하게 되고, 그 붉음은 계약이 아니다.
-     그래서 ★제품 자신의 선굴림 덱에서 가장 긴 문제·보기 문자열을 뽑아 쓴다(2026-09-08 R5 F12). */
-  const worst = () => {
-    const k = window.__quickmath;
-    if (!k || !k.deck || !k.deck.length) return null;
-    let q = '', a = '';
-    for (const it of k.deck) {
-      const qt = it.a + ' ' + it.op + ' ' + it.b + ' = ' + it.ans;
-      if (qt.length > q.length) q = qt;
-      for (const c of (it.cells || [])) { const s = String(c); if (s.length > a.length) a = s; }
-    }
-    return { q: q, a: a };
-  };
+  /* ★최악내용은 이제 ★심지 않는다 — 제품이 직접 그리게 한다(2026-09-08 R6 B2·B3).
+     앞서는 평문 <li> 를 심었는데 제품의 실제 행은 마커 span + rq/ra 라 ★더 넓었고,
+     가장 넓은 문제식은 #qtext 에 안 심어 ★한 번도 렌더되지 않았다.
+     ⇒ Node 쪽에서 ★진짜로 플레이한다(가장 넓은 문제까지 정답 · 오답으로 시간을 태워 종료). */
   const apply = () => {
     if (scenario === 'real-ad') {
       /* ★실배포 조건 — 자리표시자 텍스트가 아니라 ★고정 300×250 프레임이 들어간다 */
@@ -117,24 +112,8 @@ const bootScript = (lang, scenario) => `(() => {
         slot.appendChild(f);
       }
     }
-    if (scenario === 'worst-content') {
-      /* ★판을 먼저 시작해야 덱이 있다 — 덱이 없으면 심을 값도 없다(표본 미성립으로 rc=2 가 난다) */
-      if (!(window.__quickmath && window.__quickmath.deck && window.__quickmath.deck.length)) {
-        const b = document.getElementById('btnDaily');
-        if (b) b.click();
-      }
-      const w = worst();
-      if (w) {
-        document.querySelectorAll('#opts .t').forEach(e => { if (e.textContent !== w.a) e.textContent = w.a; });
-        const ul = document.getElementById('review');
-        if (ul && ul.children.length < 3) {
-          const li = '<li>' + w.q + ' \u00b7 \uB0B4 \uB2F5 ' + w.a + '</li>';
-          ul.innerHTML = li + li + li;
-        }
-      }
-    }
   };
-  if (scenario !== 'base') {
+  if (scenario === 'real-ad') {
     const start = () => {
       apply();
       /* ★유지 — 제품이 다시 그릴 때마다 되돌려 놓는다(리뷰어 h2 vs h2b 가 가른 자리) */
@@ -164,6 +143,7 @@ const PROBE = state => `(() => {
   };
   const over = [];
   const skipped = [];
+  let tight = null;
   let measured = 0;
   const all = [d.documentElement, ...d.querySelectorAll('*')];
   for (const el of all){
@@ -180,33 +160,33 @@ const PROBE = state => `(() => {
                    (cw <= 1 && el.clientHeight <= 1 && cs.overflow === 'hidden');
     if (srOnly){ skipped.push(sel(el)); continue; }
     measured++;
+    /* ★여유 = clientWidth - scrollWidth. 가장 작은 자리를 기억한다(음수면 그것이 넘침이다) */
+    if (tight === null || (cw - sw) < tight.slack) tight = { sel: sel(el), slack: cw - sw, clientW: cw };
     if (sw > cw + 1){
       over.push({ sel: sel(el), clientW: cw, scrollW: sw, spill: sw - cw, cssWidth: cs.width });
     }
   }
   return JSON.stringify({ state: state, measured: measured, over: over, skipped: skipped,
+                          tight: tight,
                           vw: d.documentElement.clientWidth,
                           lang: d.documentElement.lang,
                           adKid: !!d.querySelector('#adOver iframe.__probe_ad'),
                           optLen: (d.querySelector('#opts .t') || {}).textContent || '',
-                          worstA: (() => { const k = window.__quickmath;
-                            if (!k || !k.deck) return '';
-                            let a = '';
-                            for (const it of k.deck) for (const c of (it.cells || [])) {
-                              const s = String(c); if (s.length > a.length) a = s; }
-                            return a; })(),
+                          qtext: (d.getElementById('qtext') || {}).textContent || '',
+                          reviewRows: d.querySelectorAll('#review li').length,
                           started: !!(window.__quickmath && window.__quickmath.running) });
 })()`;
 
 async function measure(htmlAbs, states, opts) {
   const { lang, scenario } = opts;
+  const width = opts.width || WIDTH;
   const chrome = findChrome();
   if (!chrome) return { fatal: '크롬 계열 브라우저를 찾지 못했다(CHROME_PATH 로 지정할 수 있다)' };
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'ovf360-'));
   const child = spawn(chrome, [
     '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
     '--disable-extensions', '--disable-background-networking', '--mute-audio',
-    `--window-size=${WIDTH},740`, '--remote-debugging-port=0', `--user-data-dir=${profile}`,
+    `--window-size=${width},740`, '--remote-debugging-port=0', `--user-data-dir=${profile}`,
     '--allow-file-access-from-files', pathToFileURL(htmlAbs).href
   ], { stdio: 'ignore' });
   const kill = () => {
@@ -247,7 +227,7 @@ async function measure(htmlAbs, states, opts) {
     };
     await send('Page.enable', {});
     await send('Emulation.setDeviceMetricsOverride',
-               { width: WIDTH, height: 740, deviceScaleFactor: 2, mobile: true });
+               { width: width, height: 740, deviceScaleFactor: 2, mobile: true });
     /* ★언어·시나리오는 ★문서가 뜨기 전에 심고 ★다시 읽는다 — 로드된 뒤에 넣으면
        제품이 이미 언어를 정한 뒤라 그 기계의 로케일이 그대로 이긴다(R5 F11). */
     await send('Page.addScriptToEvaluateOnNewDocument', { source: bootScript(lang, scenario) });
@@ -258,11 +238,58 @@ async function measure(htmlAbs, states, opts) {
       try { ready = await evaluate('document.readyState === "complete"'); } catch (_) {}
     }
     if (!ready) return { fatal: '페이지가 뜨지 않았다: ' + htmlAbs };
+    /* ★제품 버튼을 ★진짜 사건으로 누른다 — 상태를 밖에서 밀어 넣지 않는다.
+       가장 넓은 문제식까지 정답으로 진행하고(B3), 결과 화면은 ★오답으로 시간을 태워 만든다(B2).
+       (오답 하나가 3초를 깎으므로 10회면 30초 판이 끝난다 — 실시간을 기다리지 않는다.) */
+    const PLAY_TO_WIDEST = `(() => {
+      const k = window.__quickmath;
+      if (!k || !k.deck || !k.deck.length) return JSON.stringify({ ok: false, why: '덱이 없다' });
+      let want = 0, best = -1;
+      k.deck.forEach((q, i) => { const t = (q.a + ' ' + q.op + ' ' + q.b).length; if (t > best) { best = t; want = i; } });
+      const opts = () => [...document.querySelectorAll('#opts .opt')];
+      let guard = 0;
+      while (k.idx < want && k.running && guard++ < 200) {
+        const q = k.deck[k.idx];
+        opts()[q.correct].click();
+      }
+      return JSON.stringify({ ok: k.idx === want, idx: k.idx, want: want,
+                              qtext: (document.getElementById('qtext') || {}).textContent || '' });
+    })()`;
+    const PLAY_TO_END = `(() => {
+      const k = window.__quickmath;
+      /* ★'over' 만 재는 호출(자기시험)에서는 판이 아직 안 섰다 — 여기서 시작한다 */
+      if (k && !k.running && !document.querySelectorAll('#review li').length) {
+        const b = document.getElementById('btnDaily');
+        if (b) b.click();
+      }
+      const opts = () => [...document.querySelectorAll('#opts .opt')];
+      let guard = 0;
+      while (k.running && guard++ < 400) {
+        const q = k.deck[k.idx];
+        const wrong = [0,1,2,3].filter(i => i !== q.correct && !opts()[i].disabled)[0];
+        if (wrong === undefined) { opts()[q.correct].click(); continue; }
+        opts()[wrong].click();
+      }
+      return JSON.stringify({ running: k.running,
+                              reviewRows: document.querySelectorAll('#review li').length });
+    })()`;
     const out = [];
     for (const st of states) {
       if (st === 'playing') {
         try { await evaluate("(document.getElementById('btnDaily')||{click(){}}).click(), 1"); } catch (_) {}
         await sleep(200);
+        if (scenario === 'worst-content') {
+          const r = JSON.parse(await evaluate(PLAY_TO_WIDEST) || '{}');
+          if (!r.ok) return { fatal: '가장 넓은 문제까지 진행하지 못했다(' + (r.why || ('idx ' + r.idx + '/' + r.want)) + ')' };
+          out.__widest = r.qtext;
+        }
+      }
+      if (st === 'over' && scenario === 'worst-content') {
+        const r = JSON.parse(await evaluate(PLAY_TO_END) || '{}');
+        if (r.running || !r.reviewRows) {
+          return { fatal: '판을 끝내 결과 화면을 만들지 못했다(running=' + r.running + ' · 오답행 ' + r.reviewRows + ')' };
+        }
+        out.__reviewRows = r.reviewRows;
       }
       const raw = await evaluate(PROBE(st));
       if (!raw) return { fatal: '상태 ' + st + ' 의 측정 결과를 받지 못했다' };
@@ -281,7 +308,8 @@ async function measure(htmlAbs, states, opts) {
   }
 }
 
-const SCEN_LABEL = { 'base': '기본(자리표시자)', 'real-ad': '★실광고(고정 300×250 프레임)', 'worst-content': '★최악내용(긴 보기값·긴 오답목록 · 유지)' };
+const SCEN_LABEL = { 'base': '기본(자리표시자)', 'real-ad': '★실광고(고정 300×250 프레임)',
+                     'worst-content': '★실제 플레이(가장 넓은 문제식까지 진행 · 오답으로 판을 끝내 실제 오답목록)' };
 
 async function checkPages(root, pages) {
   console.log(`★사정거리: 페이지 ${pages.length}장 × ★언어 ${LANGS.length}(${LANGS.join(',')})`
@@ -301,14 +329,19 @@ async function checkPages(root, pages) {
           if (!s.measured) { console.log(`★판정 불가 — ${rel} [${lang}/${scen}/${s.state}] 에서 잰 요소가 0개다(표본 미성립)`); return 2; }
           if (s.state === 'playing' && !s.started) { console.log(`★판정 불가 — ${rel} [${lang}/${scen}/playing] 에서 판이 시작되지 않았다(표본 미성립)`); return 2; }
           if (scen === 'real-ad' && s.state === 'over' && !s.adKid) { console.log(`★판정 불가 — 실광고 프레임이 심기지 않았다(표본 미성립)`); return 2; }
-          if (scen === 'worst-content' && !(s.optLen && s.worstA && s.optLen === s.worstA)) {
-            console.log(`★판정 불가 — 최악내용이 유지되지 않았다(보기 값 "${s.optLen}" · 제품 파생 최대 "${s.worstA}")`); return 2;
+          if (scen === 'worst-content' && s.state === 'playing' && !s.qtext) {
+            console.log('★판정 불가 — 문제식이 비어 있다(표본 미성립)'); return 2;
+          }
+          if (scen === 'worst-content' && s.state === 'over' && !s.reviewRows) {
+            console.log('★판정 불가 — 결과 화면에 제품이 그린 오답 행이 없다(표본 미성립)'); return 2;
           }
           measuredTotal += s.measured; samples++;
           const mark = s.over.length ? '★넘침' : 'OK  ';
           console.log(`  ${mark} ${rel} [${lang} · ${SCEN_LABEL[scen]} · ${s.state}] · 잰 요소 ${s.measured} · 넘침 ${s.over.length}`
                       + ` · 낭독전용 제외 ${s.skipped.length}`
-                      + (scen === 'worst-content' ? ` · 심은 값 "${s.optLen}"(제품 덱 파생 최대 ${s.optLen.length}자)` : '')
+                      + (scen === 'worst-content' && s.state === 'playing' ? ` · ★제품이 그린 최대 폭 문제식 "${s.qtext}"` : '')
+                      + (scen === 'worst-content' && s.state === 'over' ? ` · ★제품이 그린 오답 행 ${s.reviewRows}개` : '')
+                      + (s.tight ? ` · ★최소 여유 ${s.tight.slack}px (${s.tight.sel})` : '')
                       + (scen === 'real-ad' && s.state === 'over' ? ' · 실광고 프레임 심김' : ''));
           for (const o of s.over) {
             violations++;
@@ -319,8 +352,27 @@ async function checkPages(root, pages) {
     }
   }
   console.log('');
-  console.log(`잰 표본 ${samples}종 · 잰 요소 합계 ${measuredTotal} · ★넘침 ${violations}건`);
+  console.log(`잰 표본 ${samples}종 · 잰 요소 합계 ${measuredTotal} · ★넘침 ${violations}건  [계약 폭 ${WIDTH}px — 여기까지가 판정이다]`);
   if (!violations) console.log('  ★넘침 없음(이 줄이 부재의 증거다 — 분모는 위의 잰 요소 수다)');
+
+  /* ★관측 폭 — 계약 밖이라 ★판정에 넣지 않는다. 다만 '얼마나 아슬아슬한가' 를 숨기지 않는다. */
+  if (OBSERVE.length) {
+    console.log('');
+    console.log(`★관측(판정 아님) — 계약 밖 폭 ${OBSERVE.join(',')}px · 계약 확대는 ★오너 결정이다`);
+    for (const w of OBSERVE) {
+      for (const rel of pages) {
+        const abs = path.join(root, rel.split('/').join(path.sep));
+        const r = await measure(abs, ['over'], { lang: LANGS[0], scenario: 'real-ad', width: w });
+        if (r.fatal) { console.log(`  ${w}px — 관측 실패: ${r.fatal}`); continue; }
+        const s = r.states[0];
+        const tight = s.tight ? `최소 여유 ${s.tight.slack}px (${s.tight.sel})` : '여유 미상';
+        console.log(`  ${w}px · ${rel} [${LANGS[0]} · 실광고 · over] — 넘침 ${s.over.length}건 · ${tight}`);
+        for (const o of s.over) {
+          console.log(`      ${o.sel} — clientWidth ${o.clientW} < scrollWidth ${o.scrollW} (밀림 ${o.spill}px)`);
+        }
+      }
+    }
+  }
   return violations ? 1 : 0;
 }
 
