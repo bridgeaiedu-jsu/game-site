@@ -674,5 +674,32 @@
       "daily",
       "sokoban"
     ]
+  },
+  {
+    "id": "four",
+    "path": "/four/",
+    "title": {
+      "ko": "넷이 한판",
+      "en": "Four at Once"
+    },
+    "desc": {
+      "ko": "폰 하나를 가운데 두고 3~4명이 각자 한 칸을 맡는 반응 게임 — 가운데에 뜬 표식의 주인만 누르고, 엑스가 뜨면 아무도 누르지 않는다",
+      "en": "A reaction game for three or four around one phone — only the owner of the mark in the centre taps, and when the cross appears nobody does"
+    },
+    "thumb": "/four/thumb.webp",
+    "playtime": {
+      "ko": "한 판 1분",
+      "en": "about 1 min a round"
+    },
+    "maxMinutes": 1,
+    "daily": false,
+    "category": "group",
+    "released": "2026-09-07",
+    "tags": [
+      "party",
+      "group",
+      "casual",
+      "reaction"
+    ]
   }
 ]

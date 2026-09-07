@@ -131,6 +131,7 @@
   .card[href="/gomoku/"]{--sig:#ba1f64;--sig-ink:#7d1543}
   .card[href="/bomb/"]{--sig:#7a7200;--sig-ink:#4a4400}
   .card[href="/push/"]{--sig:#048000;--sig-ink:#023800}
+  .card[href="/four/"]{--sig:#665f00;--sig-ink:#1f1d00}
   @media (prefers-color-scheme: dark){
     /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다. ★라이트 규칙 뒤에 와야 이긴다(@media 는 명시도를 안 올린다). */
     .card[href="/block-puzzle/"]{--sig:#376fec;--sig-ink:#789ef2}
@@ -158,6 +159,7 @@
     .card[href="/gomoku/"]{--sig:#e25393;--sig-ink:#ec90b9}
     .card[href="/bomb/"]{--sig:#d4c721;--sig-ink:#f2e97e}
     .card[href="/push/"]{--sig:#38bc34;--sig-ink:#66d463}
+    .card[href="/four/"]{--sig:#aea100;--sig-ink:#f5e400}
   }
   .card.soon::before{background:var(--line)}
   .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
@@ -380,6 +382,12 @@
             <span class="badges"><span class="badge">한 판 2~5분 / 2-5 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
           <span class="body"><h2>밀어서 정리 / Push It Right</h2>
             <p>상자는 밀 수만 있고 당길 수 없습니다 — 오늘의 판을 최소 몇 번에 정리할 수 있는지 겨루는 창고 퍼즐<br>Boxes can only be pushed, never pulled — a warehouse puzzle where everyone gets the same board and the fewest pushes is known</p></span>
+        </a></li>
+        <li><a class="card" href="/four/">
+          <span class="thumb"><img src="/four/thumb.webp" alt="넷이 한판 / Four at Once" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 1분 / about 1 min a round</span></span></span>
+          <span class="body"><h2>넷이 한판 / Four at Once</h2>
+            <p>폰 하나를 가운데 두고 3~4명이 각자 한 칸을 맡는 반응 게임 — 가운데에 뜬 표식의 주인만 누르고, 엑스가 뜨면 아무도 누르지 않는다<br>A reaction game for three or four around one phone — only the owner of the mark in the centre taps, and when the cross appears nobody does</p></span>
         </a></li>
       </ul>
     </noscript>
@@ -628,6 +636,13 @@ const FALLBACK = [{
   thumb:'/push/thumb.webp',
   playtime:{ko:'한 판 2~5분',en:'2-5 min a round'},
   maxMinutes:5, daily:true, category:'puzzle', released:'2026-09-06', tags:['puzzle','logic','daily','sokoban']
+},{
+  id:'four', path:'/four/',
+  title:{ko:'넷이 한판',en:'Four at Once'},
+  desc:{ko:'폰 하나를 가운데 두고 3~4명이 각자 한 칸을 맡는 반응 게임 — 가운데에 뜬 표식의 주인만 누르고, 엑스가 뜨면 아무도 누르지 않는다',en:'A reaction game for three or four around one phone — only the owner of the mark in the centre taps, and when the cross appears nobody does'},
+  thumb:'/four/thumb.webp',
+  playtime:{ko:'한 판 1분',en:'about 1 min a round'},
+  maxMinutes:1, daily:false, category:'group', released:'2026-09-07', tags:['party','group','casual','reaction']
 }];
 
 let games = FALLBACK;

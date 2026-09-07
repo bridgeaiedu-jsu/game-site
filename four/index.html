@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>넷이 한판 — 폰 하나로 셋·넷이 동시에 겨루는 반응 게임 | Four at Once</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 파티 게임. 폰 하나를 가운데 놓고 3~4명이 각자 한 칸을 맡습니다. 화면 한가운데에 표식이 뜨면 그 표식의 주인만 누르고, ✕가 뜨면 아무도 누르면 안 됩니다. 판은 시작할 때 이미 정해져 있고, 같은 날 같은 인원이면 같은 판입니다. Three or four players, one phone, one shared round.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="넷이 한판 — 폰 하나로 셋·넷이 동시에 겨루는 반응 게임 | Four at Once">
+<meta property="og:description" content="가운데에 뜬 표식의 주인만 누릅니다. ✕면 아무도 누르지 않습니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/four/">
+<meta property="og:image" content="https://hanpango.com/four/thumb.webp">
+<meta property="og:image:width" content="640">
+<meta property="og:image:height" content="640">
+<link rel="canonical" href="https://hanpango.com/four/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="hp-ga-disclosure" content="game_start:game; game_end:result,players,rounds,ms; lang_switch:lang">
+<meta name="hp-ga-labels" content="game=어느 게임인지|which game; result=판이 끝난 방식|how the game ended; players=인원|player count; rounds=치른 라운드 수|rounds played; ms=걸린 시간(밀리초)|elapsed milliseconds; lang=언어|language">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"넷이 한판","alternateName":"Four at Once","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본. 다크는 아래 @media 에서 같은 이름의 값만 바꿔 끼운다.
+     ★분류가 색을 정한다 — 이 게임의 분류는 ★여럿이(group)이고 기준색은 올리브골드 #8f8500 이다.
+       같은 분류의 「사다리타기」가 기준색을 그대로 쓰고 「폭탄 돌리기」가 첫 변주를 가져갔으므로
+       이 게임은 ★세 번째 칸을 받는다.
+     ★값은 눈으로 고르지 않았다 — ★규칙이 골랐다(2026-09-07 · T0908-four R2 색 게이트).
+       정본 pinned._how 가 못박은 규칙: cell_order 가 기준색 가까운 순으로 늘어놓고
+       ★계약을 통과하는 첫 칸을 잡는다(조밀성 우선 · '여유가 제일 큰 칸' 을 고르지 않는다).
+       그래서 다크는 여유 30.20 의 #fff13d 가 아니라 ★첫 칸 #aea100 이다.
+     ★잰 값(7분류 지형 · 원형 여유 CIEDE2000):
+       라이트 --sig #665f00 : 원형 여유 8.65 · 최근접 원형 = group · OKLab C 0.1010
+       다크   --sig #aea100 : 원형 여유 8.54 · 최근접 원형 = group · OKLab C 0.1474
+       ★사이트 전체 최소 여유는 4.25 로 ★그대로다(이 칸을 넣기 전과 같다 — 병목은
+        higher-lower 라이트이고 이 게임과 무관하다).
+     ★대비비도 쟀다(라이트 배경 #ffffff · 다크 배경 #0c0a24):
+         라이트  sig-on-bg 6.56 · on-sig-on-sig 6.56 · ink-on-bg 17.15 · ink-on-soft 16.21
+         다크    sig-on-bg 7.26 · on-sig-on-sig 6.65 · ink-on-bg 14.73 · ink-on-soft 5.82
+     ★--sig 바탕 위의 글자는 --on-sig 하나뿐이다(잠근 항 14) — --sig-ink 는 바탕이 아니라 잉크다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#665f00; --sig-ink:#1f1d00; --sig-soft:#fdfad8; --on-sig:#ffffff;
+    --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
+    --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#aea100; --sig-ink:#f5e400; --sig-soft:#5a5516; --on-sig:#111827;
+      --good:#4ade80; --good-ink:#86efac; --good-soft:#14532d;
+      --warn:#fbbf24; --bad:#f87171; --bad-ink:#fca5a5; --bad-soft:#4c1d1d;
+      --scrim:rgba(0,0,0,.62); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.04);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+    line-height:1.65; -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:14px 14px calc(18px + var(--safe-b))}
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  h1{font-size:1.25rem;margin:.2em 0 .1em;line-height:1.3}
+  h1 small{display:block;font-weight:400;font-size:.78rem;color:var(--muted-2)}
+  h2{font-size:1.05rem;margin:1.4em 0 .4em}
+  .tools{display:flex;gap:6px;flex-wrap:wrap}
+  .ibtn{
+    border:1px solid var(--line);background:var(--panel);color:var(--text);
+    border-radius:10px;padding:6px 10px;font-size:.82rem;cursor:pointer;
+  }
+  .ibtn .lbl{margin-left:2px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+  .sub{color:var(--muted-2);font-size:.92rem;margin:.4em 0}
+  .btn{
+    border:1px solid var(--line);background:var(--panel2);color:var(--text);
+    border-radius:12px;padding:12px 16px;font-size:1rem;cursor:pointer;
+  }
+  .btn.primary{background:var(--sig);color:var(--on-sig);border-color:var(--sig)}
+  .btn.ghost{background:transparent}
+  .who{display:flex;gap:8px;justify-content:center;margin:10px 0}
+  .who button{
+    border:1px solid var(--line);background:var(--panel2);color:var(--text);
+    border-radius:12px;padding:10px 18px;font-size:1.05rem;cursor:pointer;min-width:64px;
+  }
+  .who button[aria-pressed="true"]{background:var(--sig);color:var(--on-sig);border-color:var(--sig)}
+  .hp-stat{color:var(--muted);font-size:.82rem;text-align:center;margin:.6em 0 0}
+  /* ★hidden 가드 — [hidden] 은 브라우저 기본값으로만 걸려 있어 다른 display 선언에 진다. */
+  .hp-stat[hidden]{display:none!important}
+  .ad-slot{
+    background:var(--ad-bg);border:1px dashed var(--line);border-radius:10px;
+    color:var(--muted);font-size:.75rem;text-align:center;padding:10px;margin:10px 0;
+  }
+
+  /* ── 판 ─────────────────────────────────────────────────────────────────
+     ★자기 칸을 누른다(잠근 항 9). 가운데 표식은 ★읽는 것이지 누르는 것이 아니다 —
+       그래서 가운데는 pointer-events:none 이고 버튼 역할도 주지 않는다. */
+  .board{position:relative;display:grid;gap:8px;margin:10px 0}
+  .board.n3{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+  .board.n3 .lane:nth-child(3){grid-column:1 / span 2}
+  .board.n4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+  .lane{
+    min-height:120px;border:2px solid var(--line);border-radius:14px;background:var(--panel2);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  }
+  .lane .mark{font-size:2.1rem;line-height:1}
+  .lane .seat{font-size:.74rem;color:var(--muted-2)}
+  .lane .delta{font-size:.9rem;min-height:1.2em}
+  .lane[data-face="up"]{transform:rotate(180deg)}
+  .lane[data-state="hit"]{border-color:var(--good);background:var(--good-soft)}
+  .lane[data-state="miss"]{border-color:var(--bad);background:var(--bad-soft)}
+  .lane[data-state="locked"]{opacity:.55}
+  .center{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    pointer-events:none;background:var(--bg);border:2px solid var(--line);border-radius:999px;
+    width:104px;height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .center .glyph{font-size:2.4rem;line-height:1}
+  .center .word{font-size:.72rem;color:var(--muted-2)}
+  .center[data-kind="mute"]{border-color:var(--bad)}
+  .center[data-kind="mark"]{border-color:var(--sig)}
+  .roundline{display:flex;justify-content:space-between;align-items:center;font-size:.86rem;color:var(--muted-2)}
+  .scores{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:10px 0}
+  .scores div{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-align:center;min-width:76px}
+  .scores b{display:block;font-size:1.2rem}
+  .scores span{font-size:.74rem;color:var(--muted-2)}
+  table.rank{width:100%;border-collapse:collapse;margin:10px 0}
+  table.rank th,table.rank td{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;font-size:.92rem}
+  table.rank td.num{text-align:right;font-variant-numeric:tabular-nums}
+  details{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0;background:var(--panel)}
+  summary{cursor:pointer}
+  footer{color:var(--muted);font-size:.78rem;margin-top:18px;text-align:center}
+  footer a{color:var(--muted-2)}
+  [hidden]{display:none !important}
+  @media (prefers-reduced-motion: no-preference){
+    .center{transition:border-color .12s linear}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span data-i18n="title">넷이 한판</span> <small id="subtitle" data-i18n="subtitle">폰 하나를 가운데 놓고 셋·넷이 동시에 겨루는 반응 게임</small></h1>
+    <div class="tools">
+      <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 <span class="lbl">다른 게임</span></a>
+      <button class="ibtn" id="btnSound" type="button" aria-pressed="true" data-i18n="soundOn" data-i18n-aria="ariaSound">🔔 <span class="lbl">소리 켬</span></button>
+      <button class="ibtn" id="btnLang" type="button" data-i18n-aria="ariaLang">🌐 <span class="lbl">EN</span></button>
+    </div>
+  </header>
+
+  <div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+  <!-- 시작 화면 -->
+  <section class="card" id="start">
+    <h2 id="startTitle" data-i18n="title2">넷이 한판</h2>
+    <p class="sub" data-i18n="startSub">폰 하나를 가운데 놓고 <strong>각자 한 칸</strong>을 맡으세요. 칸에 그려진 <strong>표식이 여러분의 것</strong>입니다.<br>가운데에 표식이 뜨면 <strong>그 표식의 주인만</strong> 자기 칸을 누릅니다. <strong>✕</strong>가 뜨면 <strong>아무도</strong> 누르지 않습니다.</p>
+    <p class="sub" data-i18n="whoLabel" style="margin-top:12px;text-align:center">몇 명이 하나요?</p>
+    <div class="who" id="whoPick" role="group" data-i18n-aria="ariaWho"></div>
+    <p style="margin:14px 0 0"><button class="btn primary" id="btnStart" style="width:100%" data-i18n="startBtn">▶ 시작</button></p>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.four.today">–</b>판 · 누적 <b data-hp="plays.four.total">–</b>판</p>
+  </section>
+
+  <!-- 판 -->
+  <section class="card" id="play" hidden>
+    <!-- ★이 줄들은 판 진행 중에 내용이 바뀐다 — data-i18n 을 붙이지 않는다(잠근 항 10).
+         붙이면 언어 전환의 일괄 치환이 진행 중 내용을 사전 문안으로 덮는다. -->
+    <div class="roundline"><span id="roundNo">라운드 1 / 5</span><span id="phaseWord">준비</span></div>
+    <div class="board n3" id="board">
+      <div class="lane" id="lane0" role="button" tabindex="0"><span class="mark">●</span><span class="seat"></span><span class="delta"></span></div>
+      <div class="lane" id="lane1" role="button" tabindex="0"><span class="mark">▲</span><span class="seat"></span><span class="delta"></span></div>
+      <div class="lane" id="lane2" role="button" tabindex="0"><span class="mark">■</span><span class="seat"></span><span class="delta"></span></div>
+      <div class="lane" id="lane3" role="button" tabindex="0" hidden><span class="mark">◆</span><span class="seat"></span><span class="delta"></span></div>
+      <div class="center" id="center"><span class="glyph" id="centerGlyph">…</span><span class="word" id="centerWord"></span></div>
+    </div>
+    <p style="margin:8px 0 0;text-align:center"><button class="btn ghost" id="btnQuit" data-i18n="quit">그만하기</button></p>
+  </section>
+
+  <!-- 결과 -->
+  <section class="card" id="over" hidden>
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <table class="rank"><thead><tr>
+      <th data-i18n="rankLbl">순위</th><th data-i18n="seatLbl">자리</th><th class="num" data-i18n="scoreLbl">점수</th>
+    </tr></thead><tbody id="rankBody"></tbody></table>
+    <div class="scores">
+      <div><b id="nPlayers">0</b><span data-i18n="playersLbl">인원</span></div>
+      <div><b id="nRounds">0</b><span data-i18n="roundsLbl">라운드</span></div>
+      <div><b id="nTime">–</b><span data-i18n="timeLbl">걸린 시간</span></div>
+    </div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <p><button class="btn primary" id="btnAgain" style="width:100%" data-i18n="again">다시 하기</button></p>
+    <p><a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;width:100%;display:block;text-align:center">🏠 다른 게임</a></p>
+  </section>
+
+  <section>
+    <h2 data-i18n="howTitle">게임 방법</h2>
+    <p data-i18n="how1">폰 하나를 가운데 놓고 <strong>3명 또는 4명</strong>이 둘러앉습니다. 화면이 사람 수만큼 칸으로 갈리고, <strong>각자 한 칸</strong>을 맡습니다. 마주 앉은 사람 쪽 칸은 그 사람이 바로 읽도록 <strong>돌려서</strong> 그립니다. 칸에 그려진 <strong>표식</strong>(●·▲·■·◆)이 그 사람의 것입니다.</p>
+    <p data-i18n="how2">한 라운드는 이렇습니다. 잠깐의 <strong>대기</strong> 뒤 화면 한가운데에 <strong>표식 하나</strong>가 뜹니다. 그 표식의 <strong>주인만</strong> 자기 칸을 눌러 <strong>1점</strong>을 얻습니다. 주인이 아닌 사람이 누르면 <strong>그 사람이 1점을 잃습니다</strong>. 가운데에 <strong>✕</strong>가 뜨면 <strong>아무도</strong> 누르면 안 됩니다 — 누른 사람만 1점을 잃습니다. 대기 중에 누르는 <strong>부정출발</strong>도 그 사람만 1점을 잃습니다.</p>
+    <p data-i18n="how3">누르는 곳은 <strong>자기 칸</strong>입니다. 가운데 표식은 <strong>읽는 자리</strong>이지 누르는 자리가 아닙니다 — 넷이 한 점을 다투면 손이 겹치기 때문입니다.</p>
+    <p data-i18n="how4"><strong>5라운드</strong>를 치르면 끝나고 칸별 점수와 순위가 나옵니다. 한 판은 대략 <strong>1분</strong>입니다.</p>
+    <h2 data-i18n="fairTitle">판은 어떻게 정해지나</h2>
+    <p data-i18n="fairDesc">이 게임의 약속은 <strong>여러분이 무엇을 하든 판이 달라지지 않는다</strong>는 것입니다. 5라운드의 표식과 대기 시간은 <strong>시작하는 순간 전부 정해집니다</strong>. 누를 때마다 주사위를 다시 굴리면 &ldquo;내가 눌러서 ✕가 떴다&rdquo;가 되어 억울해지기 때문입니다. 그리고 판은 <strong>날짜와 인원</strong>으로 정해집니다 — <strong>같은 날 같은 인원이면 같은 판</strong>이라 다른 자리의 사람들과 같은 판을 겨룰 수 있습니다. 인원을 바꾸면 <strong>다른 판</strong>이고, 판 도중에 인원을 바꾸면 그 판은 <strong>버리고 새로 시작</strong>합니다.</p>
+    <p data-i18n="fairDesc2">대기 시간에는 <strong>최소 길이가 보장</strong>되어 있습니다. 짧게 뽑은 다음 늘려 주는 것이 아니라 <strong>처음부터 짧게 나올 수 없게</strong> 만듭니다. ✕는 5라운드 중 <strong>한 번 이상 두 번 이하</strong>로 나오고, <strong>같은 표식이 세 번 연속</strong>으로 오지는 않습니다.</p>
+    <h2 data-i18n="tipsTitle">요령</h2>
+    <details><summary data-i18n="tip1q">표식을 먼저 외우세요</summary><p data-i18n="tip1a">시작 전에 자기 표식을 소리 내어 말해 두면 실수가 줄어듭니다. 이 게임에서 지는 가장 흔한 방법은 <strong>남의 표식에 손이 나가는 것</strong>입니다.</p></details>
+    <details><summary data-i18n="tip2q">✕를 기다리세요</summary><p data-i18n="tip2a">✕는 반드시 한 번은 나옵니다. 손이 빠른 사람일수록 여기서 잃습니다 — 참는 것도 점수입니다.</p></details>
+    <details><summary data-i18n="tip3q">셋이 먼저 해 보세요</summary><p data-i18n="tip3a">작은 화면에서 넷이면 칸이 좁습니다. <strong>3명</strong>이 기본이고, 4명은 화면이 큰 기기에서 권합니다.</p></details>
+    <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+    <details><summary data-i18n="faq1q">동시에 눌렀는데 누가 이기나요?</summary><p data-i18n="faq1a">이 게임은 <strong>먼저 누른 사람</strong>을 가리지 않습니다. 각 칸은 <strong>그 칸만 보고</strong> 채점되기 때문에, 같은 순간에 둘이 눌러도 서로의 점수에 영향을 주지 않습니다. 폰 하나에 손가락이 여럿이면 어느 손이 먼저였는지는 기기마다 다르게 읽히고, 그것으로 점수를 가르면 <strong>같은 판이 다른 결과</strong>를 냅니다.</p></details>
+    <details><summary data-i18n="faq2q">혼자서도 할 수 있나요?</summary><p data-i18n="faq2a">칸이 셋 이상이라 혼자서는 성립하지 않습니다. 혼자 할 것을 찾으신다면 <a href="/">다른 게임</a>에 감각·머리·말 종류가 여럿 있습니다.</p></details>
+    <details><summary data-i18n="faq3q">색이 잘 안 보여요</summary><p data-i18n="faq3a">신호는 <strong>모양</strong>으로 구별합니다 — 색은 거들 뿐입니다. ●·▲·■·◆와 ✕는 색을 못 봐도 갈립니다.</p></details>
+    <details><summary data-i18n="faq4q">기록은 어디에 저장되나요?</summary><p data-i18n="faq4a">이 게임은 판을 저장하지 않습니다. 기기의 브라우저에 남는 것은 <strong>효과음 켜짐/꺼짐</strong>과 <strong>언어 설정</strong>뿐입니다. 서버로는 판수 집계와 함께 어느 게임인지·판이 끝난 방식·인원·치른 라운드 수·걸린 시간 같은 플레이 통계가, 그리고 언어를 바꾸면 그 사실이 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a>에 최신 목록으로 유지합니다.</p></details>
+  </section>
+
+  <footer>
+    <span data-i18n="footer">© 2026 넷이 한판 · 개인정보: 이 게임은 설정만 기기에 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+    <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+  </footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   「넷이 한판」 — 이 게임이 잠근 항은 tools/four_locked_contracts.json 이 정본이다.
+   여기 주석은 그 정본의 현장 배치본이고, 둘이 갈리면 ★정본이 이긴다.
+
+   ① 난수 선굴림: 5라운드의 (표식·대기시간)은 ★판이 시작될 때 전부 굴린다.
+      플레이어의 행동은 난수를 ★한 톨도 소비하지 않는다.
+   ② 오늘의 판: 날짜(KST)와 ★인원으로 seed 를 만든다 — 같은 날 같은 인원이면 같은 판.
+   ③ 인원 변경은 ★새 판이다(판 도중 변경 시 그 판을 버린다).
+   ④ 대기 하한은 ★생성 규칙이다(뽑고 나서 고쳐 주지 않는다).
+   ⑤ ✕ 횟수·3연속 금지는 ★뽑는 자리에서 건다(전 수열 재추첨 금지 —
+      재추첨은 반복 상한이나 ★안 밟히는 복구 가지를 남긴다).
+   ⑥ 판정은 ★칸별 독립이다 — 동시 터치가 결과를 가르지 않는다.
+   ⑦ 누름의 대상은 ★자기 칸이다(가운데는 읽는 자리다).
+   ⑧ 관측 창구 window.__four 는 ★읽기 전용이다 — 판을 바꾸는 뒷문을 두지 않는다.
+   ═══════════════════════════════════════════════════════════════════════════ */
+'use strict';
+
+var ROUNDS = 5;
+var PLAYERS_MIN = 3, PLAYERS_MAX = 4, PLAYERS_DEFAULT = 3;
+var WAIT_MIN_MS = 1200, WAIT_SPAN_MS = 1800;   /* 대기 = MIN + rnd*(SPAN+1) — ★하한이 생성 규칙에 있다 */
+var REACT_MS = 1500;                            /* 신호가 떠 있는 동안만 누를 수 있다 */
+var MUTE_MIN = 1, MUTE_MAX = 2;                 /* ✕ 는 5라운드 중 1~2회 */
+var RUN_CAP = 2;                                /* 같은 표식 연속 상한 = 2(3연속 금지) */
+var GA_GAME = 'four';
+var MUTE = 'x';
+var MARKS = ['circle', 'triangle', 'square', 'diamond'];
+var GLYPH = { circle: '●', triangle: '▲', square: '■', diamond: '◆', x: '✕' };
+
+var $ = function (id) { return document.getElementById(id); };
+
+/* ── 난수 ─────────────────────────────────────────────────────────────────
+   mulberry32 — 씨앗 하나로 같은 수열을 준다. 판 짜기 밖에서는 부르지 않는다. */
+function makeRng(seed) {
+  var a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    var t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* 날짜(KST) — ★판 짜기는 이 함수를 부르지 않는다. 부르는 곳은 판을 ★시작하는 자리뿐이다. */
+function dayKeyKST(nowMs) {
+  var kst = new Date(nowMs + 9 * 3600 * 1000);
+  var y = kst.getUTCFullYear(), m = kst.getUTCMonth() + 1, d = kst.getUTCDate();
+  return y + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+}
+
+/* seed = 날짜 ★+ 인원. 인원을 넣지 않으면 3인 판과 4인 판이 같은 수열을 받는다(잠근 항 3). */
+function seedOf(dayKey, players) {
+  var s = 2166136261 >>> 0;
+  var str = dayKey + '#' + players;
+  for (var i = 0; i < str.length; i++) {
+    s ^= str.charCodeAt(i);
+    s = Math.imul(s, 16777619) >>> 0;
+  }
+  return s >>> 0;
+}
+
+/* ── 판 짜기 ───────────────────────────────────────────────────────────────
+   ★순수 함수다 — 시계도 전역 상태도 읽지 않는다(잠근 항 13).
+   ★제약은 뽑는 자리에서 건다: 후보 목록에서 빼고 뽑을 뿐, 전 수열을 다시 뽑지 않는다. */
+function plan(seed, players) {
+  var rnd = makeRng(seed);
+  var pool = MARKS.slice(0, players);
+  var rounds = [];
+  var muteUsed = 0;
+  for (var i = 0; i < ROUNDS; i++) {
+    var left = ROUNDS - i;                       /* 이번 라운드 포함 남은 수 */
+    var needMute = MUTE_MIN - muteUsed;          /* 아직 채워야 하는 ✕ 수 */
+    var cands;
+    if (needMute >= left) {
+      cands = [MUTE];                            /* 남은 자리를 전부 써야 하한을 채운다 */
+    } else {
+      cands = [];
+      if (muteUsed < MUTE_MAX) cands.push(MUTE);
+      for (var k = 0; k < pool.length; k++) {
+        var m = pool[k];
+        var a = rounds.length >= 1 ? rounds[rounds.length - 1].mark : null;
+        var b = rounds.length >= 2 ? rounds[rounds.length - 2].mark : null;
+        if (a === m && b === m) continue;         /* ★3연속 금지 — 뽑기 전에 뺀다 */
+        cands.push(m);
+      }
+    }
+    var pick = cands[Math.floor(rnd() * cands.length)];
+    if (pick === MUTE) muteUsed += 1;
+    var waitMs = WAIT_MIN_MS + Math.floor(rnd() * (WAIT_SPAN_MS + 1));
+    rounds.push({ mark: pick, waitMs: waitMs });
+  }
+  return { seed: seed >>> 0, players: players, rounds: rounds };
+}
+
+/* ── 채점 ──────────────────────────────────────────────────────────────────
+   ★칸별 독립이다(잠근 항 8). 어느 칸이 먼저 눌렀는지는 ★보지 않는다 —
+   같은 프레임에 둘이 눌러도 서로의 점수를 건드리지 못한다. */
+function judge(phase, signalMark, laneMark) {
+  if (phase === 'wait') return { delta: -1, kind: 'false-start' };
+  if (phase !== 'signal') return null;                 /* 라운드 밖의 누름은 없던 일이다 */
+  if (signalMark === MUTE) return { delta: -1, kind: 'mute-press' };
+  if (signalMark === laneMark) return { delta: 1, kind: 'hit' };
+  return { delta: -1, kind: 'wrong' };
+}
+
+/* ── 사전 ─────────────────────────────────────────────────────────────────── */
+var I18N = {
+  ko: {
+    title: '넷이 한판', title2: '넷이 한판',
+    subtitle: '폰 하나를 가운데 놓고 셋·넷이 동시에 겨루는 반응 게임',
+    home: '🏠 <span class="lbl">다른 게임</span>',
+    soundOn: '🔔 <span class="lbl">소리 켬</span>', soundOff: '🔕 <span class="lbl">소리 끔</span>',
+    ariaSound: '효과음 켜기 끄기', ariaLang: '언어 바꾸기', ariaWho: '인원 선택',
+    ariaLane: '{n}번 자리 · 표식 {mark}',
+    markName: { circle: '동그라미', triangle: '세모', square: '네모', diamond: '마름모', x: '엑스' },
+    adPlaceholder: '광고 자리 (320×50 / 728×90)', adPlaceholder2: '광고 자리 (300×250)',
+    startSub: '폰 하나를 가운데 놓고 <strong>각자 한 칸</strong>을 맡으세요. 칸에 그려진 <strong>표식이 여러분의 것</strong>입니다.<br>가운데에 표식이 뜨면 <strong>그 표식의 주인만</strong> 자기 칸을 누릅니다. <strong>✕</strong>가 뜨면 <strong>아무도</strong> 누르지 않습니다.',
+    whoLabel: '몇 명이 하나요?', startBtn: '▶ 시작', quit: '그만하기',
+    statPlays:'오늘 <b data-hp="plays.four.today">–</b>판 · 누적 <b data-hp="plays.four.total">–</b>판',
+    result: '결과', rankLbl: '순위', seatLbl: '자리', scoreLbl: '점수',
+    playersLbl: '인원', roundsLbl: '라운드', timeLbl: '걸린 시간', again: '다시 하기',
+    seatWord: '{n}번', roundWord: '라운드 {i} / {n}',
+    phaseReady: '준비', phaseWait: '기다리세요', phaseGo: '지금!', phaseDone: '라운드 끝',
+    centerWait: '아직', centerMute: '누르지 마세요', centerMark: '{mark}',
+    how1: '폰 하나를 가운데 놓고 <strong>3명 또는 4명</strong>이 둘러앉습니다. 화면이 사람 수만큼 칸으로 갈리고, <strong>각자 한 칸</strong>을 맡습니다. 마주 앉은 사람 쪽 칸은 그 사람이 바로 읽도록 <strong>돌려서</strong> 그립니다. 칸에 그려진 <strong>표식</strong>(●·▲·■·◆)이 그 사람의 것입니다.',
+    how2: '한 라운드는 이렇습니다. 잠깐의 <strong>대기</strong> 뒤 화면 한가운데에 <strong>표식 하나</strong>가 뜹니다. 그 표식의 <strong>주인만</strong> 자기 칸을 눌러 <strong>1점</strong>을 얻습니다. 주인이 아닌 사람이 누르면 <strong>그 사람이 1점을 잃습니다</strong>. 가운데에 <strong>✕</strong>가 뜨면 <strong>아무도</strong> 누르면 안 됩니다 — 누른 사람만 1점을 잃습니다. 대기 중에 누르는 <strong>부정출발</strong>도 그 사람만 1점을 잃습니다.',
+    how3: '누르는 곳은 <strong>자기 칸</strong>입니다. 가운데 표식은 <strong>읽는 자리</strong>이지 누르는 자리가 아닙니다 — 넷이 한 점을 다투면 손이 겹치기 때문입니다.',
+    how4: '<strong>5라운드</strong>를 치르면 끝나고 칸별 점수와 순위가 나옵니다. 한 판은 대략 <strong>1분</strong>입니다.',
+    fairDesc: '이 게임의 약속은 <strong>여러분이 무엇을 하든 판이 달라지지 않는다</strong>는 것입니다. 5라운드의 표식과 대기 시간은 <strong>시작하는 순간 전부 정해집니다</strong>. 누를 때마다 주사위를 다시 굴리면 &ldquo;내가 눌러서 ✕가 떴다&rdquo;가 되어 억울해지기 때문입니다. 그리고 판은 <strong>날짜와 인원</strong>으로 정해집니다 — <strong>같은 날 같은 인원이면 같은 판</strong>이라 다른 자리의 사람들과 같은 판을 겨룰 수 있습니다. 인원을 바꾸면 <strong>다른 판</strong>이고, 판 도중에 인원을 바꾸면 그 판은 <strong>버리고 새로 시작</strong>합니다.',
+    fairDesc2: '대기 시간에는 <strong>최소 길이가 보장</strong>되어 있습니다. 짧게 뽑은 다음 늘려 주는 것이 아니라 <strong>처음부터 짧게 나올 수 없게</strong> 만듭니다. ✕는 5라운드 중 <strong>한 번 이상 두 번 이하</strong>로 나오고, <strong>같은 표식이 세 번 연속</strong>으로 오지는 않습니다.',
+    tip1q: '표식을 먼저 외우세요', tip1a: '시작 전에 자기 표식을 소리 내어 말해 두면 실수가 줄어듭니다. 이 게임에서 지는 가장 흔한 방법은 <strong>남의 표식에 손이 나가는 것</strong>입니다.',
+    tip2q: '✕를 기다리세요', tip2a: '✕는 반드시 한 번은 나옵니다. 손이 빠른 사람일수록 여기서 잃습니다 — 참는 것도 점수입니다.',
+    tip3q: '셋이 먼저 해 보세요', tip3a: '작은 화면에서 넷이면 칸이 좁습니다. <strong>3명</strong>이 기본이고, 4명은 화면이 큰 기기에서 권합니다.',
+    faq1q: '동시에 눌렀는데 누가 이기나요?', faq1a: '이 게임은 <strong>먼저 누른 사람</strong>을 가리지 않습니다. 각 칸은 <strong>그 칸만 보고</strong> 채점되기 때문에, 같은 순간에 둘이 눌러도 서로의 점수에 영향을 주지 않습니다. 폰 하나에 손가락이 여럿이면 어느 손이 먼저였는지는 기기마다 다르게 읽히고, 그것으로 점수를 가르면 <strong>같은 판이 다른 결과</strong>를 냅니다.',
+    faq2q: '혼자서도 할 수 있나요?', faq2a: '칸이 셋 이상이라 혼자서는 성립하지 않습니다. 혼자 할 것을 찾으신다면 <a href=\"/\">다른 게임</a>에 감각·머리·말 종류가 여럿 있습니다.',
+    faq3q: '색이 잘 안 보여요', faq3a: '신호는 <strong>모양</strong>으로 구별합니다 — 색은 거들 뿐입니다. ●·▲·■·◆와 ✕는 색을 못 봐도 갈립니다.',
+    faq4q: '기록은 어디에 저장되나요?', faq4a: '이 게임은 판을 저장하지 않습니다. 기기의 브라우저에 남는 것은 <strong>효과음 켜짐/꺼짐</strong>과 <strong>언어 설정</strong>뿐입니다. 서버로는 판수 집계와 함께 어느 게임인지·판이 끝난 방식·인원·치른 라운드 수·걸린 시간 같은 플레이 통계가, 그리고 언어를 바꾸면 그 사실이 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href=\"/privacy/\">개인정보처리방침</a>에 최신 목록으로 유지합니다.',
+    howTitle: '게임 방법', fairTitle: '판은 어떻게 정해지나', tipsTitle: '요령', faqTitle: '자주 묻는 질문',
+    navPrivacy: '개인정보처리방침', navAbout: '소개',
+    footer: '© 2026 넷이 한판 · 개인정보: 이 게임은 설정만 기기에 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.'
+  },
+  en: {
+    title: 'Four at Once', title2: 'Four at Once',
+    subtitle: 'One phone in the middle, three or four players reacting at the same time',
+    home: '🏠 <span class="lbl">More games</span>',
+    soundOn: '🔔 <span class="lbl">Sound on</span>', soundOff: '🔕 <span class="lbl">Sound off</span>',
+    ariaSound: 'Toggle sound effects', ariaLang: 'Change language', ariaWho: 'Choose player count',
+    ariaLane: 'Seat {n}, mark {mark}',
+    markName: { circle: 'circle', triangle: 'triangle', square: 'square', diamond: 'diamond', x: 'cross' },
+    adPlaceholder: 'Ad slot (320×50 / 728×90)', adPlaceholder2: 'Ad slot (300×250)',
+    startSub: 'Put one phone in the middle and take <strong>one lane each</strong>. The <strong>mark drawn in your lane is yours</strong>.<br>When a mark appears in the centre, <strong>only its owner</strong> taps their own lane. When <strong>✕</strong> appears, <strong>nobody</strong> taps.',
+    whoLabel: 'How many players?', startBtn: '▶ Start', quit: 'Quit',
+    statPlays:'<b data-hp="plays.four.today">–</b> today · <b data-hp="plays.four.total">–</b> all-time',
+    result: 'Result', rankLbl: 'Rank', seatLbl: 'Seat', scoreLbl: 'Score',
+    playersLbl: 'Players', roundsLbl: 'Rounds', timeLbl: 'Time', again: 'Play again',
+    seatWord: 'Seat {n}', roundWord: 'Round {i} / {n}',
+    phaseReady: 'Ready', phaseWait: 'Wait', phaseGo: 'Now!', phaseDone: 'Round over',
+    centerWait: 'not yet', centerMute: 'do not tap', centerMark: '{mark}',
+    how1: 'Put one phone in the middle and sit around it, <strong>three or four</strong> of you. The screen splits into one lane per player and <strong>each of you takes one</strong>. Lanes facing the other side are drawn <strong>upside down</strong> so the person opposite reads them straight. The <strong>mark</strong> drawn in your lane (●·▲·■·◆) is yours.',
+    how2: 'A round goes like this. After a short <strong>wait</strong>, a <strong>single mark</strong> appears in the centre. Only its <strong>owner</strong> taps their own lane and takes <strong>one point</strong>. Anyone else who taps <strong>loses a point</strong>. When <strong>✕</strong> appears <strong>nobody</strong> should tap — whoever does loses a point. Tapping during the wait is a <strong>false start</strong> and costs that player a point too.',
+    how3: 'You tap <strong>your own lane</strong>. The mark in the centre is there to be <strong>read</strong>, not pressed — four hands reaching for one spot would collide.',
+    how4: 'After <strong>five rounds</strong> the game ends and shows each lane&rsquo;s score and the ranking. A round takes about <strong>one minute</strong>.',
+    fairDesc: 'The promise of this game is that <strong>nothing you do changes the round</strong>. All five marks and wait times are <strong>decided the moment you start</strong>. If the dice were rolled on every tap, &ldquo;the ✕ came up because I pressed&rdquo; would be a real complaint. The round is decided by the <strong>date and the player count</strong> — <strong>same day, same number of players, same round</strong>, so other tables play exactly what you play. Change the player count and it is a <strong>different round</strong>; change it mid-game and the round is <strong>discarded and restarted</strong>.',
+    fairDesc2: 'The wait has a <strong>guaranteed minimum</strong>. It is not drawn short and then stretched — it <strong>cannot come out short in the first place</strong>. ✕ appears <strong>at least once and at most twice</strong> across the five rounds, and <strong>the same mark never comes three times in a row</strong>.',
+    tip1q: 'Learn your mark first', tip1a: 'Say your mark out loud before you start. The most common way to lose here is <strong>reaching for someone else&rsquo;s mark</strong>.',
+    tip2q: 'Wait for the ✕', tip2a: 'A ✕ always comes at least once. The quicker your hands, the more you lose there — holding back scores too.',
+    tip3q: 'Try three players first', tip3a: 'On a small screen four lanes get cramped. <strong>Three</strong> is the default; four is better on a larger device.',
+    faq1q: 'We tapped at the same time — who wins?', faq1a: 'This game never decides <strong>who tapped first</strong>. Each lane is scored <strong>on its own</strong>, so two people tapping in the same instant do not affect each other&rsquo;s score. With several fingers on one phone, which touch landed first is read differently on different devices, and scoring by that would make <strong>the same round end differently</strong>.',
+    faq2q: 'Can I play alone?', faq2a: 'There are three or four lanes, so it does not work solo. If you are looking for something to play alone, <a href=\"/\">the other games</a> include reflex, puzzle and word titles.',
+    faq3q: 'I have trouble telling the colours apart', faq3a: 'Signals are told apart by <strong>shape</strong> — colour only helps. ●·▲·■·◆ and ✕ stay distinct without any colour at all.',
+    faq4q: 'What is stored, and where?', faq4a: 'This game does not store your rounds. All that stays in this browser is your <strong>sound on/off</strong> and <strong>language</strong> setting. Sent to the server are play counts along with which game it was, how the game ended, the player count, rounds played and elapsed time, and — when you switch language — that fact, none of it identifying you directly. The full list of what is stored and what is sent is kept up to date in the <a href=\"/privacy/\">privacy policy</a>.',
+    howTitle: 'How to play', fairTitle: 'How a round is decided', tipsTitle: 'Tips', faqTitle: 'FAQ',
+    navPrivacy: 'Privacy', navAbout: 'About',
+    footer: '© 2026 Four at Once · Privacy: this game stores only your settings on this device; third-party cookies (Google and others) may be used to serve ads.'
+  }
+};
+var lang = 'ko';
+function T(k) { var v = I18N[lang][k]; return v === undefined ? I18N.ko[k] : v; }
+function fill(s, o) { return String(s).replace(/\{(\w+)\}/g, function (_, k) { return o[k] === undefined ? '' : o[k]; }); }
+function markWord(m) { return I18N[lang].markName[m] || I18N.ko.markName[m] || m; }
+
+/* ── 상태 ─────────────────────────────────────────────────────────────────── */
+var state = {
+  phase: 'idle',        /* idle · wait · signal · between · over */
+  players: PLAYERS_DEFAULT,
+  planned: null,
+  round: 0,             /* 0-based */
+  scores: [],
+  locked: [],
+  startedAt: 0,
+  endedAt: 0,
+  soundOn: true,
+  timer: 0
+};
+
+function show(which) {
+  ['start', 'play', 'over'].forEach(function (id) {
+    var el = $(id);
+    if (el) el.hidden = (id !== which);
+  });
+}
+
+/* ── 화면 ─────────────────────────────────────────────────────────────────── */
+function laneEl(i) { return $('lane' + i); }
+
+/* ★이름표만 다시 붙인다 — 판 상태(색·증감)는 건드리지 않는다.
+   언어 전환은 ★국면과 무관하게 이 함수를 부른다(잠근 항 12). 진행 중 라운드의 표시를
+   지우지 않으면서 aria 와 자리 글자만 새 언어로 갈아 끼우는 것이 여기서 필요한 전부다. */
+function paintLaneLabels() {
+  for (var i = 0; i < MARKS.length; i++) {
+    var el = laneEl(i);
+    if (!el || i >= state.players) continue;
+    var kids = el.querySelectorAll('span');
+    if (kids && kids.length >= 2) {
+      kids[0].textContent = GLYPH[MARKS[i]];
+      kids[1].textContent = fill(T('seatWord'), { n: i + 1 });
+    }
+    el.setAttribute('aria-label', fill(T('ariaLane'), { n: i + 1, mark: markWord(MARKS[i]) }));
+  }
+}
+
+function paintLanes() {
+  var board = $('board');
+  if (board) board.className = 'board n' + state.players;
+  for (var i = 0; i < MARKS.length; i++) {
+    var el = laneEl(i);
+    if (!el) continue;
+    var on = i < state.players;
+    el.hidden = !on;
+    if (!on) continue;
+    /* 3인: 위 두 칸을 돌리고 아래 한 칸은 그대로 · 4인: 위 두 칸만 돌린다 */
+    el.setAttribute('data-face', i < 2 ? 'up' : 'down');
+    el.setAttribute('data-mark', MARKS[i]);
+    var kids = el.querySelectorAll('span');
+    if (kids && kids.length >= 3) kids[2].textContent = '';
+    el.setAttribute('data-state', '');
+  }
+  paintLaneLabels();
+}
+
+function paintRound() {
+  var r = $('roundNo');
+  if (r) r.textContent = fill(T('roundWord'), { i: Math.min(state.round + 1, ROUNDS), n: ROUNDS });
+  var p = $('phaseWord');
+  if (p) {
+    p.textContent = state.phase === 'wait' ? T('phaseWait')
+      : state.phase === 'signal' ? T('phaseGo')
+      : state.phase === 'between' ? T('phaseDone') : T('phaseReady');
+  }
+}
+
+function paintCenter() {
+  var g = $('centerGlyph'), w = $('centerWord'), c = $('center');
+  if (!g || !w || !c) return;
+  if (state.phase !== 'signal') {
+    g.textContent = '…';
+    w.textContent = T('centerWait');
+    c.setAttribute('data-kind', 'wait');
+    return;
+  }
+  var mk = state.planned.rounds[state.round].mark;
+  g.textContent = GLYPH[mk];
+  /* ★색만으로 알리지 않는다(잠근 항 11) — 모양과 함께 ★글자로도 말한다 */
+  w.textContent = mk === MUTE ? T('centerMute') : fill(T('centerMark'), { mark: markWord(mk) });
+  c.setAttribute('data-kind', mk === MUTE ? 'mute' : 'mark');
+}
+
+function paintDelta(i, res) {
+  var el = laneEl(i);
+  if (!el) return;
+  var kids = el.querySelectorAll('span');
+  if (kids && kids.length >= 3) {
+    kids[2].textContent = (res.delta > 0 ? '+' : '') + res.delta;
+  }
+  el.setAttribute('data-state', res.delta > 0 ? 'hit' : 'miss');
+}
+
+/* ── 판 진행 ───────────────────────────────────────────────────────────────
+   ★모든 시간 분기는 setTimeout 으로만 간다. 난수는 여기서 한 번도 굴리지 않는다. */
+function startGame() {
+  state.players = clampPlayers(state.players);
+  var seed = seedOf(dayKeyKST(Date.now()), state.players);
+  state.planned = plan(seed, state.players);
+  state.round = 0;
+  state.scores = [];
+  state.locked = [];
+  for (var i = 0; i < state.players; i++) { state.scores.push(0); state.locked.push(false); }
+  state.startedAt = Date.now();
+  state.endedAt = 0;
+  show('play');
+  paintLanes();
+  ga('game_start', { game: GA_GAME });
+  /* 판수 집계 — ★있는지 보고 부른다(없어도 게임은 그대로 굴러간다) */
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+  beginRound();
+}
+
+function beginRound() {
+  for (var i = 0; i < state.players; i++) {
+    state.locked[i] = false;
+    var el = laneEl(i);
+    if (el) {
+      el.setAttribute('data-state', '');
+      var kids = el.querySelectorAll('span');
+      if (kids && kids.length >= 3) kids[2].textContent = '';
+    }
+  }
+  state.phase = 'wait';
+  paintRound(); paintCenter();
+  state.timer = setTimeout(revealSignal, state.planned.rounds[state.round].waitMs);
+}
+
+function revealSignal() {
+  if (state.phase !== 'wait') return;
+  state.phase = 'signal';
+  paintRound(); paintCenter();
+  beep();
+  state.timer = setTimeout(endRound, REACT_MS);
+}
+
+function endRound() {
+  if (state.phase !== 'signal' && state.phase !== 'wait') return;
+  state.phase = 'between';
+  paintRound();
+  state.round += 1;
+  if (state.round >= ROUNDS) { finish('done'); return; }
+  state.timer = setTimeout(beginRound, 700);
+}
+
+function finish(how) {
+  state.phase = 'over';
+  state.endedAt = Date.now();
+  var ms = state.endedAt - state.startedAt;
+  var rows = [];
+  for (var i = 0; i < state.players; i++) rows.push({ seat: i + 1, mark: MARKS[i], score: state.scores[i] });
+  rows.sort(function (a, b) { return b.score - a.score || a.seat - b.seat; });
+  var body = $('rankBody');
+  if (body) {
+    body.innerHTML = '';
+    var rank = 0, prev = null;
+    for (var j = 0; j < rows.length; j++) {
+      if (prev === null || rows[j].score !== prev) rank = j + 1;
+      prev = rows[j].score;
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + rank + '</td><td>' + GLYPH[rows[j].mark] + ' '
+        + fill(T('seatWord'), { n: rows[j].seat }) + '</td><td class="num">'
+        + (rows[j].score > 0 ? '+' : '') + rows[j].score + '</td>';
+      body.appendChild(tr);
+    }
+  }
+  var np = $('nPlayers'); if (np) np.textContent = String(state.players);
+  var nr = $('nRounds'); if (nr) nr.textContent = String(state.round);
+  var nt = $('nTime'); if (nt) nt.textContent = (ms / 1000).toFixed(1) + 's';
+  show('over');
+  ga('game_end', { result: how, players: state.players, rounds: state.round, ms: ms });
+  if (window.hpStats) window.hpStats('four');
+}
+
+/* ★자기 칸을 누른다(잠근 항 9) — 이 처리기는 ★그 칸의 인덱스만 받는다.
+   다른 칸의 상태를 읽지 않으므로 ★동시 터치가 결과를 가르지 않는다(잠근 항 8). */
+function pressLane(i) {
+  if (i < 0 || i >= state.players) return;
+  if (state.phase !== 'wait' && state.phase !== 'signal') return;
+  if (state.locked[i]) return;
+  var sig = state.planned.rounds[state.round].mark;
+  var res = judge(state.phase, sig, MARKS[i]);
+  if (!res) return;
+  state.locked[i] = true;
+  state.scores[i] += res.delta;
+  paintDelta(i, res);
+}
+
+function clampPlayers(n) {
+  n = Number(n) || PLAYERS_DEFAULT;
+  if (n < PLAYERS_MIN) n = PLAYERS_MIN;
+  if (n > PLAYERS_MAX) n = PLAYERS_MAX;
+  return n;
+}
+
+/* ★인원 변경은 새 판이다(잠근 항 4) — 진행 중이면 그 판을 ★버리고 시작 화면으로 돌아간다. */
+function pickPlayers(n) {
+  var next = clampPlayers(n);
+  var changed = next !== state.players;
+  state.players = next;
+  if (changed && (state.phase === 'wait' || state.phase === 'signal' || state.phase === 'between')) {
+    clearTimeout(state.timer);
+    state.phase = 'idle';
+    state.planned = null;
+    show('start');
+  }
+  paintWho();
+  paintLanes();
+}
+
+function paintWho() {
+  var box = $('whoPick');
+  if (!box) return;
+  box.innerHTML = '';
+  for (var n = PLAYERS_MIN; n <= PLAYERS_MAX; n++) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('data-n', String(n));
+    b.setAttribute('aria-pressed', n === state.players ? 'true' : 'false');
+    b.textContent = String(n);
+    box.appendChild(b);
+  }
+}
+
+function beep() {
+  if (!state.soundOn) return;
+  try {
+    if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(18);
+  } catch (e) {}
+}
+
+function ga(name, params) {
+  try { if (window.gtag) window.gtag('event', name, params || {}); } catch (e) {}
+}
+
+/* ── 언어 ─────────────────────────────────────────────────────────────────── */
+function applyLang() {
+  document.documentElement.lang = lang;
+  var els = document.querySelectorAll('[data-i18n]');
+  for (var i = 0; i < els.length; i++) {
+    var k = els[i].getAttribute('data-i18n');
+    if (I18N[lang][k] !== undefined && typeof I18N[lang][k] === 'string') els[i].innerHTML = T(k);
+  }
+  /* ★aria-label 도 언어를 따라간다(잠근 항 12) — 하드코딩한 한국어를 남기지 않는다.
+     이 한 줄이 T0912(기존 24종의 빚)에 새 게임이 합류하지 않게 하는 자리다. */
+  var av = document.querySelectorAll('[data-i18n-aria]');
+  for (var j = 0; j < av.length; j++) {
+    var ak = av[j].getAttribute('data-i18n-aria');
+    if (I18N[lang][ak] !== undefined) av[j].setAttribute('aria-label', T(ak));
+  }
+  var bs = $('btnSound');
+  if (bs) bs.innerHTML = T(state.soundOn ? 'soundOn' : 'soundOff');
+  var bl = $('btnLang');
+  if (bl) bl.innerHTML = '🌐 <span class="lbl">' + (lang === 'ko' ? 'EN' : '한국어') + '</span>';
+  paintWho();
+  /* ★칸 이름표(aria·자리 글자)는 ★국면과 무관하게 갈아 끼운다 — 시작 화면에서 언어를 바꿔도
+     스크린리더가 새 언어를 읽어야 한다(잠근 항 12 · 2026-09-07 검사가 잡은 자리다). */
+  paintLaneLabels();
+  /* ★진행 중인 판의 수열은 바꾸지 않는다 — 다시 그리는 것은 감싸는 문안뿐이다.
+     (그래서 라운드 표시·가운데 표식에는 data-i18n 을 붙이지 않았다 — 잠근 항 10.) */
+  if (state.phase !== 'idle' && state.phase !== 'over') { paintRound(); paintCenter(); }
+  try { localStorage.setItem('bp.lang', lang); } catch (e) {}
+  if (window.hpStats) window.hpStats();
+}
+
+/* ── 배선 ─────────────────────────────────────────────────────────────────── */
+function boot() {
+  try {
+    var sv = localStorage.getItem('bp.sound');
+    if (sv !== null) state.soundOn = sv === '1';
+    var lv = localStorage.getItem('bp.lang');
+    if (lv === 'ko' || lv === 'en') lang = lv;
+    else if (window.navigator && String(window.navigator.language || '').slice(0, 2) !== 'ko') lang = 'en';
+  } catch (e) {}
+
+  paintWho();
+  paintLanes();
+  applyLang();
+
+  var box = $('whoPick');
+  if (box) box.addEventListener('click', function (e) {
+    var t = e.target;
+    while (t && t !== box && t.tagName !== 'BUTTON') t = t.parentNode;
+    if (!t || t === box) return;
+    pickPlayers(Number(t.getAttribute('data-n')));
+  });
+  for (var i = 0; i < MARKS.length; i++) {
+    (function (idx) {
+      var el = laneEl(idx);
+      if (el) el.addEventListener('click', function () { pressLane(idx); });
+    })(i);
+  }
+  var bStart = $('btnStart'); if (bStart) bStart.addEventListener('click', startGame);
+  var bQuit = $('btnQuit'); if (bQuit) bQuit.addEventListener('click', function () {
+    clearTimeout(state.timer);
+    if (state.round > 0) { finish('quit'); return; }
+    state.phase = 'idle'; state.planned = null; show('start');
+  });
+  var bAgain = $('btnAgain'); if (bAgain) bAgain.addEventListener('click', function () {
+    state.phase = 'idle'; state.planned = null; show('start');
+  });
+  var bSound = $('btnSound'); if (bSound) bSound.addEventListener('click', function () {
+    state.soundOn = !state.soundOn;
+    bSound.setAttribute('aria-pressed', state.soundOn ? 'true' : 'false');
+    bSound.innerHTML = T(state.soundOn ? 'soundOn' : 'soundOff');
+    try { localStorage.setItem('bp.sound', state.soundOn ? '1' : '0'); } catch (e) {}
+  });
+  var bLang = $('btnLang'); if (bLang) bLang.addEventListener('click', function () {
+    lang = lang === 'ko' ? 'en' : 'ko';
+    applyLang();
+    ga('lang_switch', { lang: lang });
+  });
+  show('start');
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
+
+/* ── 관측 창구 — ★읽기 전용이다(잠근 항 15) ────────────────────────────────
+   검사기가 판을 ★재현하고 대조할 수 있게 순수 함수와 상수를 그대로 내보낸다.
+   판을 바꾸는 입구(씨앗 주입·수열 조작·점수 쓰기)는 ★두지 않는다 — 뒷문은 제품의 결함이다.
+   재현성은 하네스가 자기 쪽에서 만든다(스텁의 시계·타이머를 쥐면 된다). */
+window.__four = {
+  plan: plan,
+  makeRng: makeRng,
+  seedOf: seedOf,
+  dayKeyKST: dayKeyKST,
+  judge: judge,
+  marks: MARKS.slice(),
+  consts: function () {
+    return {
+      ROUNDS: ROUNDS, PLAYERS_MIN: PLAYERS_MIN, PLAYERS_MAX: PLAYERS_MAX,
+      PLAYERS_DEFAULT: PLAYERS_DEFAULT, WAIT_MIN_MS: WAIT_MIN_MS, WAIT_SPAN_MS: WAIT_SPAN_MS,
+      REACT_MS: REACT_MS, MUTE_MIN: MUTE_MIN, MUTE_MAX: MUTE_MAX, RUN_CAP: RUN_CAP, MUTE: MUTE
+    };
+  },
+  snapshot: function () {
+    /* ★읽기 전용 사본이다. 쓰기 입구는 없다. */
+    return {
+      phase: state.phase, players: state.players, round: state.round,
+      scores: state.scores.slice(), locked: state.locked.slice(),
+      seed: state.planned ? state.planned.seed : null,
+      rounds: state.planned ? state.planned.rounds.map(function (r) { return { mark: r.mark, waitMs: r.waitMs }; }) : null,
+      startedAt: state.startedAt || null
+    };
+  }
+};
+</script>
+</body>
+</html>
