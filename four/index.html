@@ -127,9 +127,15 @@
   .board.n3 .lane:nth-child(3){grid-column:1 / span 2}
   .board.n4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
   .lane{
-    min-height:120px;border:2px solid var(--line);border-radius:14px;background:var(--panel2);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    min-height:132px;border:2px solid var(--line);border-radius:14px;background:var(--panel2);
+    display:flex;flex-direction:column;align-items:center;gap:2px;padding:58px 8px 10px;
     cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;
+    /* ★칸 내용은 ★바깥쪽 끝으로 민다 — 가운데 신호 원이 판 한가운데에 떠 있어서 내용을
+       가운데 정렬하면 ★자기 표식이 그 원에 가린다(2026-09-07 실브라우저 육안에서 잡았다.
+       DOM 스텁 연기시험은 레이아웃을 계산하지 않아 이 결함을 원리적으로 못 본다).
+       위 칸은 180도 돌아 있으므로 국소 flex-end 가 ★화면 위쪽, 아래 칸은 ★화면 아래쪽이다 —
+       한 줄 선언이 두 방향을 만든다. */
+    justify-content:flex-end;
   }
   .lane .mark{font-size:2.1rem;line-height:1}
   .lane .seat{font-size:.74rem;color:var(--muted-2)}
@@ -570,6 +576,10 @@ function endRound() {
   if (state.phase !== 'signal' && state.phase !== 'wait') return;
   state.phase = 'between';
   paintRound();
+  /* ★라운드가 끝나면 가운데도 함께 되돌린다 — 안 되돌리면 끝난 신호가 그대로 떠 있어
+     '아직 누를 수 있다' 로 읽힌다(점수에는 영향이 없지만 화면이 거짓을 말한다.
+     2026-09-07 실브라우저 육안: 라운드 끝 표시와 신호가 동시에 떠 있었다). */
+  paintCenter();
   state.round += 1;
   if (state.round >= ROUNDS) { finish('done'); return; }
   state.timer = setTimeout(beginRound, 700);
