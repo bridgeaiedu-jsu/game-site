@@ -16,6 +16,9 @@
   ★why 를 요구하는 이유: 분모 0 자체는 대개 ★중복 관측(같은 결함이 형제 항을 함께 무너뜨림)이라
   결함이 아니다. 그러나 ★사유를 적게 만들면 '결함인데 그냥 둔 것' 이 조용히 섞일 수 없다.
 
+■ ★축이 넷이다 — ①선언 없는 분모 0 ②정본 노후화 ③부류 라벨 어긋남 ④★죽은 항(상수).
+  ④가 없으면 ★옳게 라벨된 무의미한 항이 통과한다(2026-09-08 R8 · reviewer-claude-2 E1·E2 실증).
+
 ■ 종료코드: 0 = 선언과 실측이 맞는다 · 1 = ★선언 없는 분모 0 항이 있다 ·
   2 = ★판정 불가(정본을 못 읽음 · 선언 노후화 · 항을 지운 사본이 안 선다 · 잘못된 호출)
 
@@ -207,6 +210,41 @@ def group_proof(root, checks):
     return out
 
 
+def constant_terms(terms):
+    """★비공허 관문 — 항을 ★빈 스코프에서 평가해 본다(2026-09-08 R8 Q4 · reviewer-claude-2).
+
+    · 값이 나온다 = 그 항은 ★제품·세계의 무엇도 안 본다 = ★아무것도 주장하지 않는 죽은 항.
+    · ReferenceError 가 난다 = 무엇인가를 본다 = 통과.
+
+    ★왜 이 형태인가(처방 문면을 그대로 안 쓴 이유를 여기 남긴다):
+      master·264 가 준 문면은 "그 항을 false 로 뒤집으면 무변이 기준선이 붉어야 한다" 였다.
+      ★실측하니 그 시험은 죽은 항을 ★못 잡는다 — 판정식은 && 사슬이라 ★어느 항을 false 로
+      바꿔도 전체가 거짓이 되어 기준선이 붉는다(죽은 항 (1===1)·(2>1) 둘 다 rc=1 로 '통과').
+      증거: evidence/hanpango-mental-math/R8FIX/probe_prescription_literal.txt
+      그래서 ★같은 의도("이 항이 무언가에 기여하는가")를 ★가르는 힘이 있는 형태로 세운다.
+
+    ★이 관문의 사정거리(정직하게): ★상수 항만 잡는다. 상태를 참조하면서도 늘 참인 항
+    (k.score === k.score 같은 것)은 ★못 본다 — 그 축은 여전히 열려 있다.
+    """
+    js = ('const T=' + json.dumps(list(terms), ensure_ascii=False) + ';' + chr(10) +
+          'for (const t of T){ let v; try { const r = Function(\'"use strict"; return (\' + t + \');\')();'
+          ' v = "CONST:" + String(r); } catch (e) { v = "STATEFUL"; }'
+          ' console.log(v + "\\t" + t); }')
+    p = subprocess.run(['node', '-e', js], capture_output=True, text=True, encoding='utf-8', errors='replace')
+    if p.returncode != 0:
+        return None, '상수 항 판별기를 못 돌렸다(rc=%d): %s' % (p.returncode, (p.stderr or '')[:200])
+    out = {}
+    for ln in (p.stdout or '').splitlines():
+        if '\t' not in ln:
+            continue
+        v, t = ln.split('\t', 1)
+        out[t] = v
+    missing = [t for t in terms if t not in out]
+    if missing:
+        return None, '판별기가 항 %d개를 안 돌려줬다 — 못 잰 것은 통과가 아니다' % len(missing)
+    return out, None
+
+
 def load_canon(root):
     p = os.path.join(root, 'tools', 'quickmath_term_denominator_canon.json')
     try:
@@ -317,11 +355,26 @@ def main(argv):
         print('      없음 (★이 줄이 부재의 증거다)')
     print('')
 
+    # ── ★④ 비공허 관문 (R8 Q4) — 라벨 축은 '이야기와 실측이 맞는가'만 묻는다.
+    #    '이 항이 무언가에 기여하는가' 는 어느 라벨도 안 묻는다(264 의 E1·E2 실증).
+    zterms = sorted({' '.join(r[2].split()) for r in zero})
+    consts, cerr2 = constant_terms(zterms) if zterms else ({}, None)
+    if cerr2:
+        print('★판정 불가 — ' + cerr2)
+        return 2
+    dead = sorted([(c, t) for c, t in seen_zero if consts.get(t, '').startswith('CONST')])
+
     print('  ③ ★부류 라벨이 실측과 어긋난 항        %d' % len(mislabeled))
     for c, t, k, why in mislabeled:
         print('      %s / %s  class=%s  %s' % (c, t, k, why))
     if not mislabeled:
         print('      없음 (★이 줄이 부재의 증거다)')
+    print('  ④ ★아무것도 주장하지 않는 죽은 항      %d  (빈 스코프에서 값이 나오는 항 — 상수)' % len(dead))
+    for c, t in dead:
+        print('      %s / %s   ★%s — 제품을 하나도 안 본다. 분모를 늘려 비율만 좋아 보이게 한다'
+              % (c, t, consts.get(t)))
+    if not dead:
+        print('      없음 (★이 줄이 부재의 증거다 — 잰 항 %d개 전부 제품·세계를 참조한다)' % len(zterms))
     n_masked = len([1 for (c, t), k in cls.items() if k == 'mutually-masked' and (c, t) in seen_zero])
     n_neg = len([1 for (c, t), k in cls.items() if k == 'negative-control' and (c, t) in seen_zero])
     n_sib = len([1 for (c, t), k in cls.items() if k == 'sibling' and (c, t) in seen_zero])
@@ -338,6 +391,10 @@ def main(argv):
     if bad_g:
         print('★판정 불가 — 군 증명을 못 세운 검사 %d종: %s' % (len(bad_g), ', '.join(bad_g)))
         return 2
+    if dead:
+        print('★미달 — 죽은 항 %d개(라벨이 맞아도 통과시키지 않는다 — 분모에 뜻 없는 항을 더하면 아무도 모른다)'
+              % len(dead))
+        return 1
     if mislabeled:
         print('★미달 — 부류 라벨이 실측과 어긋난 항 %d개(이름이 틀리면 다음 사람이 안심한다)' % len(mislabeled))
         return 1
