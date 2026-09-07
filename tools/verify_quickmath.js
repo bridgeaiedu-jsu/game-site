@@ -59,6 +59,35 @@ function sub(s, anchor, repl) {
 }
 
 const MUTATIONS = {
+  /* ★만료 경계 짝 (2026-09-08 R6FIX-2 E1) — 같은 결과에 이르는 길이 둘이라 짝도 둘이다.
+     ①입력 자리의 즉시 확정 ②탭 복귀 자리의 즉시 확정. 하나를 지워도 다른 하나가 그 경로를
+     막아 주지 않는다 — 두 검사가 각자 자기 길만 걷기 때문이다. */
+  'm-late-input-scores': {
+    why: '만료 뒤 입력 자리의 즉시 확정을 없앤다 — 30초가 지나도 다음 프레임 전이면 정답이 점수가 된다',
+    target: '만료 뒤 다음 프레임 전 입력은 점수가 되지 않는다',
+    apply: s => sub(s, '  if (now() >= endAt){ endRun(); return; }\n  const q = deck[idx];',
+                    '  const q = deck[idx];')
+  },
+  /* ★격리 짝 (E2) — 위 통짜 변이는 두 항을 함께 깨서 어느 항도 홀로 판정을 못 짊어진다.
+     아래 둘은 ★한 항씩만 붉힌다: 채점 금지(score)와 판 종료(running)는 다른 계약이다. */
+  'm-late-input-scores-then-ends': {
+    why: '만료 입력에서 판은 끝내되 ★그 입력을 채점은 한다(return 을 뺀다) — 끝난 판에 점수가 하나 더 붙는다',
+    target: '만료 뒤 다음 프레임 전 입력은 점수가 되지 않는다',
+    apply: s => sub(s, '  if (now() >= endAt){ endRun(); return; }\n  const q = deck[idx];',
+                    '  if (now() >= endAt){ endRun(); }\n  const q = deck[idx];')
+  },
+  'm-late-input-ignored-not-ended': {
+    why: '만료 입력을 ★먹기만 하고 판을 안 끝낸다 — 점수는 안 오르지만 판이 영영 살아 있어 다음 입력이 계속 들어온다',
+    target: '만료 뒤 다음 프레임 전 입력은 점수가 되지 않는다',
+    apply: s => sub(s, '  if (now() >= endAt){ endRun(); return; }\n  const q = deck[idx];',
+                    '  if (now() >= endAt){ return; }\n  const q = deck[idx];')
+  },
+  'm-visibility-ignores-deadline': {
+    why: '탭 복귀 자리의 만료 확정을 없앤다 — 숨은 사이 만료된 판이 돌아와도 다음 프레임까지 살아 있다',
+    target: '탭이 숨은 사이 만료되면 돌아온 즉시 끝난다',
+    apply: s => sub(s, '  if (!running || document.hidden) return;\n  if (now() >= endAt){ endRun(); return; }',
+                    '  if (!running || document.hidden) return;')
+  },
   'm-play-rebuilds-deck': {
     why: '정답을 맞힐 때마다 남은 문제를 맞힌 개수로 다시 굴린다 — 많이 틀린 사람과 다른 문제를 보게 된다',
     target: '행동이 난수를 소비하지 않는다',
@@ -260,7 +289,10 @@ const MUTATIONS = {
   'm-timeup-never-ends': {
     why: '시간이 다 돼도 판을 안 끝낸다 — 30초 계약이 사라진다',
     target: '시간이 다 되면 판이 끝난다',
-    apply: s => s.replace('  if (now() >= endAt){ endRun(); return; }', '')
+    /* ★앵커를 tick 자리로 좁힌다 — 2026-09-08 R6FIX-2 로 같은 한 줄이 ★세 자리(tick·choose·
+       탭 복귀)에 생겨 통짜 앵커가 출현 3회가 됐다(판정 불가). 겨냥하는 계약은 그대로다. */
+    apply: s => sub(s, '  if (now() >= endAt){ endRun(); return; }\n  rafId = requestAnimationFrame(tick);',
+                    '  rafId = requestAnimationFrame(tick);')
   },
   'm-i18n-on-dynamic': {
     why: '런타임에 내용이 바뀌는 요소(#qtext)에 data-i18n 을 단다 — 언어 전환이 진행 중 문제를 덮는다',
@@ -543,13 +575,23 @@ function makeWorld(opts) {
   const rafQ = [];
   const timers = [];            /* ★가상 타이머 큐(B7) — 실시간을 기다리지 않는다 */
   let timerId = 0;
+  /* ★문서 이벤트를 ★들고 있어야 탭 숨김을 잴 수 있다 — no-op 이면 제품이 건 핸들러가
+     어디에도 안 남아 '탭이 돌아왔다' 라는 표본 자체를 만들 수 없다(2026-09-08 R6FIX-2 E1). */
+  const docListeners = {};
   const doc = {
     readyState: 'complete',
     documentElement: { lang: 'ko' },
+    hidden: false,
     getElementById: id => els[id] || null,
     querySelectorAll: () => [],
     createElement: t => { const e = mkEl(''); e.tagName = String(t).toUpperCase(); return e; },
-    addEventListener: () => {}
+    addEventListener: (t, fn) => { if (typeof fn === 'function') (docListeners[t] || (docListeners[t] = [])).push(fn); }
+  };
+  /* 탭을 숨겼다 되돌린다 — ★hidden 을 바꾼 뒤에 핸들러를 부른다(브라우저와 같은 순서).
+     ★이 구간에서 rAF 는 한 번도 안 돈다 — 그것이 숨은 탭의 실제 조건이다. */
+  const setHidden = h => {
+    doc.hidden = !!h;
+    (docListeners.visibilitychange || []).forEach(fn => { try { fn(); } catch (e) { /* 검사가 따로 잡는다 */ } });
   };
   const win = {
     document: doc, navigator: { language: 'ko-KR' },
@@ -607,7 +649,7 @@ function makeWorld(opts) {
   try { vm.runInContext(SRC, win, { filename: 'quick-math-inline.js' }); }
   catch (e) { console.error('스크립트 실행 실패: ' + e.message); process.exit(2); }
   if (!win.__quickmath) { console.error('관측 창구(window.__quickmath)가 없다'); process.exit(2); }
-  return { win, els, doc, store, rafQ, advance: win.__advance, world,
+  return { win, els, doc, store, rafQ, advance: win.__advance, world, docListeners, setHidden,
            randomCalls: () => win.__randomCalls(), setDay: win.__setDay };
 }
 
@@ -819,6 +861,50 @@ check('시간이 다 되면 판이 끝난다', () => {
   const fn = W.rafQ[W.rafQ.length - 1];
   if (typeof fn === 'function') fn();
   return { ok: W.win.__quickmath.running === false, note: '30.001초 뒤 running=' + W.win.__quickmath.running };
+});
+
+/* ── ⑫-a ★만료 경계 — 30초가 지난 뒤 ★다음 프레임 전의 입력 (2026-09-08 R6FIX-2 E1) ──
+   ★이 검사의 표본은 '만료와 다음 프레임 사이' 다. 프레임을 먼저 돌리면 endRun 이 running 을
+   내려 ★결함이 있어도 초록이 된다 — 기존 30초 검사 둘이 정확히 그래서 이 자리를 못 봤다. */
+check('만료 뒤 다음 프레임 전 입력은 점수가 되지 않는다', () => {
+  const W = makeWorld({ today: new Date(2026, 3, 14) }); startDaily(W);
+  const k = W.win.__quickmath;
+  if (!k.running) return { ok: false, note: '★판이 시작되지 않았다(표본 미성립)' };
+  const q = k.deck[k.idx];
+  if (!q) return { ok: false, note: '★문제가 없다(표본 미성립)' };
+  const before = k.score;
+  const framesBefore = W.rafQ.length;
+  W.advance(30001);                       /* ★rAF 를 일부러 돌리지 않는다 */
+  tapOpt(W, q.correct);                   /* 만료 뒤의 정답 입력 */
+  const noFrame = W.rafQ.length === framesBefore;   /* 새 프레임 예약 0 = tick 이 한 번도 안 돌았다 */
+  if (!noFrame) return { ok: false, note: '★프레임이 돌았다 — 이 검사의 표본이 아니다(미성립)' };
+  return { ok: k.score === before && k.running === false,
+           note: '30.001초 경과 · 프레임 0회 · 점수 ' + before + '→' + k.score +
+                 ' · running ' + k.running };
+});
+
+/* ── ⑫-b ★탭이 숨은 사이 만료 (rAF 가 아예 안 돈다) ──
+   ★앞 검사와 다른 경로다 — 거기는 메인 스레드 정체, 여기는 탭 숨김이다.
+   같은 결과에 이르는 길이 둘이면 짝도 둘이어야 한다. */
+check('탭이 숨은 사이 만료되면 돌아온 즉시 끝난다', () => {
+  const W = makeWorld({ today: new Date(2026, 3, 15) }); startDaily(W);
+  const k = W.win.__quickmath;
+  if (!k.running) return { ok: false, note: '★판이 시작되지 않았다(표본 미성립)' };
+  const q = k.deck[k.idx];
+  if (!q) return { ok: false, note: '★문제가 없다(표본 미성립)' };
+  const handlers = (W.docListeners.visibilitychange || []).length;
+  if (!handlers) return { ok: false, note: '★제품이 visibilitychange 를 안 건다 — 탭 숨김 구간에 만료 판정이 없다' };
+  const before = k.score;
+  const framesBefore = W.rafQ.length;
+  W.setHidden(true);
+  W.advance(30001);                       /* 숨은 동안 프레임은 0회다 */
+  W.setHidden(false);                     /* 돌아왔다 */
+  const endedOnReturn = k.running === false;
+  tapOpt(W, q.correct);                   /* 돌아오자마자 누른다 */
+  return { ok: endedOnReturn && k.score === before,
+           note: 'visibilitychange 핸들러 ' + handlers + '개 · 숨은 동안 프레임 ' +
+                 (W.rafQ.length - framesBefore) + '회 · 돌아온 즉시 종료 ' + endedOnReturn +
+                 ' · 점수 ' + before + '→' + k.score };
 });
 
 /* ── ⑬ 판 짜기에 시계가 안 섞인다(정적) ───────────────────────────────── */

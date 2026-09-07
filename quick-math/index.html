@@ -623,6 +623,13 @@ function tick(){
    빠른 연타가 낡은 상태 위에서 실행된다. */
 function choose(i){
   if (!running) return;
+  /* ★만료는 ★입력 자리에서 확정한다 — 판정을 rAF 에 맡기면 30초가 지난 뒤에도 ★다음 프레임
+     전까지 running 이 true 라 정답이 점수가 된다(탭 복귀·메인 스레드 정체·입력이 프레임보다
+     먼저 처리되는 순서). 오답 경로는 아래에서 이미 같은 형태로 즉시 확정하고 있었다 —
+     ★정답 경로에만 이 검사가 없었다(2026-09-08 R6FIX-2 P1 · reviewer-codex 263 지적).
+     ★계약은 그대로다 — 30초는 30초이고, 여기서 바뀌는 것은 ★언제 재는가뿐이다.
+     검사: verify_quickmath.js '만료 뒤 다음 프레임 전 입력은 점수가 되지 않는다'. */
+  if (now() >= endAt){ endRun(); return; }
   const q = deck[idx];
   if (!q) return;
   if (dead.indexOf(i) >= 0) return;         /* 이미 잠긴 보기 — 같은 오답을 두 번 세지 않는다 */
@@ -677,6 +684,16 @@ window.addEventListener('keydown', (e) => {
   if (!running) return;
   const n = '1234'.indexOf(e.key);
   if (n >= 0){ e.preventDefault(); choose(n); }
+});
+/* ★탭이 숨으면 브라우저가 rAF 를 멈춘다 — 29.9초에 나갔다가 한참 뒤 돌아오면 만료 판정이
+   프레임과 함께 잠들어 있다. 돌아온 그 순간 ★시계를 직접 보고 확정한다(계약은 그대로 30초).
+   ★멈춘 동안 시간이 흐르지 않게 하는 것이 아니다 — 흐른 것을 ★즉시 인정하는 것이다.
+   검사: verify_quickmath.js '탭이 숨은 사이 만료되면 돌아온 즉시 끝난다'. */
+document.addEventListener('visibilitychange', () => {
+  if (!running || document.hidden) return;
+  if (now() >= endAt){ endRun(); return; }
+  paintTime();
+  cancelAnimationFrame(rafId); rafId = requestAnimationFrame(tick);
 });
 
 /* ======================= 판 시작·끝 ======================= */

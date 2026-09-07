@@ -252,6 +252,11 @@
       "check": "모르는 값을 지어내지 않는다",
       "term": "txt.indexOf('%') < 0",
       "why": "중복 관측 — 겨냥 변이(m-replay-accuracy-zero rc=0, m-review-invents-missed rc=0)가 이 항 없이도 잡힌다. 판정은 같은 검사의 항 \"nBad === '–'\" 이 짊어진다."
+    },
+    {
+      "check": "탭이 숨은 사이 만료되면 돌아온 즉시 끝난다",
+      "term": "k.score === before",
+      "why": "★교차 방어 중복 — 이 검사의 판정은 항 \"endedOnReturn\" 이 짊어진다. 돌아온 즉시 판이 끝나면 그 뒤의 입력은 choose() 자기 가드에도 막히므로, 탭 경로의 겨냥 변이(m-visibility-ignores-deadline rc=0)는 이 항 없이도 잡힌다. 그래도 남겨 두는 이유는 ★두 방어가 함께 무너졌을 때 화면에 무엇이 보이는지를 이 항이 말해 주기 때문이다(점수가 오르는가 = 사용자가 겪는 결과)."
     }
   ]
 }
