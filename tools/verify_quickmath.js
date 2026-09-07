@@ -21,6 +21,8 @@
  *   node tools/verify_quickmath.js --list-mutations
  *   node tools/verify_quickmath.js --mutate m-choice-consumes-rng
  *   node tools/verify_quickmath.js --from-commit <해시>   ★커밋본 바이트를 그대로 잰다
+ *   node tools/verify_quickmath.js --payload-hashes       ★뮤테이션 payload 지문(정본 대조용)
+ *   node tools/verify_quickmath.js --repo <저장소 루트>   ★사본으로 부를 때 git 이 볼 저장소
  *
  * 종료코드: 0 = 전부 통과 · 1 = 미달 있음 · 2 = 검사를 세울 수 없음(하네스·주입 실패)
  *   · 3 = 주입은 됐는데 ★지목한 검사가 잡지 못했다(검사가 공허하다).
@@ -36,7 +38,10 @@ const argv = process.argv.slice(2);
 const argOf = (n, d) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : d; };
 const has = n => argv.indexOf(n) >= 0;
 
-const HTML = argOf('--html', path.join(__dirname, '..', 'quick-math', 'index.html'));
+/* ★리비전을 고정해 잴 때 러너는 이 검사기의 ★사본을 저장소 밖에 두고 부른다(D2 수리).
+   그때 사본이 제 위치를 기준으로 경로를 풀면 ★남의 폴더를 본다 — 저장소 루트를 인자로 받는다. */
+const REPO = path.resolve(argOf('--repo', path.join(__dirname, '..')));
+const HTML = argOf('--html', path.join(REPO, 'quick-math', 'index.html'));
 const ONLY = argOf('--only', null);
 const MUTATION = argOf('--mutate', null);
 
@@ -65,7 +70,7 @@ const MUTATIONS = {
     why: '판 짜기에 시계를 섞는다 — 같은 seed 가 기기·시각마다 다른 판이 된다',
     /* ★동적으로는 안 보인다 — 하네스가 시계를 고정하기 때문이다(그것이 재현성의 조건이다).
        기기 사이의 갈라짐은 ★정적 검사가 잡는다. 지목을 그 검사로 옮긴다. */
-    target: '판 짜기에 시계·성능이 안 섞인다',
+    target: '판 짜기에 시계·성능·전역 난수가 안 섞인다',
     apply: s => s.replace('  const rng = countingRng(mulberry32(hashStr(seedKey)));',
                           '  const rng = countingRng(mulberry32(hashStr(seedKey) + (Date.now() & 7)));')
   },
@@ -224,10 +229,23 @@ const MUTATIONS = {
                           "    dailyDone:'Daily done',")
   },
   'm-deck-uses-random': {
-    why: '판 짜기에 전역 난수를 섞는다 — 같은 seed 로도 판이 갈라진다',
-    target: '같은 seed = 같은 판',
+    /* ★겨냥을 정적 검사로 옮겼다(2026-09-07 R3 F3 전수 훑기).
+       앞서는 '같은 seed = 같은 판'(동적)을 겨냥해서, 정적 검사의 ★Math.random 규칙은
+       아무 변이도 겨냥하지 않는 ★분모 0 이었다 — 그 규칙을 지워도 표가 초록이었다.
+       동적 쪽은 정적 훑기가 못 보는 m-deck-shuffled-after-build 가 맡는다. */
+    why: '판 짜기 구간에 전역 난수를 섞는다 — 같은 seed 로도 판이 갈라진다(정적 훑기가 보는 자리)',
+    target: '판 짜기에 시계·성능·전역 난수가 안 섞인다',
     apply: s => s.replace('  const rng = countingRng(mulberry32(hashStr(seedKey)));',
                           '  const rng = countingRng(mulberry32(hashStr(seedKey) + Math.floor(Math.random() * 1000)));')
+  },
+  'm-deck-shuffled-after-build': {
+    /* ★정적 훑기의 사각을 겨냥한다 — 판 짜는 구간(makeWrongs~makeDeck) ★밖에서 섞으므로
+       '판 짜기에 …가 안 섞인다' 정적 검사는 이 결함을 ★못 본다. 동적 검사가 잡아야 한다. */
+    why: '판을 짠 ★뒤에 전역 난수로 한 번 섞는다 — 같은 seed 로도 사람마다 다른 판이 된다',
+    target: '같은 seed = 같은 판',
+    apply: s => s.replace(
+      '  deck = makeDeck(seedKeyNow);',
+      '  deck = makeDeck(seedKeyNow); deck = deck.slice().sort(() => Math.random() - 0.5);')
   },
   'm-seed-includes-hour': {
     why: '오늘의 도전 seed 에 ★시각을 섞는다 — 같은 날 오전과 오후가 다른 판이 된다',
@@ -262,6 +280,25 @@ const MUTATIONS = {
     apply: s => s.replace("$('btnStart').onclick = () => { replaying = false; startRun('free'); };",
                           "$('btnStart').onclick = () => { if (dailyDoneToday()) return; replaying = false; startRun('free'); };")
   },
+  'm-lang-toggle-rebuilds-deck': {
+    /* ★F1 수리의 짝(2026-09-07 R3 reviewer-claude-2 탐침 P4 의 정식 편입).
+       탐침 상태에서는 ★29종 전부 통과였다 — 판 중의 ★탭 아닌 행동을 아무도 안 굴렸기 때문이다. */
+    why: '판 중에 언어를 바꾸면 남은 문제를 ★전역 난수로 다시 굴린다 — 탭만 굴리는 검사에는 안 보인다',
+    target: '판 중 ★다른 행동도 난수를 안 당긴다(언어 전환·소리)',
+    apply: s => sub(s,
+      '  if (started){\n    const q = deck[Math.min(idx, Math.max(0, deck.length - 1))];',
+      '  if (started){\n' +
+      '    if (running) deck = deck.slice(0, idx).concat(makeDeck(seedKeyNow + Math.floor(Math.random() * 97)).slice(idx));\n' +
+      '    const q = deck[Math.min(idx, Math.max(0, deck.length - 1))];')
+  },
+  'm-round-shorter': {
+    /* ★F3 수리의 짝. 앞서는 30초 계약에 겨냥 뮤테이션이 ★없었고, ROUND_MS 를 줄이면
+       엉뚱하게 '선굴림 덱은 60문' 이 붉어졌다 — 한 검사가 두 계약을 지고 있었기 때문이다.
+       계약을 분가시켰으므로 이 변이는 이제 ★자기 검사를 겨냥한다. */
+    why: '한 판을 30초에서 20초로 줄인다 — 같은 판을 견주는 기준 시간이 갈라진다',
+    target: '한 판은 30초',
+    apply: s => s.replace('const ROUND_MS = 30000;', 'const ROUND_MS = 20000;')
+  },
   'm-quiet-control': {
     why: '★대조군 — 주석 한 줄만 바꾼다. 어떤 검사도 붉으면 안 된다',
     target: null,
@@ -269,6 +306,21 @@ const MUTATIONS = {
                           '/* ======================= 소리(대조군) ======================= */')
   }
 };
+
+/* ★payload 지문 — 뮤테이션의 ★대체문까지 정본에 못박는 값(F2 수리).
+   왜 필요한가: 검사 본문과 그 검사를 겨냥한 뮤테이션의 payload 가 ★같은 파일에 있어
+   ★한 손으로 함께 무르게 만들 수 있었다. 정본 JSON 은 이름·짝짓기만 보므로 그때
+   ★정본 바이트가 하나도 안 바뀐 채 초록이 나왔다(2026-09-07 R3 reviewer-claude-2 실측).
+   ⇒ apply 소스를 해시해 정본에 적어 두면, 함께 무르게 하는 순간 ★정본과 갈려 rc=2 다.
+   ★줄끝은 정규화한다 — CRLF 체크아웃과 LF 커밋본이 같은 값을 내야 한다. */
+function payloadHash(m) {
+  return crypto.createHash('sha256')
+               .update(String(m.apply).replace(/\r\n/g, '\n'), 'utf8').digest('hex');
+}
+if (has('--payload-hashes')) {
+  Object.keys(MUTATIONS).forEach(k => console.log([k, payloadHash(MUTATIONS[k])].join('\t')));
+  process.exit(0);
+}
 
 if (has('--list-mutations')) {
   /* ★탭으로 가른다 — 기계가 읽는 출력을 사람 눈의 정렬(칸 너비)에 기대게 하면, 이름이 칸을
@@ -282,11 +334,11 @@ if (has('--list-mutations')) {
    그래서 ★커밋본 바이트(git show <rev>:<경로>)를 그대로 읽는 경로를 두고,
    무엇을 쟀는지 ★출력 첫 줄에 적는다(러너가 이 줄을 증거에 그대로 옮긴다). */
 const REV = argOf('--from-commit', null);
-const REL = path.relative(path.join(__dirname, '..'), HTML).split(path.sep).join('/');
+const REL = path.relative(REPO, HTML).split(path.sep).join('/');
 let RAW, TARGET_LABEL;
 if (REV) {
   const r = cp.spawnSync('git', ['show', REV + ':' + REL],
-                         { cwd: path.join(__dirname, '..'), maxBuffer: 64 * 1024 * 1024 });
+                         { cwd: REPO, maxBuffer: 64 * 1024 * 1024 });
   if (r.status !== 0) {
     console.error('커밋본을 꺼내지 못했다: git show ' + REV + ':' + REL + ' — ' +
                   String(r.stderr || '').trim());
@@ -308,12 +360,63 @@ if (REV) {
               ' · ' + bytes.length + 'B · 줄끝 CRLF ' + crlf + ' / LF ' + (lf - crlf));
 }
 
+/* ★주입을 ★단계마다 단언한다(D3·D4 수리 · 2026-09-07 R3 reviewer-claude-2).
+   D3 — 앞서는 판정이 `RAW === before` ★한 줄이었다. 그것은 '적어도 한 곳이 바뀌었다' 만
+        증명하므로, 두 팔을 함께 없애는 2단 뮤테이션(m-save-overwrites)은 ★한쪽만 맞아도
+        주입 성공으로 세어지고 그때 그 변이는 형제(m-save-guard-only)로 ★퇴화한다 —
+        러너는 이름만 보므로 겨냥이 갈린 것을 못 본다.
+   D4 — String.prototype.replace 는 ★첫 매치만 바꾼다. 제품이 자라 같은 앵커가 두 번
+        나오면 문법 오류 없이 ★엉뚱한 자리를 쳐서, 그 뮤테이션은 겨냥한 계약을 시험하지
+        않는다. 그래서 ★출현 횟수가 정확히 1 인지도 단계마다 센다.
+   어떻게 — apply 안에서 ★대상 소스에 걸린 치환만 단계로 기록한다(esc() 가 앵커 문자열에
+   하는 치환은 대상이 아니므로 세지 않는다). 표를 새로 적을 필요가 없어 ★앵커가 두 곳에
+   갈라져 사는 일도 안 생긴다. 어긋나면 ★판정 불가(rc=2)다 — 통과로 세지 않는다. */
+function applyTraced(m, src) {
+  const orig = String.prototype.replace;
+  const steps = [];
+  let cur = src;
+  String.prototype.replace = function (pat, rep) {
+    const before = String(this);
+    const out = orig.call(this, pat, rep);
+    if (before === cur) {              /* ★대상 소스에 대한 치환만 단계다 */
+      let occ;
+      if (typeof pat === 'string') occ = before.split(pat).length - 1;
+      else {
+        const g = new RegExp(pat.source, pat.flags.indexOf('g') >= 0 ? pat.flags : pat.flags + 'g');
+        occ = (before.match(g) || []).length;
+      }
+      steps.push({ occ: occ, changed: out !== before });
+      cur = out;
+    }
+    return out;
+  };
+  let out;
+  try { out = m.apply(src); }
+  finally { String.prototype.replace = orig; }
+  return { out: out, steps: steps };
+}
+
 if (MUTATION) {
   const m = MUTATIONS[MUTATION];
   if (!m) { console.error('그런 뮤테이션이 없다: ' + MUTATION); process.exit(2); }
   const before = RAW;
-  RAW = m.apply(RAW);
+  const tr = applyTraced(m, RAW);
+  RAW = tr.out;
+  if (tr.steps.length === 0) {
+    console.error('주입 실패(대상 소스를 한 번도 안 고쳤다): ' + MUTATION); process.exit(2);
+  }
+  const bad = tr.steps.map((s, i) => ({ i: i + 1, s: s }))
+                      .filter(x => !x.s.changed || x.s.occ !== 1);
+  if (bad.length) {
+    bad.forEach(x => console.error(
+      '주입 단계 ' + x.i + '/' + tr.steps.length + ' 이상: ' + MUTATION +
+      ' — 앵커 출현 ' + x.s.occ + '회(1회여야 한다) · ' +
+      (x.s.changed ? '바뀌었다' : '★안 바뀌었다(앵커가 안 맞는다)')));
+    console.error('★부분 주입·앵커 중복은 ★통과가 아니라 판정 불가다 — 그 변이는 겨냥한 계약을 시험하지 않는다');
+    process.exit(2);
+  }
   if (RAW === before) { console.error('주입 실패(앵커가 안 맞는다): ' + MUTATION); process.exit(2); }
+  console.log('※ 주입 단계 ' + tr.steps.length + '단 — 단계마다 변화 확인 · 앵커 출현 각 1회');
   console.log('※ 뮤테이션 주입: ' + MUTATION + ' — ' + m.why);
   console.log('※ 지목한 검사: ' + (m.target || '(대조군 · 아무 검사도 붉으면 안 된다)'));
 }
@@ -624,11 +727,30 @@ check('잠긴 보기는 다시 세지 않는다', () => {
 });
 
 /* ── ⑪ 선굴림 덱은 60문 · 한 판 30초 ──────────────────────────────────── */
+/* ★한 검사가 두 계약을 지면 ★뒤쪽 계약의 분모가 0 이 된다 — 러너의 판정 단위가
+   (검사 이름, 대상) 짝이라, '30초' 를 겨냥한 변이는 이 검사가 잡아도 ★그 계약의
+   겨냥으로 세어지지 않는다. 그래서 30초를 ★자기 이름의 검사로 분가시켰다
+   (2026-09-07 R3 reviewer-claude-2 F3). 여기 남는 것은 ★선굴림 양 하나다. */
 check('선굴림 덱은 60문', () => {
   const W = makeWorld({ today: new Date(2026, 3, 12) }); startDaily(W);
   const k = W.win.__quickmath;
-  return { ok: k.deckN === 60 && deckOf(W).length === 60 && k.roundMs === 30000,
-           note: '덱 ' + deckOf(W).length + '문 · 상수 ' + k.deckN + ' · 한 판 ' + k.roundMs + 'ms' };
+  return { ok: k.deckN === 60 && deckOf(W).length === 60,
+           note: '덱 ' + deckOf(W).length + '문 · 상수 ' + k.deckN };
+});
+
+/* ── ⑪-b ★한 판은 30초 (F3 분가 · 값과 ★그 값대로 끝나는가를 함께 잰다) ── */
+check('한 판은 30초', () => {
+  const W = makeWorld({ today: new Date(2026, 3, 12) }); startDaily(W);
+  const k = W.win.__quickmath;
+  if (!k.running) return { ok: false, note: '★판이 시작되지 않았다(표본 미성립)' };
+  const pump = () => { const fn = W.rafQ[W.rafQ.length - 1]; if (typeof fn === 'function') fn(); };
+  W.advance(29900); pump();
+  const aliveAt299 = k.running;          /* ★29.9초에는 아직 돌아야 한다 */
+  W.advance(200); pump();
+  const overAt301 = k.running === false;  /* ★30.1초에는 끝나야 한다 */
+  return { ok: k.roundMs === 30000 && aliveAt299 === true && overAt301,
+           note: '상수 ' + k.roundMs + 'ms · 29.9초 running=' + aliveAt299 +
+                 ' · 30.1초 종료=' + overAt301 };
 });
 
 /* ── ⑫ 시간이 다 되면 판이 끝난다 ─────────────────────────────────────── */
@@ -643,7 +765,7 @@ check('시간이 다 되면 판이 끝난다', () => {
 });
 
 /* ── ⑬ 판 짜기에 시계가 안 섞인다(정적) ───────────────────────────────── */
-check('판 짜기에 시계·성능이 안 섞인다', () => {
+check('판 짜기에 시계·성능·전역 난수가 안 섞인다', () => {
   const i = SRC.indexOf('function makeDeck');
   const j = SRC.indexOf('/* ======================= 판 상태');
   if (i < 0 || j < 0 || j <= i) return { ok: false, note: '★구간을 세울 수 없다' };
@@ -724,6 +846,31 @@ check('행동이 난수를 한 번도 안 당긴다(전역 계수)', () => {
   return { ok: dRandom === 0 && taps > 0,
            note: '탭 ' + taps + '회 · ★전역 Math.random +' + dRandom + '(판정 항 · 0 이어야 한다)' +
                  ' · 덱난수 +' + dRng + '(★기록만 — 구조상 항상 0 이라 반증력이 없다)' };
+});
+
+/* ── A-3 ★판 중의 ★탭 아닌 행동도 난수를 안 당긴다 (F1 수리 · 2026-09-07 R3)
+   왜 따로 있나: 잠근 항 1 은 계약을 ★'플레이어 행동' 전체로 적었는데, 그것을 짊어지던
+   두 검사는 ★보기 탭만 굴렸다. 판 중에도 살아 있는 언어·소리 버튼은 아무도 안 굴려서,
+   applyLang 이 남은 덱을 다시 굴리는 결함본이 ★29종 전부를 통과했다(리뷰어 실측).
+   ⇒ 계약 문면이 '행동 전체' 라면 관측 창도 ★행동 전체에 열려 있어야 한다. */
+check('판 중 ★다른 행동도 난수를 안 당긴다(언어 전환·소리)', () => {
+  const W = makeWorld({ today: new Date(2026, 5, 6) });
+  startDaily(W); must(W, '비탭 행동');
+  const k = W.win.__quickmath;
+  /* 한 문제를 풀어 idx 를 진행시킨다 — ★남은 덱을 다시 굴리는 결함이 보이는 자리다 */
+  tapOpt(W, k.deck[k.idx].correct);
+  const deckBefore = JSON.stringify(k.deck);
+  const idxBefore = k.idx;
+  const r0 = W.randomCalls();
+  W.els.btnLang.fire('click');      /* 판 중 언어 전환 */
+  W.els.btnSound.fire('click');     /* 판 중 소리 토글 */
+  W.els.btnLang2.fire('click');     /* 끝 화면 쪽 같은 버튼 */
+  if (k.running !== true) return { ok: false, note: '★판이 안 돌고 있다(표본 미성립)' };
+  const dRandom = W.randomCalls() - r0;
+  const same = JSON.stringify(k.deck) === deckBefore && k.idx === idxBefore;
+  return { ok: dRandom === 0 && same,
+           note: '판 중 언어 2회·소리 1회 · ★전역 Math.random +' + dRandom +
+                 ' · 덱 ' + (same ? '동일' : '★갈라짐') };
 });
 
 /* ── B ★하루 경계의 권위 = 사용자의 로컬 달력 (기존 21/22 종과 같다) ── */

@@ -21,21 +21,29 @@
           · 2 = 판정 불가가 하나라도 있다(rc=2) 또는 하네스를 세울 수 없다
 """
 import argparse
+import atexit
 import hashlib
 import io
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VERIFY = os.path.join(ROOT, 'tools', 'verify_quickmath.js')
 LOCKED = os.path.join(ROOT, 'tools', 'quickmath_locked_contracts.json')
+EXPECT = os.path.join(ROOT, 'tools', 'quickmath_mutation_expectations.json')
 
 
 def run(args):
     return subprocess.run(args, cwd=ROOT, capture_output=True, text=True, encoding='utf-8', errors='replace')
+
+
+REV = None            # ★--from-commit 으로 고정한 리비전(지문·검사기·정본이 모두 이 값을 본다)
+REV_FILES = {}        # 그 리비전에서 꺼내 둔 사본 → ★저장소 상대경로(지문이 정본 자리를 말하게)
 
 
 def fingerprint(path):
@@ -51,15 +59,21 @@ def fingerprint(path):
         wt = hashlib.sha256(io.open(path, 'rb').read()).hexdigest()[:16]
     except OSError as e:
         return {'wt': '읽지 못함(%s)' % e, 'blob_sha256': '-', 'oid': '-'}
-    rel = os.path.relpath(path, ROOT).replace(os.sep, '/')
-    oid = run(['git', 'rev-parse', 'HEAD:' + rel])
-    blob = subprocess.run(['git', 'cat-file', 'blob', 'HEAD:' + rel],
+    rel = REV_FILES.get(os.path.abspath(path)) or os.path.relpath(path, ROOT).replace(os.sep, '/')
+    # ★기준 리비전은 ★대상과 같은 것이어야 한다(2026-09-07 R3 D1).
+    #   앞서는 대상만 --from-commit 으로 고정하고 지문은 HEAD 에서 뽑았다. HEAD 가 앞서
+    #   나간 날 그 줄은 ★다른 리비전의 바이트를 '재현에 쓸 값' 으로 적는다 — 오늘 안 터진 것은
+    #   HEAD == 대상이라 가려졌을 뿐이다.
+    ref = (REV or 'HEAD') + ':' + rel
+    oid = run(['git', 'rev-parse', ref])
+    blob = subprocess.run(['git', 'cat-file', 'blob', ref],
                           cwd=ROOT, capture_output=True)
     return {
         'wt': wt,
         'blob_sha256': (hashlib.sha256(blob.stdout).hexdigest()[:16]
                         if blob.returncode == 0 else '커밋에 없다'),
         'oid': (oid.stdout or '').strip()[:16] if oid.returncode == 0 else '커밋에 없다',
+        'ref': ref,
     }
 
 
@@ -69,7 +83,7 @@ def fingerprint_line(label, path, fp):
         label,
         '    sha256(★작업트리 파일)   = %s   ← 지금 돌린 바이트(줄끝 변환을 탄다)' % fp['wt'],
         '    sha256(★커밋된 바이트)   = %s   ← ★재현에 쓸 값' % fp['blob_sha256'],
-        '    git 객체 id (HEAD:%s) = %s' % (rel, fp['oid']),
+        '    git 객체 id (%s) = %s' % (fp.get('ref', 'HEAD:' + rel), fp['oid']),
     ])
 
 def source_denominators():
@@ -123,7 +137,7 @@ def expectations():
     ★없거나 못 읽으면 rc=2 다(통과로 세지 않는다). 이 파일이 '어느 뮤테이션을 어느 검사가
     잡아야 하는가' 를 정하고, 러너는 그것과 실제 검사 목록을 ★양방향으로 대조한다.
     """
-    path_ = os.path.join(ROOT, 'tools', 'quickmath_mutation_expectations.json')
+    path_ = EXPECT
     try:
         with io.open(path_, encoding='utf-8') as f:
             data = json.load(f)
@@ -150,6 +164,65 @@ def expectations():
 TARGET_ARGS = []          # ★검사기에 넘길 '무엇을 재는가' 인자(--html 또는 --from-commit)
 
 
+def materialize_from_rev(rev, want):
+    """★검사기·정본도 그 리비전에서 꺼낸다(2026-09-07 R3 D2).
+
+    앞서는 --from-commit 이 ★대상 HTML 만 고정했다. 검사기와 정본은 워킹트리에서 읽혀서,
+    '커밋본으로 쟀다' 는 말이 ★절반만 참이었다(오늘 일치한 것은 트리가 clean 이라서다).
+    사본은 저장소 ★밖에 두고, 검사기에는 --repo 로 정본 자리를 알려 준다 — 사본이 제 위치를
+    기준으로 경로를 풀면 남의 폴더를 본다.
+    꺼내지 못하면 ★판정 불가다(워킹트리로 조용히 물러나지 않는다).
+    """
+    stage = tempfile.mkdtemp(prefix='qm-rev-')
+    atexit.register(shutil.rmtree, stage, True)
+    out = {}
+    for key, rel in want.items():
+        r = subprocess.run(['git', 'show', '%s:%s' % (rev, rel)], cwd=ROOT, capture_output=True)
+        if r.returncode != 0:
+            return None, '리비전에서 %s 를 꺼내지 못했다: git show %s:%s — %s' % (
+                rel, rev, rel, (r.stderr or b'').decode('utf-8', 'replace').strip()[:200])
+        dst = os.path.join(stage, os.path.basename(rel))
+        with io.open(dst, 'wb') as f:
+            f.write(r.stdout)
+        REV_FILES[os.path.abspath(dst)] = rel
+        out[key] = dst
+    return out, None
+
+
+def payload_gate(exp, names):
+    """★뮤테이션 payload(앵커+대체문) 지문을 정본과 대조한다(2026-09-07 R3 F2).
+
+    정본이 이름·짝짓기만 보면, 검사 본문과 그 검사를 겨냥한 뮤테이션을 ★한 손으로 함께
+    무르게 만들었을 때 ★정본 바이트가 하나도 안 바뀐 채 초록이 난다(리뷰어 실측).
+    지문이 갈리거나 정본에 없으면 ★판정 불가다 — 통과로 세지 않는다.
+    """
+    pr = run(['node', VERIFY, '--repo', ROOT, '--payload-hashes'])
+    if pr.returncode != 0:
+        return 'payload 지문을 못 얻었다(rc=%d): %s' % (pr.returncode, (pr.stderr or '').strip()[:300])
+    got = {}
+    for ln in (pr.stdout or '').splitlines():
+        if '\t' in ln:
+            k, v = ln.split('\t', 1)
+            got[k.strip()] = v.strip()
+    missing = [n for n in names if not (exp['mutations'].get(n) or {}).get('payload_sha256')]
+    if missing:
+        return ('정본에 payload_sha256 이 없는 뮤테이션 %d종: %s — '
+                '`node tools/verify_quickmath.js --payload-hashes` 로 채워라' % (len(missing), ', '.join(missing)))
+    nogot = [n for n in names if n not in got]
+    if nogot:
+        return '검사기가 payload 지문을 안 준 뮤테이션: %s' % ', '.join(nogot)
+    bad = [n for n in names if got[n] != exp['mutations'][n]['payload_sha256']]
+    if bad:
+        lines = ['payload 지문이 정본과 갈렸다 %d종(검사와 뮤테이션을 ★한 손으로 무르게 만든 자리다):' % len(bad)]
+        for n in bad:
+            lines.append('    %s  정본 %s… ≠ 검사기 %s…'
+                         % (n, exp['mutations'][n]['payload_sha256'][:16], got[n][:16]))
+        return chr(10).join(lines)
+    print('payload 지문 대조 %d/%d 일치 — 검사와 그 겨냥 뮤테이션을 함께 무르게 하면 여기서 갈린다'
+          % (len(names), len(names)))
+    return None
+
+
 def list_mutations():
     p = run(['node', VERIFY, '--list-mutations'])
     if p.returncode != 0:
@@ -160,13 +233,14 @@ def list_mutations():
 
 
 def main():
-    global VERIFY, LOCKED, TARGET_ARGS
+    global VERIFY, LOCKED, EXPECT, TARGET_ARGS, REV
     ap = argparse.ArgumentParser()
     ap.add_argument('--html', default=os.path.join(ROOT, 'quick-math', 'index.html'))
     ap.add_argument('--only', help='이 뮤테이션 하나만 돌린다')
     ap.add_argument('--locked', help='잠근 항 정본 경로(★자를 고정할 때 정본도 함께 고정한다 — '
                                      '검사기만 고정하면 정본은 현재 나무 것을 읽어 두 시점이 섞인다)')
     ap.add_argument('--verify', help='검사기 경로(★리비전을 고정해 재고 싶을 때 사본을 가리킨다)')
+    ap.add_argument('--expectations', help='기대표 정본 경로(정본 3종을 함께 고정할 때)')
     ap.add_argument('--from-commit', dest='from_commit',
                     help='★대상을 ★커밋본 바이트로 고정한다(git show <rev>:<경로>). '
                          '워킹트리는 체크아웃 줄끝을 타므로 ★"내 트리에서 통과" 는 계약의 증거가 아니다 '
@@ -176,11 +250,39 @@ def main():
         VERIFY = os.path.abspath(a.verify)
     if a.locked:
         LOCKED = os.path.abspath(a.locked)
+    if a.expectations:
+        EXPECT = os.path.abspath(a.expectations)
     # ★무엇을 재는가를 ★맨 먼저 못박는다 — 이 줄이 없으면 아래 모든 수치가 '어느 바이트에서
     #   나왔는가' 를 잃는다. 검사기도 자기 첫 줄에 같은 사실을 적는다(두 층이 같은 말을 한다).
     if a.from_commit:
+        REV = a.from_commit
         TARGET_ARGS = ['--from-commit', a.from_commit]
         print('잰 대상 = ★커밋본 바이트  git show %s:quick-math/index.html' % a.from_commit)
+        # ★대상만 고정하면 절반이다 — ★재는 도구(검사기)와 ★자(정본)도 같은 리비전에서 꺼낸다.
+        want = {}
+        if not a.verify:
+            want['verify'] = 'tools/verify_quickmath.js'
+        if not a.locked:
+            want['locked'] = 'tools/quickmath_locked_contracts.json'
+        if not a.expectations:
+            want['expect'] = 'tools/quickmath_mutation_expectations.json'
+        if want:
+            got, err = materialize_from_rev(a.from_commit, want)
+            if err:
+                print('판정 불가 — ' + err)
+                return 2
+            if 'verify' in got:
+                VERIFY = got['verify']
+            if 'locked' in got:
+                LOCKED = got['locked']
+            if 'expect' in got:
+                EXPECT = got['expect']
+            TARGET_ARGS = TARGET_ARGS + ['--repo', ROOT]
+            print('  ★검사기·정본도 같은 리비전에서 꺼냈다: %s (사본은 저장소 밖 · --repo 로 정본 자리를 알려 준다)'
+                  % ', '.join(sorted(want.values())))
+        for k, flag in (('verify', '--verify'), ('locked', '--locked'), ('expect', '--expectations')):
+            if (k == 'verify' and a.verify) or (k == 'locked' and a.locked) or (k == 'expect' and a.expectations):
+                print('  · %s 는 ★사용자가 준 경로를 쓴다(리비전에서 꺼내지 않았다)' % flag)
     else:
         TARGET_ARGS = ['--html', a.html]
         print('잰 대상 = 작업트리 %s  (★체크아웃 줄끝을 탄다 — 계약의 증거는 커밋본이다: --from-commit <해시>)'
@@ -226,6 +328,14 @@ def main():
     stale = sorted(t for t in targets if t not in checks)
     stale_canon = sorted(t for t in canon_targets if t not in checks)
 
+    perr = payload_gate(exp, names)
+    if perr:
+        print('판정 불가 — ' + perr)
+        if REV:
+            print('  · 힌트: 그 리비전의 검사기가 이 러너의 규약(--payload-hashes·--repo)을 모를 수 있다 '
+                  '— 러너와 검사기의 리비전이 갈리면 ★판정 불가다(통과가 아니다).')
+        return 2
+
     items, aux, lhash, lerr = locked_items()
     if lerr:
         print('판정 불가 — ' + lerr)
@@ -248,8 +358,7 @@ def main():
 
     print(fingerprint_line('검사기 지문 ★대상과 함께 고정해 적어라', VERIFY, vhash))
     print(fingerprint_line('잠근 항 정본 지문', LOCKED, lhash))
-    print(fingerprint_line('기대표 정본 지문', os.path.join(ROOT, 'tools', 'quickmath_mutation_expectations.json'),
-                           fingerprint(os.path.join(ROOT, 'tools', 'quickmath_mutation_expectations.json'))))
+    print(fingerprint_line('기대표 정본 지문', EXPECT, fingerprint(EXPECT)))
     print('뮤테이션 분모(기계 열거) = %d 종 · 기대표 정본 %d 종 · ★정본에만 %d · ★검사기에만 %d'
           % (len(names), len(canon_names), len(only_canon), len(only_code)))
     if only_canon or only_code:

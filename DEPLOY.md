@@ -156,6 +156,10 @@ Sitemap: https://hanpango.com/sitemap.xml
          ★검출력은 `--selftest` 로 잰다: 임시 **Git 저장소**에 규칙 **8종**(금지 바이트 6종 + BOM + lone CR)을 각각 주입하고 **CLI 경로 전체를 자식 프로세스로 밟아** rc=2 와 규칙 이름이 지적문에 나오는지 본다(rc=0 확인 · rc=1 검출 실패·규칙 소실 · rc=2 주입 실패·하네스 이상). 옵션 오타(`--selftes`)와 루트 2개 같은 잘못된 호출은 **rc=2 로 거부**한다 — 검사 못 한 것을 통과로 세지 않는다.
          범위는 여기서 닫혀 있다 — 제로폭·혼동 글자까지 넓히지 않는다(이번 사고가 지나온 경로만 막는다).
    - [ ] `node tools/counter/test_functions.mjs .` · `node tools/counter/test_pages.mjs .`
+   - [ ] `node tools/counter/test_client.mjs .` · `node tools/counter/test_pages_negative.mjs .` →
+         앞은 클라이언트(`js/hp-stats.js`) 단위 시험이고, 뒤는 ★페이지 검사기의 검출력 자기시험이다
+         (고의 결함 9건을 심어 `test_pages.mjs` 가 실제로 잡는지 본다 — 규칙을 느슨하게 풀어
+         초록을 만든 것과 진짜로 고친 것을 통과 화면만으로는 구별할 수 없다).
    - [ ] `node tools/check_home_sync.mjs .` → **rc=0 일 때만** 통과다. 대문이 실제 게임 목록과 어긋나면 미달이다(games.json · FALLBACK · noscript · sw.js PRECACHE · /about/ 다섯 자리). rc=2 는 **판정 불가**이며 통과가 아니다.
    - [ ] `node tools/check_precache_cache.mjs . --base origin/main --head HEAD` → **rc=0 일 때만** 통과다.
          ★**인자를 반드시 주라** — 무플래그는 `HEAD^..HEAD`(직전 한 커밋)만 재므로, 여러 커밋을 함께 내보내는 출고에서는 **묻고 싶은 것을 묻지 않는다**.
@@ -167,6 +171,26 @@ Sitemap: https://hanpango.com/sitemap.xml
          규칙 4개: 형태(`precache-url-shape`) · 디렉터리 표기(`precache-dir-form` — `/about` 처럼 후행 슬래시가 빠지면 308 로 addAll 이 깨진다) · 실재(`precache-target-exists`) · 중복(`precache-duplicate`).
    - [ ] `node tools/check_page_assets.mjs .` → **rc=0 일 때만** 통과다. 페이지가 요청시키는 동일 오리진 하위 자원(문서·`/api/`·서비스워커 스크립트 제외)이 `PRECACHE` 에 없으면 미달이다.
          조립되는 경로는 데이터 전개로 **갈음**하고, 못 푸는 조립은 통과가 아니라 **판정 불가**다.
+   - [ ] `python3 tools/check_gate_registry.py .` → **rc=0 일 때만** 통과다. ★게이트 목록이
+         `tools/gates.json`(기계 판독처)에서 ★파생되는지와, 그 목록이 이 체크리스트·`tools/` 실재
+         파일과 ★양방향으로 맞는지를 잰다. `--selftest` 로 검출력을 잰다(사례 5건 · 대조군 포함).
+         ★왜 있나(2026-09-07 R3 F4): R2FIX-2 커밋 메시지가 *"게이트 정본 23종"* 이라 적었는데 그 23 을
+         내는 셈법이 트리 어디에도 없었고, 실재 검사기 6종 중 ★5종이 이 체크리스트에 등재조차 없었다.
+         ★한 방향만 보면 "목록에 있는데 파일이 없다" 는 보지만 ★"파일은 있는데 목록에 없다" 는
+         원리적으로 못 본다 — 손으로 센 목록은 게이트가 되지 못한다.
+   - [ ] `python3 tools/check_meta_i18n_assets.py .` → **rc=0 일 때만** 통과다. ko/en 문안 · 메타↔실제 ·
+         자산 경로 세 축을 전수로 대조한다(분모를 늘 찍는다 — "위반 0" 은 몇 건을 재서 0 인지와 함께여야 뜻이 있다).
+   - [ ] `python3 tools/check_palette.py .` → **rc=0 일 때만** 통과다. 대문 카드 색이 분류를 말하는가 ·
+         같은 분류 안에서 서로 구별되는가(값을 베끼지 않고 `tools/palette_by_category.json` 과 페이지에서 읽어 계산한다).
+   - [ ] `python3 tools/check_rainbow.py .` → **rc=0 일 때만** 통과다. 무지개 팔레트 3종의 테두리 대비 ·
+         타일 글자 대비 · 이웃 색차(CIEDE2000)를 계산으로 판정한다.
+   - [ ] `python3 tools/check_sitemap_lastmod.py .` → **rc=0 일 때만** 통과다. sitemap 의 `<lastmod>` 가
+         실제 마지막 커밋일과 같은가를 ★양방향으로 잰다(위 3절이 "손으로 세지 마라" 며 가리키는 그 도구다).
+   - [ ] (색·카드·치수를 건드린 라운드에서만) `node tools/check_render_parity.mjs .` → **rc=0 일 때만**
+         통과다. Chrome 을 띄워 ★렌더된 치수를 잰다 — 선언 훑기가 원리적으로 못 닫는 `zoom`·`padding`
+         우회를 한 번에 잡는다. 그리고 `tools/check_card_render.js` 는 ★브라우저 페이지 문맥에서
+         평가하는 검사다(node CLI 가 아니다 — 대문을 연 탭에서 이 파일을 evaluate 한다). 가상요소
+         `::before` 의 배경색까지 ★그려진 값으로 본다.
    - [ ] `node tools/check_today_pool.mjs .` → **rc=0 일 때만** 통과다. 「오늘의 한판」 선정 규칙
          (3종 · 최소 1종 `maxMinutes<=N` · 합 `<=M`)이 어떤 게임을 **영원히 후보에서 빼는지**를
          매번 **계산해서 찍는다**. ★목록을 문서·주석에 손으로 적지 마라 — 게임이 늘거나

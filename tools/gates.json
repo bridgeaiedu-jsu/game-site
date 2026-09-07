@@ -1,0 +1,383 @@
+{
+  "_contract": "★게이트 목록의 기계 판독처다. \"게이트 N 종\" 같은 집계는 ★이 파일의 길이에서 파생시킨다 — 손으로 센 수는 게이트가 되지 못한다(2026-09-07 R3 F4: 커밋 메시지의 \"게이트 정본 23종\" 은 트리 어디에서도 파생되지 않았고, 실재 검사기 6종 중 5종이 DEPLOY.md 에 등재조차 없었다).",
+  "_bidirectional": "tools/check_gate_registry.py 가 ★양방향으로 대조한다: ①이 목록↔DEPLOY.md 체크리스트 ②이 목록↔tools/ 실재 파일. ★한쪽 방향만 보면 \"목록에 있는데 파일이 없다\" 는 보지만 ★\"파일은 있는데 목록에 없다\" 는 원리적으로 못 본다 — 그 자리에 5건이 숨어 있었다.",
+  "_when": "when=always 는 출고 때마다 · when=on-change:<범위> 는 그 범위를 건드린 라운드에서 · per_game 은 ★그 라운드에서 손댄 게임의 것만 돌린다(DEPLOY.md 8절의 한 줄 규칙).",
+  "_deploy_rule": "gates[] 의 모든 항목은 DEPLOY.md 의 체크리스트 줄에 ★파일 경로가 적혀 있어야 한다.",
+  "gates": [
+    {
+      "file": "tools/check_functions.mjs",
+      "cmd": "node tools/check_functions.mjs .",
+      "when": "always",
+      "why": "Pages Functions 의 import 가 런타임에서 성립하는가"
+    },
+    {
+      "file": "tools/check_privacy_storage.py",
+      "cmd": "python3 tools/check_privacy_storage.py .",
+      "when": "always",
+      "why": "저장소 사용이 처리방침이 말한 범위 안인가"
+    },
+    {
+      "file": "tools/check_source_bytes.py",
+      "cmd": "python3 tools/check_source_bytes.py .",
+      "when": "always",
+      "why": "소스에 눈에 안 보이는 금지 바이트·BOM·lone CR 이 섞였는가"
+    },
+    {
+      "file": "tools/counter/test_functions.mjs",
+      "cmd": "node tools/counter/test_functions.mjs .",
+      "when": "always",
+      "why": "공개 카운터 Functions 단위 시험"
+    },
+    {
+      "file": "tools/counter/test_pages.mjs",
+      "cmd": "node tools/counter/test_pages.mjs .",
+      "when": "always",
+      "why": "공개 카운터 페이지 배선 검사"
+    },
+    {
+      "file": "tools/counter/test_client.mjs",
+      "cmd": "node tools/counter/test_client.mjs .",
+      "when": "always",
+      "why": "공개 카운터 클라이언트(js/hp-stats.js) 단위 시험"
+    },
+    {
+      "file": "tools/counter/test_pages_negative.mjs",
+      "cmd": "node tools/counter/test_pages_negative.mjs .",
+      "when": "always",
+      "why": "위 페이지 검사기의 ★검출력 자기시험(고의 결함 9건)"
+    },
+    {
+      "file": "tools/check_home_sync.mjs",
+      "cmd": "node tools/check_home_sync.mjs .",
+      "when": "always",
+      "why": "대문이 실제 게임 목록과 다섯 자리에서 일치하는가"
+    },
+    {
+      "file": "tools/check_precache_cache.mjs",
+      "cmd": "node tools/check_precache_cache.mjs . --base origin/main --head HEAD",
+      "when": "always",
+      "why": "프리캐시 대상이 바뀌면 CACHE 값이 새 값으로 올랐는가"
+    },
+    {
+      "file": "tools/check_precache_integrity.mjs",
+      "cmd": "node tools/check_precache_integrity.mjs .",
+      "when": "always",
+      "why": "PRECACHE 항목이 형태·실재·중복에서 성립하는가(하나가 404 면 addAll 이 전멸한다)"
+    },
+    {
+      "file": "tools/check_page_assets.mjs",
+      "cmd": "node tools/check_page_assets.mjs .",
+      "when": "always",
+      "why": "페이지가 요청시키는 자원이 PRECACHE 에 들어 있는가"
+    },
+    {
+      "file": "tools/check_today_pool.mjs",
+      "cmd": "node tools/check_today_pool.mjs .",
+      "when": "always",
+      "why": "「오늘의 한판」 선정 규칙이 어떤 게임을 영원히 빼는지 계산해 보인다"
+    },
+    {
+      "file": "tools/check_today_midnight.mjs",
+      "cmd": "node tools/check_today_midnight.mjs .",
+      "when": "always",
+      "why": "「오늘의 한판」이 자정을 넘겨도 어제 판에 멈추지 않는가"
+    },
+    {
+      "file": "tools/check_today_sameday.mjs",
+      "cmd": "node tools/check_today_sameday.mjs .",
+      "when": "always",
+      "why": "같은 날에는 몇 번을 지어도 같은 3종인가"
+    },
+    {
+      "file": "tools/check_sitemap_lastmod.py",
+      "cmd": "python3 tools/check_sitemap_lastmod.py .",
+      "when": "always",
+      "why": "sitemap 의 lastmod 가 실제 수정일과 같은가"
+    },
+    {
+      "file": "tools/check_meta_i18n_assets.py",
+      "cmd": "python3 tools/check_meta_i18n_assets.py .",
+      "when": "always",
+      "why": "ko/en·메타↔실제·자산 경로를 전수로 대조한다"
+    },
+    {
+      "file": "tools/check_palette.py",
+      "cmd": "python3 tools/check_palette.py .",
+      "when": "always",
+      "why": "분류 색 계약(색으로 종류를 알 수 있는가 · 같은 종류끼리 구별되는가)"
+    },
+    {
+      "file": "tools/check_rainbow.py",
+      "cmd": "python3 tools/check_rainbow.py .",
+      "when": "always",
+      "why": "무지개 팔레트의 테두리 대비·글자 대비·이웃 색차를 계산으로 판정한다"
+    },
+    {
+      "file": "tools/check_gate_registry.py",
+      "cmd": "python3 tools/check_gate_registry.py .",
+      "when": "always",
+      "why": "★이 목록 자신과 DEPLOY 체크리스트·tools 실재 파일을 양방향으로 대조한다"
+    },
+    {
+      "file": "tools/check_render_parity.mjs",
+      "cmd": "node tools/check_render_parity.mjs .",
+      "when": "on-change:치수·레이아웃(두 슬롯의 ★렌더된 치수 대조 · Chrome 을 띄운다)",
+      "why": "선언 훑기가 못 보는 zoom·padding 우회를 실브라우저 치수로 잡는다"
+    },
+    {
+      "file": "tools/check_card_render.js",
+      "cmd": "브라우저 페이지 문맥에서 평가한다(예: 대문을 연 탭에서 이 파일을 evaluate) — ★node CLI 가 아니다",
+      "when": "on-change:색·카드(@media 는 명시도를 안 올려 선언이 다 있어도 다크에서 라이트 색이 그려진다)",
+      "why": "가상요소 ::before 배경색까지 getComputedStyle 로 ★그려진 값을 본다"
+    }
+  ],
+  "per_game": [
+    {
+      "file": "tools/run_mutations.py",
+      "game": "word",
+      "kind": "뮤테이션 러너"
+    },
+    {
+      "file": "tools/run_mutations_bomb.py",
+      "game": "bomb",
+      "kind": "뮤테이션 러너"
+    },
+    {
+      "file": "tools/run_mutations_fakeone.py",
+      "game": "fake-one",
+      "kind": "뮤테이션 러너"
+    },
+    {
+      "file": "tools/run_mutations_four.py",
+      "game": "four",
+      "kind": "뮤테이션 러너"
+    },
+    {
+      "file": "tools/run_mutations_gomoku.py",
+      "game": "gomoku",
+      "kind": "뮤테이션 러너"
+    },
+    {
+      "file": "tools/run_mutations_higherlower.py",
+      "game": "higher-lower",
+      "kind": "뮤테이션 러너"
+    },
+    {
+      "file": "tools/run_mutations_howmany.py",
+      "game": "how-many",
+      "kind": "뮤테이션 러너"
+    },
+    {
+      "file": "tools/run_mutations_push.py",
+      "game": "push",
+      "kind": "뮤테이션 러너"
+    },
+    {
+      "file": "tools/run_mutations_quickmath.py",
+      "game": "quick-math",
+      "kind": "뮤테이션 러너"
+    },
+    {
+      "file": "tools/run_mutations_reverse.py",
+      "game": "reverse",
+      "kind": "뮤테이션 러너"
+    },
+    {
+      "file": "tools/run_mutations_stop.py",
+      "game": "stop",
+      "kind": "뮤테이션 러너"
+    },
+    {
+      "file": "tools/run_mutations_tensec.py",
+      "game": "tensec",
+      "kind": "뮤테이션 러너"
+    },
+    {
+      "file": "tools/run_mutations_together.py",
+      "game": "together",
+      "kind": "뮤테이션 러너"
+    },
+    {
+      "file": "tools/verify_bomb.js",
+      "game": "bomb",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_fakeone.js",
+      "game": "fake-one",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_four.js",
+      "game": "four",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_gomoku.js",
+      "game": "gomoku",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_higherlower.js",
+      "game": "higher-lower",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_howmany.js",
+      "game": "how-many",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_justright.js",
+      "game": "just-right",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_memory.js",
+      "game": "memory",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_nonogram.js",
+      "game": "nonogram",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_push.js",
+      "game": "push",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_puzzle_tray.js",
+      "game": "block-puzzle",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_quickmath.js",
+      "game": "quick-math",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_reverse.js",
+      "game": "reverse",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_stop.js",
+      "game": "stop",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_tensec.js",
+      "game": "tensec",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_together.js",
+      "game": "together",
+      "kind": "검증기"
+    },
+    {
+      "file": "tools/verify_word.js",
+      "game": "word",
+      "kind": "검증기"
+    }
+  ],
+  "non_gate_tools": [
+    {
+      "file": "tools/README.md",
+      "why": "도구 설명 문서"
+    },
+    {
+      "file": "tools/bomb_locked_contracts.json",
+      "why": "잠근 항 ★정본 데이터(러너가 읽는다)"
+    },
+    {
+      "file": "tools/four_locked_contracts.json",
+      "why": "잠근 항 ★정본 데이터(러너가 읽는다)"
+    },
+    {
+      "file": "tools/four_mutation_expectations.json",
+      "why": "뮤테이션 기대표 ★정본 데이터(러너가 읽는다)"
+    },
+    {
+      "file": "tools/gates.json",
+      "why": "★이 파일 자신 — 게이트 목록 정본 데이터"
+    },
+    {
+      "file": "tools/palette_apply.py",
+      "why": "팔레트 값을 페이지에 ★적용하는 작업 도구(판정하지 않는다)"
+    },
+    {
+      "file": "tools/palette_by_category.json",
+      "why": "기준색·대비 하한 ★데이터(검사기가 읽는다)"
+    },
+    {
+      "file": "tools/palette_capacity.py",
+      "why": "분류별 색 수용량 계산 보조(판정하지 않는다)"
+    },
+    {
+      "file": "tools/palette_color.py",
+      "why": "색 변환·대비 계산 라이브러리 — 게이트들이 import 한다"
+    },
+    {
+      "file": "tools/palette_gen.py",
+      "why": "팔레트 후보 생성기(작업 도구)"
+    },
+    {
+      "file": "tools/palette_mutations.py",
+      "why": "check_palette.py 가 쓰는 뮤테이션 정의 — 단독 실행 게이트가 아니다"
+    },
+    {
+      "file": "tools/palette_prototype_margin.py",
+      "why": "원형 여유 계산 보조(작업 도구)"
+    },
+    {
+      "file": "tools/push_dates.mjs",
+      "why": "「밀어내기」 판 생성 보조(작업 도구)"
+    },
+    {
+      "file": "tools/push_embed.mjs",
+      "why": "「밀어내기」 판 삽입 보조(작업 도구)"
+    },
+    {
+      "file": "tools/push_gen.mjs",
+      "why": "「밀어내기」 판 생성기(작업 도구)"
+    },
+    {
+      "file": "tools/push_locked_contracts.json",
+      "why": "잠근 항 ★정본 데이터(러너가 읽는다)"
+    },
+    {
+      "file": "tools/push_mutation_expectations.json",
+      "why": "뮤테이션 기대표 ★정본 데이터(러너가 읽는다)"
+    },
+    {
+      "file": "tools/push_solver.mjs",
+      "why": "「밀어내기」 풀이기 — 판 생성이 쓰는 라이브러리"
+    },
+    {
+      "file": "tools/push_survey.mjs",
+      "why": "「밀어내기」 판 통계 조사(작업 도구)"
+    },
+    {
+      "file": "tools/quickmath_locked_contracts.json",
+      "why": "잠근 항 ★정본 데이터(러너가 읽는다)"
+    },
+    {
+      "file": "tools/quickmath_mutation_expectations.json",
+      "why": "뮤테이션 기대표 ★정본 데이터(러너가 읽는다)"
+    },
+    {
+      "file": "tools/shot-frame.html",
+      "why": "스크린샷 촬영용 틀(작업 도구)"
+    }
+  ],
+  "_optional": "optional_data 는 DEPLOY 체크리스트가 ★조건부로만 부르는 데이터다(아직 없을 수 있다). ★없다고 미달이 아니고, ★있으면 선언된 것으로 센다 — 대신 그 조건을 여기 적어 둔다.",
+  "optional_data": [
+    {
+      "file": "tools/runtime-module-exports.json",
+      "why": "check_functions.mjs 가 `cloudflare:` 처럼 이 Node 로 확인할 수 없는 접두를 만났을 때만 읽는 허용 목록이다. 지금 트리에는 ★없다 — 그 접두를 쓰기 시작하면 그때 만든다(없으면 rc=2 로 멈춘다)."
+    }
+  ]
+}
