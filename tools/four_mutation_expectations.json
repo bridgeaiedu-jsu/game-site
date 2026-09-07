@@ -127,6 +127,11 @@
       "target": "different-day-different-plan",
       "why": "seed 에서 ★날짜를 뺀다 — 모든 날이 같은 판이 된다(오늘의 판이 거짓이 된다)"
     },
+    "m-false-start-blocks-others": {
+      "expect": "caught-by",
+      "target": "false-start-locks-only-that-lane",
+      "why": "부정출발이 ★그 라운드의 다른 칸 득점까지 조용히 막는다 — 칸은 그대로 잠기지 않으니 ①은 통과하고 ②만 깨진다"
+    },
     "m-quiet-control": {
       "expect": "quiet",
       "why": "주석 한 줄만 바꾼다 — ★아무 검사도 붉으면 안 된다(음성 대조군)"

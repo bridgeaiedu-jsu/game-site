@@ -206,6 +206,13 @@ const MUTATIONS = {
     target: 'different-day-different-plan',
     apply: s => s.replace("var str = dayKey + '#' + players;", "var str = '#' + players;")
   },
+  'm-false-start-blocks-others': {
+    why: '부정출발이 ★그 라운드의 다른 칸 득점까지 조용히 막는다 — 칸은 그대로 잠기지 않으니 ①은 통과하고 ②만 깨진다',
+    target: 'false-start-locks-only-that-lane',
+    apply: s => s.replace(
+      '  state.locked[i] = true;\n  state.scores[i] += res.delta;',
+      "  state.locked[i] = true;\n  if (res.kind === 'false-start') state._fs = state.round;\n  if (state._fs === state.round && res.kind !== 'false-start') return;\n  state.scores[i] += res.delta;")
+  },
   'm-quiet-control': {
     why: '주석 한 줄만 바꾼다 — ★아무 검사도 붉으면 안 된다(음성 대조군)',
     target: null,
@@ -275,7 +282,7 @@ const IDS = ['start', 'play', 'over', 'whoPick', 'board', 'lane0', 'lane1', 'lan
   'center', 'centerGlyph', 'centerWord', 'roundNo', 'phaseWord', 'rankBody', 'nPlayers',
   'nRounds', 'nTime', 'btnStart', 'btnAgain', 'btnSound', 'btnLang', 'btnQuit', 'subtitle'];
 
-function makeWorld() {
+function makeWorld(opts) {
   const els = {};
   IDS.forEach(i => { els[i] = mkEl(i); });
   /* 칸에는 span 3개(표식·자리·증감)가 있다 — 실제 마크업과 같은 모양으로 만든다 */
@@ -302,6 +309,14 @@ function makeWorld() {
     clearTimeout: () => {}, setInterval: () => 0, clearInterval: () => {},
     addEventListener: () => {}, Math, Date, console, JSON
   };
+  /* ★시계는 하네스가 쥔다 — 제품에 씨앗 주입구를 뚫지 않는다(잠근 항 15).
+     제품은 Date.now() 로 오늘 날짜를 읽어 seed 를 만드는데, 그 값이 ★달력에 따라 달라지면
+     '어느 반쪽을 재는가' 가 날짜에 걸린다. now 만 고정하면 판이 못박히고 new Date(...) 는
+     그대로 산다(2026-09-07 R1 major 수리). */
+  if (opts && typeof opts.fixedNow === 'number') {
+    const fixed = opts.fixedNow;
+    win.Date = new Proxy(Date, { get(t, p) { return p === 'now' ? () => fixed : t[p]; } });
+  }
   win.window = win;
   vm.createContext(win);
   try { vm.runInContext(SRC, win, { filename: 'four-inline.js' }); }
@@ -537,25 +552,40 @@ check('scoring-is-per-lane-independent', () => {
 
 /* ── ⑪ 부정출발은 그 칸만 잠근다 ────────────────────────────────────────── */
 check('false-start-locks-only-that-lane', () => {
-  const W = makeWorld();
+  /* ★표본을 못박는다 — 앞 판은 제품의 ★오늘 날짜 seed 를 써서, 첫 신호가 ✕ 이거나 부정출발
+     칸의 것이면 ②(다른 칸이 여전히 득점하는가)를 ★건너뛰고 초록으로 끝났다.
+     실측: 3인 기준 360일 중 ★188일(52.2%)이 ②를 건너뛴다(리뷰어 claude-1 은 다른 표본
+     정의로 164/360 45.6% 를 냈다 — 수는 달라도 같은 결함이다).
+     ★날짜에 기대는 검사는 언젠가 반드시 조용해진다. 그래서 KST 2026-01-01 을 고정한다 —
+     그 날 3인 판의 첫 신호는 triangle(★2번 칸 소유 · ✕ 아님)이라 ①과 ②를 ★한 판에서 다 잰다. */
+  const FIXED = Date.UTC(2026, 0, 1, 3, 0, 0);        /* = KST 2026-01-01 12:00 */
+  const W = makeWorld({ fixedNow: FIXED });
   W.els.btnStart.fire('click');
+  const plan0 = W.win.__four.snapshot().rounds[0];
+  const owner = MARKS.indexOf(plan0.mark);
+  /* ★못박은 표본이 실제로 그 모양인지 먼저 확인한다 — 아니면 판정이 아니라 ★판정 불가다. */
+  if (plan0.mark === C.MUTE || owner < 1) {
+    return { ok: false, note: '고정한 표본이 어긋났다(첫 신호 ' + plan0.mark
+      + ') — 이 검사는 ✕ 가 아니고 0번 칸이 아닌 신호를 요구한다' };
+  }
   W.els.lane0.fire('click');                  /* 대기 중 누름 = 부정출발 */
   const s1 = W.win.__four.snapshot();
   if (s1.scores[0] !== -1) return { ok: false, note: '부정출발 점수가 -1 이 아니다: ' + s1.scores[0] };
   if (s1.locked[0] !== true) return { ok: false, note: '부정출발 칸이 안 잠겼다' };
-  const others = s1.locked.slice(1).some(v => v === true);
-  if (others) return { ok: false, note: '다른 칸까지 잠겼다 — 칸별 독립이 깨졌다' };
-  /* 그리고 다른 칸은 이 라운드에서 ★여전히 점수를 낼 수 있어야 한다 */
-  W.timers.shift().fn();
-  const sig = W.win.__four.snapshot().rounds[0].mark;
-  const owner = MARKS.indexOf(sig);
-  if (sig !== C.MUTE && owner >= 1 && owner < s1.players) {
-    W.els['lane' + owner].fire('click');
-    const s2 = W.win.__four.snapshot();
-    if (s2.scores[owner] !== 1) return { ok: false, note: '다른 칸이 점수를 못 냈다' };
-    return { ok: true, note: '부정출발 칸만 잠기고 ' + owner + '번 칸은 +1 을 냈다' };
+  if (s1.locked.slice(1).some(v => v === true)) {
+    return { ok: false, note: '다른 칸까지 잠겼다 — 칸별 독립이 깨졌다' };
   }
-  return { ok: true, note: '부정출발 칸만 잠겼다(이 seed 의 첫 신호는 ' + sig + ')' };
+  /* ★②는 이제 조건 없이 잰다 — 계약의 나머지 절반이 여기 있다:
+     부정출발 칸을 잠그되 ★다른 칸 득점까지 조용히 막는 구현을 이 줄이 잡는다. */
+  W.timers.shift().fn();                      /* 대기 만료 → 신호 */
+  W.els['lane' + owner].fire('click');
+  const s2 = W.win.__four.snapshot();
+  if (s2.scores[owner] !== 1) {
+    return { ok: false, note: owner + '번 칸이 점수를 못 냈다(' + s2.scores[owner]
+      + ') — 부정출발이 ★남의 득점까지 막고 있다' };
+  }
+  return { ok: true, note: '고정 표본(KST 2026-01-01 · 첫 신호 ' + plan0.mark + ' · ' + owner
+    + '번 칸) — 부정출발 칸만 -1/잠김이고 ' + owner + '번 칸은 ★+1 을 냈다(①②를 한 판에서 다 쟀다)' };
 });
 
 /* ── ⑫ 누름의 대상은 자기 칸이다 ────────────────────────────────────────
