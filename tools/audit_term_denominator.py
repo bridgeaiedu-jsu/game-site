@@ -145,6 +145,68 @@ def measure_rows(root, only=None):
     return rows, sweep, None
 
 
+def group_proof(root, checks):
+    """★군(群) 증명 — 판정식을 ★통째로 true 로 바꾸고 겨냥 변이를 다시 돌린다.
+
+    한 항씩 지우는 방법은 ★상호 은폐(둘 다 무너져야 붉는 자리)를 원리적으로 못 본다.
+    판정식 전체를 무르게 했을 때 겨냥이 rc=3(공허)로 바뀌면 ★그 항들이 함께 판정을 짊어진다 —
+    수용해도 되는 상호 은폐다. 그래도 전부 rc=0 이면 판정을 짊어지는 것은 판정식이 아니라
+    ★전제·예외 경로다 — 그 자리는 수용이 아니라 ★음성 대조군으로 박제해야 한다.
+
+    반환: {검사이름: (verdict, detail)} · verdict ∈ {'jointly-bearing', 'vacuous', 'indeterminate'}
+    """
+    verify = os.path.join(root, 'tools', 'verify_quickmath.js')
+    expect = os.path.join(root, 'tools', 'quickmath_mutation_expectations.json')
+    src = io.open(verify, encoding='utf-8', newline='').read().replace(chr(13) + chr(10), chr(10))
+    exp = json.load(io.open(expect, encoding='utf-8'))
+    by_check = {}
+    for name, m in exp['mutations'].items():
+        if m.get('target'):
+            by_check.setdefault(m['target'], []).append(name)
+    starts = [(m.start(), m.group(1)) for m in re.finditer(r"^check\('([^']+)'", src, re.M)]
+    stage = tempfile.mkdtemp(prefix='term-group-')
+    out = {}
+    try:
+        for i, (pos, name) in enumerate(starts):
+            if name not in checks:
+                continue
+            end = starts[i + 1][0] if i + 1 < len(starts) else len(src)
+            body = src[pos:end]
+            expr = judgement_expr(body)
+            muts = by_check.get(name, [])
+            if expr is None or not muts:
+                out[name] = ('indeterminate', '판정식 또는 겨냥 변이가 없다')
+                continue
+            # ★치환은 ★그 검사의 body 안에서만 한다 — 파일 전체 replace 는 같은 문구가 앞에
+            #   있으면 ★남의 검사를 친다(첫 매치만 바꾸기 때문이다).
+            if body.count(expr) != 1:
+                out[name] = ('indeterminate', '판정식이 body 안에서 %d회 — 앵커가 유일하지 않다' % body.count(expr))
+                continue
+            v = src[:pos] + body.replace(expr, ' true ', 1) + src[end:]
+            path_ = os.path.join(stage, 'g_%d.js' % i)
+            io.open(path_, 'w', encoding='utf-8', newline='').write(v)
+            base = subprocess.run(['node', path_, '--repo', root], cwd=root,
+                                  capture_output=True, text=True, encoding='utf-8', errors='replace')
+            if base.returncode != 0:
+                out[name] = ('indeterminate', '판정식을 true 로 바꾸니 무변이 기준선이 rc=%d' % base.returncode)
+                continue
+            verdicts = []
+            for mu in muts:
+                r = subprocess.run(['node', path_, '--repo', root, '--mutate', mu], cwd=root,
+                                   capture_output=True, text=True, encoding='utf-8', errors='replace')
+                verdicts.append((mu, r.returncode))
+            detail = ', '.join('%s rc=%d' % x for x in verdicts)
+            if any(rc == 3 for _, rc in verdicts):
+                out[name] = ('jointly-bearing', detail)
+            elif all(rc == 0 for _, rc in verdicts):
+                out[name] = ('vacuous', detail)
+            else:
+                out[name] = ('indeterminate', detail)
+    finally:
+        shutil.rmtree(stage, ignore_errors=True)
+    return out
+
+
 def load_canon(root):
     p = os.path.join(root, 'tools', 'quickmath_term_denominator_canon.json')
     try:
@@ -155,9 +217,16 @@ def load_canon(root):
     items = d.get('accepted_zero_terms')
     if not isinstance(items, list):
         return None, '정본에 accepted_zero_terms 배열이 없다 — 대조할 것이 없다'
+    CLASSES = ('sibling', 'mutually-masked', 'negative-control')
     for it in items:
         if not isinstance(it, dict) or not it.get('check') or not it.get('term') or not it.get('why'):
             return None, 'accepted_zero_terms 항목은 {check, term, why} 여야 한다 — 사유 없는 수용을 막는다: %r' % (it,)
+        # ★class 를 요구하는 이유(2026-09-08 R7 · reviewer-claude-2 B1): 한 낱말('분모 0')이
+        #   ★두 병을 덮으면 읽는 사람이 상호 은폐를 '중복 관측' 으로 읽고 안심한다.
+        #   그리고 이 라벨은 ★실측이 벌어야 한다 — 아래에서 부류마다 다른 증명을 요구한다.
+        if it.get('class') not in CLASSES:
+            return None, ("accepted_zero_terms 항목에 class 가 없거나 모른다(%r) — %s 중 하나여야 한다: %r"
+                          % (it.get('class'), ' · '.join(CLASSES), (it.get('check'), it.get('term'))))
     return d, None
 
 
@@ -203,6 +272,38 @@ def main(argv):
     undeclared = sorted(k for k in seen_zero if k not in declared)
     stale = sorted(k for k in declared if k not in seen_zero)
 
+    # ── ★부류 대조 (R7 B1) — class 를 실측이 벌게 한다 ─────────────────────
+    borne_checks = {r[0] for r in borne}
+    zero_checks = {r[0] for r in zero}
+    masked_checks = sorted(zero_checks - borne_checks)   # 짊어지는 항이 ★하나도 없는 검사
+    gproof = group_proof(root, set(masked_checks)) if masked_checks else {}
+    cls = {(it['check'], ' '.join(it['term'].split())): it.get('class') for it in canon['accepted_zero_terms']}
+    mislabeled = []
+    for (c, t), k in sorted(cls.items()):
+        if (c, t) not in seen_zero:
+            continue                      # 노후화는 아래 ②가 잡는다
+        masked = c in masked_checks
+        g = gproof.get(c, ('n/a', ''))[0]
+        if k == 'sibling' and masked:
+            mislabeled.append((c, t, k, '★형제라 적었는데 이 검사에는 짊어지는 항이 하나도 없다(상호 은폐다)'))
+        elif k == 'mutually-masked' and not masked:
+            mislabeled.append((c, t, k, '★상호 은폐라 적었는데 이 검사에는 짊어지는 항이 있다(형제다)'))
+        elif k == 'mutually-masked' and g != 'jointly-bearing':
+            mislabeled.append((c, t, k, '★군 증명이 %s — 함께 짊어진다는 증거가 없다(%s)' % (g, gproof.get(c, ('', ''))[1])))
+        elif k == 'negative-control' and g != 'vacuous':
+            mislabeled.append((c, t, k, '★음성 대조군이라 적었는데 군 증명이 %s 다 — 박제할 자리가 아니다' % g))
+
+    print('★상호 은폐 검사 %d종(짊어지는 항이 하나도 없는 검사) — 군 증명 결과:' % len(masked_checks))
+    if not masked_checks:
+        print('      없음 (★이 줄이 부재의 증거다)')
+    for c in masked_checks:
+        g, detail = gproof.get(c, ('n/a', ''))
+        mark = {'jointly-bearing': '함께 짊어진다(수용 가능)',
+                'vacuous': '★판정식이 공허하다 — 음성 대조군으로 박제하라',
+                'indeterminate': '★판정 불가'}.get(g, g)
+        print('      %s\t%s\t%s' % (c, mark, detail))
+    print('')
+
     print('★분모 0 항 %d개 · 정본 선언 %d개' % (len(seen_zero), len(declared)))
     print('  ① 선언 없는 분모 0 항        %d' % len(undeclared))
     for c, t in undeclared:
@@ -216,17 +317,39 @@ def main(argv):
         print('      없음 (★이 줄이 부재의 증거다)')
     print('')
 
+    print('  ③ ★부류 라벨이 실측과 어긋난 항        %d' % len(mislabeled))
+    for c, t, k, why in mislabeled:
+        print('      %s / %s  class=%s  %s' % (c, t, k, why))
+    if not mislabeled:
+        print('      없음 (★이 줄이 부재의 증거다)')
+    n_masked = len([1 for (c, t), k in cls.items() if k == 'mutually-masked' and (c, t) in seen_zero])
+    n_neg = len([1 for (c, t), k in cls.items() if k == 'negative-control' and (c, t) in seen_zero])
+    n_sib = len([1 for (c, t), k in cls.items() if k == 'sibling' and (c, t) in seen_zero])
+    print('')
+    print('★부류 내역 — 형제 %d항 · 상호 은폐 %d항(군 증명으로 함께 짊어짐 확인) · 음성 대조군 %d항'
+          % (n_sib, n_masked, n_neg))
+    print('  ★상호 은폐는 ★수용이 아니라 ★미결로 센다 — 한 항씩으로는 못 재는 자리다')
+    print('')
+
     if indet:
         print('★판정 불가 %d항 — 못 쟀으면 통과로 세지 않는다' % len(indet))
         return 2
+    bad_g = [c for c in masked_checks if gproof.get(c, ('indeterminate', ''))[0] == 'indeterminate']
+    if bad_g:
+        print('★판정 불가 — 군 증명을 못 세운 검사 %d종: %s' % (len(bad_g), ', '.join(bad_g)))
+        return 2
+    if mislabeled:
+        print('★미달 — 부류 라벨이 실측과 어긋난 항 %d개(이름이 틀리면 다음 사람이 안심한다)' % len(mislabeled))
+        return 1
     if stale:
         print('★판정 불가 — 정본 선언이 실측과 갈렸다(노후화)')
         return 2
     if undeclared:
         print('★미달 — 선언 없는 분모 0 항 %d개' % len(undeclared))
         return 1
-    print('통과 · 분모 0 항 %d개가 전부 사유와 함께 선언돼 있고, 판정을 짊어지는 단언은 %d / %d 다'
+    print('통과 · 분모 0 항 %d개가 전부 사유·부류와 함께 선언돼 있고, 판정을 짊어지는 단언은 %d / %d 다'
           % (len(seen_zero), len(borne), len(judged)))
+    print('       (그 중 상호 은폐 %d항은 ★군 증명으로만 비공허성이 서 있다 — 미결로 센다)' % n_masked)
     return 0
 
 

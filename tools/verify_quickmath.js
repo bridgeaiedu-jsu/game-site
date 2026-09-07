@@ -59,6 +59,48 @@ function sub(s, anchor, repl) {
 }
 
 const MUTATIONS = {
+  /* ★항 격리 짝 (2026-09-08 R7 B1) — '한 판은 30초' 의 세 항은 통짜 변이(m-round-shorter)가
+     ★셋을 함께 무너뜨려서 어느 항도 홀로 판정을 못 짊어졌다(상호 은폐). 아래 셋은 ★한 항씩만
+     붉힌다: 상수를 말하는 창구 · 29.9초에 살아 있음 · 30.1초에 끝남은 서로 다른 약속이다. */
+  'm-roundms-window-lies': {
+    why: '관측 창구가 상수를 1초 깎아 말한다(행동은 그대로) — 창구가 진짜 상수를 말하지 않으면 30초 계약을 밖에서 확인할 길이 없다',
+    target: '한 판은 30초',
+    apply: s => s.replace('    get roundMs(){ return ROUND_MS; },',
+                          '    get roundMs(){ return ROUND_MS - 1000; },')
+  },
+  'm-round-ends-early-only': {
+    why: '판을 0.2초 일찍 끝낸다 — 상수는 30000 그대로라 29.9초에 살아 있어야 한다는 항만 무너진다',
+    target: '한 판은 30초',
+    apply: s => s.replace('  endAt = now() + ROUND_MS;',
+                          '  endAt = now() + ROUND_MS - 200;')
+  },
+  'm-round-ends-late-only': {
+    why: '판을 0.2초 늦게 끝낸다 — 30.1초에 끝나 있어야 한다는 항만 무너진다',
+    target: '한 판은 30초',
+    apply: s => s.replace('  endAt = now() + ROUND_MS;',
+                          '  endAt = now() + ROUND_MS + 200;')
+  },
+  /* ★항 격리 짝 — '판은 시작한 날에 귀속된다'(자정 귀속)도 같은 병이었다.
+     저장 날짜 · 귀속 날짜 · 오늘 완료여부는 ★세 약속인데 통짜 변이가 함께 무너뜨렸다.
+     날짜 값은 어느 fixture 에서도 참이 될 수 없는 1970-01-01 을 쓴다(고정 참조 회피). */
+  'm-daily-record-wrong-date': {
+    why: '기록을 판이 귀속된 날이 아니라 엉뚱한 날짜로 저장한다 — 저장 날짜 항만 무너진다',
+    target: '판은 시작한 날에 귀속된다',
+    apply: s => s.replace("localStorage.setItem('qm.daily', JSON.stringify({ date: runDay, score: score }));",
+                          "localStorage.setItem('qm.daily', JSON.stringify({ date: '1970-01-01', score: score }));")
+  },
+  'm-runday-fixed-day': {
+    why: '판의 귀속 날짜를 시작 시각이 아니라 고정 값으로 정한다 — 귀속 날짜 항만 무너진다',
+    target: '판은 시작한 날에 귀속된다',
+    apply: s => s.replace("  runDay = (m === 'daily') ? dayKey(t0) : '';",
+                          "  runDay = (m === 'daily') ? '1970-01-01' : '';")
+  },
+  'm-dailydone-ignores-today': {
+    why: "'오늘 완료했는가' 가 날짜를 안 본다 — 어제 판을 끝내면 오늘 판이 잠긴다(오늘 완료여부 항만 무너진다)",
+    target: '판은 시작한 날에 귀속된다',
+    apply: s => s.replace("function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && typeof r.score === 'number'); }",
+                          "function dailyDoneToday(){ const r = dailyRec(); return !!(r && typeof r.score === 'number'); }")
+  },
   /* ★만료 경계 짝 (2026-09-08 R6FIX-2 E1) — 같은 결과에 이르는 길이 둘이라 짝도 둘이다.
      ①입력 자리의 즉시 확정 ②탭 복귀 자리의 즉시 확정. 하나를 지워도 다른 하나가 그 경로를
      막아 주지 않는다 — 두 검사가 각자 자기 길만 걷기 때문이다. */
