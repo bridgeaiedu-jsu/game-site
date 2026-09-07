@@ -49,10 +49,18 @@ def copy_repo(dst):
     shutil.copytree(ROOT, dst, ignore=shutil.ignore_patterns('.git', 'node_modules', '__pycache__'))
 
 
+# ★대상 분류는 상수가 아니다 — 인자로 받고 ★정본에 있는지 확인한다(없으면 멈춘다).
+#   2026-09-07 분류가 6->7 로 갈리며 이 상수가 ★조용히 다른 분류를 겨냥할 뻔했다.
+TARGET_CAT = next((a[len('--cat='):] for a in sys.argv if a.startswith('--cat=')), 'puzzle')
+
+
 def set_canon(root, sig):
     p = os.path.join(root, 'tools', 'palette_by_category.json')
     d = json.load(io.open(p, encoding='utf-8'))
-    d['categories']['puzzle']['sig'] = sig
+    if TARGET_CAT not in d['categories']:
+        raise SystemExit('판정 불가 — 정본에 분류 %s 가 없다(있는 것: %s)'
+                         % (TARGET_CAT, ', '.join(d['categories'])))
+    d['categories'][TARGET_CAT]['sig'] = sig
     io.open(p, 'w', encoding='utf-8', newline=NL).write(json.dumps(d, ensure_ascii=False, indent=2) + NL)
 
 
@@ -66,7 +74,7 @@ def gen_values(root):
 def apply_puzzle(root, values):
     """puzzle 7종의 :root 4토큰만 사본에 적는다(실제 변경과 같은 범위)."""
     line = lambda v: '--sig:%s; --sig-ink:%s; --sig-soft:%s; --on-sig:%s;' % tuple(v[t] for t in TOKENS)
-    for gid, vals in values['values']['puzzle'].items():
+    for gid, vals in values['values'][TARGET_CAT].items():
         p = os.path.join(root, gid, 'index.html')
         src = io.open(p, encoding='utf-8').read().split(NL)
         hits = [i for i, t in enumerate(src) if '--sig:' in t and '--sig-ink:' in t]
@@ -80,7 +88,7 @@ def apply_puzzle(root, values):
     #   붉어지고, 그것은 ★후보의 결함이 아니라 ★내 측정의 결함이다(2026-09-07 실측으로 잡았다).
     ip = os.path.join(root, 'index.html')
     html = io.open(ip, encoding='utf-8').read()
-    for gid, vals in values['values']['puzzle'].items():
+    for gid, vals in values['values'][TARGET_CAT].items():
         pat = re.compile(r'(\.card\[href="/%s/"\]\{--sig:)#[0-9a-fA-F]{6}(;--sig-ink:)#[0-9a-fA-F]{6}(\})' % re.escape(gid))
         found = list(pat.finditer(html))
         if len(found) != 2:
@@ -170,7 +178,7 @@ def one(cand_L, hue, sat, cur_sig, keep=False):
 def main():
     cands = [float(a) for a in sys.argv[1:]] or [47.0, 47.5, 48.0, 48.5]
     spec = json.load(io.open(os.path.join(ROOT, 'tools', 'palette_by_category.json'), encoding='utf-8'))
-    cur_sig = spec['categories']['puzzle']['sig']
+    cur_sig = spec['categories'][TARGET_CAT]['sig']
     hue, sat, _ = hex2hsl(cur_sig)
     print('원형 정의: 라이트=정본 기준색 · 다크=대표 게임 다크 --sig · 색차 CIEDE2000 · 임계 %.1f' % THRESHOLD)
     print('여유 = (자기 아닌 원형 중 최소 dE) - (자기 원형 dE) · 음수면 다른 분류로 읽힌다')

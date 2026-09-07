@@ -17,7 +17,7 @@
     },
     "maxMinutes": 3,
     "daily": true,
-    "category": "puzzle",
+    "category": "hands",
     "released": "2026-08-22",
     "tags": [
       "puzzle",
@@ -43,7 +43,7 @@
     },
     "maxMinutes": 5,
     "daily": true,
-    "category": "puzzle",
+    "category": "hands",
     "released": "2026-08-23",
     "tags": [
       "puzzle",
@@ -340,7 +340,7 @@
     },
     "maxMinutes": 3,
     "daily": true,
-    "category": "puzzle",
+    "category": "hands",
     "released": "2026-08-31",
     "tags": [
       "puzzle",

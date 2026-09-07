@@ -113,13 +113,13 @@
   .card[href="/shooting/"]{--sig:#c06536;--sig-ink:#884826}
   .card[href="/brick-breaker/"]{--sig:#c3490a;--sig-ink:#7f3007}
   .card[href="/estimate/"]{--sig:#7c3aed;--sig-ink:#5713cd}
-  .card[href="/sudoku/"]{--sig:#1144b6;--sig-ink:#0b2c75}
+  .card[href="/sudoku/"]{--sig:#0a8e06;--sig-ink:#054903}
   .card[href="/nonsense/"]{--sig:#04825b;--sig-ink:#023d2b}
   .card[href="/wordchain/"]{--sig:#046f4d;--sig-ink:#01291d}
-  .card[href="/minesweeper/"]{--sig:#315097;--sig-ink:#1f3361}
+  .card[href="/minesweeper/"]{--sig:#227420;--sig-ink:#123c10}
   .card[href="/ladder/"]{--sig:#8f8500;--sig-ink:#484300}
-  .card[href="/memory/"]{--sig:#2e68eb;--sig-ink:#1248bf}
-  .card[href="/nonogram/"]{--sig:#5276c7;--sig-ink:#33549e}
+  .card[href="/memory/"]{--sig:#1144b6;--sig-ink:#0b2c75}
+  .card[href="/nonogram/"]{--sig:#1e641b;--sig-ink:#0d2c0c}
   .card[href="/tensec/"]{--sig:#855ccb;--sig-ink:#6136aa}
   .card[href="/stop/"]{--sig:#916bd0;--sig-ink:#693bb9}
   .card[href="/just-right/"]{--sig:#6315e9;--sig-ink:#470fa7}
@@ -130,23 +130,23 @@
   .card[href="/together/"]{--sig:#db2777;--sig-ink:#a01b56}
   .card[href="/gomoku/"]{--sig:#ba1f64;--sig-ink:#7d1543}
   .card[href="/bomb/"]{--sig:#7a7200;--sig-ink:#4a4400}
-  .card[href="/push/"]{--sig:#0e3691;--sig-ink:#081e4f}
+  .card[href="/push/"]{--sig:#048000;--sig-ink:#023800}
   @media (prefers-color-scheme: dark){
     /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다. ★라이트 규칙 뒤에 와야 이긴다(@media 는 명시도를 안 올린다). */
-    .card[href="/block-puzzle/"]{--sig:#5078d3;--sig-ink:#89a4e1}
-    .card[href="/2048/"]{--sig:#76a0ff;--sig-ink:#bdd1ff}
+    .card[href="/block-puzzle/"]{--sig:#376fec;--sig-ink:#789ef2}
+    .card[href="/2048/"]{--sig:#597cca;--sig-ink:#8fa7db}
     .card[href="/block-drop/"]{--sig:#d58e69;--sig-ink:#e4b8a0}
     .card[href="/word/"]{--sig:#2ba37e;--sig-ink:#47cea4}
     .card[href="/shooting/"]{--sig:#f57634;--sig-ink:#f8a478}
     .card[href="/brick-breaker/"]{--sig:#f7905b;--sig-ink:#fabe9f}
     .card[href="/estimate/"]{--sig:#a46fff;--sig-ink:#d1b7ff}
-    .card[href="/sudoku/"]{--sig:#7091db;--sig-ink:#aabdea}
+    .card[href="/sudoku/"]{--sig:#2e9c2b;--sig-ink:#47cb43}
     .card[href="/nonsense/"]{--sig:#34c397;--sig-ink:#67d7b4}
     .card[href="/wordchain/"]{--sig:#08efa7;--sig-ink:#45f9c1}
-    .card[href="/minesweeper/"]{--sig:#2467ff;--sig-ink:#6b99ff}
+    .card[href="/minesweeper/"]{--sig:#0cab07;--sig-ink:#11f00a}
     .card[href="/ladder/"]{--sig:#ebda00;--sig-ink:#fff133}
-    .card[href="/memory/"]{--sig:#004dfa;--sig-ink:#437dff}
-    .card[href="/nonogram/"]{--sig:#3260c8;--sig-ink:#688bd9}
+    .card[href="/memory/"]{--sig:#5c8aef;--sig-ink:#9eb9f6}
+    .card[href="/nonogram/"]{--sig:#10e60a;--sig-ink:#46f740}
     .card[href="/tensec/"]{--sig:#975bff;--sig-ink:#c5a2ff}
     .card[href="/stop/"]{--sig:#a07cde;--sig-ink:#c9b5ec}
     .card[href="/just-right/"]{--sig:#b184ff;--sig-ink:#decbff}
@@ -157,7 +157,7 @@
     .card[href="/together/"]{--sig:#e876a9;--sig-ink:#f2b3cf}
     .card[href="/gomoku/"]{--sig:#e25393;--sig-ink:#ec90b9}
     .card[href="/bomb/"]{--sig:#d4c721;--sig-ink:#f2e97e}
-    .card[href="/push/"]{--sig:#4d84ff;--sig-ink:#94b5ff}
+    .card[href="/push/"]{--sig:#38bc34;--sig-ink:#66d463}
   }
   .card.soon::before{background:var(--line)}
   .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
@@ -459,14 +459,14 @@ const FALLBACK = [{
   desc:{ko:'10×10 판에 블록을 놓고 가로·세로 줄을 지우는 퍼즐',en:'Drop blocks on a 10×10 board and clear rows and columns'},
   thumb:'/block-puzzle/thumb.webp',
   playtime:{ko:'한 판 1~3분',en:'1–3 min a round'},
-  maxMinutes:3, daily:true, category:'puzzle', released:'2026-08-22', tags:['puzzle','casual','daily']
+  maxMinutes:3, daily:true, category:'hands', released:'2026-08-22', tags:['puzzle','casual','daily']
 },{
   id:'2048', path:'/2048/',
   title:{ko:'2048',en:'2048'},
   desc:{ko:'같은 숫자를 밀어서 합쳐 2048 타일을 만드는 숫자 퍼즐',en:'Slide and merge equal numbers to reach the 2048 tile'},
   thumb:'/2048/thumb.webp',
   playtime:{ko:'한 판 2~5분',en:'2–5 min a round'},
-  maxMinutes:5, daily:true, category:'puzzle', released:'2026-08-23', tags:['puzzle','numbers','casual','daily']
+  maxMinutes:5, daily:true, category:'hands', released:'2026-08-23', tags:['puzzle','numbers','casual','daily']
 },{
   id:'block-drop', path:'/block-drop/',
   title:{ko:'블록 낙하',en:'Block Drop'},
@@ -543,7 +543,7 @@ const FALLBACK = [{
   desc:{ko:'뒤집힌 카드를 두 장씩 열어 같은 그림을 찾는 기억력 게임 — 뒤집기 수가 적을수록 좋은 기록',en:'Flip two cards at a time and find every matching pair — the fewer flips, the better'},
   thumb:'/memory/thumb.webp',
   playtime:{ko:'한 판 1~3분',en:'1–3 min a round'},
-  maxMinutes:3, daily:true, category:'puzzle', released:'2026-08-31', tags:['puzzle','memory','casual','daily']
+  maxMinutes:3, daily:true, category:'hands', released:'2026-08-31', tags:['puzzle','memory','casual','daily']
 },{
   id:'nonogram', path:'/nonogram/',
   title:{ko:'노노그램',en:'Nonogram'},

@@ -58,10 +58,23 @@ def tok(block, name):
 # ── 결함 5종 ────────────────────────────────────────────────────────────────
 def mut_category(spec):
     """(1) 한 게임의 --sig 를 옆 분류 색으로."""
-    victim, other = 'sudoku/index.html', spec['categories']['stress']['sig']
+    # ★피해자와 '옆 분류' 를 ★데이터에서 고른다 — 분류 이름을 상수로 박지 않는다
+    #   (2026-09-07 분류 6->7 · sudoku 가 다른 분류로 옮겨갈 수 있다).
+    games = json.load(io.open(os.path.join(ROOT, 'games.json'), encoding='utf-8'))
+    # ★피해자는 ★TOUCHED(백업·복구 목록) 안에서 고른다 — 데이터 파생이면서
+    #   ★백업 계약을 깨지 않는다. 밖에서 고르면 주입은 되고 ★복구가 안 된다
+    #   (2026-09-07 실측: 목록 밖 게임을 골라 나무가 오염됐다).
+    vg = next((g for g in games if ('%s/index.html' % g['id']) in TOUCHED), None)
+    if vg is None:
+        raise SystemExit('판정 불가 — TOUCHED 안에 게임 페이지가 없다')
+    victim = '%s/index.html' % vg['id']
+    others = [c for c in spec['categories'] if c != vg['category']]
+    if not others:
+        raise SystemExit('판정 불가 — 옆 분류가 없다')
+    other = spec['categories'][sorted(others)[0]]['sig']
     cur = tok(light_block(victim), '--sig')
     sub_once(victim, f'--sig:{cur};', f'--sig:{other};')
-    return ('1', 3), f"sudoku 라이트 --sig {cur} -> 옆 분류(스트레스) 색 {other}"
+    return ('1', 3), f"{vg['id']} 라이트 --sig {cur} -> 옆 분류 색 {other}"
 
 
 def mut_contrast(spec):
