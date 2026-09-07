@@ -1,0 +1,179 @@
+{
+  "_contract": "뮤테이션 ★기대표의 정본이다 — 어느 뮤테이션을 ★어느 검사가 잡아야 하는가. 검사기는 여기서 ★읽히기만 한다(러너가 대조한다).",
+  "_why_outside": "기대표가 검사기 안에만 있으면 ★검출 증명만 지워도 정본에 흔적이 안 남는다. 밖에 두면 러너가 양방향으로 대조한다: 정본에 있는데 검사기에 없는 뮤테이션 · 검사인데 아무 뮤테이션도 안 겨냥하는 것.",
+  "_rc": "이 파일이 없거나 못 읽으면 러너는 ★rc=2(판정 불가)로 멈춘다 — 통과로 세지 않는다.",
+  "_requires": "requires_targeted=true 이면 ★모든 검사가 최소 하나의 겨냥 뮤테이션을 가져야 한다(미겨냥 0 을 ★rc 가 말한다).",
+  "requires_targeted": true,
+  "exempt_from_targeting": [],
+  "_exempt_why": "겨냥 면제는 ★{name, why} 로 적는다(빈 배열이면 면제 없음 — ★그 줄이 부재의 증거다). 이름만 적힌 항목은 rc=2 로 거부된다. 검사 목록에 없는 이름은 정본 노후화로 rc=2 다.",
+  "mutations": {
+    "m-play-rebuilds-deck": {
+      "expect": "caught-by",
+      "target": "행동이 난수를 소비하지 않는다",
+      "why": "정답을 맞힐 때마다 남은 문제를 맞힌 개수로 다시 굴린다 — 많이 틀린 사람과 다른 문제를 보게 된다"
+    },
+    "m-deck-uses-clock": {
+      "expect": "caught-by",
+      "target": "판 짜기에 시계·성능이 안 섞인다",
+      "why": "판 짜기에 시계를 섞는다 — 같은 seed 가 기기·시각마다 다른 판이 된다"
+    },
+    "m-seed-ignores-day": {
+      "expect": "caught-by",
+      "target": "다른 날 = 다른 판",
+      "why": "오늘의 도전 seed 에서 날짜를 뺀다 — 다른 날도 같은 판이 된다"
+    },
+    "m-tier-follows-score": {
+      "expect": "caught-by",
+      "target": "난이도 계단은 문제 번호로만 정해진다",
+      "why": "난이도를 문제 번호가 아니라 맞힌 개수로 정한다"
+    },
+    "m-negative-answer": {
+      "expect": "caught-by",
+      "target": "값 범위와 연산 규칙",
+      "why": "뺄셈에서 자리 교환을 없앤다 — 답이 음수가 된다"
+    },
+    "m-division-not-exact": {
+      "expect": "caught-by",
+      "target": "값 범위와 연산 규칙",
+      "why": "나눗셈을 딱 떨어지지 않게 만든다"
+    },
+    "m-wrong-delta-zero": {
+      "expect": "caught-by",
+      "target": "보기 넷 중 정답은 정확히 하나",
+      "why": "오답 후보의 차이 목록에 0 을 넣는다 — 오답 자리에 정답이 들어가 보기에 정답이 둘이 된다"
+    },
+    "m-penalty-wrong-amount": {
+      "expect": "caught-by",
+      "target": "오답 벌점은 정확히 3초",
+      "why": "오답 벌점을 3초가 아니라 1초로 바꾼다"
+    },
+    "m-correct-does-not-advance": {
+      "expect": "caught-by",
+      "target": "정답이면 즉시 다음 문제",
+      "why": "정답을 맞혀도 다음 문제로 안 넘어가게 만든다"
+    },
+    "m-deck-short": {
+      "expect": "caught-by",
+      "target": "선굴림 덱은 60문",
+      "why": "선굴림 양을 60 에서 3 으로 줄인다 — 30초 안에 덱이 바닥난다"
+    },
+    "m-choice-consumes-rng": {
+      "expect": "caught-by",
+      "target": "행동이 난수를 한 번도 안 당긴다(전역 계수)",
+      "why": "보기를 고를 때 전역 난수를 한 번 당긴다 — 덱은 안 바뀌므로 ★덱 동일성 검사로는 안 보인다"
+    },
+    "m-miss-advances": {
+      "expect": "caught-by",
+      "target": "정답이면 즉시 다음 문제",
+      "why": "오답에서도 다음 문제로 넘긴다 — master 253 이 확정한 반대 해석"
+    },
+    "m-miss-locks-all": {
+      "expect": "caught-by",
+      "target": "오답이면 그 보기 하나만 잠긴다(동적)",
+      "why": "오답에서 ★네 보기를 전부 잠근다 — 틀린 보기 하나만 죽는다는 계약이 깨진다"
+    },
+    "m-next-question-stays-locked": {
+      "expect": "caught-by",
+      "target": "오답이면 그 보기 하나만 잠긴다(동적)",
+      "why": "다음 문제를 그릴 때 잠금을 안 푼다 — 한 번 틀린 자리는 판 끝까지 죽는다"
+    },
+    "m-daily-replay-overwrites": {
+      "expect": "caught-by",
+      "target": "완료 뒤 daily 는 새 판을 시작하지 않는다",
+      "why": "완료 뒤에도 daily 버튼이 새 판을 시작한다 — R1 BLOCKING 의 원형"
+    },
+    "m-save-guard-only": {
+      "expect": "caught-by",
+      "target": "다른 탭이 먼저 남긴 기록을 덮지 않는다(저장 가드 단독)",
+      "why": "저장 가드 ★한 줄만 지운다 — 버튼 가드는 그대로 둔다(두 탭 구간의 ★안쪽 팔만 없앤다)"
+    },
+    "m-save-overwrites": {
+      "expect": "caught-by",
+      "target": "재열람이 기록을 덮지 않는다",
+      "why": "버튼 가드와 저장 가드를 ★함께 없애 그날 기록을 덮어쓰게 한다 — R1 BLOCKING 의 데이터 손실 경로"
+    },
+    "m-daykey-utc": {
+      "expect": "caught-by",
+      "target": "하루 경계는 로컬 달력이다",
+      "why": "하루 경계를 로컬에서 UTC 로 옮긴다 — 기존 21종과 갈라진다"
+    },
+    "m-run-belongs-to-end-day": {
+      "expect": "caught-by",
+      "target": "판은 시작한 날에 귀속된다",
+      "why": "판을 끝난 날에 귀속시킨다 — 자정 넘긴 판이 오늘 기록을 먹는다"
+    },
+    "m-penalty-text-hardcoded": {
+      "expect": "caught-by",
+      "target": "언어를 바꾸면 동적 문구가 남지 않는다",
+      "why": "감점 배지 문구를 한국어로 박아 언어 전환에 안 따라오게 한다"
+    },
+    "m-focus-after-disable": {
+      "expect": "caught-by",
+      "target": "오답 잠금 전에 포커스를 옮긴다(정적)",
+      "why": "포커스를 옮기기 전에 버튼을 잠근다 — 키보드 사용자가 자리를 잃는다"
+    },
+    "m-replay-keeps-log": {
+      "expect": "caught-by",
+      "target": "재열람에 직전 판 목록이 남지 않는다",
+      "why": "재열람 결과뷰가 ★직전 판의 목록을 그대로 돌려준다 — R2 Q 의 원형"
+    },
+    "m-applylang-conditional-review": {
+      "expect": "quiet",
+      "why": "언어 전환에서 목록을 조건부로만 다시 그린다 — ★뿌리 수리 뒤에는 무해하다(대조군)"
+    },
+    "m-share-reads-live-state": {
+      "expect": "caught-by",
+      "target": "재열람 공유문이 그날 기록을 말한다",
+      "why": "공유문이 결과뷰 대신 ★살아 있는 변수를 읽는다 — R2 R 의 원형"
+    },
+    "m-replay-accuracy-zero": {
+      "expect": "caught-by",
+      "target": "모르는 값을 지어내지 않는다",
+      "why": "모르는 오답 수를 0 으로 채운다 — 정확도 100%/0% 라는 ★거짓이 나온다"
+    },
+    "m-en-missing-key": {
+      "expect": "caught-by",
+      "target": "ko·en 사전 키 집합이 같다",
+      "why": "en 사전에서 키 둘을 뺀다 — 번역 누락이 거울상 검사를 ★무장해제하던 자리"
+    },
+    "m-deck-uses-random": {
+      "expect": "caught-by",
+      "target": "같은 seed = 같은 판",
+      "why": "판 짜기에 전역 난수를 섞는다 — 같은 seed 로도 판이 갈라진다"
+    },
+    "m-seed-includes-hour": {
+      "expect": "caught-by",
+      "target": "같은 날이면 시각이 달라도 같은 판",
+      "why": "오늘의 도전 seed 에 ★시각을 섞는다 — 같은 날 오전과 오후가 다른 판이 된다"
+    },
+    "m-dead-guard-removed": {
+      "expect": "caught-by",
+      "target": "잠긴 보기는 다시 세지 않는다",
+      "why": "이미 잠긴 보기를 다시 세게 한다 — 같은 오답을 두 번 눌러 두 번 깎인다"
+    },
+    "m-timeup-never-ends": {
+      "expect": "caught-by",
+      "target": "시간이 다 되면 판이 끝난다",
+      "why": "시간이 다 돼도 판을 안 끝낸다 — 30초 계약이 사라진다"
+    },
+    "m-i18n-on-dynamic": {
+      "expect": "caught-by",
+      "target": "런타임 변경 요소에 data-i18n 이 없다",
+      "why": "런타임에 내용이 바뀌는 요소(#qtext)에 data-i18n 을 단다 — 언어 전환이 진행 중 문제를 덮는다"
+    },
+    "m-window-opens-command": {
+      "expect": "caught-by",
+      "target": "관측 창구는 읽기 전용",
+      "why": "관측 창구에 ★명령을 하나 연다 — 읽기 전용이라는 자산이 무너진다"
+    },
+    "m-practice-locked-after-daily": {
+      "expect": "caught-by",
+      "target": "연습 모드는 완료 뒤에도 열려 있다",
+      "why": "일일 완주 뒤 연습 모드를 잠근다 — 연습은 무제한이라는 계약이 깨진다"
+    },
+    "m-quiet-control": {
+      "expect": "quiet",
+      "why": "★대조군 — 주석 한 줄만 바꾼다. 어떤 검사도 붉으면 안 된다"
+    }
+  }
+}

@@ -634,7 +634,12 @@ function choose(i){
     /* ★N — 지금 포커스를 쥔 버튼을 그냥 비활성화하면 브라우저가 포커스를 body 로 보낸다.
        키보드 사용자는 그 순간 자리를 잃는다. ★먼저 살아 있는 다음 보기로 옮기고 잠근다. */
     const alive = optBtns.filter((b, j) => j !== i && !b.disabled);
-    if (alive.length) alive[0].focus(); else elQ.focus();
+    /* ★else 를 두지 않는다 — 정답 보기는 잠기지 않으므로 alive 는 ★항상 하나 이상이다
+       (탐침 300회 · 오답 순서 6종 전수 실측: alive 최솟값 1 · 0 관측 0회 ·
+        '오답이면 그 보기 하나만 잠긴다(동적)' 검사가 그 전제를 지킨다).
+       도달할 수 없는 방어는 그 자리의 뮤테이션을 ★공허하게 통과시킨다 — :472-474 가
+       정답 배제 가드를 일부러 뺀 것과 ★같은 기준이다(2026-09-07 R2 · master 판정). */
+    if (alive.length) alive[0].focus();
     btn.disabled = true;
     endAt -= PENALTY_MS;                    /* ★즉시 확정 */
     elPenalty.classList.remove('show');

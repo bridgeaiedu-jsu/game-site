@@ -20,6 +20,7 @@
  *   node tools/verify_quickmath.js --only <검사이름>
  *   node tools/verify_quickmath.js --list-mutations
  *   node tools/verify_quickmath.js --mutate m-choice-consumes-rng
+ *   node tools/verify_quickmath.js --from-commit <해시>   ★커밋본 바이트를 그대로 잰다
  *
  * 종료코드: 0 = 전부 통과 · 1 = 미달 있음 · 2 = 검사를 세울 수 없음(하네스·주입 실패)
  *   · 3 = 주입은 됐는데 ★지목한 검사가 잡지 못했다(검사가 공허하다).
@@ -28,6 +29,8 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const cp = require('child_process');
+const crypto = require('crypto');
 
 const argv = process.argv.slice(2);
 const argOf = (n, d) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : d; };
@@ -40,6 +43,17 @@ const MUTATION = argOf('--mutate', null);
 /* ------------------------------------------------------------ 뮤테이션 표
    ★각 항은 '어느 검사가 잡아야 하는지'를 못박는다(target). 다른 검사가 우연히 깨진 것은
    검출로 세지 않는다 — 그것은 무임승차다. */
+/* ★여러 줄 앵커는 ★줄끝에 묶으면 안 된다 — 저장소 blob 은 LF 인데 Windows 체크아웃은 CRLF 라
+   '\r\n' 을 박은 앵커는 ★이 체크아웃에서만 맞는다. 커밋본(LF) 위에서는 주입이 조용히 실패하고,
+   주입 실패는 ★통과가 아니라 판정 불가인데 표에서는 그 검사가 한 번도 검증되지 않는다
+   (2026-09-07 R2 reviewer-claude-1 실측: 커밋본에서 3건 주입 실패).
+   ⇒ 여러 줄 앵커는 이 helper 로 ★'\r?\n' 정규식으로 바꿔 쓴다. 대체문도 '\n' 만 쓴다. */
+const esc = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function sub(s, anchor, repl) {
+  const re = new RegExp(anchor.split(/\r?\n/).map(esc).join('\\r?\\n'));
+  return s.replace(re, () => repl);      /* ★함수 대체 — $& 같은 치환 패턴을 타지 않는다 */
+}
+
 const MUTATIONS = {
   'm-play-rebuilds-deck': {
     why: '정답을 맞힐 때마다 남은 문제를 맞힌 개수로 다시 굴린다 — 많이 틀린 사람과 다른 문제를 보게 된다',
@@ -101,13 +115,27 @@ const MUTATIONS = {
   },
   'm-choice-consumes-rng': {
     why: '보기를 고를 때 전역 난수를 한 번 당긴다 — 덱은 안 바뀌므로 ★덱 동일성 검사로는 안 보인다',
-    target: '행동이 난수를 한 번도 안 당긴다(계수)',
+    target: '행동이 난수를 한 번도 안 당긴다(전역 계수)',
     apply: s => s.replace('    score++; paintScore();', '    Math.random(); score++; paintScore();')
   },
   'm-miss-advances': {
     why: '오답에서도 다음 문제로 넘긴다 — master 253 이 확정한 반대 해석',
     target: '정답이면 즉시 다음 문제',   /* ★지목 = :403 의 idxAfterMiss === 0 단언 */
-    apply: s => s.replace('    missed++;\r\n    dead.push(i);', '    missed++; idx++;\r\n    dead.push(i);')
+    apply: s => sub(s, '    missed++;\n    dead.push(i);', '    missed++; idx++;\n    dead.push(i);')
+  },
+  'm-miss-locks-all': {
+    /* ★리뷰어 탐침 x-miss-locks-all-2 의 정식 편입(2026-09-07 R2 reviewer-claude-1).
+       탐침 상태에서는 ★23/23 통과였다 — 어떤 검사도 .disabled 를 안 읽었기 때문이다. */
+    why: '오답에서 ★네 보기를 전부 잠근다 — 틀린 보기 하나만 죽는다는 계약이 깨진다',
+    target: '오답이면 그 보기 하나만 잠긴다(동적)',
+    apply: s => s.replace('    btn.disabled = true;',
+                          '    btn.disabled = true; optBtns.forEach(b => { b.disabled = true; });')
+  },
+  'm-next-question-stays-locked': {
+    /* ★리뷰어 탐침 x-next-question-stays-locked 의 정식 편입. 역시 탐침 상태에서 23/23 통과였다. */
+    why: '다음 문제를 그릴 때 잠금을 안 푼다 — 한 번 틀린 자리는 판 끝까지 죽는다',
+    target: '오답이면 그 보기 하나만 잠긴다(동적)',
+    apply: s => sub(s, '    btn.disabled = false;\n', '')   /* ★줄끝 비의존 helper — 줄을 통째로 지운다 */
   },
   'm-daily-replay-overwrites': {
     why: '완료 뒤에도 daily 버튼이 새 판을 시작한다 — R1 BLOCKING 의 원형',
@@ -115,9 +143,20 @@ const MUTATIONS = {
     apply: s => s.replace("$('btnDaily').onclick = () => { if (dailyDoneToday()){ showDailyReplay(); return; } replaying = false; startRun('daily'); };",
                           "$('btnDaily').onclick = () => { replaying = false; startRun('daily'); };")
   },
+  'm-save-guard-only': {
+    /* ★되살린 한 줄 변이(2026-09-07 R2 reviewer-claude-1). 앞서 이 변이를 ★공허라 부르고 2줄로
+       넓힌 것은 ★틀린 판정이었다 — 공허는 가드의 성질이 아니라 ★없는 검사의 그림자였다.
+       버튼 가드는 ★클릭 시점의 질문이고 저장 가드는 ★완주 시점의 질문이라, 두 탭이 같은 날
+       판을 물고 있으면 ★저장 가드만이 방어다. 그 구간을 재는 검사를 세웠으므로 이제 안 공허하다.
+       ★교훈: 공허라 부르기 전에 ★그 가드가 홀로 방어하는 구간이 있는지 먼저 찾아라. */
+    why: '저장 가드 ★한 줄만 지운다 — 버튼 가드는 그대로 둔다(두 탭 구간의 ★안쪽 팔만 없앤다)',
+    target: '다른 탭이 먼저 남긴 기록을 덮지 않는다(저장 가드 단독)',
+    apply: s => s.replace('  if (dailyDoneFor(runDay)) return false;   /* ★덮어쓰지 않는다 */', '')
+  },
   'm-save-overwrites': {
-    /* ★두 방어가 서로를 가린다 — 버튼 가드가 막고 있어서 저장 가드만 지우면 아무 일도 안 난다
-       (한 줄만 지우는 변이는 ★공허했다 · 2026-09-07 실측). 그래서 ★둘 다 지운다. */
+    /* ★위 한 줄 변이와 ★겨냥이 다르다 — 갈라 적는다.
+       여기는 ★두 팔을 함께 없애는 경우다(같은 탭에서 재열람이 기록을 덮는 R1 BLOCKING 경로).
+       안쪽 팔만 없애는 경우는 m-save-guard-only 가 맡는다. */
     why: '버튼 가드와 저장 가드를 ★함께 없애 그날 기록을 덮어쓰게 한다 — R1 BLOCKING 의 데이터 손실 경로',
     target: '재열람이 기록을 덮지 않는다',
     apply: s => s
@@ -145,8 +184,8 @@ const MUTATIONS = {
   'm-focus-after-disable': {
     why: '포커스를 옮기기 전에 버튼을 잠근다 — 키보드 사용자가 자리를 잃는다',
     target: '오답 잠금 전에 포커스를 옮긴다(정적)',
-    apply: s => s.replace('    if (alive.length) alive[0].focus(); else elQ.focus();\r\n    btn.disabled = true;',
-                          '    btn.disabled = true;\r\n    if (alive.length) alive[0].focus(); else elQ.focus();')
+    apply: s => sub(s, '    if (alive.length) alive[0].focus();\n    btn.disabled = true;',
+                        '    btn.disabled = true;\n    if (alive.length) alive[0].focus();')
   },
   'm-replay-keeps-log': {
     why: '재열람 결과뷰가 ★직전 판의 목록을 그대로 돌려준다 — R2 Q 의 원형',
@@ -162,8 +201,8 @@ const MUTATIONS = {
        ★누가 resultView 를 되돌리면 그때는 m-replay-keeps-log 가 잡는다. */
     why: '언어 전환에서 목록을 조건부로만 다시 그린다 — ★뿌리 수리 뒤에는 무해하다(대조군)',
     target: null,
-    apply: s => s.replace('  renderReview();\r\n  /* ★런타임에 채워지는 문구는',
-                          '  if (log.length) renderReview();\r\n  /* ★런타임에 채워지는 문구는')
+    apply: s => sub(s, '  renderReview();\n  /* ★런타임에 채워지는 문구는',
+                        '  if (log.length) renderReview();\n  /* ★런타임에 채워지는 문구는')
   },
   'm-share-reads-live-state': {
     why: '공유문이 결과뷰 대신 ★살아 있는 변수를 읽는다 — R2 R 의 원형',
@@ -177,6 +216,52 @@ const MUTATIONS = {
     apply: s => s.replace('             score: r ? r.score : 0, missed: null, log: [] };',
                           '             score: r ? r.score : 0, missed: 0, log: [] };')
   },
+  'm-en-missing-key': {
+    /* ★리뷰어 탐침 x-en-missing-key 의 정식 편입 — 앞서는 표본이 64→62 로 줄며 ★PASS 였다. */
+    why: 'en 사전에서 키 둘을 뺀다 — 번역 누락이 거울상 검사를 ★무장해제하던 자리',
+    target: 'ko·en 사전 키 집합이 같다',
+    apply: s => s.replace("    daily:'Daily challenge', dailyDone:'Daily done', practice:'Practice',",
+                          "    dailyDone:'Daily done',")
+  },
+  'm-deck-uses-random': {
+    why: '판 짜기에 전역 난수를 섞는다 — 같은 seed 로도 판이 갈라진다',
+    target: '같은 seed = 같은 판',
+    apply: s => s.replace('  const rng = countingRng(mulberry32(hashStr(seedKey)));',
+                          '  const rng = countingRng(mulberry32(hashStr(seedKey) + Math.floor(Math.random() * 1000)));')
+  },
+  'm-seed-includes-hour': {
+    why: '오늘의 도전 seed 에 ★시각을 섞는다 — 같은 날 오전과 오후가 다른 판이 된다',
+    target: '같은 날이면 시각이 달라도 같은 판',
+    apply: s => s.replace("const dailySeedKey = (d) => 'hanpango-daily-quick-math-' + dayKey(d);",
+                          "const dailySeedKey = (d) => 'hanpango-daily-quick-math-' + dayKey(d) + '-' + (d || new Date()).getHours();")
+  },
+  'm-dead-guard-removed': {
+    why: '이미 잠긴 보기를 다시 세게 한다 — 같은 오답을 두 번 눌러 두 번 깎인다',
+    target: '잠긴 보기는 다시 세지 않는다',
+    apply: s => s.replace('  if (dead.indexOf(i) >= 0) return;         /* 이미 잠긴 보기 — 같은 오답을 두 번 세지 않는다 */', '')
+  },
+  'm-timeup-never-ends': {
+    why: '시간이 다 돼도 판을 안 끝낸다 — 30초 계약이 사라진다',
+    target: '시간이 다 되면 판이 끝난다',
+    apply: s => s.replace('  if (now() >= endAt){ endRun(); return; }', '')
+  },
+  'm-i18n-on-dynamic': {
+    why: '런타임에 내용이 바뀌는 요소(#qtext)에 data-i18n 을 단다 — 언어 전환이 진행 중 문제를 덮는다',
+    target: '런타임 변경 요소에 data-i18n 이 없다',
+    apply: s => s.replace('<p class="q idle" id="qtext" tabindex="-1">',
+                          '<p class="q idle" id="qtext" data-i18n="hint" tabindex="-1">')
+  },
+  'm-window-opens-command': {
+    why: '관측 창구에 ★명령을 하나 연다 — 읽기 전용이라는 자산이 무너진다',
+    target: '관측 창구는 읽기 전용',
+    apply: s => sub(s, '    get idx(){ return idx; },\n', '    get idx(){ return idx; },\n    reset(){ idx = 0; },\n')
+  },
+  'm-practice-locked-after-daily': {
+    why: '일일 완주 뒤 연습 모드를 잠근다 — 연습은 무제한이라는 계약이 깨진다',
+    target: '연습 모드는 완료 뒤에도 열려 있다',
+    apply: s => s.replace("$('btnStart').onclick = () => { replaying = false; startRun('free'); };",
+                          "$('btnStart').onclick = () => { if (dailyDoneToday()) return; replaying = false; startRun('free'); };")
+  },
   'm-quiet-control': {
     why: '★대조군 — 주석 한 줄만 바꾼다. 어떤 검사도 붉으면 안 된다',
     target: null,
@@ -186,13 +271,42 @@ const MUTATIONS = {
 };
 
 if (has('--list-mutations')) {
-  Object.keys(MUTATIONS).forEach(k => console.log(k + '  — ' + MUTATIONS[k].why + '  [지목: ' + (MUTATIONS[k].target || '(대조군)') + ']'));
+  /* ★탭으로 가른다 — 기계가 읽는 출력을 사람 눈의 정렬(칸 너비)에 기대게 하면, 이름이 칸을
+     넘는 날 파서가 옆 칸을 함께 집어 ★조용히 오독한다(2026-09-06 실측 · 형제 러너와 같은 규약). */
+  Object.keys(MUTATIONS).forEach(k => console.log([k, MUTATIONS[k].why, MUTATIONS[k].target || '(대조군)'].join('\t')));
   process.exit(0);
 }
 
-let RAW;
-try { RAW = fs.readFileSync(HTML, 'utf8'); }
-catch (e) { console.error('대상을 읽을 수 없다: ' + HTML); process.exit(2); }
+/* ------------------------------------------------------------ ★무엇을 재는가(대상 바이트 고정)
+   ★"내 워킹트리에서 통과" 는 계약의 증거가 아니다 — 체크아웃 줄끝이 앵커를 갈라 놓는다.
+   그래서 ★커밋본 바이트(git show <rev>:<경로>)를 그대로 읽는 경로를 두고,
+   무엇을 쟀는지 ★출력 첫 줄에 적는다(러너가 이 줄을 증거에 그대로 옮긴다). */
+const REV = argOf('--from-commit', null);
+const REL = path.relative(path.join(__dirname, '..'), HTML).split(path.sep).join('/');
+let RAW, TARGET_LABEL;
+if (REV) {
+  const r = cp.spawnSync('git', ['show', REV + ':' + REL],
+                         { cwd: path.join(__dirname, '..'), maxBuffer: 64 * 1024 * 1024 });
+  if (r.status !== 0) {
+    console.error('커밋본을 꺼내지 못했다: git show ' + REV + ':' + REL + ' — ' +
+                  String(r.stderr || '').trim());
+    process.exit(2);
+  }
+  RAW = r.stdout.toString('utf8');
+  TARGET_LABEL = '커밋본 ' + REV + ':' + REL;
+} else {
+  try { RAW = fs.readFileSync(HTML, 'utf8'); }
+  catch (e) { console.error('대상을 읽을 수 없다: ' + HTML); process.exit(2); }
+  TARGET_LABEL = '작업트리 ' + REL + ' (★체크아웃 줄끝을 탄다 — 계약의 증거는 커밋본이다)';
+}
+{
+  const bytes = Buffer.from(RAW, 'utf8');
+  const crlf = (RAW.match(/\r\n/g) || []).length;
+  const lf = (RAW.match(/\n/g) || []).length;
+  console.log('※ 잰 바이트 = ' + TARGET_LABEL +
+              ' · sha256 ' + crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 16) +
+              ' · ' + bytes.length + 'B · 줄끝 CRLF ' + crlf + ' / LF ' + (lf - crlf));
+}
 
 if (MUTATION) {
   const m = MUTATIONS[MUTATION];
@@ -582,12 +696,21 @@ check('관측 창구는 읽기 전용', () => {
 });
 
 
-/* ── C ★행동이 난수를 소비하지 않는다 — ★계수로 직접 잰다(덱 동일성은 대리물) ── */
-check('행동이 난수를 한 번도 안 당긴다(계수)', () => {
+/* ── C ★행동이 난수를 소비하지 않는다 — ★반증력은 ★하네스 전역 계수(Math.random)에 있다 ──
+   ★2026-09-07 R2(reviewer-claude-1) 정정: 앞서 이 검사는 제품이 여는 `rngUses` 의 증분(dRng)을
+   함께 단언했는데, 그 항은 ★구조적으로 항상 참이라 아무것도 반증하지 못한다 —
+   계수 래퍼가 감싼 `rng` 은 `makeDeck` ★지역 const 라 판이 짜인 뒤에는 어느 코드도 그것을
+   부를 수 없다(부를 수 있는 유일한 길인 makeDeck 재호출은 ★덱 동일성 검사가 이미 잡는다).
+   ⇒ 판정에서 dRng 항을 ★뺐다(ⓐ). 이 검사가 실제로 쥔 칼은 ★win.Math.random 을 감싼
+   하네스 전역 계수 하나다 — m-choice-consumes-rng 를 붉히는 것도 그 항이다.
+   ★rngUses 는 판정이 아니라 ★표본 성립(판을 실제로 굴렸는가)과 기록용 관측으로만 남긴다.
+   ★제품에 계수·조작 훅을 더 뚫어 dRng 을 반증 가능하게 만드는 길(ⓑ)은 ★가지 않았다 —
+   배포본의 관측 창구는 읽기 전용이라는 자산(검사 ⑮)을 대리물 하나 때문에 헐 이유가 없다. */
+check('행동이 난수를 한 번도 안 당긴다(전역 계수)', () => {
   const W = makeWorld({ today: new Date(2026, 5, 6) });
   startDaily(W); must(W, '계수');
   const k = W.win.__quickmath;
-  const afterBuild = k.rngUses;
+  const afterBuild = k.rngUses;           /* ★표본 성립 관측 — 판정 항이 아니다 */
   const randAfterBuild = W.randomCalls();
   if (!(afterBuild > 0)) return { ok: false, note: '★판을 짜며 덱 난수를 한 번도 안 썼다(표본 미성립)' };
   let taps = 0;
@@ -596,10 +719,11 @@ check('행동이 난수를 한 번도 안 당긴다(계수)', () => {
     for (let i = 0; i < 4; i++) if (i !== q.correct) { tapOpt(W, i); taps++; }
     tapOpt(W, q.correct); taps++;
   }
-  const dRng = k.rngUses - afterBuild;
-  const dRandom = W.randomCalls() - randAfterBuild;
-  return { ok: dRng === 0 && dRandom === 0 && taps > 0,
-           note: '탭 ' + taps + '회 · 덱난수 +' + dRng + ' · 전역 Math.random +' + dRandom + ' (둘 다 0 이어야 한다)' };
+  const dRandom = W.randomCalls() - randAfterBuild;      /* ★이 항이 반증력을 쥔다 */
+  const dRng = k.rngUses - afterBuild;                    /* 기록만 — 판정에 안 넣는다 */
+  return { ok: dRandom === 0 && taps > 0,
+           note: '탭 ' + taps + '회 · ★전역 Math.random +' + dRandom + '(판정 항 · 0 이어야 한다)' +
+                 ' · 덱난수 +' + dRng + '(★기록만 — 구조상 항상 0 이라 반증력이 없다)' };
 });
 
 /* ── B ★하루 경계의 권위 = 사용자의 로컬 달력 (기존 21/22 종과 같다) ── */
@@ -676,6 +800,27 @@ check('재열람이 기록을 덮지 않는다', () => {
            note: '저장본 ' + (before === after ? '불변' : '★바뀜') + ' · 점수 ' + JSON.parse(after).score + '(맞힌 ' + solved + ')' };
 });
 
+/* ── T ★두 탭 구간 — 저장 가드가 ★홀로 방어하는 자리(2026-09-07 R2 reviewer-claude-1) ──
+   버튼 가드(클릭 시점)를 지나온 뒤 ★다른 탭이 먼저 그날 기록을 남기면, 내 판이 끝날 때
+   그 기록을 덮지 않는 것은 ★저장 가드뿐이다. 이 검사가 없으면 그 한 줄은 아무도 안 지킨다. */
+check('다른 탭이 먼저 남긴 기록을 덮지 않는다(저장 가드 단독)', () => {
+  const W = makeWorld({ today: new Date(2026, 7, 6, 9, 0, 0) });
+  startDaily(W); must(W, 'T');            /* ★판을 먼저 문다 — 이때는 그날 기록이 ★없다 */
+  const k = W.win.__quickmath;
+  let solved = 0;
+  for (let i = 0; i < 3 && k.running; i++) { const q = k.deck[k.idx]; tapOpt(W, q.correct); solved++; }
+  const OTHER = 30;                        /* 다른 탭이 그 사이 완주해 남긴 점수 */
+  if (!(solved > 0 && solved !== OTHER)) return { ok: false, note: '★표본 미성립 — 두 점수가 구별되지 않는다' };
+  W.store['qm.daily'] = JSON.stringify({ date: k.runDay, score: OTHER });
+  W.advance(30001);
+  const fn = W.rafQ[W.rafQ.length - 1]; if (typeof fn === 'function') fn();
+  if (k.running) return { ok: false, note: '★내 판이 안 끝났다(표본 미성립)' };
+  const rec = JSON.parse(W.store['qm.daily']);
+  return { ok: rec.score === OTHER && rec.date === k.runDay,
+           note: '다른 탭 기록 ' + OTHER + ' · 내 판 ' + solved + '문 완주 → 저장본 ' + rec.score +
+                 ' (' + OTHER + ' 이어야 한다 · 버튼 가드는 이 구간에 ★없다)' };
+});
+
 /* ── A ★연습 모드는 완료 뒤에도 무제한이다 ── */
 check('연습 모드는 완료 뒤에도 열려 있다', () => {
   const W = makeWorld({ today: new Date(2026, 7, 5, 9, 0, 0) });
@@ -692,6 +837,40 @@ check('연습 모드는 완료 뒤에도 열려 있다', () => {
                  ' · 일일 저장본 ' + (rec === rec2 ? '불변' : '★건드림') };
 });
 
+/* ── 사전 파생은 ★한 곳에서 — 두 검사가 서로 다른 표본을 쓰면 한쪽의 통과가 다른 쪽을 못 말한다.
+   구조로 뽑는다(id 하드코딩 아님). */
+function grabDicts() {
+  const ko = {}, en = {};
+  const grab = (name, into) => {
+    const i = SRC.indexOf(name + ': {');
+    if (i < 0) return;
+    const seg = SRC.slice(i, SRC.indexOf('\n  }', i));
+    const re = /([A-Za-z0-9_]+)\s*:\s*'((?:[^'\\]|\\.)*)'/g;
+    let m;
+    while ((m = re.exec(seg))) into[m[1]] = m[2];
+  };
+  grab('ko', ko); grab('en', en);
+  return { ko, en };
+}
+
+/* ── W ★사전 키 집합 동일성 — ★번역 누락이 거울상 검사를 무장해제하지 못하게 한다 ──
+   ★2026-09-07 R2(reviewer-claude-1) 실측: 거울상 검사는 en 에 없는 키를 ★필터에서 떨어뜨려
+   표본 64→62 로 ★조용히 줄고 PASS 했다. ★관측 대상이 줄어드는 통과는 통과가 아니다.
+   그 축(키가 양쪽에 다 있는가)은 거울상 검사가 아니라 ★이 검사가 짊어진다. */
+check('ko·en 사전 키 집합이 같다', () => {
+  const D = grabDicts();
+  const koK = Object.keys(D.ko), enK = Object.keys(D.en);
+  if (koK.length < 20 || enK.length < 20) {
+    return { ok: false, note: '★사전 파생 실패(표본 미성립) — ko ' + koK.length + ' · en ' + enK.length };
+  }
+  const koOnly = koK.filter(k => !(k in D.en));
+  const enOnly = enK.filter(k => !(k in D.ko));
+  return { ok: koOnly.length === 0 && enOnly.length === 0,
+           note: koOnly.length || enOnly.length
+                 ? ('★ko 에만 ' + (koOnly.join(',') || '없음') + ' · ★en 에만 ' + (enOnly.join(',') || '없음'))
+                 : ('ko ' + koK.length + '키 = en ' + enK.length + '키 · 양방향 차집합 0') };
+});
+
 /* ── E ★거울상 — 언어를 바꾸면 동적 문구가 이전 언어로 남지 않는다 ── */
 check('언어를 바꾸면 동적 문구가 남지 않는다', () => {
   const W = makeWorld({ today: new Date(2026, 8, 1, 9, 0, 0) });
@@ -701,19 +880,19 @@ check('언어를 바꾸면 동적 문구가 남지 않는다', () => {
   tapOpt(W, [0, 1, 2, 3].find(i => i !== q.correct));   /* 오답 — penalty 문구가 채워진다 */
   W.advance(30001);
   const fn = W.rafQ[W.rafQ.length - 1]; if (typeof fn === 'function') fn();
-  /* ko 사전에만 있는 값들을 모은다 — 구조로 뽑는다(id 하드코딩 아님) */
-  const koDict = {}, enDict = {};
-  let m;
-  const grab = (name, into) => {
-    const i = SRC.indexOf(name + ': {');
-    const seg = SRC.slice(i, SRC.indexOf('\n  }', i));
-    const re = /([A-Za-z0-9_]+)\s*:\s*'((?:[^'\\]|\\.)*)'/g;
-    while ((m = re.exec(seg))) into[m[1]] = m[2];
-  };
-  grab('ko', koDict); grab('en', enDict);
+  /* ko 사전에만 있는 값들을 모은다 — 파생은 ★공용 helper 가 한다 */
+  const D = grabDicts();
+  const koDict = D.ko, enDict = D.en;
   if (Object.keys(koDict).length < 10) return { ok: false, note: '★사전 파생 실패(표본 미성립)' };
   W.els.btnLang.fire('click');                          /* → en */
   const koOnly = Object.keys(koDict).filter(kk => enDict[kk] && enDict[kk] !== koDict[kk]).map(kk => koDict[kk]);
+  /* ★표본 바닥 — 필터가 표본을 깎으면 이 검사는 ★잴 것이 줄어든 채 초록이 된다.
+     바닥은 ★가로대(큰 붕괴)만 잡는다. 몇 개씩 조용히 빠지는 것은 ★키 집합 동일성 검사가 잡는다
+     (두 검사가 같은 축을 나눠 진다 · 2026-09-07 R2). */
+  const FLOOR = 30;
+  if (koOnly.length < FLOOR) {
+    return { ok: false, note: '★대조 표본이 ' + koOnly.length + '종으로 줄었다(바닥 ' + FLOOR + ') — 판정 불가에 가깝다' };
+  }
   const leftovers = [];
   Object.keys(W.els).forEach(id => {
     const t = (W.els[id].textContent || '').trim();
@@ -721,6 +900,32 @@ check('언어를 바꾸면 동적 문구가 남지 않는다', () => {
   });
   return { ok: leftovers.length === 0,
            note: leftovers.length ? ('★이전 언어 잔류: ' + leftovers.join(' , ')) : ('ko 전용 문구 ' + koOnly.length + '종 대조 · 잔류 0') };
+});
+
+/* ── V ★"오답이면 그 보기만 잠긴다" 를 ★.disabled 로 직접 읽는다(2026-09-07 R2) ──
+   ★앞서 이 계약에는 동적 검사가 하나도 없었다 — 제품 choose() 는 `dead` 배열만 보고
+   하네스 tapOpt 은 리스너를 직접 부르므로, ★잠금의 대상과 해제를 아무도 안 봤다.
+   ★tapOpt 은 일부러 .disabled 를 무시한 채 그대로 둔다 — 하네스가 막아 버리면
+   '같은 오답을 두 번 눌러도 두 번 안 깎인다'(제품 dead 가드) 검사가 ★공허해진다.
+   여기서는 ★상태를 읽어서만 판정한다. */
+check('오답이면 그 보기 하나만 잠긴다(동적)', () => {
+  const W = makeWorld({ today: new Date(2026, 7, 7, 9, 0, 0) });
+  startDaily(W); must(W, 'V');
+  const k = W.win.__quickmath;
+  const btns = W.els.opts.kids;
+  if (btns.length !== 4) return { ok: false, note: '★보기 ' + btns.length + '개(표본 미성립)' };
+  const locked = () => btns.map((b, i) => (b.disabled ? i : -1)).filter(i => i >= 0);
+  if (locked().length !== 0) return { ok: false, note: '★판 시작부터 잠긴 보기가 있다(표본 미성립)' };
+  const q = k.deck[0];
+  const wrong = [0, 1, 2, 3].find(i => i !== q.correct);
+  tapOpt(W, wrong);
+  const afterMiss = locked();
+  tapOpt(W, q.correct);                       /* 정답 → 다음 문제 → 잠금이 풀려야 한다 */
+  if (k.idx !== 1) return { ok: false, note: '★다음 문제로 안 넘어갔다(표본 미성립) idx=' + k.idx };
+  const afterNext = locked();
+  return { ok: afterMiss.length === 1 && afterMiss[0] === wrong && afterNext.length === 0,
+           note: '오답 뒤 잠긴 보기 [' + afterMiss.join(',') + '] (누른 자리 ' + wrong +
+                 ' 하나여야 한다) · 다음 문제에서 잠긴 보기 [' + afterNext.join(',') + '] (없어야 한다)' };
 });
 
 /* ── N ★포커스를 옮기고 나서 잠근다(정적 짝 · 판정 정본은 실브라우저) ── */

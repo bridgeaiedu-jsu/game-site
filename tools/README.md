@@ -1066,3 +1066,53 @@ python3 tools/run_mutations_bomb.py
 python3 tools/run_mutations_bomb.py --only m-fuse-postfilter
 ```
 실측(2026-09-06): 잰 것 11 · 잡았다 11 · 못 잡았다 0 · 판정 불가 0 · rc=0.
+
+## verify_quickmath.js — 빠른 셈 검증 (판은 시작될 때 정해지고, 그 뒤로 아무도 못 바꾼다)
+
+`quick-math/index.html` 의 인라인 스크립트를 그대로 꺼내 최소 DOM 스텁 위에서 돌린다.
+시험용 뒷문은 제품에 두지 않는다 — 배포본의 `window.__quickmath` 는 ★읽기 전용 창구이고,
+시계·달력·전역 난수는 하네스가 자기 쪽에서 쥔다.
+
+무게가 큰 약속 넷: ①한 판의 문제·오답·보기 순서는 판이 시작될 때 전부 정해진다(행동은 난수를 안 쓴다)
+②같은 날이면 같은 판, 다른 날이면 다른 판 ③재추첨 사유는 결정론 조건뿐이다 ④난이도는 문제 번호로만.
+
+```sh
+node tools/verify_quickmath.js                              # 기본 대상 = 작업트리 quick-math/index.html
+node tools/verify_quickmath.js --from-commit <해시>          # ★커밋본 바이트를 그대로 잰다(권장)
+node tools/verify_quickmath.js --only '오답 벌점은 정확히 3초'
+node tools/verify_quickmath.js --list-mutations             # 이름\t사유\t지목 (★탭 구분)
+node tools/verify_quickmath.js --mutate m-save-guard-only   # 검출력 확인(임시 사본에만 주입)
+```
+
+종료코드: `0` 전부 통과 · `1` 미달 · `2` 검사를 세울 수 없음(하네스·주입 실패) ·
+`3` 주입은 됐는데 ★지목한 검사가 못 잡았다(검사가 공허하다).
+
+★첫 줄에 **무엇을 쟀는지**를 적는다(경로·sha256·줄끝 CRLF/LF 수). 이 줄이 있어야 아래 수치가
+어느 바이트에서 나온 값인지 말할 수 있다 — "내 워킹트리에서 통과" 는 계약의 증거가 아니다.
+2026-09-07 R2 에서 `\r\n` 이 박힌 앵커 셋이 ★LF 커밋본에서 조용히 주입 실패했고(개발자 트리에서만
+맞았다), 그중 하나가 지목한 포커스 검사는 그 환경에서 한 번도 검증되지 않았다. 여러 줄 앵커는
+그래서 `sub()` helper(줄끝 비의존 정규식)로만 쓴다.
+
+## run_mutations_quickmath.py — 위 검증기의 검출력 검산
+
+방어를 하나씩 지운 사본으로 `verify_quickmath.js` 를 돌려 ★지목한 검사가 붉어지는지 본다.
+세는 단위는 '붉었다' 가 아니라 ★(검사, 대상) 짝이다 — 아무 검사나 붉어진 것은 무임승차다.
+
+```sh
+python3 tools/run_mutations_quickmath.py                      # 작업트리 대상
+python3 tools/run_mutations_quickmath.py --from-commit <해시>  # ★커밋본 바이트 대상(권장)
+python3 tools/run_mutations_quickmath.py --only m-miss-locks-all
+```
+
+- 분모는 손으로 적지 않는다 — `--list-mutations` 와 `check(` 목록에서 ★기계로 뽑는다.
+- 결과는 ★네 통으로 갈라 세고 합산하지 않는다: 겨냥 검출 / 대조군 조용 / ★공허 / ★거짓 실패 / ★판정 불가.
+- ★대조군 판별은 정본의 `expect` 로 한다(검사기가 찍는 문구가 아니라). 문구로 걸면 그 문구를 바꾼 날
+  대조군이 조용히 '겨냥 검출' 통으로 넘어간다 — 실제로 이식 첫 판에서 34종이 전부 ①로 세어졌다.
+- 정본 둘과 ★양방향으로 대조한다: `tools/quickmath_locked_contracts.json`(잠근 항 13 · `bearing_checks`)
+  와 `tools/quickmath_mutation_expectations.json`(뮤테이션 기대표 · `requires_targeted` · `exempt_from_targeting`).
+  항인데 짊어지는 검사가 없으면 미달, 검사인데 어느 항도 안 짊어지고 `auxiliary` 선언도 없으면 미달,
+  겨냥 뮤테이션이 없는 검사가 있어도 미달이다. 면제·보조는 `{name, why}` 로만 적을 수 있고
+  ★0건이어도 "없음" 을 찍는다 — 빈 목록의 명시가 곧 부재의 증거다.
+
+실측(2026-09-07 · 커밋본 바이트 기준): 검사 29종 · 뮤테이션 34종 = 겨냥 검출 32 · 대조군 조용 2 ·
+공허 0 · 거짓 실패 0 · 판정 불가 0 · 미겨냥 0 · 면제 0 · rc=0.
