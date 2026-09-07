@@ -264,7 +264,10 @@ const MUTATIONS = {
   }
 };
 if (has('--list-mutations')){
-  for (const k of Object.keys(MUTATIONS)) console.log(k.padEnd(24) + ' — ' + MUTATIONS[k].why + '  [잡아야 하는 검사: ' + MUTATIONS[k].catcher + ']');
+  /* ★탭 구분(이름\t사유\t지목) — 기계가 읽는 출력을 사람 눈의 정렬(padEnd)에 기대게 두지 않는다.
+     이름이 칸 너비를 넘는 날 공백 분해가 옆 칸을 함께 집는다. 형식 정본은 tools/README.md 의
+     `이름\t사유\t지목 (★탭 구분)` 선언이고 형제 6종이 이미 그 형식이다(2026-09-08 전수 실측). */
+  for (const k of Object.keys(MUTATIONS)) console.log(k + '\t' + MUTATIONS[k].why + '\t' + MUTATIONS[k].catcher);
   process.exit(0);
 }
 let HTML_TEXT = RAW;

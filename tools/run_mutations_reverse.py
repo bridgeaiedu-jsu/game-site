@@ -41,6 +41,19 @@ def arg_of(name, default):
 HTML = arg_of('--html', os.path.join(ROOT, 'reverse', 'index.html'))
 
 SUMMARY_RE = re.compile(r'^PASS (\d+) · FAIL (\d+)$', re.M)
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mutation_quiet_stage                                          # noqa: E402
+
+# ★음성 대조군 — 붉으면 안 된다(계약이 아닌 것을 계약으로 굳혔다는 뜻이다).
+# 이 검사기에는 대조군 뮤테이션 선언이 없어(2026-09-08 실측) 러너가 ★스테이징 사본에 직접
+# 넣는다 — 제품·검사기 무접촉. 무해한 근거와 공허하지 않은 근거는 mutation_quiet_stage 머리말.
+QUIET = [
+    ('q-head-comment',
+     '주석 한 줄은 어느 계약도 짊어지지 않는다(이 검사기는 <!-- 를 읽지 않는다) — '
+     '다만 head 뒤에 넣어 아래 문서 전체의 바이트 오프셋·행번호를 밀므로, '
+     '계약이 아니라 위치 같은 ★대리물에 걸린 검사가 있으면 이 대조군이 붉는다'),
+]
 FAIL_RE = re.compile(r'^  FAIL  (.+?)(?: — |$)', re.M)
 
 # ══ ★러너가 쥐는 기대 목록 ══════════════════════════════════════════
@@ -208,12 +221,31 @@ def main():
     for name, rc, verdict, catcher in rows:
         print('%-*s  %-5s  %s  [%s]' % (w, name, rc, verdict, catcher))
 
+    # ── 음성 대조군(러너측 스테이징) ────────────────────────────────
+    # ★붉어야 할 것만 시험하면 검출력의 절반만 증명한다. 여기서 재는 것은 반대쪽이다 —
+    #   행동을 안 바꾼 사본에 검사가 반응하지 않는가(거짓 실패가 없는가).
+    quiet_ok, quiet_bad, quiet_indet = [], [], []
+    for qname, qwhy in QUIET:
+        r = mutation_quiet_stage.quiet_control(
+            ROOT, os.path.dirname(os.path.abspath(__file__)), 'reverse', HTML,
+            VERIFIER, SUMMARY_RE, MUTS[0][0])
+        print('')
+        print('■ 음성 대조군 %s' % qname)
+        print('   무해 근거   : %s' % qwhy)
+        print('   전제검사    : %s' % r['premise'])
+        print('   적발력      : %s' % r['red'])
+        print('   판정        : %s' % r['detail'])
+        (quiet_ok if r['status'] == 'quiet'
+         else quiet_bad if r['status'] == 'noisy' else quiet_indet).append(qname)
+
     print('')
     print('원본 정상=True · 뮤테이션 %d종 · 탐지 %d · 미탐지 %d · 엉뚱탐지 %d · 주입실패 %d · 하네스이상 %d'
           % (len(MUTS), len(detected), len(missed), len(stray), len(inject_fail), len(harness)))
-    if inject_fail or harness:
+    print('음성 대조군 %d종 · 조용 %d · ★거짓 실패 %d · 판정 불가 %d'
+          % (len(QUIET), len(quiet_ok), len(quiet_bad), len(quiet_indet)))
+    if inject_fail or harness or quiet_indet:
         sys.exit(2)
-    if missed or stray:
+    if missed or stray or quiet_bad:
         sys.exit(1)
     sys.exit(0)
 

@@ -311,7 +311,23 @@ def main():
         for ln in (p.stdout or '').splitlines():
             if ln.startswith('※ 지목한 검사: '):
                 target = ln.replace('※ 지목한 검사: ', '').strip()
-        quiet = 'quiet-control' in target
+        # ★대조군 판별은 ★정본(expect)에 건다 — 검사기가 찍는 문구에 걸면, 그 문구를 바꾼 날
+        #   대조군이 조용히 '겨냥 검출' 통으로 넘어간다(문구가 맞는 동안은 증상이 없는 잠복
+        #   fail-open 이다). 필터는 메시지가 아니라 ★출처를 봐야 한다.
+        canon = exp['mutations'].get(n, {})
+        quiet = (canon.get('expect') == 'quiet')
+        canon_target = canon.get('target') or ''
+        # ★두 층이 갈리면 판정 불가 — 정본이 겨냥한 검사와 검사기가 겨냥한 검사가 달라도 마찬가지다
+        if quiet and target and not target.startswith('(quiet-control'):
+            print('  ★판정 불가: %s — 정본은 대조군인데 검사기는 겨냥(%s)을 찍는다' % (n, target))
+            indet += 1
+            rows.append((n, target, 2, '★판정 불가(정본과 검사기가 갈렸다)', ''))
+            continue
+        if (not quiet) and canon_target and target and canon_target != target:
+            print('  ★판정 불가: %s — 겨냥이 갈렸다(정본 "%s" ≠ 검사기 "%s")' % (n, canon_target, target))
+            indet += 1
+            rows.append((n, target, 2, '★판정 불가(겨냥이 갈렸다)', ''))
+            continue
         if p.returncode == 0:
             if quiet:
                 verdict = '조용했다(대조군 · 기대대로)'; quiet_ok += 1

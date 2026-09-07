@@ -32,6 +32,35 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VERIFY = os.path.join(ROOT, 'tools', 'verify_bomb.js')
 LOCKED = os.path.join(ROOT, 'tools', 'bomb_locked_contracts.json')
+EXPECT = os.path.join(ROOT, 'tools', 'bomb_mutation_expectations.json')
+
+
+def expectations():
+    """뮤테이션 ★기대표 정본을 읽는다 — 검사기 안이 아니라 밖에서.
+
+    ★없거나 못 읽으면 rc=2 다(통과로 세지 않는다). 이 파일이 '어느 뮤테이션이 ★대조군인가'
+    를 정한다 — 종전에는 검사기가 찍는 문구('quiet-control' 이 target 에 있는가)로 갈랐고,
+    그러면 그 문구를 바꾼 날 대조군이 조용히 '겨냥 검출' 통으로 넘어간다(잠복 fail-open).
+    형제 four·push 기대표와 ★같은 스키마다.
+    """
+    try:
+        with io.open(EXPECT, encoding='utf-8') as f:
+            data = json.load(f)
+    except (OSError, ValueError) as e:
+        return None, '기대표 정본을 못 읽었다(%s): %s' % (EXPECT, e)
+    if not isinstance(data.get('mutations'), dict) or not data['mutations']:
+        return None, '기대표 정본에 mutations 가 없다'
+    if 'requires_targeted' not in data:
+        return None, '기대표 정본에 requires_targeted 가 없다 — 미겨냥을 어떻게 셀지 정해지지 않았다'
+    ex_raw = data.get('exempt_from_targeting')
+    if not isinstance(ex_raw, list):
+        return None, ('기대표 정본에 exempt_from_targeting 이 배열로 없다 — 면제를 '
+                      '★명시하지 않으면 미겨냥과 구별할 수 없다')
+    for e in ex_raw:
+        if not isinstance(e, dict) or not e.get('name') or not e.get('why'):
+            return None, ('exempt_from_targeting 항목은 {name, why} 여야 한다 — '
+                          '사유 없는 면제를 막는다: %r' % (e,))
+    return data, None
 
 
 def run(args):
@@ -127,18 +156,26 @@ def list_mutations():
 
 
 def main():
-    global VERIFY, LOCKED
+    global VERIFY, LOCKED, EXPECT
     ap = argparse.ArgumentParser()
     ap.add_argument('--html', default=os.path.join(ROOT, 'bomb', 'index.html'))
     ap.add_argument('--only', help='이 뮤테이션 하나만 돌린다')
     ap.add_argument('--locked', help='잠근 항 정본 경로(★자를 고정할 때 정본도 함께 고정한다 — '
                                      '검사기만 고정하면 정본은 현재 나무 것을 읽어 두 시점이 섞인다)')
     ap.add_argument('--verify', help='검사기 경로(★리비전을 고정해 재고 싶을 때 사본을 가리킨다)')
+    ap.add_argument('--expectations', help='기대표 정본 경로(정본을 함께 고정할 때)')
     a = ap.parse_args()
     if a.verify:
         VERIFY = os.path.abspath(a.verify)
     if a.locked:
         LOCKED = os.path.abspath(a.locked)
+    if a.expectations:
+        EXPECT = os.path.abspath(a.expectations)
+
+    exp, eerr = expectations()
+    if exp is None:
+        print('판정 불가 — ' + eerr)
+        return 2
 
     names, err = list_mutations()
     if names is None:
@@ -239,7 +276,23 @@ def main():
         for ln in (p.stdout or '').splitlines():
             if ln.startswith('※ 지목한 검사: '):
                 target = ln.replace('※ 지목한 검사: ', '').strip()
-        quiet = 'quiet-control' in target
+        # ★대조군 판별은 ★정본(expect)에 건다 — 검사기가 찍는 문구에 걸면, 그 문구를 바꾼 날
+        #   대조군이 조용히 '겨냥 검출' 통으로 넘어간다(문구가 맞는 동안은 증상이 없는 잠복
+        #   fail-open 이다). 필터는 메시지가 아니라 ★출처를 봐야 한다.
+        canon = exp['mutations'].get(n, {})
+        quiet = (canon.get('expect') == 'quiet')
+        canon_target = canon.get('target') or ''
+        # ★두 층이 갈리면 판정 불가 — 정본이 겨냥한 검사와 검사기가 겨냥한 검사가 달라도 마찬가지다
+        if quiet and target and not target.startswith('(quiet-control'):
+            print('  ★판정 불가: %s — 정본은 대조군인데 검사기는 겨냥(%s)을 찍는다' % (n, target))
+            indet += 1
+            rows.append((n, target, 2, '★판정 불가(정본과 검사기가 갈렸다)', ''))
+            continue
+        if (not quiet) and canon_target and target and canon_target != target:
+            print('  ★판정 불가: %s — 겨냥이 갈렸다(정본 "%s" ≠ 검사기 "%s")' % (n, canon_target, target))
+            indet += 1
+            rows.append((n, target, 2, '★판정 불가(겨냥이 갈렸다)', ''))
+            continue
         if p.returncode == 0:
             if quiet:
                 verdict = '조용했다(대조군 · 기대대로)'; quiet_ok += 1
