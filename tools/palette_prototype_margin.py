@@ -16,7 +16,8 @@
 ★이 파일은 ★재기만 한다. 정본에도 소스에도 쓰지 않는다 — 후보 L 마다 ★저장소 사본을 떠서
 그 사본에만 적고, 사본에서 palette_gen 과 check_palette 를 돌린다(값 확정은 master).
 
-사용법: python3 tools/palette_prototype_margin.py 47.0 47.5 48.0 48.5
+사용법: python3 tools/palette_prototype_margin.py [--cat=<분류>] 47.0 47.5 48.0 48.5
+        (분류 기본 puzzle · 정본에 없는 분류면 rc=2 판정 불가)
 """
 import io
 import json
@@ -54,12 +55,25 @@ def copy_repo(dst):
 TARGET_CAT = next((a[len('--cat='):] for a in sys.argv if a.startswith('--cat=')), 'puzzle')
 
 
+def require_cat(spec):
+    """정본에 그 분류가 있는가 — 없으면 ★판정 불가(rc=2)로 멈춘다.
+
+    ★rc 를 2 로 두는 이유: 1 은 이 저장소에서 '미달' 자리다(check_meta_i18n_assets :8 ·
+    check_palette :22). 추락(ValueError)도 1 로 끝나므로, 1 을 쓰면 ★판정 불가와 추락과
+    미달이 한 값으로 접힌다 — 자동 호출자가 셋을 구별하지 못한다.
+    ★이 함수는 main 과 set_canon 이 ★같이 부른다(한 곳에만 두면 CLI 경로에서 열리지 않는다 —
+    2026-09-07 R1: 이 방벽이 argv 추락에 가려 ★한 번도 열린 적이 없었다).
+    """
+    if TARGET_CAT not in spec['categories']:
+        print('rc=2 판정 불가 — 정본에 분류 %s 가 없다(있는 것: %s)'
+              % (TARGET_CAT, ', '.join(spec['categories'])))
+        raise SystemExit(2)
+
+
 def set_canon(root, sig):
     p = os.path.join(root, 'tools', 'palette_by_category.json')
     d = json.load(io.open(p, encoding='utf-8'))
-    if TARGET_CAT not in d['categories']:
-        raise SystemExit('판정 불가 — 정본에 분류 %s 가 없다(있는 것: %s)'
-                         % (TARGET_CAT, ', '.join(d['categories'])))
+    require_cat(d)
     d['categories'][TARGET_CAT]['sig'] = sig
     io.open(p, 'w', encoding='utf-8', newline=NL).write(json.dumps(d, ensure_ascii=False, indent=2) + NL)
 
@@ -72,7 +86,10 @@ def gen_values(root):
 
 
 def apply_puzzle(root, values):
-    """puzzle 7종의 :root 4토큰만 사본에 적는다(실제 변경과 같은 범위)."""
+    """★대상 분류(TARGET_CAT) 게임들의 :root 4토큰만 사본에 적는다(실제 변경과 같은 범위).
+
+    ★이름에 puzzle 이 남아 있지만 ★적는 대상은 TARGET_CAT 이다(values 를 그 키로 읽는다).
+    """
     line = lambda v: '--sig:%s; --sig-ink:%s; --sig-soft:%s; --on-sig:%s;' % tuple(v[t] for t in TOKENS)
     for gid, vals in values['values'][TARGET_CAT].items():
         p = os.path.join(root, gid, 'index.html')
@@ -176,13 +193,17 @@ def one(cand_L, hue, sat, cur_sig, keep=False):
 
 
 def main():
-    cands = [float(a) for a in sys.argv[1:]] or [47.0, 47.5, 48.0, 48.5]
+    # ★후보 L 만 float 로 접는다 — ★--로 시작하는 인자는 옵션이지 후보가 아니다.
+    #   (2026-09-07 R1: --cat=hands 가 float() 에 들어가 ValueError rc=1 로 추락했고,
+    #    그 추락이 ★이 파일이 스스로 내세운 상수 제거·방벽을 ★둘 다 무효로 만들었다.)
+    cands = [float(a) for a in sys.argv[1:] if not a.startswith('--')] or [47.0, 47.5, 48.0, 48.5]
     spec = json.load(io.open(os.path.join(ROOT, 'tools', 'palette_by_category.json'), encoding='utf-8'))
+    require_cat(spec)              # ★일감 시작 전에 멈춘다(사본을 뜨기 전)
     cur_sig = spec['categories'][TARGET_CAT]['sig']
     hue, sat, _ = hex2hsl(cur_sig)
     print('원형 정의: 라이트=정본 기준색 · 다크=대표 게임 다크 --sig · 색차 CIEDE2000 · 임계 %.1f' % THRESHOLD)
     print('여유 = (자기 아닌 원형 중 최소 dE) - (자기 원형 dE) · 음수면 다른 분류로 읽힌다')
-    print('고정: H=%.1f · S=%.1f%% · 지금 정본 puzzle=%s' % (hue, sat, cur_sig))
+    print('고정: H=%.1f · S=%.1f%% · 지금 정본 %s=%s' % (hue, sat, TARGET_CAT, cur_sig))
     print('')
     for L in cands:
         res, _ = one(L, hue, sat, cur_sig)

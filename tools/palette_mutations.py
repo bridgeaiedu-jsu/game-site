@@ -105,12 +105,38 @@ def mut_dark_hue(spec):
 
 
 def mut_within(spec):
-    """(4) 같은 분류 두 게임을 구별되지 않게(ΔE2000 0)."""
-    a, b = 'nonogram/index.html', 'sudoku/index.html'
+    """(4) 같은 분류 두 게임을 구별되지 않게(ΔE2000 0).
+
+    ★짝을 ★데이터에서, 그것도 ★TOUCHED 안에서 고른다 — mut_category 와 ★같은 규율이다.
+      · 상수 짝(nonogram·sudoku)은 ★같은 분류라는 전제를 코드가 아니라 ★사람 기억에 두었다.
+        오늘(2026-09-07) 분류 경계를 6->7 로 옮겼으므로 그 전제는 ★언제든 조용히 깨진다 —
+        둘이 다른 분류가 되는 날 이 뮤테이션은 '같은 분류 안 구별' 이 아니라 ★다른 것을 잰다.
+      · 그리고 피해자가 ★TOUCHED 밖으로 나가면 주입은 되고 ★복구가 안 된다(같은 날 실측).
+    ⇒ 두 조건(같은 분류 · TOUCHED 안)을 ★한 출처에서 동시에 만족시켜 고른다.
+    """
+    games = json.load(io.open(os.path.join(ROOT, 'games.json'), encoding='utf-8'))
+    inside = [g for g in games if ('%s/index.html' % g['id']) in TOUCHED]
+    pair = None
+    for i, g in enumerate(inside):
+        for h in inside[i + 1:]:
+            if h['category'] == g['category']:
+                pair = (g, h)
+                break
+        if pair:
+            break
+    if pair is None:
+        raise SystemExit('판정 불가 — TOUCHED 안에 같은 분류 게임 두 종이 없다')
+    ga, gb = pair
+    a, b = '%s/index.html' % ga['id'], '%s/index.html' % gb['id']
     twin = tok(light_block(b), '--sig')
     cur = tok(light_block(a), '--sig')
+    if cur.lower() == twin.lower():
+        # 이미 같으면 주입해도 ★아무것도 안 바뀐다 — 공허한 뮤테이션은 통과로 세지 않는다.
+        raise SystemExit('판정 불가 — %s 와 %s 의 라이트 --sig 가 이미 같다(%s)'
+                         % (ga['id'], gb['id'], cur))
     sub_once(a, f'--sig:{cur};', f'--sig:{twin};')
-    return ('4', 3), f"nonogram 라이트 --sig {cur} -> sudoku 와 같은 {twin} (ΔE2000 0)"
+    return ('4', 3), (f"{ga['id']} 라이트 --sig {cur} -> 같은 분류({ga['category']}) "
+                      f"{gb['id']} 와 같은 {twin} (ΔE2000 0)")
 
 
 def mut_on_sig(spec):

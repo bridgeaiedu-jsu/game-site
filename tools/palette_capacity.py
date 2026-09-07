@@ -10,7 +10,8 @@ master 판정(2026-09-06)이 물은 셋에만 답한다.
 다시 적으면 그때부터 두 곳이 갈리고, 잰 값이 실제 산출과 달라진다.
 ★값을 정본에 쓰지 않는다. 출력만 낸다(고르는 것은 master·오너다).
 
-사용법: python3 tools/palette_capacity.py [분류]      (기본: puzzle)
+사용법: python3 tools/palette_capacity.py [--cat=<분류>|<분류>]   (기본: puzzle)
+        (정본에 없는 분류·배정 0종이면 rc=2 판정 불가)
 """
 import io
 import json
@@ -24,7 +25,26 @@ import palette_gen as PG                                    # noqa: E402
 from palette_color import hex2hsl                           # noqa: E402
 
 ROOT = os.path.dirname(HERE)
-TARGET = next((a for a in sys.argv[1:] if not a.startswith('--')), 'puzzle')
+# ★형제(palette_prototype_margin.py)와 ★같은 표기를 받는다 — 한쪽만 --cat= 를 알면
+#   다음 사람이 형제에서 밟는다. 여기서는 추락이 아니라 ★더 나쁜 침묵이었다:
+#   --cat=hands 를 주면 옵션이라 걸러지고 ★기본 puzzle 을 잰 뒤 rc=0 으로 끝났다
+#   (2026-09-07 R1 실측 · 잰 대상이 물은 대상과 다른데 아무도 모른다).
+TARGET = (next((a[len('--cat='):] for a in sys.argv if a.startswith('--cat=')), None)
+          or next((a for a in sys.argv[1:] if not a.startswith('--')), 'puzzle'))
+
+
+def require_cat(spec, by_cat=None):
+    """정본에 그 분류가 있는가 · 잴 게임이 있는가 — 아니면 ★판정 불가(rc=2).
+
+    rc=2 인 이유는 형제와 같다 — 1 은 '미달' 자리이고 추락도 1 이라 셋이 접힌다.
+    """
+    if TARGET not in spec['categories']:
+        print('rc=2 판정 불가 — 정본에 분류 %s 가 없다(있는 것: %s)'
+              % (TARGET, ', '.join(spec['categories'])))
+        raise SystemExit(2)
+    if by_cat is not None and not by_cat.get(TARGET):
+        print('rc=2 판정 불가 — 분류 %s 에 배정된 게임이 0종이다(잴 것이 없다)' % TARGET)
+        raise SystemExit(2)
 
 
 def load_pages(games):
@@ -149,7 +169,8 @@ def curve(spec, games, pages, by_cat, target):
         spare_ids.append(gid)
 
     print('==== (A) 수용 능력 곡선 — L 30.0~53.0 · 0.5 단위 · 그 L 에서 놓이는 ★최대 칸 수 ====')
-    print('  ※ 실재 puzzle 페이지 %d종(%s)을 먼저 쓰고, 8칸 이상은 ★가상 페이지(@spare*)로 잰다.' % (len(ids), ', '.join(ids)))
+    print('  ※ 실재 %s 페이지 %d종(%s)을 먼저 쓰고, %d칸 이상은 ★가상 페이지(@spare*)로 잰다.'
+          % (target, len(ids), ', '.join(ids), len(ids) + 1))
     print('  ※ 가상 페이지의 배경 토큰 출처 = ★대문 index.html 의 --bg(라이트·다크) 를 그대로 복사했다.')
     print('  ※ ★같은 실재 페이지를 두 번 세지 않는다.')
     print('  %-7s %-9s %-6s' % ('L', '최대 칸', '막힌 지점'))
@@ -169,8 +190,8 @@ def curve(spec, games, pages, by_cat, target):
         curve_rows[round(L, 1)] = best
         ceiling = len(ids) + len(spare_ids)
         tag = ''
-        if best >= 8:
-            tag = '   ※8칸 이상은 가상 페이지 포함'
+        if best > len(ids):
+            tag = '   ※%d칸 이상은 가상 페이지 포함' % (len(ids) + 1)
         if best == ceiling:
             tag += '   ★측정 상한(가상 %d칸까지만 넣었다 — 실제 최대는 이보다 클 수 있다)' % len(spare_ids)
         print('  %-7.1f %-9d %s%s' % (L, best, where, tag))
@@ -213,6 +234,7 @@ def main():
     by_cat = {}
     for g in games:
         by_cat.setdefault(g['category'], []).append(g['id'])
+    require_cat(spec, by_cat)      # ★어느 갈래로 가기 전에 먼저 멈춘다
 
     if '--curve' in sys.argv:
         curve(spec, games, pages, by_cat, TARGET)
