@@ -58,8 +58,14 @@ def load_gates(root):
         if not isinstance(d.get(key), list):
             return None, '게이트 정본에 %s 배열이 없다 — 대조할 것이 없다' % key
     for g in d['gates']:
-        if not g.get('file') or not g.get('cmd') or not g.get('when') or not g.get('why'):
-            return None, 'gates 항목은 {file, cmd, when, why} 여야 한다: %r' % (g,)
+        # ★종류를 필드로 가른다(2026-09-08 R5 F14) — 앞서는 산문 안내가 cmd 칸에 들어 있어
+        #   '게이트 합계' 안에 ★CLI 로 못 도는 1종이 섞였다.
+        if not g.get('file') or not g.get('when') or not g.get('why') or g.get('kind') not in ('cli', 'manual'):
+            return None, 'gates 항목은 {file, kind(cli|manual), when, why} 여야 한다: %r' % (g,)
+        if g['kind'] == 'cli' and not g.get('cmd'):
+            return None, 'kind=cli 는 cmd 가 있어야 한다(그 명령으로 돈다): %r' % (g,)
+        if g['kind'] == 'manual' and (not g.get('how') or g.get('cmd')):
+            return None, 'kind=manual 은 how 가 있어야 하고 cmd 를 두면 안 된다(도는 것처럼 보인다): %r' % (g,)
     for g in d['per_game']:
         if not g.get('file') or not g.get('game'):
             return None, 'per_game 항목은 {file, game} 여야 한다: %r' % (g,)
@@ -153,7 +159,12 @@ def check(root):
     print('  조건부 게이트         %d  (%s)'
           % (len([g for g in d['gates'] if g['when'] != 'always']),
              ' · '.join(g['when'] for g in d['gates'] if g['when'] != 'always') or '없음'))
-    print('  게이트 합계           %d' % len(gate_files))
+    cli_gates = [g for g in d['gates'] if g['kind'] == 'cli']
+    manual_gates = [g for g in d['gates'] if g['kind'] == 'manual']
+    print('  게이트 합계           %d  (★실행 가능(cli) %d · ★수동(manual) %d)'
+          % (len(gate_files), len(cli_gates), len(manual_gates)))
+    for g in manual_gates:
+        print('      수동: %s   ← 방법: %s' % (g['file'], g['how']))
     print('  게임별(손댄 게임만)   %d' % len(game_files))
     print('  비게이트(사유 있음)   %d' % len(non_files))
     print('  조건부 데이터(없어도 됨) %d:' % len(opt_files))

@@ -8,133 +8,162 @@
       "file": "tools/check_functions.mjs",
       "cmd": "node tools/check_functions.mjs .",
       "when": "always",
-      "why": "Pages Functions 의 import 가 런타임에서 성립하는가"
+      "why": "Pages Functions 의 import 가 런타임에서 성립하는가",
+      "kind": "cli"
     },
     {
       "file": "tools/check_privacy_storage.py",
       "cmd": "python3 tools/check_privacy_storage.py .",
       "when": "always",
-      "why": "저장소 사용이 처리방침이 말한 범위 안인가"
+      "why": "저장소 사용이 처리방침이 말한 범위 안인가",
+      "kind": "cli"
     },
     {
       "file": "tools/check_source_bytes.py",
       "cmd": "python3 tools/check_source_bytes.py .",
       "when": "always",
-      "why": "소스에 눈에 안 보이는 금지 바이트·BOM·lone CR 이 섞였는가"
+      "why": "소스에 눈에 안 보이는 금지 바이트·BOM·lone CR 이 섞였는가",
+      "kind": "cli"
     },
     {
       "file": "tools/counter/test_functions.mjs",
       "cmd": "node tools/counter/test_functions.mjs .",
       "when": "always",
-      "why": "공개 카운터 Functions 단위 시험"
+      "why": "공개 카운터 Functions 단위 시험",
+      "kind": "cli"
     },
     {
       "file": "tools/counter/test_pages.mjs",
       "cmd": "node tools/counter/test_pages.mjs .",
       "when": "always",
-      "why": "공개 카운터 페이지 배선 검사"
+      "why": "공개 카운터 페이지 배선 검사",
+      "kind": "cli"
     },
     {
       "file": "tools/counter/test_client.mjs",
       "cmd": "node tools/counter/test_client.mjs .",
       "when": "always",
-      "why": "공개 카운터 클라이언트(js/hp-stats.js) 단위 시험"
+      "why": "공개 카운터 클라이언트(js/hp-stats.js) 단위 시험",
+      "kind": "cli"
     },
     {
       "file": "tools/counter/test_pages_negative.mjs",
       "cmd": "node tools/counter/test_pages_negative.mjs .",
       "when": "always",
-      "why": "위 페이지 검사기의 ★검출력 자기시험(고의 결함 9건)"
+      "why": "위 페이지 검사기의 ★검출력 자기시험(고의 결함 9건)",
+      "kind": "cli"
     },
     {
       "file": "tools/check_home_sync.mjs",
       "cmd": "node tools/check_home_sync.mjs .",
       "when": "always",
-      "why": "대문이 실제 게임 목록과 다섯 자리에서 일치하는가"
+      "why": "대문이 실제 게임 목록과 다섯 자리에서 일치하는가",
+      "kind": "cli"
     },
     {
       "file": "tools/check_precache_cache.mjs",
       "cmd": "node tools/check_precache_cache.mjs . --base origin/main --head HEAD",
       "when": "always",
-      "why": "프리캐시 대상이 바뀌면 CACHE 값이 새 값으로 올랐는가"
+      "why": "프리캐시 대상이 바뀌면 CACHE 값이 새 값으로 올랐는가",
+      "kind": "cli"
     },
     {
       "file": "tools/check_precache_integrity.mjs",
       "cmd": "node tools/check_precache_integrity.mjs .",
       "when": "always",
-      "why": "PRECACHE 항목이 형태·실재·중복에서 성립하는가(하나가 404 면 addAll 이 전멸한다)"
+      "why": "PRECACHE 항목이 형태·실재·중복에서 성립하는가(하나가 404 면 addAll 이 전멸한다)",
+      "kind": "cli"
     },
     {
       "file": "tools/check_page_assets.mjs",
       "cmd": "node tools/check_page_assets.mjs .",
       "when": "always",
-      "why": "페이지가 요청시키는 자원이 PRECACHE 에 들어 있는가"
+      "why": "페이지가 요청시키는 자원이 PRECACHE 에 들어 있는가",
+      "kind": "cli"
     },
     {
       "file": "tools/check_today_pool.mjs",
       "cmd": "node tools/check_today_pool.mjs .",
       "when": "always",
-      "why": "「오늘의 한판」 선정 규칙이 어떤 게임을 영원히 빼는지 계산해 보인다"
+      "why": "「오늘의 한판」 선정 규칙이 어떤 게임을 영원히 빼는지 계산해 보인다",
+      "kind": "cli"
     },
     {
       "file": "tools/check_today_midnight.mjs",
       "cmd": "node tools/check_today_midnight.mjs .",
       "when": "always",
-      "why": "「오늘의 한판」이 자정을 넘겨도 어제 판에 멈추지 않는가"
+      "why": "「오늘의 한판」이 자정을 넘겨도 어제 판에 멈추지 않는가",
+      "kind": "cli"
     },
     {
       "file": "tools/check_today_sameday.mjs",
       "cmd": "node tools/check_today_sameday.mjs .",
       "when": "always",
-      "why": "같은 날에는 몇 번을 지어도 같은 3종인가"
+      "why": "같은 날에는 몇 번을 지어도 같은 3종인가",
+      "kind": "cli"
     },
     {
       "file": "tools/check_sitemap_lastmod.py",
       "cmd": "python3 tools/check_sitemap_lastmod.py .",
       "when": "always",
-      "why": "sitemap 의 lastmod 가 실제 수정일과 같은가"
+      "why": "sitemap 의 lastmod 가 실제 수정일과 같은가",
+      "kind": "cli"
     },
     {
       "file": "tools/check_meta_i18n_assets.py",
       "cmd": "python3 tools/check_meta_i18n_assets.py .",
       "when": "always",
-      "why": "ko/en·메타↔실제·자산 경로를 전수로 대조한다"
+      "why": "ko/en·메타↔실제·자산 경로를 전수로 대조한다",
+      "kind": "cli"
     },
     {
       "file": "tools/check_palette.py",
       "cmd": "python3 tools/check_palette.py .",
       "when": "always",
-      "why": "분류 색 계약(색으로 종류를 알 수 있는가 · 같은 종류끼리 구별되는가)"
+      "why": "분류 색 계약(색으로 종류를 알 수 있는가 · 같은 종류끼리 구별되는가)",
+      "kind": "cli"
     },
     {
       "file": "tools/check_rainbow.py",
       "cmd": "python3 tools/check_rainbow.py .",
       "when": "always",
-      "why": "무지개 팔레트의 테두리 대비·글자 대비·이웃 색차를 계산으로 판정한다"
+      "why": "무지개 팔레트의 테두리 대비·글자 대비·이웃 색차를 계산으로 판정한다",
+      "kind": "cli"
     },
     {
       "file": "tools/check_gate_registry.py",
       "cmd": "python3 tools/check_gate_registry.py .",
       "when": "always",
-      "why": "★이 목록 자신과 DEPLOY 체크리스트·tools 실재 파일을 양방향으로 대조한다"
+      "why": "★이 목록 자신과 DEPLOY 체크리스트·tools 실재 파일을 양방향으로 대조한다",
+      "kind": "cli"
     },
     {
       "file": "tools/check_render_parity.mjs",
       "cmd": "node tools/check_render_parity.mjs .",
       "when": "on-change:치수·레이아웃(두 슬롯의 ★렌더된 치수 대조 · Chrome 을 띄운다)",
-      "why": "선언 훑기가 못 보는 zoom·padding 우회를 실브라우저 치수로 잡는다"
+      "why": "선언 훑기가 못 보는 zoom·padding 우회를 실브라우저 치수로 잡는다",
+      "kind": "cli"
     },
     {
       "file": "tools/check_card_render.js",
-      "cmd": "브라우저 페이지 문맥에서 평가한다(예: 대문을 연 탭에서 이 파일을 evaluate) — ★node CLI 가 아니다",
       "when": "on-change:색·카드(@media 는 명시도를 안 올려 선언이 다 있어도 다크에서 라이트 색이 그려진다)",
-      "why": "가상요소 ::before 배경색까지 getComputedStyle 로 ★그려진 값을 본다"
+      "why": "가상요소 ::before 배경색까지 getComputedStyle 로 ★그려진 값을 본다",
+      "kind": "manual",
+      "how": "브라우저 페이지 문맥에서 평가한다(예: 대문을 연 탭에서 이 파일을 evaluate) — ★node CLI 가 아니다"
     },
     {
       "file": "tools/check_overflow_360.mjs",
       "cmd": "node tools/check_overflow_360.mjs .",
       "when": "always",
-      "why": "폭 360px 에서 ★어떤 요소도 자기 컨테이너를 가로로 넘지 않는다(실브라우저 렌더 치수). 사정거리는 출력 첫 줄에 찍는다 — 지금은 quick-math 한 장 × 상태 3종이다."
+      "why": "폭 360px 에서 ★어떤 요소도 자기 컨테이너를 가로로 넘지 않는다(실브라우저 렌더 치수). 사정거리는 출력 첫 줄에 찍는다 — 지금은 quick-math 한 장 × 상태 3종이다.",
+      "kind": "cli"
+    },
+    {
+      "file": "tools/audit_term_denominator.py",
+      "kind": "cli",
+      "cmd": "python3 tools/audit_term_denominator.py .",
+      "when": "on-change:tools/verify_quickmath.js(느리다 — 항마다 검사기를 다시 돌린다)",
+      "why": "★단언이 둘 이상인 검사의 ★각 항이 실제로 분모를 갖는지 잰다(항 하나만 지우고 그 검사를 겨냥한 뮤테이션을 다시 돌린다). 이 수치를 보고에 쓰려면 ★이 도구가 찍어야 한다 — 손계산 금지(2026-09-08 R5 F13)."
     }
   ],
   "per_game": [
@@ -386,5 +415,6 @@
       "why": "check_functions.mjs 가 `cloudflare:` 처럼 이 Node 로 확인할 수 없는 접두를 만났을 때만 읽는 허용 목록이다. 지금 트리에는 ★없다 — 그 접두를 쓰기 시작하면 그때 만든다(없으면 rc=2 로 멈춘다)."
     }
   ],
-  "_direction3": "방향③(DEPLOY 등재 요구)의 분모는 ★gates[] + per_game 이다(2026-09-08 R4 F7 수리). gates[] 만 보던 때는 per_game 30종이 그물 밖이라, DEPLOY 에서 ★개명하면 잡히고 ★삭제하면 rc=0 이었다 — 하필 그 30종에 라운드의 핵심 게이트 2개가 있었다."
+  "_direction3": "방향③(DEPLOY 등재 요구)의 분모는 ★gates[] + per_game 이다(2026-09-08 R4 F7 수리). gates[] 만 보던 때는 per_game 30종이 그물 밖이라, DEPLOY 에서 ★개명하면 잡히고 ★삭제하면 rc=0 이었다 — 하필 그 30종에 라운드의 핵심 게이트 2개가 있었다.",
+  "_kind": "gates[].kind 는 ★cli(명령으로 도는 게이트 · cmd 필수) 또는 ★manual(사람이 문맥을 만들어 평가하는 게이트 · how 필수)이다. 앞서는 둘이 같은 cmd 칸에 섞여 있어 ★집계 안에 CLI 로 못 도는 1종이 들어 있었다(2026-09-08 R5 F14)."
 }

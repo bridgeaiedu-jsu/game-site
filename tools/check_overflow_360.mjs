@@ -3,25 +3,36 @@
  * ■ 왜 만들었나 (2026-09-08 · R4 F5)
  *   결과 카드의 광고 자리 `.ad-slot.ad-rect` 가 고정 `width:300px` 인데 그것을 담는 `.card` 의
  *   clientWidth 는 360px 화면에서 **296px** 였다. `.card` 는 `overflow-y:auto` 라 가로도 auto 가 되어
- *   ★카드 안에 가로 스크롤이 생기고 광고칸 우변이 잘렸다(cardScrollW 336 · scrollableBy 40px).
- *   ★그 계약을 재는 검사가 하나도 없었다 — 실브라우저 축 리뷰가 눈으로 잡을 때까지 두 라운드를 살았다.
+ *   ★카드 안에 가로 스크롤이 생기고 광고칸 우변이 잘렸다. ★그 계약을 재는 검사가 하나도 없었다.
  *   선언 훑기(`max-width` 가 있는가)는 대리물이다. 계약은 ★렌더된 치수이므로 실브라우저로 잰다.
+ *
+ * ■ R5(2026-09-08)에서 ★측정 조건이 셋 다 좁았다는 것이 드러났다 — 그래서 넓혔다
+ *   F10 ★자리표시자만 쟀다: `#adOver` 안에 있는 것이 `<span>` 텍스트라 알아서 접힌다.
+ *        실배포에는 ★고정 300×250 프레임이 들어간다 → `--with-real-ad` 로 그 조건을 만든다.
+ *   F11 ★언어가 기계 로케일로 정해졌다: 제품이 `localStorage bp.lang` 또는 `navigator.language`
+ *        로 언어를 정하는데 게이트는 새 프로파일로 열어 ★한 언어만 쟀다 → `--lang` 으로 못박고
+ *        기본값은 ★두 언어 다 잰다. 사정거리 줄에 언어를 적는다.
+ *   F12 ★한 번도 플레이 안 한 빈 화면을 쟀다: 보기 버튼은 대시, 오답 목록은 빈 채였다
+ *        → `--worst-content` 로 ★최악 폭 내용을 심고 ★MutationObserver 로 유지시킨다
+ *        (한 번만 심으면 페이지가 되돌린다 — 리뷰어의 h2 vs h2b 가 그 증거다).
  *
  * ■ 계약 (한 문장)
  *   폭 360px 뷰포트에서, 스크롤 상자를 가진 모든 요소는 `scrollWidth <= clientWidth + 1` 이다
  *   (문서 자신 포함). 즉 ★가로로 밀려 잘리는 자리가 없다.
  *
- * ■ 사정거리 (★출력에 늘 적는다 — 이 게이트가 무엇을 안 봤는지 숨기지 않는다)
- *   기본 대상은 `quick-math/index.html` 한 장이다. `--pages a,b` 로 늘릴 수 있다.
- *   상태는 셋을 각각 잰다: 시작 오버레이 · 판 진행 중 · 결과 오버레이.
+ * ■ 사정거리 (★출력 첫 줄에 늘 적는다 — 이 게이트가 무엇을 안 봤는지 숨기지 않는다)
+ *   페이지 × ★언어 × ★시나리오 × 상태의 곱을 전부 적는다. 기본은
+ *   `quick-math/index.html` × {ko,en} × {기본, 실광고, 최악내용} × {시작, 진행중, 결과}.
  *
  * ■ 사용법
  *   node tools/check_overflow_360.mjs .
- *   node tools/check_overflow_360.mjs . --width 360 --pages quick-math/index.html
- *   node tools/check_overflow_360.mjs . --selftest      ★검출력(고의 넘침을 잡는가)
+ *   node tools/check_overflow_360.mjs . --lang ko            (한 언어만)
+ *   node tools/check_overflow_360.mjs . --scenarios base,real-ad
+ *   node tools/check_overflow_360.mjs . --pages quick-math/index.html --width 360
+ *   node tools/check_overflow_360.mjs . --selftest           ★검출력(고의 넘침을 잡는가)
  *
- * ■ 종료코드: 0 = 넘침 0 · 1 = 넘침 있음 · 2 = ★판정 불가(크롬 없음·페이지 안 뜸·상태 미도달·잘못된 호출)
- *   ★rc=2 는 통과가 아니다. 못 잰 것을 초록으로 세지 않는다.
+ * ■ 종료코드: 0 = 넘침 0 · 1 = 넘침 있음 · 2 = ★판정 불가(크롬 없음·페이지 안 뜸·상태 미도달·
+ *   언어가 요청과 다름·잘못된 호출). ★rc=2 는 통과가 아니다.
  */
 import fs from 'node:fs';
 import os from 'node:os';
@@ -31,19 +42,27 @@ import { spawn, spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
 const argv = process.argv.slice(2);
+const VALUE_FLAGS = ['--width', '--pages', '--lang', '--scenarios'];
 const flagVal = (n, d) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : d; };
-const positional = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && ['--width', '--pages'].includes(argv[i - 1])));
-const KNOWN = ['--width', '--pages', '--selftest'];
+const positional = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && VALUE_FLAGS.includes(argv[i - 1])));
+const KNOWN = VALUE_FLAGS.concat(['--selftest']);
 const unknown = argv.filter(a => a.startsWith('--') && !KNOWN.includes(a));
-if (unknown.length || positional.length !== 1) {
+const LANGS = flagVal('--lang', 'ko,en').split(',').map(s => s.trim()).filter(Boolean);
+const SCENARIOS = flagVal('--scenarios', 'base,real-ad,worst-content').split(',').map(s => s.trim()).filter(Boolean);
+const OK_LANGS = ['ko', 'en'];
+const OK_SCEN = ['base', 'real-ad', 'worst-content'];
+if (unknown.length || positional.length !== 1 ||
+    LANGS.some(l => !OK_LANGS.includes(l)) || SCENARIOS.some(s => !OK_SCEN.includes(s))) {
   console.log('★판정 불가 — 잘못된 호출: ' + JSON.stringify(argv));
-  console.log('사용법: node tools/check_overflow_360.mjs <저장소 루트> [--width 360] [--pages a,b] [--selftest]');
+  console.log('사용법: node tools/check_overflow_360.mjs <저장소 루트> [--width 360] [--pages a,b]'
+              + ' [--lang ko,en] [--scenarios base,real-ad,worst-content] [--selftest]');
   process.exit(2);
 }
 const ROOT = path.resolve(positional[0]);
 const WIDTH = Number(flagVal('--width', '360'));
 const PAGES = flagVal('--pages', 'quick-math/index.html').split(',').map(s => s.trim()).filter(Boolean);
 const SELFTEST = argv.includes('--selftest');
+const STATES = ['start', 'playing', 'over'];
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const getJson = url => new Promise((res, rej) => {
@@ -65,8 +84,69 @@ function findChrome() {
   return null;
 }
 
-/* ★페이지 안에서 재는 것 — 스크롤 상자를 가진 요소 전수.
-   ★요소를 고르지 않는다(고르면 안 고른 자리가 사각이 된다). 넘침은 ★렌더된 치수로만 판정한다. */
+/* ★문서가 뜨기 ★전에 심는 스크립트 — 언어를 못박고, 시나리오 내용을 ★유지시킨다.
+   유지가 핵심이다: 한 번만 심으면 제품이 다시 그리며 되돌려서, 잰 것은 다시 빈 화면이 된다. */
+const bootScript = (lang, scenario) => `(() => {
+  try { localStorage.setItem('bp.lang', ${JSON.stringify(lang)}); } catch (e) {}
+  const scenario = ${JSON.stringify(scenario)};
+  /* ★최악내용은 ★제품이 실제로 낼 수 있는 최대 길이여야 한다.
+     임의로 12자리를 넣으면 ★제품이 만들 수 없는 화면을 시험하게 되고, 그 붉음은 계약이 아니다.
+     그래서 ★제품 자신의 선굴림 덱에서 가장 긴 문제·보기 문자열을 뽑아 쓴다(2026-09-08 R5 F12). */
+  const worst = () => {
+    const k = window.__quickmath;
+    if (!k || !k.deck || !k.deck.length) return null;
+    let q = '', a = '';
+    for (const it of k.deck) {
+      const qt = it.a + ' ' + it.op + ' ' + it.b + ' = ' + it.ans;
+      if (qt.length > q.length) q = qt;
+      for (const c of (it.cells || [])) { const s = String(c); if (s.length > a.length) a = s; }
+    }
+    return { q: q, a: a };
+  };
+  const apply = () => {
+    if (scenario === 'real-ad') {
+      /* ★실배포 조건 — 자리표시자 텍스트가 아니라 ★고정 300×250 프레임이 들어간다 */
+      const slot = document.getElementById('adOver');
+      if (slot && !slot.querySelector('iframe.__probe_ad')) {
+        slot.textContent = '';
+        const f = document.createElement('iframe');
+        f.className = '__probe_ad';
+        f.setAttribute('width', '300');
+        f.setAttribute('height', '250');
+        f.style.cssText = 'width:300px;height:250px;border:0';
+        slot.appendChild(f);
+      }
+    }
+    if (scenario === 'worst-content') {
+      /* ★판을 먼저 시작해야 덱이 있다 — 덱이 없으면 심을 값도 없다(표본 미성립으로 rc=2 가 난다) */
+      if (!(window.__quickmath && window.__quickmath.deck && window.__quickmath.deck.length)) {
+        const b = document.getElementById('btnDaily');
+        if (b) b.click();
+      }
+      const w = worst();
+      if (w) {
+        document.querySelectorAll('#opts .t').forEach(e => { if (e.textContent !== w.a) e.textContent = w.a; });
+        const ul = document.getElementById('review');
+        if (ul && ul.children.length < 3) {
+          const li = '<li>' + w.q + ' \u00b7 \uB0B4 \uB2F5 ' + w.a + '</li>';
+          ul.innerHTML = li + li + li;
+        }
+      }
+    }
+  };
+  if (scenario !== 'base') {
+    const start = () => {
+      apply();
+      /* ★유지 — 제품이 다시 그릴 때마다 되돌려 놓는다(리뷰어 h2 vs h2b 가 가른 자리) */
+      const mo = new MutationObserver(() => apply());
+      mo.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+      window.__probe_persist = mo;
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+    else start();
+  }
+})()`;
+
 const PROBE = state => `(() => {
   const d = document;
   const show = id => { const el = d.getElementById(id); if (el) el.classList.add('show'); };
@@ -92,26 +172,34 @@ const PROBE = state => `(() => {
     const r = el.getBoundingClientRect();
     if (r.width === 0 || r.height === 0) continue; /* 화면에 안 그려진 자리는 표본이 아니다 */
     /* ★낭독 전용(sr-only)은 ★설계상 1px 상자에 긴 글을 담는다 — 눈에 보이는 넘침이 아니다.
-       ★배제는 좁게, 그리고 ★세어서 찍는다: 표준 sr-only 지문(clip-path inset(50%) ·
-       clip rect(0…) · 1px 상자 + overflow hidden)일 때만 뺀다. 그 밖의 어떤 넘침도 안 뺀다
-       — 배제를 넓히면 오탐 대신 ★미탐이 그 자리에 들어온다. */
+       ★배제는 좁게, 그리고 ★세어서 찍는다. 그 밖의 어떤 넘침도 안 뺀다 —
+       배제를 넓히면 오탐 대신 ★미탐이 그 자리에 들어온다. */
     const cs = getComputedStyle(el);
-    const srOnly = /inset\(50%\)/.test(cs.clipPath || '') ||
-                   /rect\(0px,?\s*0px,?\s*0px,?\s*0px\)/.test(cs.clip || '') ||
+    const srOnly = /inset\\(50%\\)/.test(cs.clipPath || '') ||
+                   /rect\\(0px,?\\s*0px,?\\s*0px,?\\s*0px\\)/.test(cs.clip || '') ||
                    (cw <= 1 && el.clientHeight <= 1 && cs.overflow === 'hidden');
     if (srOnly){ skipped.push(sel(el)); continue; }
     measured++;
     if (sw > cw + 1){
-      over.push({ sel: sel(el), clientW: cw, scrollW: sw, spill: sw - cw,
-                  cssWidth: getComputedStyle(el).width });
+      over.push({ sel: sel(el), clientW: cw, scrollW: sw, spill: sw - cw, cssWidth: cs.width });
     }
   }
   return JSON.stringify({ state: state, measured: measured, over: over, skipped: skipped,
                           vw: d.documentElement.clientWidth,
+                          lang: d.documentElement.lang,
+                          adKid: !!d.querySelector('#adOver iframe.__probe_ad'),
+                          optLen: (d.querySelector('#opts .t') || {}).textContent || '',
+                          worstA: (() => { const k = window.__quickmath;
+                            if (!k || !k.deck) return '';
+                            let a = '';
+                            for (const it of k.deck) for (const c of (it.cells || [])) {
+                              const s = String(c); if (s.length > a.length) a = s; }
+                            return a; })(),
                           started: !!(window.__quickmath && window.__quickmath.running) });
 })()`;
 
-async function measure(htmlAbs, states) {
+async function measure(htmlAbs, states, opts) {
+  const { lang, scenario } = opts;
   const chrome = findChrome();
   if (!chrome) return { fatal: '크롬 계열 브라우저를 찾지 못했다(CHROME_PATH 로 지정할 수 있다)' };
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'ovf360-'));
@@ -157,11 +245,15 @@ async function measure(htmlAbs, states) {
       if (r.result && r.result.exceptionDetails) throw new Error('페이지 예외: ' + JSON.stringify(r.result.exceptionDetails).slice(0, 300));
       return r.result && r.result.result ? r.result.result.value : undefined;
     };
-    /* ★폭을 못박는다 — 창 크기만 믿지 않는다(크롬 창 장식·스크롤막대가 폭을 갉는다) */
+    await send('Page.enable', {});
     await send('Emulation.setDeviceMetricsOverride',
                { width: WIDTH, height: 740, deviceScaleFactor: 2, mobile: true });
+    /* ★언어·시나리오는 ★문서가 뜨기 전에 심고 ★다시 읽는다 — 로드된 뒤에 넣으면
+       제품이 이미 언어를 정한 뒤라 그 기계의 로케일이 그대로 이긴다(R5 F11). */
+    await send('Page.addScriptToEvaluateOnNewDocument', { source: bootScript(lang, scenario) });
+    await send('Page.reload', { ignoreCache: true });
     let ready = false;
-    for (let t = 0; t < 100 && !ready; t++) {
+    for (let t = 0; t < 120 && !ready; t++) {
       await sleep(100);
       try { ready = await evaluate('document.readyState === "complete"'); } catch (_) {}
     }
@@ -169,9 +261,8 @@ async function measure(htmlAbs, states) {
     const out = [];
     for (const st of states) {
       if (st === 'playing') {
-        /* ★상태를 밖에서 밀어 넣지 않는다 — 제품 버튼을 진짜 사건으로 누른다 */
         try { await evaluate("(document.getElementById('btnDaily')||{click(){}}).click(), 1"); } catch (_) {}
-        await sleep(150);
+        await sleep(200);
       }
       const raw = await evaluate(PROBE(st));
       if (!raw) return { fatal: '상태 ' + st + ' 의 측정 결과를 받지 못했다' };
@@ -190,27 +281,40 @@ async function measure(htmlAbs, states) {
   }
 }
 
-const STATES = ['start', 'playing', 'over'];
+const SCEN_LABEL = { 'base': '기본(자리표시자)', 'real-ad': '★실광고(고정 300×250 프레임)', 'worst-content': '★최악내용(긴 보기값·긴 오답목록 · 유지)' };
 
 async function checkPages(root, pages) {
-  console.log(`★사정거리: 페이지 ${pages.length}장 × 상태 ${STATES.length}종 · 폭 ${WIDTH}px (이 게이트가 본 것은 여기까지다)`);
+  console.log(`★사정거리: 페이지 ${pages.length}장 × ★언어 ${LANGS.length}(${LANGS.join(',')})`
+              + ` × ★시나리오 ${SCENARIOS.length}(${SCENARIOS.join(',')}) × 상태 ${STATES.length}(${STATES.join(',')})`
+              + ` · 폭 ${WIDTH}px — 이 게이트가 본 것은 여기까지다`);
   let violations = 0, measuredTotal = 0, samples = 0;
   for (const rel of pages) {
     const abs = path.join(root, rel.split('/').join(path.sep));
     if (!fs.existsSync(abs)) { console.log('★판정 불가 — 대상이 없다: ' + rel); return 2; }
-    const r = await measure(abs, STATES);
-    if (r.fatal) { console.log('★판정 불가 — ' + r.fatal); return 2; }
-    for (const s of r.states) {
-      if (s.vw !== WIDTH) { console.log(`★판정 불가 — 뷰포트 폭이 ${s.vw}px 다(${WIDTH} 여야 한다)`); return 2; }
-      if (!s.measured) { console.log(`★판정 불가 — ${rel} [${s.state}] 에서 잰 요소가 0개다(표본 미성립)`); return 2; }
-      if (s.state === 'playing' && !s.started) { console.log(`★판정 불가 — ${rel} [playing] 에서 판이 시작되지 않았다(표본 미성립)`); return 2; }
-      measuredTotal += s.measured; samples++;
-      const mark = s.over.length ? '★넘침' : 'OK  ';
-      console.log(`  ${mark} ${rel} [${s.state}] · 잰 요소 ${s.measured} · 넘침 ${s.over.length}`
-                  + ` · 낭독전용 제외 ${s.skipped.length}${s.skipped.length ? ' (' + s.skipped.join(', ') + ')' : ' (없음)'}`);
-      for (const o of s.over) {
-        violations++;
-        console.log(`      ${o.sel} — clientWidth ${o.clientW} < scrollWidth ${o.scrollW} (밀림 ${o.spill}px · css width ${o.cssWidth})`);
+    for (const lang of LANGS) {
+      for (const scen of SCENARIOS) {
+        const r = await measure(abs, STATES, { lang, scenario: scen });
+        if (r.fatal) { console.log('★판정 불가 — ' + r.fatal); return 2; }
+        for (const s of r.states) {
+          if (s.vw !== WIDTH) { console.log(`★판정 불가 — 뷰포트 폭이 ${s.vw}px 다(${WIDTH} 여야 한다)`); return 2; }
+          if (s.lang !== lang) { console.log(`★판정 불가 — 요청 언어 ${lang} 인데 문서 언어가 ${s.lang} 다(언어 고정 실패)`); return 2; }
+          if (!s.measured) { console.log(`★판정 불가 — ${rel} [${lang}/${scen}/${s.state}] 에서 잰 요소가 0개다(표본 미성립)`); return 2; }
+          if (s.state === 'playing' && !s.started) { console.log(`★판정 불가 — ${rel} [${lang}/${scen}/playing] 에서 판이 시작되지 않았다(표본 미성립)`); return 2; }
+          if (scen === 'real-ad' && s.state === 'over' && !s.adKid) { console.log(`★판정 불가 — 실광고 프레임이 심기지 않았다(표본 미성립)`); return 2; }
+          if (scen === 'worst-content' && !(s.optLen && s.worstA && s.optLen === s.worstA)) {
+            console.log(`★판정 불가 — 최악내용이 유지되지 않았다(보기 값 "${s.optLen}" · 제품 파생 최대 "${s.worstA}")`); return 2;
+          }
+          measuredTotal += s.measured; samples++;
+          const mark = s.over.length ? '★넘침' : 'OK  ';
+          console.log(`  ${mark} ${rel} [${lang} · ${SCEN_LABEL[scen]} · ${s.state}] · 잰 요소 ${s.measured} · 넘침 ${s.over.length}`
+                      + ` · 낭독전용 제외 ${s.skipped.length}`
+                      + (scen === 'worst-content' ? ` · 심은 값 "${s.optLen}"(제품 덱 파생 최대 ${s.optLen.length}자)` : '')
+                      + (scen === 'real-ad' && s.state === 'over' ? ' · 실광고 프레임 심김' : ''));
+          for (const o of s.over) {
+            violations++;
+            console.log(`      ${o.sel} — clientWidth ${o.clientW} < scrollWidth ${o.scrollW} (밀림 ${o.spill}px · css width ${o.cssWidth})`);
+          }
+        }
       }
     }
   }
@@ -230,25 +334,23 @@ async function selftest(root) {
     fs.mkdirSync(dir, { recursive: true });
     const quiet = path.join(stage, rel);
     fs.writeFileSync(quiet, src);
-    /* ★고의 넘침 — 결과 카드 안에 카드보다 넓은 고정폭 블록을 넣는다(F5 가 났던 그 모양) */
     const ANCHOR = '<div class="ad-slot ad-rect" id="adOver">';
-    if (src.indexOf(ANCHOR) < 0) { console.log('★판정 불가 — 자기시험 앵커를 못 찾았다'); return 2; }
     if (src.split(ANCHOR).length - 1 !== 1) { console.log('★판정 불가 — 자기시험 앵커가 유일하지 않다'); return 2; }
     const broken = path.join(stage, 'broken_' + path.basename(rel));
     fs.writeFileSync(broken, src.replace(ANCHOR, '<div style="width:400px;height:8px"></div>' + ANCHOR));
     const cases = [
-      ['대조군(무변이)', quiet, 0],
-      ['카드보다 넓은 고정폭 블록 주입', broken, 1]
+      ['대조군(무변이 · 기본 시나리오)', quiet, 'base', 0],
+      ['카드보다 넓은 고정폭 블록 주입', broken, 'base', 1],
+      /* ★시나리오 자신이 살아 있는가 — 심는 것이 실제로 심겼는지 표본 성립으로 확인된다 */
+      ['대조군(무변이 · ★실광고 시나리오)', quiet, 'real-ad', 0],
+      ['대조군(무변이 · ★최악내용 시나리오)', quiet, 'worst-content', 0]
     ];
     let bad = 0;
-    console.log('검출력 자기시험 — 사례 %d건(대조군 1 포함 · 임시 사본에만 심는다)'.replace('%d', String(cases.length)));
-    for (const [name, file, want] of cases) {
-      const r = await measure(file, ['over']);
+    console.log(`검출력 자기시험 — 사례 ${cases.length}건(대조군 3 포함 · 임시 사본에만 심는다)`);
+    for (const [name, file, scen, want] of cases) {
+      const r = await measure(file, ['over'], { lang: LANGS[0], scenario: scen });
       let rc = 2;
-      if (!r.fatal) {
-        const s = r.states[0];
-        rc = s.over.length ? 1 : 0;
-      }
+      if (!r.fatal) rc = r.states[0].over.length ? 1 : 0;
       const ok = rc === want;
       if (!ok) bad++;
       console.log(`  [${ok ? 'OK ' : '★어긋남'}] ${name} — rc=${rc} · 기대 ${want}${r.fatal ? ' · ' + r.fatal : ''}`);

@@ -132,6 +132,12 @@
   .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
   .overlay.show{display:flex}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  /* ★좁은 화면에서 ★카드가 광고를 담게 만든다 — 광고를 줄이지 않는다(2026-09-08 R5 F10).
+     ★자리: .card 규칙 ★뒤여야 한다 — @media 는 명시도를 안 올려서 앞에 두면 진다(실측).
+     위 max-width:100% 는 ★자리표시자(텍스트 상자)만 줄였다. 실배포에 들어가는 것은 ★고정
+     300×250 프레임이라 상자를 줄이면 ★광고가 잘린다(정책·수익이 걸린다). 그래서 상자가
+     아니라 ★담는 쪽(카드 안쪽 여백)을 줄여 300px 자식이 그대로 들어가게 한다. */
+  @media (max-width:400px){ .card{padding-left:10px;padding-right:10px} }
   .card h2{margin:0 0 6px;font-size:1.5rem}
   .card .big{font-size:2.8rem;font-weight:800;color:var(--sig-ink);line-height:1.1;font-variant-numeric:tabular-nums}
   .card .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px;line-height:1.5}
