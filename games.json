@@ -701,5 +701,32 @@
       "casual",
       "reaction"
     ]
+  },
+  {
+    "id": "quick-math",
+    "path": "/quick-math/",
+    "title": {
+      "ko": "빠른 셈",
+      "en": "Quick Math"
+    },
+    "desc": {
+      "ko": "30초 동안 사칙연산을 4지선다로 연속해서 푸는 암산 게임 — 맞히면 바로 다음, 틀리면 남은 시간 3초",
+      "en": "Mental math against a 30-second clock, four choices a question — a miss costs three seconds"
+    },
+    "thumb": "/quick-math/thumb.webp",
+    "playtime": {
+      "ko": "한 판 30초",
+      "en": "30 sec a round"
+    },
+    "maxMinutes": 0.5,
+    "daily": true,
+    "category": "math",
+    "released": "2026-09-07",
+    "tags": [
+      "math",
+      "quiz",
+      "casual",
+      "daily"
+    ]
   }
 ]
