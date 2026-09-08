@@ -620,11 +620,20 @@ process.on('uncaughtException', e => {
 });
 
 /* ------------------------------------------------------------ 테스트 틀 */
-let pass = 0, fail = 0;
+let pass = 0, fail = 0, indet = 0;
 const failures = [];
+const indets = [];
 function ok(name, cond, detail){
   if (cond){ pass++; console.log('  PASS  ' + name); }
   else { fail++; failures.push(name); console.log(`  FAIL  ${name}${detail ? ' — ' + detail : ''}`); }
+}
+/* ★못 쟀다 — 통과도 미달도 아니다(형제 verify_push.js 와 같은 계약: rc=2).
+   ★이 층이 없으면 '재지 못한 것'이 통과나 미달 중 하나로 섞여 들어간다. 실제로 그랬다:
+   정본이 하한 필드를 개명한 뒤 floor 가 undefined 가 됐는데, `x < undefined` 가 늘 false 라
+   대비 검사가 ★공허하게 초록이었다(2026-09-08 실측). 그런 자리는 여기로 온다. */
+function cannot(name, why){
+  indet++; indets.push(name);
+  console.log(`  INDET ${name}${why ? ' — ' + why : ''}`);
 }
 const eq = (name, got, want) =>
   ok(name, JSON.stringify(got) === JSON.stringify(want), `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`);
@@ -1089,28 +1098,59 @@ section('11. 색 규약');
   } else {
     eq('등록부가 이 게임의 분류를 선언한다', me.category, CONTRACT.CATEGORY);
     const want = (pal.categories[me.category] || {}).sig;
-    const floor = pal.contrastFloor;
-    ok('규약이 그 분류의 색과 하한을 준다', !!want && typeof floor === 'number', 'sig=' + want + ' floor=' + floor);
+    /* ★하한은 더 이상 전역 상수가 아니다 — 정본이 2026-09-05(36d7df2)에 `contrastFloor: 3.0`
+       하나를 ★토큰 짝마다 다른 min 을 주는 `contrastRules.pairs` 로 바꿨다. 형제 검사기
+       (check_palette.py:183 · palette_gen.py)는 그 표를 읽는데 이 파일만 옛 필드를 읽고 있었고,
+       그래서 floor 가 undefined 가 됐다. 정본이 그 이유를 적어 뒀다:
+         "★검사기는 이 표를 읽어라 — 값을 코드에 베끼면 그때부터 검사가 계약이 아니라 사본을 잰다"
+       ⇒ 여기서도 값을 베끼지 않고 ★표를 읽는다. */
+    const pairs = ((pal.contrastRules || {}).pairs) || [];
+    ok('규약이 그 분류의 색과 대비 규칙을 준다', !!want && pairs.length > 0,
+       'sig=' + want + ' · 규칙 짝 ' + pairs.length + '종');
     const light = tokensOf(RAW, false), dark = tokensOf(RAW, true);
     if (!light || !dark || !want){
       ok('토큰 두 벌을 소스에서 읽었다', false, 'light=' + !!light + ' dark=' + !!dark);
     } else {
       eq('주색이 자기 분류의 색과 같다', light['--sig'], String(want).toLowerCase());
-      /* 세 토큰의 대비비 — 각각 그 토큰이 실제로 쓰이는 배경/글자에 대고 잰다 */
-      const rows = [
-        ['라이트 주색', contrast(light['--sig'], light['--bg'])],
-        ['라이트 글자색', contrast(light['--sig-ink'], light['--panel'])],
-        ['라이트 옅은 배경 위 본문', contrast(light['--text'], light['--sig-soft'])],
-        ['라이트 버튼 글자', contrast(light['--on-sig'], light['--sig'])],
-        ['다크 주색', contrast(dark['--sig'], dark['--bg'])],
-        ['다크 글자색', contrast(dark['--sig-ink'], dark['--panel'])],
-        ['다크 옅은 배경 위 본문', contrast(dark['--text'], dark['--sig-soft'])],
-        ['다크 버튼 글자', contrast(dark['--on-sig'], dark['--sig'])]
-      ];
-      const low = rows.filter(r => r[1] < floor);
-      ok('세 토큰의 대비비가 양 테마에서 하한 이상이다', low.length === 0,
-         low.map(r => r[0] + ' ' + r[1].toFixed(2)).join(' · '));
-      for (const r of rows) note(r[0] + ' ' + r[1].toFixed(2) + ' (하한 ' + floor + ')');
+      /* ★정본의 짝을 그대로 돈다(형제 check_palette.check_contrast 와 같은 방식).
+         ★비교식에 하한이 들어가기 ★전에 수치인지 막는다 — `x < undefined` 는 늘 false 라
+         하한을 잃으면 위반 목록이 영영 비어 ★공허한 초록이 된다(이 파일이 실제로 그랬다).
+         그래서 여기서는 '조심'이 아니라 ★가드로 끊는다: 수치가 아니면 판정 불가다. */
+      const rows = [], badPairs = [], noFloor = [], noToken = [];
+      for (const p of pairs){
+        if (typeof p.min !== 'number' || !isFinite(p.min)){
+          noFloor.push(p.id + '(min=' + JSON.stringify(p.min) + ')');
+          continue;                       /* ★비교에 넣지 않는다 */
+        }
+        for (const [toks, tname] of [[light, '라이트'], [dark, '다크']]){
+          const fg = toks[p.fg], bg = toks[p.bg];
+          if (fg === undefined || bg === undefined){
+            noToken.push(tname + ' ' + p.id + '(' + p.fg + '=' + fg + ' ' + p.bg + '=' + bg + ')');
+            continue;                     /* ★없는 토큰도 통과로 세지 않는다 */
+          }
+          const c = contrast(fg, bg);
+          rows.push([tname + ' ' + p.id, c, p.min]);
+          if (c + 1e-9 < p.min) badPairs.push(tname + ' ' + p.id + ' ' + c.toFixed(2) + ' < ' + p.min);
+        }
+      }
+      if (noFloor.length || noToken.length){
+        cannot('정본 짝의 대비비를 잰다',
+               (noFloor.length ? '하한이 수치가 아니다: ' + noFloor.join(' · ') : '') +
+               (noFloor.length && noToken.length ? ' / ' : '') +
+               (noToken.length ? '토큰이 없다: ' + noToken.join(' · ') : ''));
+      } else {
+        ok('정본 짝의 대비비가 양 테마에서 각자의 하한 이상이다', badPairs.length === 0,
+           badPairs.join(' · '));
+      }
+      for (const r of rows) note(r[0] + ' ' + r[1].toFixed(2) + ' (하한 ' + r[2] + ')');
+      /* ★정본에 없는 짝은 여기서 판정하지 않는다 — 아래 --pad-line/--pad 와 같은 규율이다.
+         종전에 이 파일이 자기 판단으로 재던 두 짝(--sig-ink/--panel · --text/--sig-soft)은
+         정본이 선언한 짝(ink-on-bg · ink-on-soft)과 상대가 달라, 값만 남기고 판정은 뺀다. */
+      note('참고(정본 미선언 · 판정 안 함) 라이트 --sig-ink/--panel ' +
+           contrast(light['--sig-ink'], light['--panel']).toFixed(2) +
+           ' · 라이트 --text/--sig-soft ' + contrast(light['--text'], light['--sig-soft']).toFixed(2) +
+           ' · 다크 --sig-ink/--panel ' + contrast(dark['--sig-ink'], dark['--panel']).toFixed(2) +
+           ' · 다크 --text/--sig-soft ' + contrast(dark['--text'], dark['--sig-soft']).toFixed(2));
       /* ★다크는 기준색이 아니라 밝은 변형이다 — 대비비만 걸면 색상이 통째로 달라져도 통과한다
          (master 236 지시 2026-09-05): 색상차 한도 안이고 ★더 밝아야 한다. */
       const gap = hueGap(dark['--sig'], light['--sig']);
@@ -1125,9 +1165,23 @@ section('11. 색 규약');
       ok('판의 테두리도 분류 색조를 따른다', padGap <= 40, '색상차 ' + padGap.toFixed(1) + '도');
       const padBorder = contrast(light['--pad-line'], light['--pad']);
       const padBorderD = contrast(dark['--pad-line'], dark['--pad']);
-      ok('칸 경계가 판 위에서 보인다(뜻을 지닌 UI 라 하한을 건다)',
-         padBorder >= floor && padBorderD >= floor,
-         '라이트 ' + padBorder.toFixed(2) + ' · 다크 ' + padBorderD.toFixed(2));
+      /* ★이 짝(--pad-line / --pad)에는 정본에 규칙이 없다 — contrastRules.pairs 는
+         sig-on-bg · ink-on-bg · ink-on-soft · on-sig-on-sig 넷뿐이다(2026-09-08 실측).
+         ★그러니 통과도 미달도 아니다. 종전에는 개명으로 사라진 전역 하한을 그대로 써서
+         `3.23 >= undefined` 가 늘 false 가 되어 ★미달로 보였다 — 값이 낮아서가 아니었다.
+         ★검사기가 하한을 지어내지 않는다(그건 규약 판단이다). 정본에 규칙이 서면 그때
+         이 자리는 저절로 판정으로 바뀐다 — 아래가 그 배선이다. */
+      const padRule = pairs.find(p => p.fg === '--pad-line' && p.bg === '--pad');
+      if (!padRule || typeof padRule.min !== 'number' || !isFinite(padRule.min)){
+        cannot('칸 경계가 판 위에서 보인다(뜻을 지닌 UI 라 하한을 건다)',
+               '★정본에 --pad-line/--pad 짝의 규칙이 없다 — 하한을 검사기가 정하지 않는다' +
+               ' (실측만 남긴다: 라이트 ' + padBorder.toFixed(2) + ' · 다크 ' + padBorderD.toFixed(2) + ')');
+      } else {
+        ok('칸 경계가 판 위에서 보인다(뜻을 지닌 UI 라 하한을 건다)',
+           padBorder + 1e-9 >= padRule.min && padBorderD + 1e-9 >= padRule.min,
+           '라이트 ' + padBorder.toFixed(2) + ' · 다크 ' + padBorderD.toFixed(2) +
+           ' (하한 ' + padRule.min + ')');
+      }
       note('판 테두리 대비 라이트 ' + padBorder.toFixed(2) + ' · 다크 ' + padBorderD.toFixed(2));
     }
   }
@@ -1270,7 +1324,10 @@ section('15. 터치 목표');
 
 /* ============================================================ 요약 */
 console.log('\n' + '='.repeat(60));
-console.log('PASS ' + pass + ' · FAIL ' + fail);
+console.log('PASS ' + pass + ' · FAIL ' + fail + ' · ★INDET(못 쟀다) ' + indet);
 if (fail){ console.log('실패한 검사:'); for (const f of failures) console.log('  - ' + f); }
-process.exit(fail ? 1 : 0);
+if (indet){ console.log('못 잰 검사(통과로 세지 않는다):'); for (const f of indets) console.log('  - ' + f); }
+/* ★판정 불가가 미달보다 앞선다 — 자동 호출자가 '깨졌다'와 '못 쟀다'를 구별해야 한다.
+   ★1 은 미달 전용으로 남긴다(파이썬·노드 예외 종료가 그 코드로 나와 판정으로 위장하지 않게). */
+process.exit(indet ? 2 : (fail ? 1 : 0));
 

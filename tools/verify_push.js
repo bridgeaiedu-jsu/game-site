@@ -499,8 +499,14 @@ async function main() {
     let plan = null;
     for (const b of s0.boxes) {
       for (const d of [-Wd, Wd, -1, 1]) {
-        const stand = b - d;
+        const stand = b - d, dest = b + d;
         if (wall[stand] || s0.boxes.includes(stand)) continue;
+        /* ★첫 칸이 이미 막혔으면 고르지 않는다 — 그 상자는 '밀면 언젠가 벽에 닿는 상자'가
+           아니라 ★이미 벽에 닿아 한 칸도 못 미는 상자다. 고르면 아래 밀기 루프가 0회로 끝나
+           '못 쟀다'가 되는데, 판에 밀 수 있는 다른 상자가 있어도 그렇다(2026-09-08 실측:
+           48일 표본 중 16일에서 그렇게 됐고 그중 14일은 다른 상자로 잴 수 있었다).
+           ★가드의 형태는 발명하지 않는다 — 같은 파일 planPushes() 가 이미 쓰는 그 줄이다. */
+        if (wall[dest] || s0.boxes.includes(dest)) continue;
         let cur = b + d, hitsWall = false;
         while (true) {
           if (wall[cur]) { hitsWall = true; break; }
