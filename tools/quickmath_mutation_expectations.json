@@ -109,12 +109,6 @@
       "why": "버튼 가드와 저장 가드를 ★함께 없애 그날 기록을 덮어쓰게 한다 — R1 BLOCKING 의 데이터 손실 경로",
       "payload_sha256": "5bb29540024b88cece78031f0aab85cdf3946fab686e15f5bfe8d5633c43e927"
     },
-    "m-daykey-utc": {
-      "expect": "caught-by",
-      "target": "하루 경계는 로컬 달력이다",
-      "why": "하루 경계를 로컬에서 UTC 로 옮긴다 — 기존 21종과 갈라진다",
-      "payload_sha256": "c86791b07fd0f6fb3fa794df2276ae91530d1dbffc46a485aa61a3cc74e7097d"
-    },
     "m-run-belongs-to-end-day": {
       "expect": "caught-by",
       "target": "판은 시작한 날에 귀속된다",
@@ -322,6 +316,12 @@
       "target": "판은 시작한 날에 귀속된다",
       "why": "'오늘 완료했는가' 가 날짜를 안 본다 — 어제 판을 끝내면 오늘 판이 잠긴다(오늘 완료여부 항만 무너진다)",
       "payload_sha256": "fb55fdf89c59c4976ef9b2a594f3f5a1476c959d47a93437f580dfb27dcb639a"
+    },
+    "m-daykey-local": {
+      "expect": "caught-by",
+      "target": "하루 경계는 KST 다",
+      "why": "하루 경계를 KST 에서 ★사용자 로컬로 되돌린다 — 공개 문구가 약속한 '전 세계 같은 문제' 가 깨진다",
+      "payload_sha256": "021341da623cf011968395f25b1b2c5f89b1a0bca54a887b23696a7bb36e9d69"
     }
   },
   "_payload_why": "★payload_sha256 = 검사기 소스의 ★뮤테이션 항목 블록 전체(이름·why·target·apply) 해시다(줄끝 정규화). ★계산은 러너가 검사기 소스를 직접 읽어 한다 — 검사기에게 묻지 않는다(2026-09-08 R4 F9: 검사기가 자기 지문을 계산하던 때는 훼손자가 같은 파일에서 세 곳(검사 본문·payload·해시 함수)을 고쳐 '37/37 일치' 라는 거짓 안심 문장을 받아 냈다). 값을 손으로 옮겨 적지 마라 — 갈리면 러너가 rc=2 로 멈춘다."

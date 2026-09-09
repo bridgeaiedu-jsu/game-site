@@ -689,9 +689,12 @@ section('5. 저장 레코드 — 「오늘의 한판」 어댑터가 읽을 수 
   const raw = A.store.getItem('jr.daily');
   ok('jr.daily 가 저장됐다', !!raw);
   const rec = JSON.parse(raw);
-  const today = new Date();
-  const dk = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-  eq('date 가 오늘이다(허브의 dayKey 와 같은 계산식)', rec.date, dk);
+  /* ★하루 경계 = KST(UTC+9) 고정(T0909-daily-kst). 종전에는 로컬 달력으로 기대값을 냈고
+     그것이 계약이었다 — 계약이 바뀌었으므로 ★같은 자리에서 반대 방향으로 다시 세운다.
+     ★기대값은 제품 코드를 부르지 않고 여기서 독립으로 셈한다(자기참조 금지). */
+  const kst = new Date(Date.now() + 9 * 3600000);
+  const dk = `${kst.getUTCFullYear()}-${String(kst.getUTCMonth()+1).padStart(2,'0')}-${String(kst.getUTCDate()).padStart(2,'0')}`;
+  eq('date 가 오늘이다(KST 경계 · 허브의 dayKey 와 같은 날)', rec.date, dk);
   ok('result 가 있다 — wrapped 어댑터의 완료 조건', !!rec.result);
   ok('result.acc 가 유한한 수다(허브가 정확도로 찍는다)',
      typeof rec.result.acc === 'number' && isFinite(rec.result.acc), String(rec.result && rec.result.acc));
@@ -929,9 +932,12 @@ section('10. ★사각 7종 — 살아 있는 계약을 못박는다');
   /* ── 사각2. 스트릭 리셋 ─────────────────────────────────────────────────
      최초 1회만 보면 '끊겼을 때 1 로 돌아간다' 는 계약이 표본 밖에 있다. */
   {
+    /* ★하루 경계 = KST(T0909-daily-kst) — 표본도 KST 키로 만든다.
+       로컬 setDate 로 만든 키는 제품의 prevDayKey(키 문자열 UTC 산술)와 어긋나 ★공허 통과를 낳는다. */
     const pad2s = n => String(n).padStart(2, '0');
-    const keyOf = d => `${d.getFullYear()}-${pad2s(d.getMonth() + 1)}-${pad2s(d.getDate())}`;
-    const daysAgo = n => { const t = new Date(); t.setDate(t.getDate() - n); return keyOf(t); };
+    const keyOf = ms => { const k = new Date(ms + 9 * 3600000);
+      return `${k.getUTCFullYear()}-${pad2s(k.getUTCMonth() + 1)}-${pad2s(k.getUTCDate())}`; };
+    const daysAgo = n => keyOf(Date.now() - n * 86400000);
 
     const cut = makeStore();
     cut.setItem('jr.streak', JSON.stringify({ last: daysAgo(3), n: 5 }));

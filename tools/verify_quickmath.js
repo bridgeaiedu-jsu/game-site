@@ -239,11 +239,11 @@ const MUTATIONS = {
                "$('btnDaily').onclick = () => { replaying = false; startRun('daily'); };")
       .replace('  if (dailyDoneFor(runDay)) return false;   /* ★덮어쓰지 않는다 */', '')
   },
-  'm-daykey-utc': {
-    why: '하루 경계를 로컬에서 UTC 로 옮긴다 — 기존 21종과 갈라진다',
-    target: '하루 경계는 로컬 달력이다',
-    apply: s => s.replace("function dayKey(d){ d = d || new Date(); return d.getFullYear()",
-                          "function dayKey(d){ d = d || new Date(); d = new Date(d.getTime() - 12*3600*1000); return d.getFullYear()")
+  'm-daykey-local': {
+    why: '하루 경계를 KST 에서 ★사용자 로컬로 되돌린다 — 공개 문구가 약속한 "전 세계 같은 문제" 가 깨진다',
+    target: '하루 경계는 KST 다',
+    apply: s => s.replace("function kstParts(d){ const k = new Date((d ? d.getTime() : Date.now()) + 9*3600000);",
+                          "function kstParts(d){ const k = new Date((d ? d.getTime() : Date.now()) + 0*3600000);")
   },
   'm-run-belongs-to-end-day': {
     why: '판을 끝난 날에 귀속시킨다 — 자정 넘긴 판이 오늘 기록을 먹는다',
@@ -1098,19 +1098,31 @@ check('토스트는 1.4초 뒤 스스로 사라진다', () => {
            note: '1.399초 표시=' + still + '(참이어야) · 1.401초 표시=' + (!gone) + '(거짓이어야)' };
 });
 
-/* ── B ★하루 경계의 권위 = 사용자의 로컬 달력 (기존 21/22 종과 같다) ── */
-check('하루 경계는 로컬 달력이다', () => {
+/* ── B ★하루 경계의 권위 = KST(UTC+9) 고정 (오너 결정 2026-09-09 · 저장소 전 게임 동일) ──
+   ★이 단언은 2026-09-09 에 ★반대 방향으로 다시 세운 것이다(지운 것이 아니다). 종전에는 로컬
+   달력을 못박았고 그때는 다수파가 로컬이었다. 바뀐 것은 코드가 아니라 ★어느 쪽이 정본인가다 —
+   공개 문구가 '전 세계 같은 문제'를 약속하므로 로컬 경계로는 그 약속을 지킬 수 없다.
+   ★표본은 Date.UTC 로 ★순간을 고정한다 — 검사 기계의 시간대와 무관하게 같은 판정이 나와야 한다. */
+check('하루 경계는 KST 다', () => {
   const bad = [];
-  [[0, 5], [8, 30], [12, 0], [22, 15], [23, 59]].forEach(([h, mi]) => {
-    const W = makeWorld({ today: new Date(2026, 2, 15, h, mi) });
+  /* [UTC 순간, 그 순간의 KST 날짜] — 기대값은 제품 코드에서 파생하지 않고 손으로 적는다 */
+  [[Date.UTC(2026, 2, 14, 15, 0, 1), '2026-03-15'],   /* KST 00:00:01 — 경계 직후 */
+   [Date.UTC(2026, 2, 15, 3, 0, 0),  '2026-03-15'],   /* KST 12:00 */
+   [Date.UTC(2026, 2, 15, 14, 59, 59), '2026-03-15'], /* KST 23:59:59 — 경계 직전 */
+   [Date.UTC(2026, 2, 15, 15, 0, 0), '2026-03-16'],   /* KST 다음날 00:00 — 경계 */
+   [Date.UTC(2026, 2, 14, 14, 59, 59), '2026-03-14']  /* KST 전날 23:59:59 */
+  ].forEach(([ms, want]) => {
+    const W = makeWorld({ today: new Date(ms) });
     startDaily(W); must(W, 'tz');
-    const want = 'hanpango-daily-quick-math-2026-03-15';
-    if (W.win.__quickmath.seedKey !== want) bad.push(h + ':' + mi + ' → ' + W.win.__quickmath.seedKey);
+    const wantKey = 'hanpango-daily-quick-math-' + want;
+    if (W.win.__quickmath.seedKey !== wantKey) bad.push(new Date(ms).toISOString() + ' → ' + W.win.__quickmath.seedKey + ' (기대 ' + wantKey + ')');
   });
-  /* 정적으로도 못박는다 — 시간대 보정이 들어오면 붉어진다 */
-  const seg = SRC.slice(SRC.indexOf('function dayKey'), SRC.indexOf('function dayKey') + 260);
-  if (/getTimezoneOffset|toISOString|getUTC|timeZone/.test(seg)) bad.push('★dayKey 에 시간대 보정이 들어왔다');
-  return { ok: bad.length === 0, note: bad.length ? bad.join(' / ') : '하루 5시각 전부 로컬 날짜와 일치 · 시간대 보정 0건' };
+  /* 정적으로도 못박는다 — KST 시프트를 빼면 붉어진다 */
+  const seg = SRC.slice(SRC.indexOf('function kstParts'), SRC.indexOf('function kstParts') + 320);
+  if (!/9\s*\*\s*3600000/.test(seg)) bad.push('★kstParts 에서 UTC+9 시프트가 사라졌다');
+  if (!/getUTCFullYear/.test(seg)) bad.push('★kstParts 가 UTC 부품을 안 읽는다');
+  if (/getTimezoneOffset/.test(seg)) bad.push('★경계가 실행 환경 시간대를 경유한다(KST 고정이 아니다)');
+  return { ok: bad.length === 0, note: bad.length ? bad.join(' / ') : 'KST 경계 5순간(경계 전후 포함) 전부 일치 · 시프트·UTC 부품 정적 확인' };
 });
 
 /* ── O ★판은 시작한 날에 귀속된다(자정 롤오버) ── */

@@ -521,8 +521,11 @@ function applyLang(){
    ★시계를 읽는 곳은 여기 ★한 군데다. 생성기는 ★날짜 문자열만 받는다 —
    판 짜기가 시계를 읽으면 느린 기기에서 결과가 갈린다(잠근 항). */
 function todayKey(now = new Date()){
-  const t = new Date(now.getTime() + (now.getTimezoneOffset() + 540) * 60000); /* KST 고정 */
-  return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
+  /* ★KST 고정 — 저장소 전 게임과 ★같은 표기로 통일했다(T0909-daily-kst · 외부 계약은 그대로).
+     getTimezoneOffset 을 경유하지 않는다: 결과는 같아도 실행 환경 시간대를 한 번 더 거치면
+     검사기가 시간대를 바꿔 돌릴 때 읽는 사람이 정합을 손으로 계산해야 한다. */
+  const t = new Date(now.getTime() + 9*3600000); /* KST 고정 */
+  return t.getUTCFullYear() + '-' + String(t.getUTCMonth() + 1).padStart(2, '0') + '-' + String(t.getUTCDate()).padStart(2, '0');
 }
 function dayNumber(key){
   const base = Date.UTC(2026, 0, 1);

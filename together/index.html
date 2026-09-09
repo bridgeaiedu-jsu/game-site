@@ -537,8 +537,13 @@ const sDone  = () => { beep(659, .09, 'triangle', .045); beep(988, .14, 'triangl
 /* ======================= 일일 도전(seed) ======================= */
 const DAILY_EPOCH = Date.UTC(2026, 7, 23);   /* 2026-08-23 = #1 (다른 게임과 동일 기준일) */
 const pad2 = n => String(n).padStart(2,'0');
-function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
-function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+/* ★하루 경계 = KST(UTC+9) 고정 — ★시계를 읽는 곳은 kstParts 하나다(오너 결정 2026-09-09 · T0909-daily-kst).
+   ★왜: 공개 문구가 '전 세계 모든 플레이어가 같은 문제'를 약속한다(about/index.html:101 · dailyDesc).
+   로컬 경계에서는 같은 시각에 나라마다 다른 문제가 나가 그 문구가 거짓이 된다 — 코드를 문구에 맞춘다.
+   ★키와 회차를 ★같은 부품에서 파생한다. 갈라지면 키와 #N 이 서로 다른 날을 가리킨다. */
+function kstParts(d){ const k = new Date((d ? d.getTime() : new Date().getTime()) + 9*3600000); return { y:k.getUTCFullYear(), m:k.getUTCMonth(), d:k.getUTCDate() }; }
+function dayKey(d){ const k = kstParts(d); return `${k.y}-${pad2(k.m+1)}-${pad2(k.d)}`; }
+function dailyNo(d){ const k = kstParts(d); return Math.floor((Date.UTC(k.y,k.m,k.d) - DAILY_EPOCH)/86400000) + 1; }
 function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
 function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const dailySeedKey = (d=new Date()) => 'hanpango-daily-together-' + dayKey(d);

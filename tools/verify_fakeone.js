@@ -1109,9 +1109,12 @@ section('8. 저장 — 「오늘의 한판」 어댑터가 읽을 수 있는 형
   }
   /* 스트릭 — 끊기면 1, 이어지면 +1 */
   {
+    /* ★하루 경계 = KST(T0909-daily-kst) — 표본도 KST 키로 만든다.
+       로컬 setDate 로 만든 키는 제품의 prevDayKey(키 문자열 UTC 산술)와 어긋나 ★공허 통과를 낳는다. */
     const pad2s = n => String(n).padStart(2, '0');
-    const keyOf = d => `${d.getFullYear()}-${pad2s(d.getMonth() + 1)}-${pad2s(d.getDate())}`;
-    const daysAgo = n => { const t = new Date(); t.setDate(t.getDate() - n); return keyOf(t); };
+    const keyOf = ms => { const k = new Date(ms + 9 * 3600000);
+      return `${k.getUTCFullYear()}-${pad2s(k.getUTCMonth() + 1)}-${pad2s(k.getUTCDate())}`; };
+    const daysAgo = n => keyOf(Date.now() - n * 86400000);
 
     const cut = makeStore();
     cut.setItem('fo.streak', JSON.stringify({ last: daysAgo(3), n: 5 }));

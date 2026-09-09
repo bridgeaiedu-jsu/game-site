@@ -85,7 +85,18 @@ async function load(SRC, LIST, nowMs){
 }
 
 const pad2 = n => String(n).padStart(2, '0');
-const keyOf = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+/* ★하루 경계 = KST(UTC+9) 고정(오너 결정 2026-09-09 · T0909-daily-kst).
+   ★이 검사는 종전에 ★로컬 자정을 표본으로 만들었다. 그 표본은 이제 계약을 못 재므로 ★반대 방향으로
+   다시 세운다 — 지운 것이 아니라 경계의 정의를 옮긴 것이다. KST 경계를 ★UTC 순간으로 잡으면
+   검사 기계의 시간대와 무관하게 같은 표본이 나온다. */
+const KST = 9 * 3600000;
+const keyOf = ms => { const k = new Date(ms + KST);
+  return `${k.getUTCFullYear()}-${pad2(k.getUTCMonth()+1)}-${pad2(k.getUTCDate())}`; };
+/* n일째 KST 자정의 UTC 순간 — 기준일 00:00 KST 에서 하루씩 민다 */
+const kstMidnight = (baseMs, offDays) => {
+  const k = new Date(baseMs + KST);
+  return Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate() + offDays) - KST;
+};
 
 async function judge(root, quiet){
   const t = readTarget(root);
@@ -102,10 +113,12 @@ async function judge(root, quiet){
     const bad = [], badPremise = [];
     let measured = 0;
     for (let off = -flow.days; off <= flow.days; off++){
-      const d0 = new Date(base.getFullYear(), base.getMonth(), base.getDate() + off);
-      const d1 = new Date(base.getFullYear(), base.getMonth(), base.getDate() + off + 1);
-      const before = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate(), 23, 59, 30).getTime();
-      const after  = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate(), 0, 0, 30).getTime();
+      /* ★KST 자정을 사이에 두고 30초 전·후를 잡는다(로컬 벽시계가 아니다) */
+      const m0 = kstMidnight(base.getTime(), off);        /* 그날 00:00 KST */
+      const m1 = kstMidnight(base.getTime(), off + 1);    /* 다음날 00:00 KST */
+      const d0 = m0, d1 = m1;
+      const before = m1 - 30000;   /* 경계 30초 전 — 아직 그날 */
+      const after  = m1 + 30000;   /* 경계 30초 후 — 다음날 */
       let h;
       try { h = await load(t.SRC, t.LIST, before); }
       catch (e) { indetHit = '허브 스크립트를 실행하지 못했다: ' + e.message; break; }

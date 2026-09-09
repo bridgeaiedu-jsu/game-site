@@ -438,13 +438,19 @@ function setSound(on){
 
 /* ======================= 날짜·seed ======================= */
 const pad2 = (n) => String(n).padStart(2, '0');
-/* ★하루 경계의 권위 = ★사용자의 로컬 달력이다(고정 시간대로 옮기지 않는다).
-   이 저장소의 daily 게임 22종 중 ★21종이 같은 방식이고(2026-09-07 전수 실측 ·
-   evidence/hanpango-mental-math/R1FIX/daykey_authority.txt), quick-math 도 그것을 따른다.
-   ★예외 1종: push 는 todayKey 에서 KST 로 고정한다 — 사이트 안에서 갈리는 자리라
-   master 에 보고했다. ★여기서 임의로 바꾸지 마라(바꾸면 두 게임의 하루가 서로 어긋난다).
-   검사: verify_quickmath.js '하루 경계는 로컬 달력이다'. */
-function dayKey(d){ d = d || new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+/* ★하루 경계의 권위 = ★KST(UTC+9) 고정이다(오너 결정 2026-09-09 · T0909-daily-kst).
+   ★왜 바뀌었나: 공개 문구가 '전 세계 모든 플레이어가 같은 문제를 받는다'고 약속하는데
+   (about/index.html:101 · 각 게임 dailyDesc), 로컬 경계에서는 같은 시각에 나라마다 다른 문제가
+   나가 그 문구가 ★거짓이 된다. 코드를 문구에 맞춘다 — 문구를 내리지 않는다.
+   ★2026-09-07 에는 다수파가 로컬이라 로컬로 잠갔다. 바뀐 것은 코드가 아니라 ★어느 쪽이 정본인가다.
+   ★여기서 임의로 바꾸지 마라 — 저장소의 daily 게임 전체가 이 경계 하나를 쓴다(갈리면 하루가 두 개가 된다).
+   검사: verify_quickmath.js '하루 경계는 KST 다'. */
+/* ★하루 경계 = KST(UTC+9) 고정 — ★시계를 읽는 곳은 kstParts 하나다(오너 결정 2026-09-09 · T0909-daily-kst).
+   ★왜: 공개 문구가 '전 세계 모든 플레이어가 같은 문제'를 약속한다(about/index.html:101 · dailyDesc).
+   로컬 경계에서는 같은 시각에 나라마다 다른 문제가 나가 그 문구가 거짓이 된다 — 코드를 문구에 맞춘다.
+   ★키와 회차를 ★같은 부품에서 파생한다. 갈라지면 키와 #N 이 서로 다른 날을 가리킨다. */
+function kstParts(d){ const k = new Date((d ? d.getTime() : new Date().getTime()) + 9*3600000); return { y:k.getUTCFullYear(), m:k.getUTCMonth(), d:k.getUTCDate() }; }
+function dayKey(d){ const k = kstParts(d); return k.y + '-' + pad2(k.m + 1) + '-' + pad2(k.d); }
 function hashStr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const dailySeedKey = (d) => 'hanpango-daily-quick-math-' + dayKey(d);

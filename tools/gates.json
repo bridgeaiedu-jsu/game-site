@@ -171,6 +171,13 @@
       "cmd": "node tools/check_theme_contrast.mjs .",
       "when": "always",
       "why": "두 테마(라이트·다크)에서 ★렌더된 색으로 글자 대비비를 잰다(보통 4.5:1 · 큰 글자 3:1). CDP 의 Emulation.setEmulatedMedia 로 다크를 강제한다 — 두 라운드 동안 \"다크는 강제할 수단이 없다\" 고 적혀 있던 자리가 여기서 풀렸다(R6 B5). ★always 인 이유: 대비는 제품이 안 바뀌어도 토큰·테마가 바뀌면 깨지고, \"표면 위에 새 글자가 놓이는 변경\" 은 조건부 트리거로 못 덮는다(2026-09-08 실제 사례가 그 모양이었다)."
+    },
+    {
+      "file": "tools/check_daily_boundary.mjs",
+      "cmd": "node tools/check_daily_boundary.mjs .",
+      "when": "always",
+      "why": "하루 경계가 ★KST 하나인가 — 일일 도전 전수의 dayKey·회차·prevDayKey·저장 못박기·스트릭 이행을 정적 전수 + ★TZ 를 강제한 실행으로 잰다(오너 결정 2026-09-09)",
+      "kind": "cli"
     }
   ],
   "per_game": [
@@ -323,6 +330,11 @@
       "file": "tools/verify_word.js",
       "game": "word",
       "kind": "검증기"
+    },
+    {
+      "file": "tools/run_mutations_kst.py",
+      "game": "(전 게임 · 하루 경계)",
+      "kind": "뮤테이션 러너"
     }
   ],
   "non_gate_tools": [
@@ -417,6 +429,18 @@
     {
       "file": "tools/shot-frame.html",
       "why": "스크린샷 촬영용 틀(작업 도구)"
+    },
+    {
+      "file": "tools/bomb_mutation_expectations.json",
+      "why": "뮤테이션 ★기대표 정본 데이터(러너가 읽는다 · 형제 3종과 같은 부류) — ★T0909 에서 등재(기점 c66df0d 에서도 미선언이었다)"
+    },
+    {
+      "file": "tools/mutation_quiet_stage.py",
+      "why": "뮤테이션 러너의 ★대조군 스테이징 보조 모듈(단독 게이트가 아니다 · 러너가 import 한다) — ★T0909 에서 등재(기점 c66df0d 에서도 미선언이었다)"
+    },
+    {
+      "file": "tools/scan_sibling_quiet.py",
+      "why": "형제 러너의 대조군 판별을 세는 ★측정 전용 스캐너(수리 없음 · 판정 게이트가 아니다) — ★T0909 에서 등재(기점 c66df0d 에서도 미선언이었다)"
     }
   ],
   "_optional": "optional_data 는 DEPLOY 체크리스트가 ★조건부로만 부르는 데이터다(아직 없을 수 있다). ★없다고 미달이 아니고, ★있으면 선언된 것으로 센다 — 대신 그 조건을 여기 적어 둔다.",

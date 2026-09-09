@@ -545,8 +545,31 @@ const sDone  = () => { beep(659, .09, 'triangle', .045); beep(988, .14, 'triangl
 /* ======================= 일일 도전(seed) ======================= */
 const DAILY_EPOCH = Date.UTC(2026, 7, 23);   /* 2026-08-23 = #1 (다른 게임과 동일 기준일) */
 const pad2 = n => String(n).padStart(2,'0');
-function dayKey(d=new Date()){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
-function dailyNo(d=new Date()){ return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - DAILY_EPOCH)/86400000) + 1; }
+/* ★하루 경계 = KST(UTC+9) 고정 — ★시계를 읽는 곳은 kstParts 하나다(오너 결정 2026-09-09 · T0909-daily-kst).
+   ★왜: 공개 문구가 '전 세계 모든 플레이어가 같은 문제'를 약속한다(about/index.html:101 · dailyDesc).
+   로컬 경계에서는 같은 시각에 나라마다 다른 문제가 나가 그 문구가 거짓이 된다 — 코드를 문구에 맞춘다.
+   ★키와 회차를 ★같은 부품에서 파생한다. 갈라지면 키와 #N 이 서로 다른 날을 가리킨다. */
+function kstParts(d){ const k = new Date((d ? d.getTime() : new Date().getTime()) + 9*3600000); return { y:k.getUTCFullYear(), m:k.getUTCMonth(), d:k.getUTCDate() }; }
+function dayKey(d){ const k = kstParts(d); return `${k.y}-${pad2(k.m+1)}-${pad2(k.d)}`; }
+function dailyNo(d){ const k = kstParts(d); return Math.floor((Date.UTC(k.y,k.m,k.d) - DAILY_EPOCH)/86400000) + 1; }
+/* ★구 로컬 키 1회 정규화(이행 · master 판정 ② 비대칭 관용).
+   경계를 KST 로 옮기면 저장된 스트릭의 last 가 ★구 로컬 날짜다. 만난 순간 KST 키로 한 번 이관하고
+   그 뒤로는 KST 만 본다 — ★날짜 상수를 박지 않는다(언제 지울지를 다음 사람 숙제로 남기지 않는다).
+   ★완료 잠금(dailyDoneToday)에는 관용을 주지 않는다: 주면 KST 로 이미 넘어간 날의 판이 잠겨
+   사용자가 하루를 통째로 잃는다. 끊긴 스트릭은 복구할 수 없고, 전환일 1회 재플레이는 더 가벼운 손해다. */
+(function normalizeStreakOnce(){ try{
+  const K = 'hm.streak';
+  const raw = localStorage.getItem(K); if (!raw) return;
+  const st = JSON.parse(raw); if (!st || !st.last) return;
+  const prev = k => { const [y,m,d] = k.split('-').map(Number); const t = new Date(Date.UTC(y,m-1,d) - 86400000);
+                      return `${t.getUTCFullYear()}-${pad2(t.getUTCMonth()+1)}-${pad2(t.getUTCDate())}`; };
+  const today = dayKey(), yest = prev(today);
+  if (st.last === today || st.last === yest) return;          /* 이미 KST 계열 — 건드리지 않는다 */
+  const n0 = new Date(), lt = `${n0.getFullYear()}-${pad2(n0.getMonth()+1)}-${pad2(n0.getDate())}`;
+  const mapped = st.last === lt ? today : (st.last === prev(lt) ? yest : null);
+  if (!mapped) return;                                        /* 이틀 이상 지난 기록은 이관 대상이 아니다 */
+  localStorage.setItem(K, JSON.stringify(Object.assign({}, st, { last: mapped })));
+}catch(_){ } })();
 function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
 function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const dailySeedKey = (d=new Date()) => 'hanpango-daily-how-many-' + dayKey(d);
@@ -619,11 +642,14 @@ function saveDaily(result){
 }
 function bumpStreak(day){
   let st; try{ st = JSON.parse(localStorage.getItem('hm.streak')||'{}'); }catch(_){ st = {}; }
+  /* ★같은 날 두 번째 판이 스트릭을 1 로 되돌리지 않는다 — 전환일에는 재플레이가 열려 있으므로
+     이 경로가 ★실제로 밟힌다(master 판정 ②: 완료 잠금에 관용을 주지 않는 대신 여기를 막는다). */
+  if (st && st.last === day) return st.n || 1;
   const n = (st && st.last === prevDayKey(day)) ? (st.n || 0) + 1 : 1;
   localStorage.setItem('hm.streak', JSON.stringify({ last: day, n }));
   return n;
 }
-function prevDayKey(day){ const [y, m, d] = day.split('-').map(Number); const t = new Date(y, m - 1, d); t.setDate(t.getDate() - 1); return dayKey(t); }
+function prevDayKey(day){ const [y, m, d] = day.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1, d) - 86400000); return `${t.getUTCFullYear()}-${pad2(t.getUTCMonth()+1)}-${pad2(t.getUTCDate())}`; }   /* ★키 문자열의 UTC 산술 — 로컬 new Date(y,m,d) 를 경유하면 UTC+9 를 넘는 시간대에서 ★이틀 전을 준다 */
 const streakNow = () => { try{ const s = JSON.parse(localStorage.getItem('hm.streak')||'{}'); const today = dayKey();
   return (s && (s.last === today || s.last === prevDayKey(today))) ? (s.n || 0) : 0; }catch(_){ return 0; } };
 
