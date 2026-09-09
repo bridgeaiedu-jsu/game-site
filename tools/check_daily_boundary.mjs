@@ -109,9 +109,11 @@ if (CHILD){
         getItem: k => (k in store ? store[k] : null),
         setItem: (k, v) => { store[k] = String(v); },
       },
+      /* ★모의 시계는 이 저장소의 시험 하네스와 ★같은 모양으로 만든다 — 생성자만 가짜다.
+         static now() 는 ★일부러 덮지 않는다: 제품이 Date.now() 로 시계를 읽으면 가짜 날짜를
+         우회하는데, 그 우회를 이 게이트가 ★볼 수 있어야 한다(2026-09-09 실측 회귀 부류). */
       Date: class extends Date {
         constructor(...a){ if (!a.length) super(NOW); else super(...a); }
-        static now(){ return NOW; }
       },
     };
     const ctx = vm.createContext(sandbox);
