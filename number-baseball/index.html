@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>숫자야구 — 서로 다른 숫자 넷을 열 번 안에 맞히는 추리 게임 | Number Baseball</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 추리 게임. 0부터 9까지 가운데 서로 다른 숫자 네 개가 답이고, 첫 자리가 0일 수도 있습니다. 네 자리를 넣으면 자리와 숫자가 모두 맞은 개수는 스트라이크, 숫자만 맞은 개수는 볼, 하나도 없으면 아웃으로 알려 줍니다. 열 번 안에 4스트라이크를 만들면 이깁니다 · 매일 자정에 새로 열리는 오늘의 도전은 전 세계가 같은 답을 풉니다. Guess four distinct digits in ten tries — strikes, balls, or out after every guess.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="숫자야구 — 서로 다른 숫자 넷을 열 번 안에 맞히는 추리 게임 | Number Baseball">
+<meta property="og:description" content="스트라이크와 볼만 보고 숫자 넷을 좁혀 갑니다. 열 번이면 충분합니까.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/number-baseball/">
+<meta property="og:image" content="https://hanpango.com/number-baseball/thumb.webp">
+<meta property="og:image:width" content="640">
+<meta property="og:image:height" content="640">
+<link rel="canonical" href="https://hanpango.com/number-baseball/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="hp-ga-disclosure" content="game_start:game,mode; game_end:mode,win,tries,ms; lang_switch:lang">
+<meta name="hp-ga-labels" content="game=어느 게임인지|which game; mode=모드|mode; win=맞혔는지|whether solved; tries=쓴 시도 수|guesses used; ms=걸린 시간(밀리초)|elapsed milliseconds; lang=언어|language">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"숫자야구","alternateName":"Number Baseball","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 바탕)가 기본. 다크는 아래 @media 에서 같은 이름의 값만 바꿔 끼운다 — 마크업은 두 테마가 동일하다.
+     시그니처는 보라(--sig) — 사이트 기본값과 같다. 색 값은 여기 말고 어디에도 박지 않는다.
+     ★이 게임에서 색은 거들 뿐이다 — 판정은 항상 'n스트라이크 m볼' 글자가 함께 말한다(색맹 안전). */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#0ba207; --sig-ink:#075d04; --sig-soft:#d9fdd8; --on-sig:#111827;
+    --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
+    --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
+    --stage:#f2fbf1; --stage-line:#bfe8bd; --stage-ink:#0f3d0d;
+    --btn:#ffffff; --btn-line:#bfe8bd; --btn-ink:#0b5e08;
+    --mark:#0ba207; --mark-soft:#d9fdd8;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#62f85e; --sig-ink:#a5fba2; --sig-soft:#185a16; --on-sig:#111827;
+      --good:#34d399; --good-ink:#bbf7d0; --good-soft:#14532d;
+      --warn:#fbbf24; --bad:#fca5a5; --bad-ink:#fecaca; --bad-soft:#4c1d1d;
+      --stage:#191540; --stage-line:#2f6b2c; --stage-ink:#e9ffe7;
+      --btn:#241f5c; --btn-line:#2f6b2c; --btn-ink:#e9ffe7;
+      --mark:#62f85e; --mark-soft:#1f5d1d;
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px 4px;}
+  h1{font-size:1.05rem;margin:0;letter-spacing:.02em;flex:1 1 auto;min-width:0;line-height:1.2}
+  h1 small{display:block;color:var(--muted);font-weight:400;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-btns{display:flex;gap:6px;flex:0 0 auto}
+  .ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 9px;font-size:.8rem;cursor:pointer;white-space:nowrap}
+  .ibtn:active{transform:scale(.96)}
+  .scores{width:100%;max-width:520px;display:flex;gap:6px;padding:4px 14px}
+  .score{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .score b{display:block;font-size:1.2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+  .score span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  /* ---- 광고 슬롯 ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}
+  .ad-rect{width:300px;height:250px;margin:10px auto}
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;padding:4px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .bhead{width:100%;max-width:min(100%,420px);display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .chip{font-size:.72rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--muted-2);font-weight:600}
+  /* ---- 숫자 판 ----
+     ★클래스에 nb- 를 붙인다. 전역 유틸(.chip·.hint)과 이름이 겹치면 글자 크기·여백이 조용히 먹힌다(기존 실측 결함). */
+  .nb-board{display:grid;gap:5px;width:100%;max-width:420px}
+  .nb-row{display:grid;grid-template-columns:repeat(4,1fr) 4.6em;gap:5px;align-items:stretch}
+  .nb-cell{aspect-ratio:1/1.06;display:flex;align-items:center;justify-content:center;background:var(--stage);
+           border:2px solid var(--stage-line);border-radius:8px;color:var(--stage-ink);
+           font-size:clamp(1rem,5.2vw,1.5rem);font-weight:700;line-height:1;font-variant-numeric:tabular-nums;user-select:none}
+  .nb-cell.nb-filled{border-color:var(--mark)}
+  .nb-cell.nb-cur{border-color:var(--sig-ink)}
+  .nb-badge{display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--line);
+            background:var(--panel2);color:var(--muted-2);font-size:.74rem;font-weight:700;white-space:nowrap;
+            font-variant-numeric:tabular-nums}
+  .nb-badge.nb-hit{background:var(--good-soft);border-color:var(--good);color:var(--good-ink)}
+  .nb-badge.nb-out{background:var(--bad-soft);border-color:var(--bad);color:var(--bad-ink)}
+  .nb-row.nb-shake{animation:nb-shake .4s}
+  @keyframes nb-shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}
+                      30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
+  /* ---- 숫자 자판 ---- */
+  .nb-kb{display:flex;flex-direction:column;gap:6px;width:100%;max-width:420px}
+  .nb-krow{display:flex;gap:4px;justify-content:center}
+  .nb-kb button{flex:1 1 0;min-width:0;background:var(--btn);border:1px solid var(--btn-line);color:var(--btn-ink);
+                border-radius:7px;padding:12px 0;font-size:clamp(.9rem,3.8vw,1.1rem);font-weight:700;
+                cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;
+                font-variant-numeric:tabular-nums}
+  .nb-kb button:active{background:var(--mark-soft)}
+  .nb-kb button.nb-wide{flex:1.5 1 0;font-size:.8rem;letter-spacing:.02em;font-weight:600}
+  .nb-kb button.nb-gone{background:var(--panel2);border-color:var(--line);color:var(--muted);text-decoration:line-through}
+  .nb-kb button.nb-used{outline:2px solid var(--sig);outline-offset:1px}
+  .nb-help{color:var(--muted);font-size:.78rem;text-align:center;margin:0;max-width:32em}
+  .nb-rules{color:var(--muted-2);font-size:.76rem;text-align:center;margin:0;max-width:32em;line-height:1.5}
+  /* ---- 오버레이 ---- */
+  .overlay{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .overlay.show{display:flex}
+  .card-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 18px calc(18px + var(--safe-b));width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px var(--shadow);max-height:100dvh;overflow-y:auto}
+  .card-box h2{margin:0 0 6px;font-size:1.5rem}
+  .card-box .big{font-size:2.6rem;font-weight:800;color:var(--sig-ink);line-height:1.1;font-variant-numeric:tabular-nums}
+  .card-box .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .card-box .marks{font-size:.95rem;letter-spacing:.02em;margin:4px 0;line-height:1.5;word-break:break-word;font-variant-numeric:tabular-nums;white-space:pre-line}
+  .card-box .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .hp-stat[hidden]{display:none!important}
+  .card-box .hp-stat b{font-weight:600}
+  .card-box .new{color:var(--good);font-weight:700;font-size:.9rem;margin-bottom:6px;min-height:1.2em}
+  .card-box .reason{font-size:.95rem;font-weight:600;margin:2px 0 6px;min-height:1.2em;color:var(--good-ink)}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:8px}
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn:active{transform:scale(.98)}
+  .btn[disabled]{opacity:.5;cursor:default}
+  .btn[hidden]{display:none}
+  .stats3{display:flex;gap:6px;margin:10px 0 4px}
+  .stats3 div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .stats3 b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums;word-break:keep-all}
+  .stats3 span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .toggles{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  /* ---- 콘텐츠 섹션(AdSense 콘텐츠 정책용) ---- */
+  section.content{width:100%;max-width:520px;padding:8px 14px 28px;color:var(--muted);font-size:.88rem;line-height:1.6}
+  section.content h2{color:var(--text);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--panel)}
+  section.content summary{cursor:pointer;color:var(--text);font-weight:600}
+  section.content a{color:var(--muted-2)}
+  footer{color:var(--muted);font-size:.72rem;padding:0 14px calc(16px + var(--safe-b));text-align:center;max-width:520px}
+  footer a{color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:calc(84px + var(--safe-b));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  body.nb-running .scores,body.nb-running .ad-slot{display:none}
+  @media (min-width:720px){ .ad-top{height:90px} }
+  /* ★좁은 화면에서는 머리줄 버튼의 낱말을 접고 아이콘만 남긴다 — 그러지 않으면 버튼 묶음이
+     제목의 자리를 빼앗아 영어 제목이 여러 줄로 접힌다(360px 실측 · inspect-en-layout-at-360-not-only-ko).
+     낱말을 접어도 뜻은 aria-label 이 지니고 있어 낭독기에는 그대로 읽힌다. */
+  @media (max-width:400px){
+    header .ibtn .lbl{display:none}
+    header .ibtn{padding:5px 8px}
+    .nb-row{grid-template-columns:repeat(4,1fr) 4.2em}
+  }
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  @media (prefers-reduced-motion: reduce){
+    .toast{transition:none}
+    .btn:active,.ibtn:active,.nb-kb button:active{transform:none}
+    .nb-row.nb-shake{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span data-i18n="title">숫자야구</span> <small id="subtitle" data-i18n="subtitle">서로 다른 숫자 넷 · 열 번</small></h1>
+  <div class="hdr-btns">
+    <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 <span class="lbl">다른 게임</span></a>
+    <button class="ibtn" id="btnSound" aria-label="sound" aria-pressed="true">🔊</button>
+    <button class="ibtn" id="btnLang" aria-label="language">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 위 띠광고 자리. 실제 <ins class="adsbygoogle"> 는 이 div 안에 넣고 .live 를 붙인다. -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+
+<div class="scores">
+  <div class="score"><b id="bestNow">–</b><span data-i18n="bestLbl">최고 기록</span></div>
+  <div class="score"><b id="modeNow">–</b><span data-i18n="modeLbl">모드</span></div>
+  <div class="score"><b id="streakNowEl">0</b><span data-i18n="streakLbl">연속</span></div>
+</div>
+
+<main>
+  <div class="wrap">
+    <div class="bhead">
+      <!-- ★딱지의 글자는 진행 중에 바뀐다 — 그래서 data-i18n 을 붙이지 않는다.
+           붙이면 언어 전환이 진행 중 내용을 안내 문구로 갈아엎는다(기존 실측 결함). 글은 paintHud() 가 넣는다. -->
+      <span class="chip" id="triesChip">남은 시도 10</span>
+      <span class="chip" id="modeChip">오늘의 도전</span>
+    </div>
+    <div class="nb-board" id="board" role="grid" aria-label="board"></div>
+    <div class="nb-kb" id="kb" aria-label="keypad"></div>
+    <p class="nb-rules" id="rules" data-i18n="rules">답은 <strong>0~9 가운데 서로 다른 숫자 넷</strong>입니다. <strong>첫 자리가 0일 수도</strong> 있습니다. 자리와 숫자가 모두 맞으면 <strong>스트라이크</strong>, 숫자만 맞으면 <strong>볼</strong>, 하나도 없으면 <strong>아웃</strong>입니다.</p>
+  </div>
+  <p id="srSummary" class="sr-only" aria-live="polite"></p>
+  <p class="nb-help" id="help" data-i18n="hint">숫자를 눌러 네 자리를 채우고 Enter 로 제출 · Backspace 로 지우기</p>
+</main>
+
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="card-box">
+    <h2 id="overTitle" data-i18n="result">결과</h2>
+    <div class="big" id="finalBig">–</div>
+    <div class="reason" id="finalLine"></div>
+    <div class="marks" id="marks"></div>
+    <div class="new" id="streakLine" style="color:var(--sig-ink)"></div>
+    <div class="new" id="newBest"></div>
+    <div class="stats3">
+      <div><b id="nTries">0</b><span data-i18n="nTriesLbl">시도</span></div>
+      <div><b id="nResult">–</b><span data-i18n="nResultLbl">결과</span></div>
+      <div><b id="nTime">0.0</b><span data-i18n="nTimeLbl">걸린 시간</span></div>
+    </div>
+    <div class="sub" id="finalSub"></div>
+    <!-- ADSENSE (3/3) — 결과 카드의 사각 광고 자리. ★결과 창에 광고를 자동으로 띄우지 않는다(정책). -->
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <button class="btn primary" id="btnAgain" data-i18n="again">한 판 더</button>
+    <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
+    <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
+  </div>
+</div>
+
+<div class="overlay show" id="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="card-box">
+    <h2 id="startTitle" data-i18n="title2">숫자야구</h2>
+    <div class="sub" data-i18n="startSub">0~9 가운데 서로 다른 숫자 넷을<br>열 번 안에 맞혀 보세요.<br>한 판 2~5분.</div>
+    <button class="btn primary" id="btnDaily">🔥 오늘의 도전</button>
+    <div class="sub" id="dailyHint" style="margin:2px 0 6px"></div>
+    <button class="btn ghost" id="btnStart" data-i18n="start">▶ 자유 모드</button>
+    <div class="toggles">
+      <button class="ibtn" id="btnSound2" aria-label="sound" aria-pressed="true">🔊</button>
+      <button class="ibtn" id="btnLang2" aria-label="language">EN</button>
+    </div>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.number-baseball.today">–</b>판 · 누적 <b data-hp="plays.number-baseball.total">–</b>판</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">숫자야구는 0부터 9까지 가운데 서로 다른 숫자 네 개로 이루어진 답 하나를 열 번 안에 알아맞히는 추리 놀이입니다. 답에 같은 숫자가 두 번 들어가는 일은 없고, 첫 자리가 0일 수도 있습니다. 예를 들어 0439 나 7102 는 답이 될 수 있지만 1123 처럼 같은 숫자가 겹친 것은 답이 되지 않습니다.</p>
+  <p data-i18n="how2">한 번 제출할 때마다 세 가지로 알려 줍니다. 자리와 숫자가 모두 맞은 개수는 스트라이크이고, 숫자는 답에 있지만 자리가 다른 개수는 볼이며, 네 숫자가 하나도 답에 없으면 아웃입니다. 예를 들어 답이 0123 이고 0132 를 넣으면 0 과 1 은 자리까지 맞아 2스트라이크, 3 과 2 는 자리만 달라 2볼이 되어 2스트라이크 2볼로 나옵니다.</p>
+  <p data-i18n="how3">입력은 화면 자판을 누르거나 컴퓨터 자판의 숫자키를 그대로 치면 됩니다. 네 자리를 채운 뒤 Enter 로 제출하고 Backspace 로 지웁니다. 같은 숫자를 두 번 넣으면 제출되지 않고 그 줄이 흔들리며 이유를 알려 주는데, 이때 시도 횟수는 줄지 않습니다.</p>
+  <p data-i18n="how4">아웃이 나온 줄의 숫자 네 개는 답에 하나도 없다는 뜻이므로 자판에서 꺼집니다. 꺼진 숫자를 빼고 남은 것만 놓고 생각하면 남은 시도가 훨씬 편해집니다. 열 번 안에 4스트라이크를 만들면 이기고, 열 번을 모두 쓰면 그 판은 끝나면서 답을 알려 줍니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 답이 열립니다. 전 세계 모든 사람이 같은 날에 같은 답을 풀고, 하루 한 번만 도전할 수 있습니다. 하루 경계는 한국 시간(UTC+9)으로 고정되어 있어 어느 나라에서 열어도 같은 날에는 같은 문제가 나옵니다. 결과는 답을 드러내지 않는 색 이모지로 공유할 수 있어 친구와 같은 문제를 두고 견줘 볼 수 있습니다. 연속으로 성공하면 🔥 연속 기록이 쌓입니다. 더 풀고 싶으면 자유 모드에서 횟수 제한 없이 새 판을 열 수 있습니다.</p>
+  <h2 data-i18n="tipsTitle">잘 맞히는 요령</h2>
+  <details><summary data-i18n="tip1q">첫 두 번으로 숫자 여덟 개를 훑으세요</summary><p data-i18n="tip1a">0123 과 4567 처럼 겹치지 않는 두 조를 먼저 넣으면 열 숫자 가운데 여덟 개의 포함 여부를 한꺼번에 압니다. 두 줄의 스트라이크와 볼을 합하면 남은 8 과 9 가 답에 들었는지도 셈으로 나옵니다.</p></details>
+  <details><summary data-i18n="tip2q">아웃은 가장 값진 정보입니다</summary><p data-i18n="tip2a">아웃이 한 번 나오면 숫자 네 개가 통째로 사라집니다. 남은 여섯 개로 경우의 수가 크게 줄어드니, 초반에는 아웃을 손해로 보지 말고 후보를 지우는 수로 쓰세요.</p></details>
+  <details><summary data-i18n="tip3q">볼만 나오면 자리를 돌려 보세요</summary><p data-i18n="tip3a">볼은 숫자는 맞고 자리가 틀렸다는 뜻입니다. 같은 네 숫자를 그대로 두고 순서만 바꿔 넣으면 스트라이크가 늘어나는 모양을 보고 자리를 좁힐 수 있습니다.</p></details>
+  <details><summary data-i18n="tip4q">합계를 세어 보세요</summary><p data-i18n="tip4a">스트라이크와 볼을 더한 값은 내가 넣은 네 숫자 가운데 답에 들어 있는 개수입니다. 자리를 따지기 전에 이 합계만 모아도 답에 들어가는 네 숫자를 먼저 확정할 수 있습니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
+  <details><summary data-i18n="faq2q">답에 같은 숫자가 들어갈 수 있나요?</summary><p data-i18n="faq2a">아니요. 답의 네 숫자는 모두 서로 다릅니다. 대신 첫 자리가 0 일 수는 있습니다. 제출하는 숫자도 네 개가 서로 달라야 하며, 겹치면 제출 전에 막고 이유를 알려 줍니다.</p></details>
+  <details><summary data-i18n="faq3q">오늘의 도전은 모두 같은 답인가요?</summary><p data-i18n="faq3a">같습니다. 답은 날짜에서만 뽑고 시계는 섞지 않으므로, 같은 날(한국 시간 기준)에 열면 누구나 같은 답을 풉니다. 판을 시작할 때 답을 한 번 정하고 그 뒤에는 어떤 행동도 답을 바꾸지 않습니다.</p></details>
+  <details><summary data-i18n="faq4q">오프라인에서도 되나요?</summary><p data-i18n="faq4a">한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.</p></details>
+  <details><summary data-i18n="faq5q">기록은 어디에 저장되나요?</summary><p data-i18n="faq5a">사용 중인 기기의 브라우저에만 저장됩니다. 최고 기록·오늘의 도전 결과·연속 기록·소리 설정 네 가지가 이 기기에 남고, 서버로는 판수를 세는 신호만 보냅니다(누가 했는지는 보내지 않습니다). 자세한 내용은 <a href="/privacy/">개인정보처리방침</a>에 적어 두었습니다.</p></details>
+</section>
+
+<footer>
+  <span data-i18n="footer">© 2026 숫자야구 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+</footer>
+
+<script>
+(() => {
+'use strict';
+/* ── GA4 측정 ───────────────────────────────────────────────────────────────
+   재기만 한다 — 게임 로직·판정에는 관여하지 않는다. 태그가 아직 실리지 않았거나 차단됐으면 조용히 지나간다. */
+const GA_GAME = 'number-baseball';
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ======================= 판의 규격(순수 상수) ======================= */
+const SLOTS = 4;                 /* 한 번에 넣는 자리 수 */
+const MAX_TRIES = 10;            /* ★열 번 안에 4스트라이크면 승리(브리프 1절) */
+const SEED_NS = 'hanpango-daily-number-baseball-';
+/* ★답은 0~9 가운데 ★서로 다른 숫자 넷이다. ★첫 자리 0 을 허용한다(브리프가 명시) —
+   그래서 답을 문자열로 다룬다. 숫자로 다루면 0 으로 시작하는 답이 세 자리로 줄어든다. */
+const DIGITS = ['0','1','2','3','4','5','6','7','8','9'];
+
+/* ======================= i18n(UI) ======================= */
+const I18N = {
+  ko: {
+    docTitle:'숫자야구 — 서로 다른 숫자 넷을 열 번 안에 맞히는 추리 게임 | Number Baseball',
+    title:'숫자야구', title2:'숫자야구', subtitle:'서로 다른 숫자 넷 · 열 번',
+    home:'🏠 <span class="lbl">다른 게임</span>', langBtn:'EN',
+    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    bestLbl:'최고 기록', modeLbl:'모드', streakLbl:'연속',
+    nTriesLbl:'시도', nResultLbl:'결과', nTimeLbl:'걸린 시간',
+    result:'결과', again:'한 판 더', share:'결과 공유', start:'▶ 자유 모드',
+    startSub:'0~9 가운데 서로 다른 숫자 넷을<br>열 번 안에 맞혀 보세요.<br>한 판 2~5분.',
+    hint:'숫자를 눌러 네 자리를 채우고 Enter 로 제출 · Backspace 로 지우기',
+    rules:'답은 <strong>0~9 가운데 서로 다른 숫자 넷</strong>입니다. <strong>첫 자리가 0일 수도</strong> 있습니다. 자리와 숫자가 모두 맞으면 <strong>스트라이크</strong>, 숫자만 맞으면 <strong>볼</strong>, 하나도 없으면 <strong>아웃</strong>입니다.',
+    statPlays:'오늘 <b data-hp="plays.number-baseball.today">–</b>판 · 누적 <b data-hp="plays.number-baseball.total">–</b>판',
+    secUnit:'초',
+    modeDaily:'오늘의 도전', modeFree:'자유 모드',
+    dailyBtn:no => `🔥 오늘의 도전 #${no}`, dailyDoneBtn:no => `✅ 오늘의 도전 #${no} 완료`,
+    dailyHint:'전 세계가 같은 답 · 하루 한 번', dailyHintDone:'오늘은 이미 풀었습니다 · 자유 모드로 더 하기',
+    triesChip:n => `남은 시도 ${n}`,
+    copied:'결과를 복사했습니다',
+    tooShort:'네 자리를 모두 채워 주세요',
+    dupDigit:'같은 숫자를 두 번 넣을 수 없습니다',
+    alreadyTried:'이미 넣어 본 숫자입니다',
+    win:'맞혔습니다!', lose:'아쉽네요',
+    finalWin:n => `${n}번째에 맞혔습니다`,
+    finalLose:ans => `정답은 ${ans} 였습니다`,
+    winBig:n => `${n} / ${MAX_TRIES}`, loseBig:'X',
+    resultWin:'승', resultLose:'패',
+    resultSubDaily:'내일 자정에 새 답이 열립니다', resultSubFree:'자유 모드는 횟수 제한이 없습니다',
+    newBest:n => `🎉 최고 기록 ${n}번`,
+    streakGo:n => `🔥 ${n}일 연속`,
+    dailyShare:(no, t, marks, streak) => `숫자야구 #${no} ${t}/${MAX_TRIES}\n${marks}\n🔥 ${streak}일 연속\n`,
+    freeShare:(t, marks) => `숫자야구 자유 모드 ${t}/${MAX_TRIES}\n${marks}\n`,
+    ariaSoundOn:'소리 끄기', ariaSoundOff:'소리 켜기', ariaLang:'언어 바꾸기', ariaHome:'다른 게임 보기',
+    ariaBoard:'숫자 판, 10줄 4칸', ariaKb:'숫자 자판', ariaEnter:'제출', ariaBack:'한 칸 지우기',
+    cellName:(r,c) => `${r}번째 시도 ${c}번째 칸`,
+    emptyCell:'빈 칸', curRow:'지금 넣는 줄',
+    badgeOut:'아웃', badgeSB:(s,b) => `${s}S ${b}B`,
+    srRow:(n,s) => `${n}번째 시도: ${s}`,
+    srWin:n => `맞혔습니다. ${n}번째 시도였습니다.`,
+    srLose:ans => `열 번을 다 썼습니다. 정답은 ${ans} 입니다.`,
+    srGo:'판이 시작됐습니다. 네 자리를 넣고 제출하세요.',
+    howTitle:'게임 방법', dailyTitle:'오늘의 도전', tipsTitle:'잘 맞히는 요령', faqTitle:'자주 묻는 질문',
+    navPrivacy:'개인정보처리방침', navAbout:'소개',
+    footer:'© 2026 숫자야구 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    how1:'숫자야구는 0부터 9까지 가운데 서로 다른 숫자 네 개로 이루어진 답 하나를 열 번 안에 알아맞히는 추리 놀이입니다. 답에 같은 숫자가 두 번 들어가는 일은 없고, 첫 자리가 0일 수도 있습니다. 예를 들어 0439 나 7102 는 답이 될 수 있지만 1123 처럼 같은 숫자가 겹친 것은 답이 되지 않습니다.',
+    how2:'한 번 제출할 때마다 세 가지로 알려 줍니다. 자리와 숫자가 모두 맞은 개수는 스트라이크이고, 숫자는 답에 있지만 자리가 다른 개수는 볼이며, 네 숫자가 하나도 답에 없으면 아웃입니다. 예를 들어 답이 0123 이고 0132 를 넣으면 0 과 1 은 자리까지 맞아 2스트라이크, 3 과 2 는 자리만 달라 2볼이 되어 2스트라이크 2볼로 나옵니다.',
+    how3:'입력은 화면 자판을 누르거나 컴퓨터 자판의 숫자키를 그대로 치면 됩니다. 네 자리를 채운 뒤 Enter 로 제출하고 Backspace 로 지웁니다. 같은 숫자를 두 번 넣으면 제출되지 않고 그 줄이 흔들리며 이유를 알려 주는데, 이때 시도 횟수는 줄지 않습니다.',
+    how4:'아웃이 나온 줄의 숫자 네 개는 답에 하나도 없다는 뜻이므로 자판에서 꺼집니다. 꺼진 숫자를 빼고 남은 것만 놓고 생각하면 남은 시도가 훨씬 편해집니다. 열 번 안에 4스트라이크를 만들면 이기고, 열 번을 모두 쓰면 그 판은 끝나면서 답을 알려 줍니다.',
+    dailyDesc:'매일 자정에 새 답이 열립니다. 전 세계 모든 사람이 같은 날에 같은 답을 풀고, 하루 한 번만 도전할 수 있습니다. 하루 경계는 한국 시간(UTC+9)으로 고정되어 있어 어느 나라에서 열어도 같은 날에는 같은 문제가 나옵니다. 결과는 답을 드러내지 않는 색 이모지로 공유할 수 있어 친구와 같은 문제를 두고 견줘 볼 수 있습니다. 연속으로 성공하면 🔥 연속 기록이 쌓입니다. 더 풀고 싶으면 자유 모드에서 횟수 제한 없이 새 판을 열 수 있습니다.',
+    tip1q:'첫 두 번으로 숫자 여덟 개를 훑으세요',
+    tip1a:'0123 과 4567 처럼 겹치지 않는 두 조를 먼저 넣으면 열 숫자 가운데 여덟 개의 포함 여부를 한꺼번에 압니다. 두 줄의 스트라이크와 볼을 합하면 남은 8 과 9 가 답에 들었는지도 셈으로 나옵니다.',
+    tip2q:'아웃은 가장 값진 정보입니다',
+    tip2a:'아웃이 한 번 나오면 숫자 네 개가 통째로 사라집니다. 남은 여섯 개로 경우의 수가 크게 줄어드니, 초반에는 아웃을 손해로 보지 말고 후보를 지우는 수로 쓰세요.',
+    tip3q:'볼만 나오면 자리를 돌려 보세요',
+    tip3a:'볼은 숫자는 맞고 자리가 틀렸다는 뜻입니다. 같은 네 숫자를 그대로 두고 순서만 바꿔 넣으면 스트라이크가 늘어나는 모양을 보고 자리를 좁힐 수 있습니다.',
+    tip4q:'합계를 세어 보세요',
+    tip4a:'스트라이크와 볼을 더한 값은 내가 넣은 네 숫자 가운데 답에 들어 있는 개수입니다. 자리를 따지기 전에 이 합계만 모아도 답에 들어가는 네 숫자를 먼저 확정할 수 있습니다.',
+    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'답에 같은 숫자가 들어갈 수 있나요?',
+    faq2a:'아니요. 답의 네 숫자는 모두 서로 다릅니다. 대신 첫 자리가 0 일 수는 있습니다. 제출하는 숫자도 네 개가 서로 달라야 하며, 겹치면 제출 전에 막고 이유를 알려 줍니다.',
+    faq3q:'오늘의 도전은 모두 같은 답인가요?',
+    faq3a:'같습니다. 답은 날짜에서만 뽑고 시계는 섞지 않으므로, 같은 날(한국 시간 기준)에 열면 누구나 같은 답을 풉니다. 판을 시작할 때 답을 한 번 정하고 그 뒤에는 어떤 행동도 답을 바꾸지 않습니다.',
+    faq4q:'오프라인에서도 되나요?', faq4a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
+    faq5q:'기록은 어디에 저장되나요?',
+    faq5a:'사용 중인 기기의 브라우저에만 저장됩니다. 최고 기록·오늘의 도전 결과·연속 기록·소리 설정 네 가지가 이 기기에 남고, 서버로는 판수를 세는 신호만 보냅니다(누가 했는지는 보내지 않습니다). 자세한 내용은 <a href="/privacy/">개인정보처리방침</a>에 적어 두었습니다.'
+  },
+  en: {
+    docTitle:'Number Baseball — guess four distinct digits in ten tries | 숫자야구',
+    title:'Number Baseball', title2:'Number Baseball', subtitle:'Four distinct digits · ten tries',
+    home:'🏠 <span class="lbl">More games</span>', langBtn:'한국어',
+    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    bestLbl:'Best', modeLbl:'Mode', streakLbl:'Streak',
+    nTriesLbl:'Tries', nResultLbl:'Result', nTimeLbl:'Time',
+    result:'Result', again:'Play again', share:'Share result', start:'▶ Free play',
+    startSub:'Guess four distinct digits from 0–9<br>within ten tries.<br>2–5 minutes a round.',
+    hint:'Tap digits to fill four slots · Enter to submit · Backspace to erase',
+    rules:'The answer is <strong>four distinct digits from 0–9</strong>, and it <strong>may start with 0</strong>. Right digit in the right slot is a <strong>strike</strong>, right digit in the wrong slot is a <strong>ball</strong>, none at all is an <strong>out</strong>.',
+    statPlays:'<b data-hp="plays.number-baseball.today">–</b> today · <b data-hp="plays.number-baseball.total">–</b> all-time',
+    secUnit:'s',
+    modeDaily:'Daily', modeFree:'Free play',
+    dailyBtn:no => `🔥 Daily #${no}`, dailyDoneBtn:no => `✅ Daily #${no} done`,
+    dailyHint:'Same answer worldwide · once a day', dailyHintDone:'Already solved today · try free play',
+    triesChip:n => `${n} tries left`,
+    copied:'Result copied',
+    tooShort:'Fill all four slots first',
+    dupDigit:'A digit cannot repeat',
+    alreadyTried:'You already tried that number',
+    win:'Solved!', lose:'Out of tries',
+    finalWin:n => `Solved on try ${n}`,
+    finalLose:ans => `The answer was ${ans}`,
+    winBig:n => `${n} / ${MAX_TRIES}`, loseBig:'X',
+    resultWin:'Win', resultLose:'Loss',
+    resultSubDaily:'A new answer opens at midnight', resultSubFree:'Free play has no daily limit',
+    newBest:n => `🎉 New best: ${n} tries`,
+    streakGo:n => `🔥 ${n}-day streak`,
+    dailyShare:(no, t, marks, streak) => `Number Baseball #${no} ${t}/${MAX_TRIES}\n${marks}\n🔥 ${streak}-day streak\n`,
+    freeShare:(t, marks) => `Number Baseball free play ${t}/${MAX_TRIES}\n${marks}\n`,
+    ariaSoundOn:'Turn sound off', ariaSoundOff:'Turn sound on', ariaLang:'Change language', ariaHome:'See other games',
+    ariaBoard:'number board, 10 rows of 4 digits', ariaKb:'number keypad', ariaEnter:'Submit', ariaBack:'Erase one digit',
+    cellName:(r,c) => `try ${r}, slot ${c}`,
+    emptyCell:'empty', curRow:'current row',
+    badgeOut:'Out', badgeSB:(s,b) => `${s}S ${b}B`,
+    srRow:(n,s) => `Try ${n}: ${s}`,
+    srWin:n => `Solved on try ${n}.`,
+    srLose:ans => `All ten tries used. The answer was ${ans}.`,
+    srGo:'Round started. Fill four digits and submit.',
+    howTitle:'How to play', dailyTitle:'Daily challenge', tipsTitle:'Tips', faqTitle:'FAQ',
+    navPrivacy:'Privacy', navAbout:'About',
+    footer:'© 2026 Number Baseball · Privacy: records stay on your device; Google and other third-party cookies may be used to serve ads.',
+    how1:'Number Baseball asks you to find one hidden number made of four distinct digits from 0 to 9 within ten tries. No digit repeats in the answer, and the first digit may be 0 — so 0439 and 7102 are possible answers while 1123 is not.',
+    how2:'Every guess comes back in three terms. A strike is a digit that is correct and in the correct slot, a ball is a digit that is in the answer but in another slot, and an out means none of your four digits appear at all. If the answer is 0123 and you guess 0132, then 0 and 1 are strikes and 3 and 2 are balls, so the row reads two strikes and two balls.',
+    how3:'Tap the on-screen keypad or type digits on your keyboard. Fill four slots, press Enter to submit, and Backspace to erase. If you repeat a digit the guess is refused, the row shakes and tells you why, and the try is not spent.',
+    how4:'The four digits of a row that came back as an out are absent from the answer, so they switch off on the keypad. Ruling them out makes the remaining tries much easier. Four strikes within ten tries wins; spending all ten ends the round and reveals the answer.',
+    dailyDesc:'A new answer opens every midnight. Everyone in the world solves the same answer on the same day, once a day. The day boundary is fixed to Korean time (UTC+9), so the same date gives the same puzzle wherever you open it. Results can be shared as colour emoji that never reveal the answer, so you can compare the same puzzle with friends. Solving on consecutive days builds a 🔥 streak. Want more? Free play opens new rounds without any daily limit.',
+    tip1q:'Sweep eight digits in your first two guesses',
+    tip1a:'Guessing two disjoint sets such as 0123 and 4567 tells you at once how many of those eight digits belong to the answer. Adding up the strikes and balls of both rows even tells you whether 8 and 9 are in.',
+    tip2q:'An out is the most valuable answer',
+    tip2a:'One out removes four digits in a single stroke. With only six candidates left the search shrinks hard, so early on treat an out as progress rather than a loss.',
+    tip3q:'When only balls show up, rotate the slots',
+    tip3a:'A ball means the digit is right and the slot is wrong. Keep the same four digits and reorder them: watching the strike count rise pins the slots down quickly.',
+    tip4q:'Add the two numbers together',
+    tip4a:'Strikes plus balls is exactly how many of your four digits belong to the answer. Collecting that sum alone, before worrying about slots, settles which four digits the answer is made of.',
+    faq1q:'Do I need to install anything?', faq1a:'No. It runs straight in the browser. Add it to your home screen to use it like an app.',
+    faq2q:'Can a digit repeat in the answer?',
+    faq2a:'No. The four digits of the answer are all different, though the first one may be 0. Your guesses must also use four different digits; a repeat is refused before it is submitted and the reason is shown.',
+    faq3q:'Does everyone get the same daily answer?',
+    faq3a:'Yes. The answer is drawn from the date alone with no clock mixed in, so opening it on the same day (Korean time) gives everyone the same answer. The answer is drawn once when the round starts and nothing you do afterwards changes it.',
+    faq4q:'Does it work offline?', faq4a:'After the first load you can play without an internet connection.',
+    faq5q:'Where are my records stored?',
+    faq5a:'Only in the browser on the device you are using. Four things stay on this device — your best score, the daily result, the streak and the sound setting — and the only thing sent to the server is a play count signal that does not say who played. Details are in the <a href="/privacy/">privacy policy</a>.'
+  }
+};
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } };
+
+/* ======================= 소리 ======================= */
+let soundOn = localStorage.getItem('nb.sound') !== '0', actx = null;
+function beep(freq, dur=0.06, type='square', gain=0.04, delay=0){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const t0 = actx.currentTime + delay;
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(gain, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }catch(e){}
+}
+const vib = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+const sKey   = () => beep(520, .03, 'square', .025);
+const sGo    = () => { beep(660, .07, 'triangle', .04); vib(14); };
+const sRow   = () => { beep(760, .05, 'triangle', .035); vib(8); };
+const sBad   = () => { beep(170, .13, 'sawtooth', .035); vib([16, 36, 16]); };
+const sDone  = () => { beep(659, .09, 'triangle', .045); beep(988, .14, 'triangle', .04, .09); vib([20,40,20]); };
+
+/* ======================= ★시계 =======================
+   · 걸린 시간은 매번 (지금 - 시작)으로 다시 셈한다 — 더해 가지 않는다(누적 오차·멈춤 구간이 섞인다).
+   · requestAnimationFrame 은 ★그리기 전용이다. 판정·기록은 프레임 수에 의존하지 않는다.
+   · 최종 기록은 누른 순간의 도장(event.timeStamp)에서 다시 셈한다.
+   · ★시간은 이 게임의 승패를 정하지 않는다 — 곁들이는 기록일 뿐이다(승패는 스트라이크가 정한다). */
+const nowMs = () => performance.now();
+const STAMP_TOLERANCE_MS = 1000;   /* 도장이 지금과 이만큼 넘게 벌어져 있으면 믿지 않는다 */
+function stampOf(ev){
+  const t = nowMs();
+  if (!ev) return t;
+  const s = ev.timeStamp;
+  if (typeof s === 'number' && isFinite(s) && s > 0 && Math.abs(t - s) <= STAMP_TOLERANCE_MS) return s;
+  return t;
+}
+
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   /* 2026-08-23 = #1 (다른 게임과 동일 기준일) */
+const pad2 = n => String(n).padStart(2,'0');
+/* ★하루 경계 = KST(UTC+9) 고정 — ★시계를 읽는 곳은 kstParts 하나다(오너 결정 2026-09-09 · T0909-daily-kst).
+   ★왜: 공개 문구가 '전 세계 모든 플레이어가 같은 문제'를 약속한다. 로컬 경계에서는 같은 시각에
+   나라마다 다른 문제가 나가 그 문구가 거짓이 된다 — 코드를 문구에 맞춘다.
+   ★키와 회차를 ★같은 부품에서 파생한다. 갈라지면 키와 #N 이 서로 다른 날을 가리킨다. */
+function kstParts(d){ const k = new Date((d ? d.getTime() : new Date().getTime()) + 9*3600000); return { y:k.getUTCFullYear(), m:k.getUTCMonth(), d:k.getUTCDate() }; }
+function dayKey(d){ const k = kstParts(d); return `${k.y}-${pad2(k.m+1)}-${pad2(k.d)}`; }
+function dailyNo(d){ const k = kstParts(d); return Math.floor((Date.UTC(k.y,k.m,k.d) - DAILY_EPOCH)/86400000) + 1; }
+function prevDayKey(day){ const [y, m, d] = day.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1, d) - 86400000); return `${t.getUTCFullYear()}-${pad2(t.getUTCMonth()+1)}-${pad2(t.getUTCDate())}`; }   /* ★키 문자열의 UTC 산술 — 로컬 new Date(y,m,d) 를 경유하면 UTC+9 를 넘는 시간대에서 ★이틀 전을 준다 */
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+/* ★답을 뽑는 자리는 여기 하나다. ★이 함수 안에서 시계를 읽지 않는다 —
+   읽으면 같은 날인데 사람마다 답이 갈린다. ★시간 예산을 두고 다시 뽑는 것도 금지다 —
+   느린 기기에서만 다른 답이 나와 '같은 seed = 같은 결과' 가 기기마다 갈라진다.
+   ★난수는 판을 짤 때 여기서 전부 소비하고, ★플레이 중에는 한 번도 굴리지 않는다. */
+function answerFor(key){
+  const r = mulberry32(hashStr(SEED_NS + key));
+  const pool = DIGITS.slice();
+  let out = '';
+  for (let i = 0; i < SLOTS; i++){
+    const j = Math.floor(r() * pool.length);
+    out += pool.splice(j, 1)[0];
+  }
+  return out;
+}
+/* ★판정도 순수 함수다 — 같은 입력에 같은 출력이고 상태를 건드리지 않는다.
+   스트라이크 = 자리와 숫자가 모두 맞음 · 볼 = 숫자만 맞음 · 아웃 = 둘 다 0(브리프 1절). */
+function judge(ans, g){
+  let s = 0, b = 0;
+  for (let i = 0; i < SLOTS; i++){
+    if (g[i] === ans[i]) s++;
+    else if (ans.indexOf(g[i]) >= 0) b++;
+  }
+  return { s, b, out: (s === 0 && b === 0) };
+}
+/* ★자유 모드의 씨앗만 난수에서 얻는다 — ★판을 짜는 순간에 한 번이고, 플레이 중에는 굴리지 않는다. */
+const freeSeedKey = () => 'free-' + ((Math.random() * 4294967296) >>> 0).toString(36);
+
+/* ★구 로컬 키 1회 정규화(이행 · master 판정 ② 비대칭 관용).
+   경계를 KST 로 옮기면 저장된 스트릭의 last 가 ★구 로컬 날짜다. 만난 순간 KST 키로 한 번 이관하고
+   그 뒤로는 KST 만 본다 — ★날짜 상수를 박지 않는다(언제 지울지를 다음 사람 숙제로 남기지 않는다).
+   ★완료 잠금(dailyDoneToday)에는 관용을 주지 않는다: 주면 KST 로 이미 넘어간 날의 판이 잠겨
+   사용자가 하루를 통째로 잃는다. 끊긴 스트릭은 복구할 수 없고, 전환일 1회 재플레이는 더 가벼운 손해다. */
+(function normalizeStreakOnce(){ try{
+  const K = 'nb.streak';
+  const raw = localStorage.getItem(K); if (!raw) return;
+  const st = JSON.parse(raw); if (!st || !st.last) return;
+  const prev = k => { const [y,m,d] = k.split('-').map(Number); const t = new Date(Date.UTC(y,m-1,d) - 86400000);
+                      return `${t.getUTCFullYear()}-${pad2(t.getUTCMonth()+1)}-${pad2(t.getUTCDate())}`; };
+  const today = dayKey(), yest = prev(today);
+  if (st.last === today || st.last === yest) return;          /* 이미 KST 계열 — 건드리지 않는다 */
+  const n0 = new Date(), lt = `${n0.getFullYear()}-${pad2(n0.getMonth()+1)}-${pad2(n0.getDate())}`;
+  const mapped = st.last === lt ? today : (st.last === prev(lt) ? yest : null);
+  if (!mapped) return;                                        /* 이틀 이상 지난 기록은 이관 대상이 아니다 */
+  localStorage.setItem(K, JSON.stringify(Object.assign({}, st, { last: mapped })));
+}catch(_){ } })();
+
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('nb.daily')||'null'); }catch(_){ return null; } };
+function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && r.result); }
+function saveDaily(result){
+  localStorage.setItem('nb.daily', JSON.stringify({ date: runDay, no: runNo, result }));
+}
+function bumpStreak(day){
+  let st; try{ st = JSON.parse(localStorage.getItem('nb.streak')||'{}'); }catch(_){ st = {}; }
+  /* ★같은 날 두 번째 판이 스트릭을 1 로 되돌리지 않는다 — 전환일에는 재플레이가 열려 있으므로
+     이 경로가 ★실제로 밟힌다(완료 잠금에 관용을 주지 않는 대신 여기를 막는다). */
+  if (st && st.last === day) return st.n || 1;
+  const n = (st && st.last === prevDayKey(day)) ? (st.n || 0) + 1 : 1;
+  localStorage.setItem('nb.streak', JSON.stringify({ last: day, n }));
+  return n;
+}
+const streakNow = () => { try{ const s = JSON.parse(localStorage.getItem('nb.streak')||'{}'); const today = dayKey();
+  return (s && (s.last === today || s.last === prevDayKey(today))) ? (s.n || 0) : 0; }catch(_){ return 0; } };
+function loadBest(){
+  try{
+    const raw = localStorage.getItem('nb.best');
+    if (!raw) return null;
+    const v = JSON.parse(raw);
+    return (v && typeof v.tries === 'number' && isFinite(v.tries)) ? v : null;
+  }catch(_){ return null; }
+}
+function saveBest(rec){ localStorage.setItem('nb.best', JSON.stringify(rec)); }
+/* ★기록은 적을수록 좋다 — 더 적은 시도로 맞혔을 때만 최고 기록이 바뀐다 */
+const betterThan = (a, b) => !b || a.tries < b.tries;
+
+/* ======================= 상태 ======================= */
+/* ★ST.answer 가 이 판의 ★정본이다. 판을 짤 때 한 번 정하고 그 뒤로 바뀌지 않는다. */
+const ST = {
+  answer: '', tries: 0, maxTries: MAX_TRIES, guesses: [], over: false, won: false,
+  note: '', mode: 'daily', running: false
+};
+let buf = '';                 /* 지금 치고 있는 네 자리(제출 전) */
+let runDay = '', runNo = 0, seedKeyNow = '';
+let runStart = 0, drawnMs = 0, rafId = 0;
+let lastResult = null, overShown = false;
+const keyState = {};          /* 숫자별 관측 — 'gone'(아웃으로 배제) · 'used'(넣어 봤다) */
+
+/* ======================= 그리기 =======================
+   ★여기서 하는 일은 오직 그리기다. 판정·기록은 위에서 이미 끝났다. */
+function buildBoard(){
+  const b = $('board');
+  b.innerHTML = '';
+  b.setAttribute('aria-label', T('ariaBoard'));
+  for (let r = 0; r < MAX_TRIES; r++){
+    const row = document.createElement('div');
+    row.className = 'nb-row';
+    row.setAttribute('role', 'row');
+    row.id = 'row' + r;
+    for (let c = 0; c < SLOTS; c++){
+      const cell = document.createElement('div');
+      cell.className = 'nb-cell';
+      cell.setAttribute('role', 'gridcell');
+      cell.id = `c${r}_${c}`;
+      row.appendChild(cell);
+    }
+    const badge = document.createElement('div');
+    badge.className = 'nb-badge';
+    badge.setAttribute('role', 'gridcell');
+    badge.id = 'b' + r;
+    row.appendChild(badge);
+    b.appendChild(row);
+  }
+}
+function paintCell(r, c, text, cur){
+  const el = $(`c${r}_${c}`);
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'nb-cell' + (text ? ' nb-filled' : '') + (cur ? ' nb-cur' : '');
+  el.setAttribute('aria-label', T('cellName', r + 1, c + 1) + ', ' + (text || T('emptyCell')) + (cur ? ', ' + T('curRow') : ''));
+}
+function paintBadge(r, v){
+  const el = $('b' + r);
+  if (!el) return;
+  if (!v){ el.textContent = ''; el.className = 'nb-badge'; el.removeAttribute('aria-label'); return; }
+  const txt = v.out ? T('badgeOut') : T('badgeSB', v.s, v.b);
+  el.textContent = txt;
+  el.className = 'nb-badge' + (v.s === SLOTS ? ' nb-hit' : (v.out ? ' nb-out' : ''));
+  el.setAttribute('aria-label', txt);
+}
+function drawBoard(){
+  for (let r = 0; r < MAX_TRIES; r++){
+    const done = ST.guesses[r];
+    const cur = (!ST.over && r === ST.guesses.length);
+    for (let c = 0; c < SLOTS; c++){
+      const ch = done ? done.g[c] : (cur ? (buf[c] || '') : '');
+      paintCell(r, c, ch, cur && !!ch === false && c === buf.length ? true : (cur && c === buf.length));
+    }
+    paintBadge(r, done ? { s: done.s, b: done.b, out: done.out } : null);
+  }
+}
+function buildKeypad(){
+  const kb = $('kb');
+  kb.innerHTML = '';
+  kb.setAttribute('aria-label', T('ariaKb'));
+  const rows = [['1','2','3','4','5'], ['6','7','8','9','0'], ['BACK','ENTER']];
+  for (const row of rows){
+    const div = document.createElement('div');
+    div.className = 'nb-krow';
+    for (const k of row){
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.k = k;
+      if (k === 'ENTER'){ b.className = 'nb-wide'; b.textContent = 'Enter'; }
+      else if (k === 'BACK'){ b.className = 'nb-wide'; b.textContent = '⌫'; }
+      else { b.textContent = k; b.id = 'k_' + k; }
+      div.appendChild(b);
+    }
+    kb.appendChild(div);
+  }
+  applyKbLabels();
+  paintKeys();
+}
+function applyKbLabels(){
+  for (const b of $('kb').querySelectorAll('button')){
+    const k = b.dataset.k;
+    b.setAttribute('aria-label', k === 'ENTER' ? T('ariaEnter') : (k === 'BACK' ? T('ariaBack') : k));
+  }
+}
+function paintKeys(){
+  for (const d of DIGITS){
+    const b = $('k_' + d);
+    if (!b) continue;
+    b.className = keyState[d] === 'gone' ? 'nb-gone' : (keyState[d] === 'used' ? 'nb-used' : '');
+  }
+}
+function paintHud(){
+  $('triesChip').textContent = T('triesChip', Math.max(0, MAX_TRIES - ST.guesses.length));
+  $('modeChip').textContent = ST.mode === 'daily' ? T('modeDaily') : T('modeFree');
+  $('modeNow').textContent = ST.mode === 'daily' ? T('modeDaily') : T('modeFree');
+  const best = loadBest();
+  $('bestNow').textContent = best ? String(best.tries) : '–';
+  $('streakNowEl').textContent = String(streakNow());
+}
+function updateSubtitle(){ $('subtitle').textContent = T('subtitle'); }
+function tick(){
+  rafId = 0;
+  if (!ST.running || ST.over) return;
+  drawnMs = nowMs() - runStart;
+  rafId = requestAnimationFrame(tick);
+}
+function startDrawing(){ if (!rafId) rafId = requestAnimationFrame(tick); }
+function stopDrawing(){ if (rafId){ cancelAnimationFrame(rafId); rafId = 0; } }
+
+/* ======================= 창(오버레이) ======================= */
+function show(id){
+  const o = $(id); o.classList.add('show');
+  overShown = true;
+  setOutsideInert(true);
+  const f = o.querySelector('button:not([disabled]):not([hidden]), a[href]');
+  if (f) try { f.focus({ preventScroll:true }); } catch(e){}
+}
+function hide(id){
+  $(id).classList.remove('show');
+  overShown = $('start').classList.contains('show') || $('over').classList.contains('show');
+  if (!overShown) setOutsideInert(false);
+}
+function setOutsideInert(on){
+  for (const el of document.querySelectorAll('body > header, body > main, body > section, body > footer, body > .ad-slot, body > .scores')){
+    if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert');
+  }
+}
+function say(msg){ $('srSummary').textContent = msg; }
+/* ★토스트는 시간이 지나면 사라지므로 타이머를 하나 건다. 판을 시작할 때 반드시 걷어낸다. */
+let toastTimer = 0;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toastTimer = 0; t.classList.remove('show'); }, 1800);
+}
+function clearToast(){
+  if (toastTimer){ clearTimeout(toastTimer); toastTimer = 0; }
+  $('toast').classList.remove('show');
+}
+
+/* ======================= 입력 =======================
+   ★자판을 누르는 순간을 재지 않는 게임이다(반응 속도가 승패를 정하지 않는다) — 그래서
+   화면 자판은 click 으로 받는다. 도장(stampOf)은 판의 시작·끝에만 쓴다.
+   ★document 에 건다 — window 에 걸면 DOM 스텁 위의 검증기가 닿지 못한다. */
+function typeDigit(d){
+  if (!ST.running || ST.over) return;
+  if (buf.length >= SLOTS) return;
+  buf += d;
+  sKey();
+  drawBoard();
+}
+function doBack(){
+  if (!ST.running || ST.over) return;
+  if (!buf.length) return;
+  buf = buf.slice(0, -1);
+  drawBoard();
+}
+function shakeRow(){
+  const row = $('row' + Math.min(ST.guesses.length, MAX_TRIES - 1));
+  if (!row) return;
+  row.classList.remove('nb-shake');
+  void row.offsetWidth;            /* ★리플로우 강제 — 같은 클래스를 다시 붙여도 애니메이션이 다시 돈다 */
+  row.classList.add('nb-shake');
+  setTimeout(() => row.classList.remove('nb-shake'), 420);
+}
+/* ======================= 제출 ======================= */
+function submit(){
+  if (!ST.running || ST.over) return;
+  const g = buf;
+  if (g.length !== SLOTS){ ST.note = 'short'; toast(T('tooShort')); shakeRow(); sBad(); return; }
+  /* ★같은 숫자를 두 번 넣으면 ★제출 전에 막고 사유를 남긴다 — ★시도 횟수는 소모하지 않는다(브리프 1절). */
+  if (new Set(g.split('')).size !== SLOTS){ ST.note = 'dupe'; toast(T('dupDigit')); shakeRow(); sBad(); buf = ''; drawBoard(); return; }
+  if (ST.guesses.some(x => x.g === g)){ ST.note = 'repeat'; toast(T('alreadyTried')); shakeRow(); sBad(); return; }
+  ST.note = '';
+  const v = judge(ST.answer, g);
+  ST.tries++;
+  ST.guesses.push({ g, s: v.s, b: v.b, out: v.out });
+  for (const ch of g) keyState[ch] = v.out ? 'gone' : (keyState[ch] === 'gone' ? 'gone' : 'used');
+  buf = '';
+  drawBoard(); paintKeys(); paintHud();
+  say(T('srRow', ST.tries, v.out ? T('badgeOut') : T('badgeSB', v.s, v.b)));
+  if (v.s === SLOTS){ finishRun(true); return; }
+  if (ST.tries >= MAX_TRIES){ finishRun(false); return; }
+  sRow();
+}
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (overShown) return;
+  if (e.key === 'Enter'){ if (e.preventDefault) e.preventDefault(); submit(); return; }
+  if (e.key === 'Backspace'){ if (e.preventDefault) e.preventDefault(); doBack(); return; }
+  if (!/^[0-9]$/.test(e.key)) return;
+  if (e.preventDefault) e.preventDefault();
+  typeDigit(e.key);
+});
+$('kb').addEventListener('click', e => {
+  const b = e.target.closest ? e.target.closest('button') : null;
+  if (!b) return;
+  const k = b.dataset.k;
+  if (k === 'ENTER'){ submit(); return; }
+  if (k === 'BACK'){ doBack(); return; }
+  typeDigit(k);
+});
+
+/* ======================= 판의 시작·끝 ======================= */
+function beginRun(m, stamp){
+  const t0 = new Date();
+  ST.mode = m;
+  ST.tries = 0; ST.guesses.length = 0; ST.over = false; ST.won = false; ST.note = '';
+  ST.running = true;
+  buf = '';
+  for (const d of DIGITS) delete keyState[d];
+  runDay = (m === 'daily') ? dayKey(t0) : '';
+  runNo  = (m === 'daily') ? dailyNo(t0) : 0;
+  seedKeyNow = (m === 'daily') ? dayKey(t0) : freeSeedKey();
+  /* ★답은 ★판을 짤 때 한 번 뽑는다. 이 줄 뒤로는 난수를 굴리지 않는다(브리프 2절). */
+  ST.answer = answerFor(seedKeyNow);
+  runStart = (typeof stamp === 'number' && isFinite(stamp)) ? stamp : nowMs();
+  drawnMs = 0;
+  lastResult = null;
+  clearToast();
+  document.body.classList.add('nb-running');
+  buildBoard(); drawBoard(); paintKeys(); paintHud();
+  say(T('srGo'));
+  sGo();
+  startDrawing();
+  ga('game_start', { game: GA_GAME, mode: m });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+}
+function finishRun(won){
+  ST.over = true; ST.won = won; ST.running = false;
+  stopDrawing();
+  document.body.classList.remove('nb-running');
+  const ms = Math.max(0, Math.round(nowMs() - runStart));
+  const r = { mode: ST.mode, won, tries: ST.tries, ms, no: runNo, day: runDay,
+              answer: ST.answer, rows: ST.guesses.map(x => ({ s: x.s, b: x.b, out: x.out })), streak: 0, best: false };
+  if (ST.mode === 'daily'){
+    if (!dailyDoneToday()){
+      saveDaily({ won, tries: ST.tries, ms });
+      r.streak = won ? bumpStreak(runDay) : streakNow();
+    } else { r.streak = streakNow(); }
+  } else if (won){
+    /* ★최고 기록은 자유 모드에서만 갱신한다 — 오늘의 도전은 하루 한 번이라 비교 대상이 아니다. */
+    const cand = { tries: ST.tries, ms, date: dayKey() };
+    if (betterThan(cand, loadBest())){ saveBest(cand); r.best = true; }
+  }
+  lastResult = r;
+  sDone();
+  say(won ? T('srWin', ST.tries) : T('srLose', ST.answer));
+  paintHud(); renderOver(); show('over');
+  ga('game_end', { mode: ST.mode, win: won ? 1 : 0, tries: ST.tries, ms });
+}
+
+/* ======================= 결과 화면 ======================= */
+/* ★정답을 드러내지 않는다 — 색 이모지만 내보낸다(숫자·자리 정보를 공유문에 넣지 않는다) */
+const EMO = { strike:'🟩', ball:'🟨', none:'⬜' };
+function marksOf(r){
+  return r.rows.map(x => EMO.strike.repeat(x.s) + EMO.ball.repeat(x.b) + EMO.none.repeat(SLOTS - x.s - x.b)).join('\n');
+}
+function renderOver(){
+  const r = lastResult; if (!r) return;
+  $('overTitle').textContent = r.won ? T('win') : T('lose');
+  $('finalBig').textContent = r.won ? T('winBig', r.tries) : T('loseBig');
+  $('finalLine').textContent = r.won ? T('finalWin', r.tries) : T('finalLose', r.answer);
+  $('marks').textContent = marksOf(r);
+  $('streakLine').textContent = (r.mode === 'daily' && r.streak) ? T('streakGo', r.streak) : '';
+  $('newBest').textContent = r.best ? T('newBest', r.tries) : '';
+  $('nTries').textContent = String(r.tries);
+  $('nResult').textContent = r.won ? T('resultWin') : T('resultLose');
+  $('nTime').textContent = (r.ms / 1000).toFixed(1) + T('secUnit');
+  $('finalSub').textContent = r.mode === 'daily' ? T('resultSubDaily') : T('resultSubFree');
+}
+
+/* ======================= 공유 ======================= */
+function shareText(r, url){
+  const t = r.won ? String(r.tries) : 'X';
+  return ((r.mode === 'daily')
+    ? T('dailyShare', r.no, t, marksOf(r), r.streak)
+    : T('freeShare', t, marksOf(r))) + url;
+}
+async function doShare(){
+  const url = location.href.split('#')[0];
+  const r = lastResult;
+  if (!r) return;
+  try{
+    if (navigator.share){
+      /* ★네이티브 공유는 text 와 url 을 분리한다 — text 에 URL 을 또 넣으면 공유 시트가 링크를 두 번 붙인다. */
+      await navigator.share({ title: T('docTitle'), text: shareText(r, '').trimEnd(), url });
+    } else { await navigator.clipboard.writeText(shareText(r, url)); toast(T('copied')); }
+  }catch(_){}
+}
+
+/* ======================= 언어·소리 ======================= */
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  $('btnLang2').textContent = T('langBtn');
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  if (window.hpStats) window.hpStats();
+}
+function applyA11yLabels(){
+  for (const id of ['btnSound','btnSound2']){
+    const b = $(id); if (!b) continue;
+    b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  }
+  for (const id of ['btnLang','btnLang2']){ const l = $(id); if (l) l.setAttribute('aria-label', T('ariaLang')); }
+  document.querySelectorAll('a[href="/"]').forEach(a => a.setAttribute('aria-label', T('ariaHome')));
+}
+function toggleLang(){
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyLang();
+  refreshStart();
+  updateSubtitle();
+  /* ★진행 중이면 딱지·판·자판의 글자만 새 언어로 다시 넣는다 — 답과 시도 기록은 건드리지 않는다. */
+  $('board').setAttribute('aria-label', T('ariaBoard'));
+  applyKbLabels();
+  drawBoard(); paintHud();
+  if (lastResult && $('over').classList.contains('show')) renderOver();
+  ga('lang_switch', { lang });
+}
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('nb.sound', soundOn ? '1' : '0');
+  const face = soundOn ? '🔊' : '🔇';
+  $('btnSound').textContent = face; $('btnSound2').textContent = face;
+  applyA11yLabels();
+  if (soundOn) beep(660, .06, 'sine', .04);
+}
+$('btnLang').onclick = toggleLang;
+$('btnLang2').onclick = toggleLang;
+$('btnSound').onclick = toggleSound;
+$('btnSound2').onclick = toggleSound;
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+$('btnSound2').textContent = soundOn ? '🔊' : '🔇';
+$('btnShare').onclick = doShare;
+
+/* ======================= 시작 화면 ======================= */
+function refreshStart(){
+  const no = dailyNo(), done = dailyDoneToday();
+  $('btnDaily').textContent = done ? T('dailyDoneBtn', no) : T('dailyBtn', no);
+  $('dailyHint').textContent = done ? T('dailyHintDone') : T('dailyHint');
+  $('btnStart').textContent = T('start');
+}
+$('btnDaily').onclick = ev => { hide('start'); beginRun('daily', stampOf(ev)); };
+$('btnStart').onclick = ev => { hide('start'); beginRun('free', stampOf(ev)); };
+$('btnAgain').onclick = ev => {
+  hide('over');
+  beginRun(ST.mode === 'daily' && !dailyDoneToday() ? 'daily' : 'free', stampOf(ev));
+};
+
+/* ======================= 기동 ======================= */
+applyLang();
+buildBoard(); buildKeypad(); drawBoard();
+refreshStart();
+paintHud(); updateSubtitle();
+if ($('start').classList.contains('show')) show('start');
+
+/* ======================= 검증 창구(관측 전용) =======================
+   ★배포되는 이 창구에는 **읽기만 하는 getter 와 순수 함수** 만 둔다. 판을 시작하거나 답을 바꾸는
+     ★상태 변경 명령은 여기에 두지 않는다 — 검증 하네스는 이 판을 진짜 입력 사건(keydown·click)으로
+     두드려서 확인한다. 반환값은 전부 사본이다. 외부 전송 0.
+   ★state().answer 를 숨기지 않는다: 답을 뽑는 산식이 이 페이지에 함께 실려 있어 어차피 파생 가능하고,
+     숨기면 '플레이가 답을 바꾸지 않는다' 는 검사가 ★공허해진다(같은 폴백을 두 번 보게 된다). */
+const copy = o => JSON.parse(JSON.stringify(o));
+window.__nb = {
+  const: () => ({ SLOTS, MAX_TRIES, SEED_NS, DIGITS: DIGITS.slice(), DAILY_EPOCH, STAMP_TOLERANCE_MS }),
+  dayKey: d => dayKey(d ? new Date(d) : undefined),
+  dailyNo: d => dailyNo(d ? new Date(d) : undefined),
+  prevDayKey: k => prevDayKey(String(k)),
+  answerFor: k => answerFor(String(k)),
+  judge: (a, g) => judge(String(a), String(g)),
+  seedDraws: (key, n) => { const f = mulberry32(hashStr(SEED_NS + String(key))); return Array.from({length:n}, () => +f().toFixed(9)); },
+  state: () => ({ mode: ST.mode, running: ST.running, answer: ST.answer, tries: ST.tries, maxTries: ST.maxTries,
+                  guesses: copy(ST.guesses), over: ST.over, won: ST.won, note: ST.note,
+                  buf, runDay, runNo, seedKey: seedKeyNow, overShown }),
+  daily: () => ({ done: dailyDoneToday(), rec: copy(dailyRec()), no: dailyNo(), streak: streakNow() }),
+  best: () => copy(loadBest()),
+  betterThan: (a, b) => betterThan(a, b),
+  result: () => copy(lastResult),
+  marks: () => lastResult ? marksOf(lastResult) : '',
+  shareText: () => lastResult ? shareText(lastResult, 'https://hanpango.com/number-baseball/') : '',
+  /* ★화면에 실제로 들어간 글 — 하네스가 그림에서 직접 센다(상위 innerHTML 을 주지 않는다) */
+  cellText: (r, c) => { const e = $(`c${r}_${c}`); return e ? e.textContent : null; },
+  badgeText: r => { const e = $('b' + r); return e ? e.textContent : null; },
+  keyClass: d => { const e = $('k_' + d); return e ? e.className : null; },
+  chips: () => ({ tries: $('triesChip').textContent, mode: $('modeChip').textContent }),
+  drawn: () => drawnMs,
+  drawing: () => rafId !== 0,
+  shown: id => $(id).classList.contains('show'),
+  running: () => document.body.classList.contains('nb-running'),
+  reduceMotion: () => reduceMotion(),
+  sound: () => soundOn,
+  lang: () => lang
+};
+})();
+</script>
+</body>
+</html>

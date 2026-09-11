@@ -728,5 +728,32 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "number-baseball",
+    "path": "/number-baseball/",
+    "title": {
+      "ko": "숫자야구",
+      "en": "Number Baseball"
+    },
+    "desc": {
+      "ko": "서로 다른 숫자 넷을 열 번 안에 맞히는 추리 게임 — 자리까지 맞으면 스트라이크, 숫자만 맞으면 볼",
+      "en": "Find four distinct digits in ten tries — right slot is a strike, right digit is a ball"
+    },
+    "thumb": "/number-baseball/thumb.webp",
+    "playtime": {
+      "ko": "한 판 2~5분",
+      "en": "2-5 min a round"
+    },
+    "maxMinutes": 5,
+    "daily": true,
+    "category": "puzzle",
+    "released": "2026-09-11",
+    "tags": [
+      "logic",
+      "deduction",
+      "number",
+      "daily"
+    ]
   }
 ]

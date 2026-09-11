@@ -264,7 +264,7 @@ Sitemap: https://hanpango.com/sitemap.xml
          형제 게임도 같다: `tools/run_mutations_{tensec,stop,fakeone,reverse,higherlower,bomb,push,four,gomoku,howmany,together}.py`
          · 「오늘의 낱말」은 이름이 다르다: `tools/run_mutations.py`.
    - [ ] 형제 게임의 **검증기**도 같은 규칙이다 — 그 라운드에서 손댄 게임의 것을 ★커밋본 바이트로 돌린다:
-         `tools/verify_{bomb,fakeone,four,gomoku,higherlower,howmany,justright,memory,nonogram,push,puzzle_tray,reverse,stop,tensec,together,word}.js`
+         `tools/verify_{bomb,fakeone,four,gomoku,higherlower,howmany,justright,memory,nonogram,numberbaseball,push,puzzle_tray,reverse,stop,tensec,together,word}.js`
          (「빠른 셈」은 위 항목에 따로 적혀 있다).
          ★왜 여기 적나(2026-09-08 R4 F7): 등록부의 방향③ 분모가 `gates[]` 21종뿐이라 **게임별 30종이
          그물 밖**이었다 — DEPLOY 에서 `verify_quickmath.js` 를 ★개명하면 잡히는데 ★삭제하면 rc=0 이었다.

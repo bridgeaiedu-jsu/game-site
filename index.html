@@ -133,6 +133,7 @@
   .card[href="/push/"]{--sig:#048000;--sig-ink:#023800}
   .card[href="/four/"]{--sig:#665f00;--sig-ink:#1f1d00}
   .card[href="/quick-math/"]{--sig:#a800ad;--sig-ink:#630066}
+  .card[href="/number-baseball/"]{--sig:#0ba207;--sig-ink:#075d04}
   @media (prefers-color-scheme: dark){
     /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다. ★라이트 규칙 뒤에 와야 이긴다(@media 는 명시도를 안 올린다). */
     .card[href="/block-puzzle/"]{--sig:#376fec;--sig-ink:#789ef2}
@@ -162,6 +163,7 @@
     .card[href="/push/"]{--sig:#38bc34;--sig-ink:#66d463}
     .card[href="/four/"]{--sig:#aea100;--sig-ink:#f5e400}
     .card[href="/quick-math/"]{--sig:#f80aff;--sig-ink:#fa51ff}
+    .card[href="/number-baseball/"]{--sig:#62f85e;--sig-ink:#a5fba2}
   }
   .card.soon::before{background:var(--line)}
   .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
@@ -396,6 +398,12 @@
             <span class="badges"><span class="badge">한 판 30초 / 30 sec a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
           <span class="body"><h2>빠른 셈 / Quick Math</h2>
             <p>30초 동안 사칙연산을 4지선다로 연속해서 푸는 암산 게임 — 맞히면 바로 다음, 틀리면 남은 시간 3초<br>Mental math against a 30-second clock, four choices a question — a miss costs three seconds</p></span>
+        </a></li>
+        <li><a class="card" href="/number-baseball/">
+          <span class="thumb"><img src="/number-baseball/thumb.webp" alt="숫자야구 / Number Baseball" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 2~5분 / 2-5 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>숫자야구 / Number Baseball</h2>
+            <p>서로 다른 숫자 넷을 열 번 안에 맞히는 추리 게임 — 자리까지 맞으면 스트라이크, 숫자만 맞으면 볼<br>Find four distinct digits in ten tries — right slot is a strike, right digit is a ball</p></span>
         </a></li>
       </ul>
     </noscript>
@@ -658,6 +666,13 @@ const FALLBACK = [{
   thumb:'/quick-math/thumb.webp',
   playtime:{ko:'한 판 30초',en:'30 sec a round'},
   maxMinutes:0.5, daily:true, category:'math', released:'2026-09-07', tags:['math','quiz','casual','daily']
+},{
+  id:'number-baseball', path:'/number-baseball/',
+  title:{ko:'숫자야구',en:'Number Baseball'},
+  desc:{ko:'서로 다른 숫자 넷을 열 번 안에 맞히는 추리 게임 — 자리까지 맞으면 스트라이크, 숫자만 맞으면 볼',en:'Find four distinct digits in ten tries — right slot is a strike, right digit is a ball'},
+  thumb:'/number-baseball/thumb.webp',
+  playtime:{ko:'한 판 2~5분',en:'2-5 min a round'},
+  maxMinutes:5, daily:true, category:'puzzle', released:'2026-09-11', tags:['logic','deduction','number','daily']
 }];
 
 let games = FALLBACK;
