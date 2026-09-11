@@ -23,6 +23,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <!-- 공개 카운터 — 판수를 보내고 판수 줄을 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
+<link rel="stylesheet" href="/css/article.css">
 <script src="/js/hp-stats.js" defer></script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"밀어서 정리","alternateName":"Push It Right","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
@@ -700,5 +702,11 @@ window.__psh = {
   lang: () => lang,
 };
 </script>
+<section class="read" id="read">
+<div class="read-ko"><h2>밀 수만 있고 당길 수 없다는 규칙</h2><p>이 퍼즐의 규칙은 한 줄이다. 상자는 밀 수만 있고 당길 수 없다. 짧지만 이 한 줄이 놀이의 성격을 통째로 바꾼다. 당길 수 있다면 잘못 놓은 상자는 언제든 제자리로 데려올 수 있고, 그러면 실수는 걸음 수만 늘릴 뿐 판을 망치지 않는다. 당길 수 없으면 이야기가 달라진다. 한 번 벽에 붙여 놓은 상자는 그 벽과 나란한 방향으로만 움직인다. 모서리에 들어간 상자는 밀 방향이 양쪽 다 막혀 영영 나오지 못한다. 그 순간 판은 아직 화면에 멀쩡히 남아 있는데도 이미 끝나 있다.</p><h3>그래서 무엇을 먼저 보는가</h3><p>익숙해질수록 시선이 바뀐다. 처음에는 상자를 어디로 밀지 찾지만, 나중에는 밀면 안 되는 방향부터 본다. 목표 자리가 벽에 붙어 있으면 그 자리에 넣을 수 있는 방향은 하나뿐이므로, 그 방향을 살려 두는 순서가 정답의 뼈대가 된다. 상자 여러 개가 한 줄로 붙어 있을 때 안쪽 상자를 먼저 건드리면 바깥 상자가 길을 막는 것도 같은 이유다.</p><h3>되돌리기와 최소 밀기</h3><p>되돌리기 버튼이 있는 것은 이 놀이가 손이 아니라 머리로 푸는 것이기 때문이다. 되돌릴 수 있으니 마음껏 시험해 보라는 뜻이다. 화면에는 그 판의 최소 밀기 수가 함께 적힌다. 내 밀기 수에서 그 수를 빼면 돌아간 걸음이 그대로 나온다. 다 맞추는 것과 최소로 맞추는 것은 다른 목표이고, 두 번째 목표가 있어서 이미 푼 판도 다시 열 이유가 생긴다. 오늘의 판은 모두에게 같으므로 그 차이는 곧 서로 견줄 수 있는 숫자가 된다.</p><h3>걸음과 밀기는 다른 수</h3><p>결과 화면에는 밀기 수와 걸음 수가 따로 적힌다. 상자를 밀지 않고 사람만 돌아 움직인 거리가 걸음이다. 최소 밀기 수는 밀기만 세기 때문에, 밀기는 최소인데 걸음이 길어질 수도 있고 그 반대도 있다. 되돌리기 횟수도 함께 남는다. 세 숫자를 나란히 보면 그 판에서 무엇이 어려웠는지가 드러난다. 밀기가 많았다면 순서를 잘못 잡은 것이고, 걸음만 길었다면 상자 뒤로 돌아가는 길을 매번 멀리 잡은 것이다.</p></div>
+<!-- /read-ko -->
+<div class="read-en"><h2>Boxes move one way only</h2><p>The whole rule fits in a sentence: a box can be pushed but never pulled. That single restriction decides what kind of puzzle this is. If pulling were allowed, a misplaced box would only cost you extra steps, because you could always walk it back. Without pulling, a box shoved against a wall can only travel parallel to that wall, and a box that slides into a corner has no push direction left at all. The board still looks fine on screen, yet the puzzle is already over.</p><h3>What experienced players look at</h3><p>Attention shifts with practice. At first you hunt for somewhere to push. Later you start by asking which pushes must never happen. When a target square sits against a wall, only one approach direction can ever deliver a box there, so protecting that direction becomes the backbone of the solution. The same logic explains why touching the inner box of a row first tends to leave the outer one blocking the lane.</p><h3>Undo and the minimum count</h3><p>The undo button exists because this is solved with thought rather than reflexes; it invites you to try a line and take it back. The screen also shows the minimum number of pushes for the day. Subtract it from your own count and you get exactly how much detour you took. Finishing and finishing efficiently are two different goals, and the second one gives you a reason to reopen a board you already solved. Everyone gets the same board today, so that difference is a number you can compare.</p><h3>Steps and pushes are counted separately</h3><p>The result screen lists pushes and steps as two different numbers. Steps count the walking you did without moving a box. Since the daily minimum counts pushes only, you can match the minimum push count while walking a long way, or the reverse. Undo usage is recorded too. Read the three numbers together and the round explains itself: many pushes means the order was wrong, while a large step count means you kept taking the long way around to get behind a box.</p></div>
+<!-- /read-en -->
+</section>
 </body>
 </html>

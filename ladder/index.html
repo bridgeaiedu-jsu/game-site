@@ -71,6 +71,7 @@
 <!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -229,7 +230,7 @@
 </header>
 
 <!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
-<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
 <main>
   <div class="wrap">
@@ -306,7 +307,7 @@
     <div class="sub" id="overSub"></div>
     <ol class="rlist" id="rlist"></ol>
     <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
-    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
     <button class="btn primary" id="btnShare" data-i18n="shareResult">결과 공유</button>
     <button class="btn ghost" id="btnImage" data-i18n="saveImage">결과 이미지 저장</button>
     <button class="btn ghost" id="btnClose" data-i18n="closeCard">판으로 돌아가기</button>
@@ -384,7 +385,7 @@ const I18N = {
     badLink:'링크를 읽지 못했습니다 — 새로 만들어 주세요',
     needCopy:'먼저 링크를 복사해 나눠 주세요',
     statPlays:'오늘 <b data-hp="plays.ladder.today">–</b>판 · 누적 <b data-hp="plays.ladder.total">–</b>판',
-    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     ariaSoundOn:'소리 끄기', ariaSoundOff:'소리 켜기', ariaLang:'언어 바꾸기', ariaHome:'다른 게임 보기',
     ariaLadder:'사다리 판', ariaName:(n,i) => n + ' — ' + i + '번째 줄', ariaResultSealed:'결과 잠김',
     ariaResult:(n,r) => n + ' 결과 ' + r,
@@ -452,7 +453,7 @@ const I18N = {
     badLink:'Could not read this link — please build a new one',
     needCopy:'Copy and share the link first',
     statPlays:'<b data-hp="plays.ladder.today">–</b> today · <b data-hp="plays.ladder.total">–</b> all-time',
-    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     ariaSoundOn:'Turn sound off', ariaSoundOff:'Turn sound on', ariaLang:'Change language', ariaHome:'See other games',
     ariaLadder:'Ladder board', ariaName:(n,i) => n + ' — lane ' + i, ariaResultSealed:'Result locked',
     ariaResult:(n,r) => n + ' result ' + r,

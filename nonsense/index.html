@@ -30,6 +30,8 @@
      광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
+<link rel="stylesheet" href="/css/article.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -182,7 +184,7 @@
 </header>
 
 <!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
-<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
 <div class="scores">
   <div class="score"><b id="qNo">–</b><span data-i18n="qLbl">문제</span></div>
@@ -225,7 +227,7 @@
     <ul class="review" id="review" aria-label="review"></ul>
     <div class="sub" id="finalSub"></div>
     <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
-    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
     <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
     <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
     <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
@@ -272,6 +274,12 @@
   <details><summary data-i18n="faq4q">소리를 끌 수 있나요?</summary><p data-i18n="faq4a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 그대로 유지됩니다. 효과음은 모두 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 「동작 줄이기」를 켜면 흔들림·팝 애니메이션도 꺼집니다.</p></details>
 </section>
 
+<section class="read" id="read">
+<div class="read-ko"><h2>이 퀴즈가 한국어로만 나오는 이유</h2><p>말장난은 번역하면 답이 사라진다. 소리가 같거나 비슷해서 성립하는 문제를 다른 언어로 옮기면 그 소리가 없어지고, 남는 것은 뜻이 통하지 않는 문장뿐이다. 그래서 이 퀴즈의 문제는 한국어로만 나온다. 화면의 다른 글자는 언어를 바꿀 수 있지만 문제 본문은 우리말 말맛 위에 서 있다.</p><h3>같은 문제를 다시 보기까지 30일</h3><p>문제 은행은 300개가 넘고, 오늘의 도전은 그 은행을 정해진 순서로 돈다. 하루에 열 문제씩 쓰니 한 바퀴를 도는 데 한 달쯤 걸리고, 그래서 한 번 본 문제를 다시 만나기까지 30일이 걸린다. 자유 모드는 순서를 따르지 않고 최근에 풀지 않은 문제 중에서 열 개를 뽑는다. 같은 은행을 쓰지만 고르는 방식이 달라 두 모드의 성격이 갈린다.</p><h3>답을 고르면 바로 해설이 따라온다</h3><p>보기를 누르면 맞았는지 틀렸는지가 색으로 나오고 왜 그것이 답인지 한 줄 해설이 붙는다. 1.2초 뒤 저절로 다음 문제로 넘어가는데, 기다리기 싫으면 아무 데나 눌러 바로 넘길 수 있다. 문제를 맞히는 것보다 해설을 읽는 쪽이 다음 판에 더 도움이 되는 경우가 많다. 말장난에는 되풀이되는 몇 가지 장치가 있고, 해설은 그 장치를 매번 드러내 보여 준다.</p><h3>문제는 어디서 왔나</h3><p>이 게임의 문제는 전부 이 사이트에서 직접 만들었다. 책이나 다른 사이트에서 옮겨 오지 않았고, 가족이 함께 풀 수 있도록 어른과 아이 모두에게 안전한 내용만 담았다.</p><h3>문제는 네 갈래로 나뉜다</h3><p>말장난은 소리가 같거나 비슷한 말로 노는 문제이고, 수수께끼는 이것은 무엇일까요 식으로 물건을 맞히는 문제다. 상황 추리는 짧은 이야기 속 반전을 찾는 문제이며, 상식 비틀기는 속담이나 숫자나 글자를 살짝 비튼 문제다. 네 갈래가 섞여 나오기 때문에 한 가지 방식으로만 생각하면 중간에 걸린다.</p><h3>풀다가 나가도 그 자리에서 이어진다</h3><p>오늘의 도전을 풀다가 창을 닫아도 진행이 이 기기에 저장된다. 다시 들어오면 시작 화면의 이어하기로 그 자리부터 계속할 수 있다. 열 문제를 한 번에 앉아서 풀 필요가 없다는 뜻이다.</p></div>
+<!-- /read-ko -->
+<div class="read-en"><h2>Why these riddles stay in Korean</h2><p>A pun does not survive translation. When a question works because two words sound alike, moving it into another language removes the sound and leaves a sentence that no longer makes sense. The questions in this quiz are therefore written and shown in Korean only. The rest of the interface can switch languages, but the riddles themselves rest on the sound of Korean words.</p><h3>Thirty days before a question returns</h3><p>The question bank holds more than three hundred items, and the daily challenge walks through it in a fixed order. Ten questions a day means a full pass takes about a month, which is why a riddle you have already seen takes thirty days to come back. Free mode ignores that order and draws ten questions you have not answered recently. Both modes share the same bank; what differs is how ten are chosen.</p><h3>An explanation arrives with the answer</h3><p>Tapping an option immediately shows whether you were right, followed by a one line explanation of why the answer works. The next question arrives on its own after 1.2 seconds, and tapping anywhere skips the wait. Reading the explanation often helps more than getting the answer right, because wordplay reuses a small number of devices and the explanations keep exposing them.</p><h3>Where the questions come from</h3><p>Every question here was written for this site. None were copied from books or other sites, and the content is kept safe for adults and children so families can play together.</p><h3>Four kinds of question</h3><p>Puns play on words that sound the same or nearly the same. Classic riddles ask you to name an object from a description. Situation puzzles hide a twist inside a short story. The last kind bends a proverb, a number or a written character just enough to change it. Because all four are mixed together, sticking to one mode of thinking will strand you partway through.</p><h3>Leaving mid round keeps your place</h3><p>If you close the window during the daily challenge, your progress is stored on this device. Come back and the start screen offers to resume from exactly where you stopped, so the ten questions do not have to be finished in one sitting.</p></div>
+<!-- /read-en -->
+</section>
 <footer>
   <span data-i18n="footer">© 2026 넌센스 퀴즈 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
   <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
@@ -302,7 +310,7 @@ const I18N = {
     correct:'정답!', wrong:'아쉬워요', answerIs:'정답', perfect:'🎉 10문제 전부 정답! 완벽해요',
     newBest:'🎉 최고 기록 갱신!',
     finalSub:(b,t)=>`최고 ${b}/10 · 플레이 ${t}`,
-    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     copied:'결과가 복사됐어요',
     freeShare:(n,t,m)=>`🤔 넌센스 ${n}/10 ⏱ ${t} ${m}\n`,
     dailyShare:(no,n,t,m,r)=>`🤔 넌센스 #${no} ${n}/10 ⏱ ${t} ${m}${r>1?` 🔥${r}일 연속`:''}\n`,
@@ -356,7 +364,7 @@ const I18N = {
     correct:'Correct!', wrong:'Not quite', answerIs:'Answer', perfect:'🎉 All 10 correct — perfect!',
     newBest:'🎉 New best!',
     finalSub:(b,t)=>`Best ${b}/10 · time ${t}`,
-    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     copied:'Result copied',
     freeShare:(n,t,m)=>`🤔 Riddle Quiz ${n}/10 ⏱ ${t} ${m}\n`,
     dailyShare:(no,n,t,m,r)=>`🤔 Riddle Quiz #${no} ${n}/10 ⏱ ${t} ${m}${r>1?` 🔥${r}-day streak`:''}\n`,

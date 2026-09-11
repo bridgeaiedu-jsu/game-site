@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오늘의 도전이란 무엇인가 | Daily Challenge — 한판고</title>
+<meta name="description" content="한판고의 오늘의 도전은 매일 자정(한국 시간)에 열리고 전 세계가 같은 문제를 받습니다. 판이 어떻게 정해지는지, 하루 한 번이 무슨 뜻인지, 스트릭은 언제 끊기는지 정리했습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="오늘의 도전이란 무엇인가 | Daily Challenge — 한판고">
+<meta property="og:description" content="한판고의 오늘의 도전은 매일 자정(한국 시간)에 열리고 전 세계가 같은 문제를 받습니다. 판이 어떻게 정해지는지, 하루 한 번이 무슨 뜻인지, 스트릭은 언제 끊기는지 정리했습니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/daily/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/daily/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+</style>
+</head><body>
+
+<header>
+  <h1>오늘의 도전이란 무엇인가</h1>
+  <a class="home" href="/">← 게임 목록으로</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/guide/">게임 고르는 법</a><a href="/about/">소개</a></div>
+
+  <section>
+    <h2>같은 날에는 모두 같은 판을 받습니다</h2>
+    <p>28종 가운데 24종에 오늘의 도전이 있습니다. 오늘의 도전에서 나오는 문제는 <strong>그날의 날짜로 정해집니다</strong>. 내가 몇 번을 다시 열든, 언제 열든, 어떤 기기로 열든 그날의 문제는 달라지지 않습니다. 같은 날 도전한 사람은 서로 같은 판을 푼 것이므로 결과를 그대로 견줄 수 있습니다.</p>
+    <p>이 성질이 중요한 이유는 자유 플레이와 비교하면 분명해집니다. 자유 플레이는 열 때마다 새 판이 나오므로 점수가 높아도 운이 좋았던 것인지 알 수 없습니다. 오늘의 도전에서는 운이 같은 조건이 되고, 남는 차이는 선택의 차이입니다.</p>
+  </section>
+
+  <section>
+    <h2>경계는 한국 시간 자정입니다</h2>
+    <p>하루가 바뀌는 기준은 <strong>한국 표준시(UTC+9)의 자정</strong> 하나입니다. 접속한 기기의 시간대를 따르지 않습니다. 그래서 해외에서 접속해도 한국의 날짜가 바뀌는 순간 새 문제가 열립니다. 기준이 지역마다 달랐다면 &ldquo;전 세계가 같은 문제를 푼다&rdquo;는 말이 성립하지 않기 때문입니다.</p>
+  </section>
+
+  <section>
+    <h2>하루 한 번은 완료를 기준으로 셉니다</h2>
+    <p>하루 한 번이라는 제한은 <strong>한 판을 끝냈을 때</strong> 걸립니다. 판을 끝내면 그날의 기록이 남고, 그 뒤에는 다음 날 새 문제가 열릴 때까지 기다립니다. 중간에 창을 닫아도 진행은 그 기기에 남아 있어 이어서 할 수 있습니다. 마음에 안 든다고 처음부터 다시 시작해 더 좋은 기록을 노리는 길은 열려 있지 않습니다.</p>
+  </section>
+
+  <section>
+    <h2>내가 누른 것이 판을 바꾸지 않습니다</h2>
+    <p>오늘의 도전에서 그날 쓸 문제와 순서는 <strong>판이 시작되는 순간 한꺼번에 정해집니다</strong>. 플레이하는 동안 새로 뽑는 것이 없다는 뜻입니다. 이것은 공정성의 문제이기도 하고 기분의 문제이기도 합니다. 누를 때마다 다시 뽑는 방식이면 &ldquo;내가 눌러서 어려운 것이 나왔다&rdquo;는 의심이 늘 남기 때문입니다.</p>
+  </section>
+
+  <section>
+    <h2>스트릭은 하루를 건너뛰면 끊깁니다</h2>
+    <p>오늘의 도전을 연속으로 마치면 🔥 표시와 함께 연속 일수가 쌓입니다. 하루를 건너뛰면 다시 1부터 시작합니다. 기록은 서버가 아니라 <strong>사용 중인 기기의 브라우저에</strong> 저장되므로, 다른 기기로 옮기거나 브라우저 저장 자료를 지우면 이어지지 않습니다. 자세한 내용은 <a href="/privacy/">개인정보 처리방침</a>에 있습니다.</p>
+  </section>
+
+  <section>
+    <h2>결과 공유에는 정답이 들어가지 않습니다</h2>
+    <p>판이 끝나면 결과를 한 줄로 공유할 수 있습니다. 공유되는 것은 맞고 틀림을 나타내는 이모지와 기록뿐이고, 문제의 정답은 들어가지 않습니다. 아직 풀지 않은 사람이 그 글을 봐도 답이 새지 않게 하기 위해서입니다.</p>
+    <p><a class="cta" href="/today/">▶ 오늘의 한판 보러 가기</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" style="font-size:1.25rem;margin:0 0 10px;color:var(--text)">What the daily challenge is</h2>
+
+  <section>
+    <h2>Everyone gets the same board on a given day</h2>
+    <p>24 of the 28 games carry a daily challenge, and the problems in it are <strong>determined by the date</strong>. Reopening the page, playing at a different hour, or switching devices does not change what you get. Two people who played on the same day solved the same board, so their results can be compared directly.</p>
+    <p>The value of that becomes clear next to free play, where every round is newly generated and a high score might simply have been a kind sequence. In the daily challenge luck is held constant, and what remains is the difference in choices.</p>
+  </section>
+
+  <section>
+    <h2>The boundary is midnight in Korea</h2>
+    <p>The day rolls over at <strong>midnight Korean Standard Time (UTC+9)</strong>, and only there. It does not follow the time zone of the device you are using, so a player abroad sees the new problem at the moment the Korean date changes. If the boundary moved with each region, the claim that everyone solves the same problem would not hold.</p>
+  </section>
+
+  <section>
+    <h2>One attempt means one completion</h2>
+    <p>The one per day limit applies when <strong>a round is finished</strong>. Completing it records the result for that day, and the next problem arrives with the next date. Closing the window midway leaves your progress on the device so you can continue, but there is no route to wipe a poor start and chase a better number.</p>
+  </section>
+
+  <section>
+    <h2>Your input does not change the board</h2>
+    <p>The questions and their order are <strong>fixed at the instant the round starts</strong>; nothing is drawn while you play. That is partly a fairness property and partly an emotional one. If the game rolled again on every input, the suspicion that your own press produced the hard case would never go away.</p>
+  </section>
+
+  <section>
+    <h2>A streak ends when a day is skipped</h2>
+    <p>Finishing daily challenges on consecutive days builds a streak shown with a flame. Skipping a day resets it to one. Records live <strong>in the browser on the device you used</strong> rather than on a server, so moving to another device or clearing site data does not carry them over. The details are in the <a href="/privacy/">privacy policy</a>.</p>
+  </section>
+
+  <section>
+    <h2>Shared results contain no answers</h2>
+    <p>At the end of a round you can share a one line summary. What travels is a row of emoji standing for right and wrong plus your record; the answers themselves are never included, so someone who has not played yet can read the post without being spoiled.</p>
+    <p><a class="cta" href="/today/">▶ Go to today's pick</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/about/">소개</a> · <a href="/guide/">게임 고르는 법</a> · <a href="/privacy/">개인정보 처리방침</a>
+</footer>
+
+</body>
+</html>

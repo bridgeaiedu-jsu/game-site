@@ -104,6 +104,12 @@ const bootScript = (lang, scenario) => `(() => {
       const slot = document.getElementById('adOver');
       if (slot && !slot.querySelector('iframe.__probe_ad')) {
         slot.textContent = '';
+        /* ★.live 를 붙인다 — 집 규약상 그것이 '진짜 광고가 든 자리' 표시다
+           (number-baseball/index.html:189 “실제 <ins class=adsbygoogle> 는 이 div 안에 넣고 .live 를 붙인다”).
+           심사 동안 자리표시자는 css/ad-slots.css 가 숨기므로, .live 가 없으면 이 탐침은
+           폭 0 의 숨은 상자를 재게 돼 ★공허하게 통과한다. 단언을 무르게 하지 않고
+           탐침이 ★실배포 조건을 그대로 모사하게 고쳤다(2026-09-12 광고자리 숨김 라운드). */
+        slot.classList.add('live');
         const f = document.createElement('iframe');
         f.className = '__probe_ad';
         f.setAttribute('width', '300');

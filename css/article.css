@@ -1,0 +1,53 @@
+/* 읽을 글 — 게임 페이지 아래에 붙는 산문 블록 (2026-09-12 · 애드센스 재신청 라운드)
+ *
+ * 왜 별도 파일인가
+ *   같은 블록이 여러 페이지에 붙는다. 페이지마다 인라인으로 복사하면 한 줄을 고칠 때
+ *   열 곳을 고쳐야 하고, 곧 서로 다른 열 벌이 된다.
+ *
+ * 색은 ★페이지가 이미 쓰는 것을 물려받는다
+ *   페이지마다 글자색 변수 이름이 다르다(--text 를 쓰는 곳도 --fg 를 쓰는 곳도 있다).
+ *   그래서 본문은 color 를 새로 정하지 않고 ★상속받고, 보조 글자만 모든 페이지에 공통으로
+ *   있는 --muted 를 쓴다. 이렇게 하면 라이트·다크 어느 쪽에서도 이미 검증된 대비를 그대로 쓴다.
+ *
+ * 언어 전환은 CSS 로 한다
+ *   제품의 applyLang() 이 [data-i18n] 요소의 innerHTML 을 갈아끼우기 때문에 긴 산문에
+ *   data-i18n 을 붙이면 본문이 통째로 날아갈 수 있다. applyLang() 은 documentElement.lang
+ *   도 함께 갱신하므로 그 쪽에 기대어 가른다.
+ */
+
+.read {
+  width: 100%;
+  max-width: 560px;
+  margin: 18px auto 8px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  text-align: left;
+  line-height: 1.75;
+  font-size: .92rem;
+}
+
+.read h2 {
+  font-size: 1.02rem;
+  line-height: 1.5;
+  margin: 20px 0 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.read h3 {
+  font-size: .95rem;
+  line-height: 1.5;
+  margin: 18px 0 6px;
+}
+
+.read p {
+  margin: 0 0 10px;
+  color: var(--muted);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* ko 를 기본으로 두고, 페이지가 영어로 바뀌면 서로 자리를 바꾼다 */
+.read-en { display: none; }
+html[lang="en"] .read-ko { display: none; }
+html[lang="en"] .read-en { display: block; }

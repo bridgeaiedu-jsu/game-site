@@ -30,6 +30,8 @@
      광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
+<link rel="stylesheet" href="/css/article.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -155,7 +157,7 @@
 </header>
 
 <!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
-<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
 <div class="scores">
   <div class="score"><b id="score">0</b><span data-i18n="score">점수</span></div>
@@ -178,7 +180,7 @@
     <div class="new" id="newBest"></div>
     <div class="sub" id="finalSub"></div>
     <!-- ADSENSE (3/3) — 게임오버 300×250 자리. 주의: 게임오버 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
-    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
     <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
     <button class="btn ghost" id="btnShare" data-i18n="share">점수 공유</button>
     <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
@@ -231,6 +233,12 @@
   <details><summary data-i18n="faq3q">오프라인에서도 되나요?</summary><p data-i18n="faq3a">한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.</p></details>
 </section>
 
+<section class="read" id="read">
+<div class="read-ko"><h2>블록을 돌릴 수 없다는 점</h2><p>이 게임에는 회전이 없다. 떨어지는 블록을 돌려 끼우는 놀이에 익숙한 사람은 이 점에서 한 번 걸린다. 모양을 판에 맞추는 것이 아니라, 판을 모양에 맞춰 미리 비워 두어야 하기 때문이다. 세로로 긴 다섯 칸짜리가 나왔는데 세로로 다섯 칸 비어 있는 곳이 없다면 그 블록은 놓을 데가 없다. 눕혀서 끼울 방법이 없다.</p><h3>세 개가 한 묶음이라는 것</h3><p>트레이에는 블록이 세 개씩 나오고, 세 개를 다 놓아야 다음 묶음이 온다. 그래서 첫 블록을 놓을 때 이미 세 번째 블록까지 생각해야 한다. 지금 이 자리에 놓으면 남은 두 개가 들어갈 자리가 남는가. 이 질문을 건너뛰면 두 개를 시원하게 놓고 마지막 하나에서 막힌다. 판이 끝나는 조건이 점수가 아니라 놓을 자리가 없다는 것임을 떠올리면 계산이 분명해진다.</p><h3>빈칸의 모양을 관리한다</h3><p>남은 칸이 몇 개인지는 생각만큼 중요하지 않다. 스무 칸이 여기저기 한 칸씩 흩어져 있으면 어떤 블록도 받지 못하고, 아홉 칸이 네모나게 모여 있으면 큰 블록도 받는다. 그래서 잘하는 사람은 점수를 올리는 수가 아니라 다음에도 아무 모양이나 받을 수 있는 수를 고른다. 줄을 지우는 것은 그 자체가 목적이라기보다 판의 모양을 되돌리는 수단에 가깝다.</p><h3>한 번에 여러 줄을 지우면 보너스가 붙는다</h3><p>가로와 세로가 동시에 완성되도록 놓으면 보너스가 붙는다. 그래서 줄을 하나 완성할 수 있는 자리를 보고도 한 박자 참는 선택이 생긴다. 다만 참는 동안 판은 계속 차오르므로, 보너스를 노리다 놓을 자리를 잃는 것이 이 게임에서 가장 흔한 실패다.</p><h3>오늘의 도전은 블록 순서까지 같다</h3><p>매일 자정에 새 퍼즐이 열리고, 그날 도전하는 사람은 모두 같은 블록 순서를 받는다. 운으로 갈리는 부분이 없어지므로 점수 차이는 순서를 어떻게 썼는지의 차이가 된다. 하루 한 번이고, 연속으로 도전하면 스트릭이 쌓인다.</p></div>
+<!-- /read-ko -->
+<div class="read-en"><h2>There is no rotation here</h2><p>Pieces cannot be turned. Anyone who grew up nudging falling shapes into place stumbles on that once. You are not fitting a shape into the board; you are keeping the board shaped so the next piece fits. If a five cell vertical bar arrives and nowhere on the grid has five free cells stacked vertically, that piece simply has no home. Laying it down sideways is not an option.</p><h3>Pieces come three at a time</h3><p>The tray hands you three shapes, and the next three only appear once all three are placed. That means the first placement already has to account for the third. Will the other two still have somewhere to go after this move? Skip that question and you will place two comfortably and then jam on the last one. Remember that a round ends when nothing can be placed, not when a score runs out, and the arithmetic becomes obvious.</p><h3>Manage the shape of the empty space</h3><p>How many cells remain matters less than people expect. Twenty singles scattered across the grid can host nothing, while nine cells gathered in a square can host almost anything. Strong play therefore chooses the move that keeps the board able to accept any shape, rather than the move that scores most right now. Clearing a line is less a goal in itself than a way of restoring that flexibility.</p><h3>Clearing more than one line at once pays a bonus</h3><p>Placing a piece so that a row and a column complete together earns a bonus, which creates a real choice: you can see a line ready to clear and still hold off for one more placement. The board keeps filling while you wait, though, and losing your placement space while fishing for a bonus is the most common way these rounds end.</p><h3>The daily board hands out the same piece order</h3><p>A new puzzle opens at midnight and everyone playing that day receives the same sequence of pieces. With luck removed from the comparison, a difference in score is a difference in how the sequence was used. One attempt per day, and playing on consecutive days builds a streak.</p></div>
+<!-- /read-en -->
+</section>
 <footer>
   <span data-i18n="footer">© 2026 Block Puzzle · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
   <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
@@ -252,7 +260,7 @@ const I18N = {
     gameOver:'게임 오버', again:'다시 하기', share:'점수 공유', start:'시작',
     startSub:'10×10 판에 블록을 놓고<br>가로·세로 줄을 지워 점수를 올리세요.<br>한 판 1~3분.',
     newBest:'🎉 최고 기록 갱신!', finalSub:(l,t)=>`지운 줄 ${l} · 플레이 ${t}`,
-    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     copied:'점수가 복사됐어요', shareText:(s)=>`블록 퍼즐에서 ${s}점! 한 판 도전해 보세요 👉 `,
     start:'자유 플레이', daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
     dailyHint:'매일 새 퍼즐 · 전 세계 같은 블록 순서 · 하루 한 번', dailyHintDone:'오늘 도전 완료 — 내일 새 퍼즐이 열립니다',
@@ -284,7 +292,7 @@ const I18N = {
     gameOver:'Game Over', again:'Play Again', share:'Share Score', start:'Start',
     startSub:'Place blocks on a 10×10 board.<br>Clear rows and columns to score.<br>1–3 minutes per round.',
     newBest:'🎉 New best score!', finalSub:(l,t)=>`${l} lines · ${t} played`,
-    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     copied:'Score copied', shareText:(s)=>`I scored ${s} in Block Puzzle! Try a round 👉 `,
     start:'Free Play', daily:(n)=>`Daily Challenge #${n}`, dailyDone:(n)=>`Daily #${n} · See result`,
     dailyHint:'New puzzle every day · same blocks for everyone · one try a day', dailyHintDone:'Done for today — a new puzzle opens tomorrow',

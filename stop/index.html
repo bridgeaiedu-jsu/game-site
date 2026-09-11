@@ -36,6 +36,7 @@
 <!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -177,7 +178,7 @@
 </header>
 
 <!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
-<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
 <div class="scores">
   <div class="score"><b id="bestNow">–</b><span data-i18n="bestLbl">최고 평균</span></div>
@@ -217,7 +218,7 @@
       <div><b id="nMiss">0</b><span data-i18n="missLbl">놓친 라운드</span></div>
     </div>
     <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
-    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
     <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
     <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
     <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center;line-height:44px">🏠 다른 게임</a>
@@ -360,7 +361,7 @@ const I18N = {
     docTitle:'멈춰! — 움직이는 대상이 목표와 겹치는 순간을 잡는 게임 | Stop!',
     title:'멈춰!', title2:'멈춰!', subtitle:'겹치는 순간을 잡는 시각 감각 게임',
     home:'🏠 <span class="lbl">다른 게임</span>', langBtn:'EN',
-    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     bestLbl:'최고 평균', roundLbl:'라운드', streakLbl:'스트릭',
     avgLbl:'평균 점수', topLbl:'최고 라운드', missLbl:'놓친 라운드',
     result:'결과', again:'다시 하기', share:'결과 공유', start:'▶ 연습 모드',
@@ -428,7 +429,7 @@ const I18N = {
     docTitle:'Stop! — tap the moment the moving mark lines up with the target | 멈춰!',
     title:'Stop!', title2:'Stop!', subtitle:'A visual-timing game about the moment things line up',
     home:'🏠 <span class="lbl">More games</span>', langBtn:'한국어',
-    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     bestLbl:'Best average', roundLbl:'Round', streakLbl:'Streak',
     avgLbl:'Average', topLbl:'Best round', missLbl:'Missed',
     result:'Result', again:'Play again', share:'Share result', start:'▶ Practice',

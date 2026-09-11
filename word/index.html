@@ -30,6 +30,7 @@
      광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -181,7 +182,7 @@
 </header>
 
 <!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
-<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
 <main>
   <div id="board" role="grid" aria-label="board"></div>
@@ -204,7 +205,7 @@
     <div class="new" id="streakLine"></div>
     <div class="sub" id="finalSub"></div>
     <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
-    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
     <button class="btn primary" id="btnShare" data-i18n="share">결과 공유</button>
     <button class="btn ghost" id="btnAgain" data-i18n="playFree">자유 모드 한 판</button>
     <button class="btn ghost" id="btnStats2" data-i18n="statsBtn">통계 보기</button>
@@ -323,7 +324,7 @@ const I18N = {
     helpP2:'칸 색이 힌트입니다. 초록은 그 자리에 그 자모가 정확히 있다는 뜻이고, 노랑은 낱말에 있기는 하지만 자리가 다르다는 뜻이며, 회색은 낱말에 없다는 뜻입니다. 받침 없음(·)도 자리가 맞으면 초록이 됩니다.',
     helpP3:'입력은 평소 쓰는 두벌식 자판 그대로입니다. 컴퓨터에서는 한/영 상태와 상관없이 그냥 치면 되고, 휴대전화에서는 화면 자판을 누르세요. 쌍자음은 ⇧를 누른 뒤 칩니다. Enter로 제출하고 Backspace로 지웁니다.',
     helpP4:'오늘의 낱말은 매일 자정에 새로 열리고 전 세계가 같은 낱말을 풉니다. 하루 한 번만 도전할 수 있고, 창을 닫아도 하던 판이 그대로 이어집니다.',
-    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     howTitle:'게임 방법', dailyTitle:'오늘의 도전', tipsTitle:'잘 맞히는 요령', faqTitle:'자주 묻는 질문',
     how1:"오늘의 낱말은 두 글자로 된 우리말 낱말 하나를 여섯 번 안에 알아맞히는 놀이입니다. 낱말은 글자 그대로가 아니라 자음과 모음으로 풀어서 여섯 칸에 놓입니다. 한 글자는 첫소리(초성)·가운뎃소리(중성)·받침(종성) 세 칸을 차지하고, 받침이 없는 글자는 그 자리를 가운데 점(·)으로 표시합니다. 예를 들어 '바다'는 ㅂ·ㅏ·(없음)·ㄷ·ㅏ·(없음) 여섯 칸이 됩니다.",
     how2:"한 번 제출할 때마다 여섯 칸의 색이 바뀝니다. 초록은 그 자리에 그 자모가 정확히 놓였다는 뜻이고, 노랑은 그 자모가 낱말 어딘가에 있지만 자리는 다르다는 뜻이며, 회색은 그 자모가 낱말에 아예 없다는 뜻입니다. 같은 자모가 여러 번 나올 때는 정답에 들어 있는 개수만큼만 색이 칠해집니다. 받침 없음(·)도 하나의 표시로 다뤄서 자리가 맞으면 초록이 되지만, 다른 자리에 있다는 노랑 힌트로는 쓰이지 않습니다.",
@@ -388,7 +389,7 @@ const I18N = {
     helpP2:'Tile colours are the hints. Green means that letter is exactly right in that spot, yellow means the letter is in the word but somewhere else, and grey means it is not in the word at all. "No final consonant" (·) also turns green when it is in the right spot.',
     helpP3:'Type with the standard two-set Korean keyboard. On a computer it works whether or not your input method is set to Korean. On a phone, use the on-screen keyboard and press ⇧ for double consonants. Enter submits, Backspace erases.',
     helpP4:'A new word opens every midnight and everyone in the world gets the same one. You get one try per day, and closing the tab does not lose your run.',
-    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     howTitle:'How to Play', dailyTitle:'Daily Challenge', tipsTitle:'Tips', faqTitle:'FAQ',
     how1:'Daily Word asks you to find one two-syllable Korean word in six tries. The word is not shown as syllables but broken into individual letters across six tiles. Each syllable takes three tiles — the first consonant, the vowel, and the final consonant — and a syllable without a final consonant shows a middle dot (·). For example 바다 becomes ㅂ · ㅏ · (none) · ㄷ · ㅏ · (none).',
     how2:'Every submission colours the six tiles. Green means the letter is exactly right in that spot, yellow means the letter is in the word but in a different spot, and grey means the letter is not in the word. When the same letter appears more than once, only as many tiles are coloured as the answer actually contains. "No final consonant" (·) counts as its own symbol: it turns green in the right spot, but never produces a yellow hint.',

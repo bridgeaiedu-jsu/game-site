@@ -31,6 +31,8 @@
 <!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
+<link rel="stylesheet" href="/css/article.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -182,7 +184,7 @@
     </div>
   </header>
 
-  <div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+  <div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
   <!-- 시작 화면 -->
   <section class="card" id="start">
@@ -220,7 +222,7 @@
       <div><b id="nRounds">0</b><span data-i18n="roundsLbl">라운드</span></div>
       <div><b id="nTime">–</b><span data-i18n="timeLbl">걸린 시간</span></div>
     </div>
-    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
     <p><button class="btn primary" id="btnAgain" style="width:100%" data-i18n="again">다시 하기</button></p>
     <p><a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;width:100%;display:block;text-align:center">🏠 다른 게임</a></p>
   </section>
@@ -245,7 +247,13 @@
     <details><summary data-i18n="faq4q">기록은 어디에 저장되나요?</summary><p data-i18n="faq4a">이 게임은 판을 저장하지 않습니다. 기기의 브라우저에 남는 것은 <strong>효과음 켜짐/꺼짐</strong>과 <strong>언어 설정</strong>뿐입니다. 서버로는 판수 집계와 함께 어느 게임인지·판이 끝난 방식·인원·치른 라운드 수·걸린 시간 같은 플레이 통계가, 그리고 언어를 바꾸면 그 사실이 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a>에 최신 목록으로 유지합니다.</p></details>
   </section>
 
-  <footer>
+  <section class="read" id="read">
+<div class="read-ko"><h2>억울한 판이 나오지 않게 만든 약속</h2><p>여럿이 한 화면을 나눠 쓰는 게임에서 가장 흔한 다툼은 판이 내 손 때문에 바뀌었다는 느낌이다. 이 게임은 그것을 규칙으로 막았다. 다섯 라운드에 나올 표식과 라운드 사이 대기 시간이 판을 시작하는 순간 전부 정해진다. 누가 언제 누르든 이미 정해진 것이 나온다. 내가 눌러서 엑스가 떴다는 말이 성립하지 않는 구조다.</p><h3>날짜와 인원이 판을 정한다</h3><p>판은 날짜와 인원으로 정해진다. 같은 날 같은 인원이면 같은 판이므로 다른 자리에 앉은 사람들과도 같은 판을 겨룰 수 있다. 인원을 바꾸면 다른 판이고, 판 도중에 인원을 바꾸면 그 판은 버리고 새로 시작한다. 대기 시간에는 최소 길이가 보장되어 있는데, 짧게 뽑은 뒤 늘려 주는 방식이 아니라 애초에 짧게 나올 수 없게 만든 것이다.</p><h3>엑스는 반드시 오고, 누르는 곳은 자기 칸이다</h3><p>다섯 라운드 중 엑스는 한 번 이상 두 번 이하로 나온다. 반드시 온다는 것을 알고 있으면 참는 일이 전략이 된다. 손이 빠른 사람일수록 여기서 점수를 잃는다. 같은 표식이 세 번 연속으로 나오지도 않는다. 누르는 곳이 가운데가 아니라 자기 칸인 것도 이유가 있다. 가운데는 읽는 자리이고, 넷이 한 점을 동시에 노리면 손이 겹치기 때문이다. 각 칸은 그 칸만 보고 채점되므로 같은 순간에 둘이 눌러도 서로의 점수에 영향을 주지 않는다.</p><h3>셋이 기본이고 넷은 화면이 클 때</h3><p>화면이 사람 수만큼 칸으로 갈린다. 작은 화면에서 넷이 나누면 칸이 좁아져 남의 칸을 건드리기 쉬우므로 셋이 기본이고, 넷은 화면이 큰 기기에서 권한다. 마주 앉은 사람 쪽 칸은 그 사람이 바로 읽을 수 있도록 돌려서 그린다. 폰 하나를 가운데 두고 둘러앉는 자세를 전제로 만든 화면이다.</p><h3>점수는 더하기만 있는 것이 아니다</h3><p>자기 표식이 떴을 때 누르면 1점을 얻는다. 남의 표식에 눌러도, 엑스에 눌러도, 대기 중에 미리 눌러도 그 사람만 1점을 잃는다. 얻는 길은 하나이고 잃는 길이 셋이라, 다섯 라운드가 끝났을 때 점수가 음수인 자리도 나온다. 빨리 누르는 능력보다 누르지 않는 판단이 순위를 가르는 이유다.</p></div>
+<!-- /read-ko -->
+<div class="read-en"><h2>A round nobody can blame</h2><p>When several people share one screen, the usual argument is that the game changed because of somebody's hand. This one removes that possibility by rule. The marks for all five rounds and the waiting time between them are decided the moment the round begins. Whoever taps and whenever they tap, what appears was already fixed. The sentence "the cross came up because I pressed" cannot be true here.</p><h3>The date and the headcount choose the round</h3><p>A round is determined by the date together with the number of players. Same day, same headcount, same round, so you can compete against a table on the other side of the country. Change the headcount and you get a different round; change it mid game and the current round is discarded and restarted. The waiting time has a guaranteed minimum, and that minimum is built in rather than patched on: short values are never drawn in the first place.</p><h3>The cross always comes, and you tap your own panel</h3><p>Across five rounds the cross appears at least once and at most twice. Knowing it must come turns restraint into a tactic, and quick hands are exactly the ones that lose points there. No mark repeats three times in a row either. Tapping your own panel rather than the centre is also deliberate: the centre is for reading, and four hands reaching for one spot would collide. Each panel is scored on its own, so two people pressing at the same instant never affect each other's points.</p><h3>Three players by default, four on a big screen</h3><p>The screen splits into as many panels as there are players. On a small phone four panels get cramped and hands stray into a neighbour's area, so three is the default and four is recommended on larger devices. Panels belonging to people sitting opposite are drawn rotated so they can read them directly. The layout assumes everyone is gathered around one phone lying in the middle.</p><h3>Points move in both directions</h3><p>Tapping when your own mark appears earns a point. Tapping on somebody else's mark, tapping on the cross, or tapping during the wait all cost the person who did it a point. One way to gain and three ways to lose means a panel can finish the five rounds below zero. That is why the ranking is decided by the decision not to press rather than by raw speed.</p></div>
+<!-- /read-en -->
+</section>
+<footer>
     <span data-i18n="footer">© 2026 넷이 한판 · 개인정보: 이 게임은 설정만 기기에 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
     <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
   </footer>
@@ -367,7 +375,7 @@ var I18N = {
     ariaSound: '효과음 켜기 끄기', ariaLang: '언어 바꾸기', ariaWho: '인원 선택',
     ariaLane: '{n}번 자리 · 표식 {mark}',
     markName: { circle: '동그라미', triangle: '세모', square: '네모', diamond: '마름모', x: '엑스' },
-    adPlaceholder: '광고 자리 (320×50 / 728×90)', adPlaceholder2: '광고 자리 (300×250)',
+    adPlaceholder: '', adPlaceholder2: '',
     startSub: '폰 하나를 가운데 놓고 <strong>각자 한 칸</strong>을 맡으세요. 칸에 그려진 <strong>표식이 여러분의 것</strong>입니다.<br>가운데에 표식이 뜨면 <strong>그 표식의 주인만</strong> 자기 칸을 누릅니다. <strong>✕</strong>가 뜨면 <strong>아무도</strong> 누르지 않습니다.',
     whoLabel: '몇 명이 하나요?', startBtn: '▶ 시작', quit: '그만하기',
     statPlays:'오늘 <b data-hp="plays.four.today">–</b>판 · 누적 <b data-hp="plays.four.total">–</b>판',
@@ -401,7 +409,7 @@ var I18N = {
     ariaSound: 'Toggle sound effects', ariaLang: 'Change language', ariaWho: 'Choose player count',
     ariaLane: 'Seat {n}, mark {mark}',
     markName: { circle: 'circle', triangle: 'triangle', square: 'square', diamond: 'diamond', x: 'cross' },
-    adPlaceholder: 'Ad slot (320×50 / 728×90)', adPlaceholder2: 'Ad slot (300×250)',
+    adPlaceholder: '', adPlaceholder2: '',
     startSub: 'Put one phone in the middle and take <strong>one lane each</strong>. The <strong>mark drawn in your lane is yours</strong>.<br>When a mark appears in the centre, <strong>only its owner</strong> taps their own lane. When <strong>✕</strong> appears, <strong>nobody</strong> taps.',
     whoLabel: 'How many players?', startBtn: '▶ Start', quit: 'Quit',
     statPlays:'<b data-hp="plays.four.today">–</b> today · <b data-hp="plays.four.total">–</b> all-time',

@@ -30,6 +30,8 @@
      광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
+<link rel="stylesheet" href="/css/article.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -167,7 +169,7 @@
 </header>
 
 <!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
-<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
 <div class="scores">
   <div class="score"><b id="score">0</b><span data-i18n="score">점수</span></div>
@@ -207,7 +209,7 @@
     <div class="new" id="newBest"></div>
     <div class="sub" id="finalSub"></div>
     <!-- ADSENSE (3/3) — 게임오버 300×250 자리. 주의: 게임오버 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
-    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
     <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
     <button class="btn ghost" id="btnShare" data-i18n="share">점수 공유</button>
     <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
@@ -257,6 +259,12 @@
   <details><summary data-i18n="faq3q">오프라인에서도 되나요?</summary><p data-i18n="faq3a">한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.</p></details>
 </section>
 
+<section class="read" id="read">
+<div class="read-ko"><h2>바닥에 닿고도 0.5초는 굳지 않는다</h2><p>블록이 바닥이나 다른 블록 위에 닿아도 곧바로 굳지 않는다. 0.5초 동안은 아직 움직일 수 있어서, 마지막 순간에 옆으로 밀어 넣거나 돌려 끼울 수 있다. 손이 늦는 사람에게 주는 여유처럼 보이지만 상한이 있다. 이 유예는 한 조각당 열다섯 번까지만 늘어난다. 좌우로 계속 흔들어 영원히 버티는 일은 일어나지 않는다는 뜻이다. 열다섯 번을 다 쓰면 그 조각은 그 자리에 굳는다.</p><h3>줄 수에 따라 점수가 크게 갈린다</h3><p>한 줄은 100점, 두 줄은 300점, 세 줄은 500점, 네 줄은 800점이고 여기에 지금 레벨이 곱해진다. 한 줄을 네 번 지우면 400점인데 네 줄을 한 번에 지우면 800점이니 정확히 두 배다. 여기에 하드 드롭으로 떨어뜨린 칸마다 2점이 붙는다. 위에서부터 곧장 떨어뜨리는 습관이 점수에도 조금씩 보탬이 되는 구조다.</p><h3>레벨이 오른다는 말의 두 가지 뜻</h3><p>줄을 열 줄 지울 때마다 레벨이 1 오른다. 레벨은 점수에 곱해지는 수이면서 동시에 블록이 떨어지는 속도다. 그래서 레벨은 상이자 벌이다. 빨라진 판에서 생각할 시간을 버는 방법은 두 가지뿐이다. 판을 평평하게 유지해 어떤 모양이 와도 받을 수 있게 하는 것, 그리고 화면 아래쪽 옅은 윤곽선을 보고 지금 조각이 어디에 떨어질지 미리 확인해 두는 것이다.</p><h3>홀드는 조각당 한 번</h3><p>지금 떨어지는 블록을 한 칸에 맡겨 두고 다음 블록을 대신 받는 기능이 홀드다. 한 조각당 한 번만 쓸 수 있고, 블록이 굳으면 다시 쓸 수 있게 된다. 그래서 홀드는 보관함이라기보다 한 번짜리 교환권에 가깝다. 긴 막대를 넣어 두었다가 네 줄을 지울 순간에 꺼내는 쓰임이 대표적이다.</p><h3>오늘의 도전은 다시 시작이 없다</h3><p>오늘의 도전은 모두가 같은 블록 순서를 받고 하루 한 번만 도전할 수 있다. 중간에 창을 닫아도 하던 판이 그대로 이어지며, 마음에 안 든다고 처음부터 다시 시작할 수는 없다. 한 수를 물릴 수 없다는 점이 자유 플레이와 가장 크게 다른 부분이다.</p></div>
+<!-- /read-ko -->
+<div class="read-en"><h2>Half a second before it locks</h2><p>When a piece lands on the floor or on the stack it does not freeze immediately. For half a second it can still slide sideways or spin into a gap, which is what lets you rescue an awkward drop at the last instant. That grace is capped, though: it can be extended at most fifteen times per piece. Rocking a piece left and right forever is impossible by design. Once those fifteen extensions are spent, the piece locks where it stands.</p><h3>Lines clear at very different rates</h3><p>One line pays 100, two pay 300, three pay 500 and four pay 800, all multiplied by your current level. Four separate single clears come to 400, while one quadruple clear pays 800, exactly double. On top of that, a hard drop adds two points for every cell the piece fell. Slamming pieces down instead of letting them drift quietly adds up over a long round.</p><h3>Levelling up means two things at once</h3><p>Every ten cleared lines raise the level by one. That number multiplies your score and also sets how fast pieces fall, which makes levelling both a reward and a penalty. There are only two ways to buy thinking time on a fast board: keep the stack flat so any shape can be accepted, and read the faint outline near the bottom that shows where the current piece will land before you commit.</p><h3>Hold is one swap per piece</h3><p>Hold parks the falling piece in a slot and hands you the next one instead. You may use it once per piece, and it becomes available again after a piece locks, which makes it less a storage box than a single use exchange ticket. The classic use is to park a long bar and pull it out at the moment a quadruple clear becomes available.</p><h3>The daily round cannot be restarted</h3><p>In the daily challenge everyone receives the same sequence and gets one attempt. Closing the window mid game leaves the round exactly where it was, and there is no option to wipe a bad start and begin again. Not being able to take a move back is the sharpest difference from free play.</p></div>
+<!-- /read-en -->
+</section>
 <footer>
   <span data-i18n="footer">© 2026 블록 낙하 · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
   <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
@@ -283,7 +291,7 @@ const I18N = {
     startSub:'떨어지는 블록을 돌려 빈틈 없이 채우세요.<br>가로 한 줄이 다 차면 지워집니다.<br>한 판 3~8분.',
     newBest:'🎉 최고 기록 갱신!',
     finalSub:(l,v,t)=>`${l}줄 · 레벨 ${v} · 플레이 ${t}`,
-    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     copied:'결과가 복사됐어요',
     shareText:(s,l)=>`블록 낙하에서 ${s}점 · ${l}줄! 한 판 도전해 보세요 👉 `,
     start:'자유 플레이', daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
@@ -341,7 +349,7 @@ const I18N = {
     startSub:'Rotate the falling blocks and fill every gap.<br>A full horizontal row clears.<br>3–8 minutes per round.',
     newBest:'🎉 New best score!',
     finalSub:(l,v,t)=>`${l} lines · level ${v} · ${t} played`,
-    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     copied:'Result copied',
     shareText:(s,l)=>`I scored ${s} with ${l} lines in Block Drop! Try a round 👉 `,
     start:'Free Play', daily:(n)=>`Daily Challenge #${n}`, dailyDone:(n)=>`Daily #${n} · See result`,

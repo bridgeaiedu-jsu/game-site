@@ -68,6 +68,7 @@
 <!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -254,7 +255,7 @@
 </header>
 
 <!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
-<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
 <main>
   <!-- ★차례 줄 -->
@@ -296,7 +297,7 @@
     </div>
     <div class="sub" id="finalSub"></div>
     <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
-    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
     <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기 (선공 교대)</button>
     <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
     <button class="btn ghost" id="btnBoard" data-i18n="viewBoard">🔍 판 보기</button>
@@ -432,7 +433,7 @@ const I18N = {
     docTitle:'오목 한판 — 한 기기에서 번갈아 두는 2인용 오목 | Gomoku',
     title:'오목 한판', title2:'오목 한판', subtitle:'한 기기에서 번갈아 두는 2인용 오목',
     home:'🏠 <span class="lbl">다른 게임</span>', langBtn:'EN',
-    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     result:'결과', again:'다시 하기 (선공 교대)', share:'결과 공유', viewBoard:'🔍 판 보기',
     startBtn:'⚫ 둘이 한판', newGame:'새 판',
     undo:'↩ 무르기 (1회)', undoLeft:n => `↩ 무르기 (${n}회)`, undoNone:'↩ 무르기 (다 씀)',
@@ -509,7 +510,7 @@ const I18N = {
     docTitle:'Gomoku — two players, one device, five in a row | 오목 한판',
     title:'Gomoku', title2:'Gomoku', subtitle:'Two players taking turns on one device',
     home:'🏠 <span class="lbl">More games</span>', langBtn:'한국어',
-    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     result:'Result', again:'Play again (colours swap)', share:'Share result', viewBoard:'🔍 View the board',
     startBtn:'⚫ Two-player game', newGame:'New board',
     undo:'↩ Undo (1 left)', undoLeft:n => `↩ Undo (${n} left)`, undoNone:'↩ Undo (used)',

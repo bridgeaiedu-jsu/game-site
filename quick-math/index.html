@@ -27,6 +27,8 @@
 <!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않는다. -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
+<link rel="stylesheet" href="/css/article.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -200,7 +202,7 @@
 </header>
 
 <!-- ADSENSE (2/3) — 상단 배너 자리 -->
-<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
 <div class="scores">
   <!-- ★이 세 칸의 숫자에는 data-i18n 을 붙이지 않는다 — 언어를 바꾸면 applyLang 이
@@ -243,7 +245,7 @@
     <ul class="review" id="review" aria-label="review"></ul>
     <div class="sub" id="finalSub"></div>
     <!-- ADSENSE (3/3) — 결과 화면 300×250 고정 배너(자동 팝업 금지) -->
-    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
     <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
     <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
     <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
@@ -287,6 +289,12 @@
   <details><summary data-i18n="faq5q">소리를 끌 수 있나요?</summary><p data-i18n="faq5a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 유지됩니다. 효과음은 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 「동작 줄이기」를 켜면 흔들림·팝 애니메이션도 꺼집니다.</p></details>
 </section>
 
+<section class="read" id="read">
+<div class="read-ko"><h2>3초라는 벌점의 크기</h2><p>보기를 잘못 고르면 남은 시간이 3초 줄어들고 그 보기는 잠긴다. 문제는 그대로 남아 있으니 다시 고르면 된다. 한 판이 30초라는 것을 떠올리면 3초는 전체의 10분의 1이다. 쉬운 문제 한두 개를 풀 수 있는 시간이기도 하다. 그래서 확신이 없을 때 아무거나 눌러 보는 방식은 기댓값이 낮다. 반 박자 늦더라도 맞히는 쪽이 대체로 더 많은 문제를 푼다.</p><h3>문제는 계단처럼 어려워진다</h3><p>처음 다섯 문제는 한 자리 수 덧셈과 뺄셈이고, 여섯 번째부터 열두 번째까지는 두 자리 수로 올라가며, 열세 번째부터는 구구단 범위의 곱셈과 나눗셈이 섞인다. 뺄셈의 답이 음수가 되는 일은 없고 나눗셈은 항상 딱 떨어진다. 초반 다섯 문제를 얼마나 빨리 통과하느냐가 뒤쪽에서 쓸 시간을 만든다.</p><h3>오늘의 도전은 시작할 때 이미 다 정해져 있다</h3><p>오늘의 도전에서는 그 판에 나올 문제와 오답 보기가 판이 시작되는 순간 한꺼번에 정해진다. 많이 틀린 사람과 한 번도 안 틀린 사람이 서로 다른 문제를 보는 일이 없다는 뜻이다. 보기의 위치까지 같기 때문에 같은 날 도전한 사람끼리는 완전히 같은 조건에서 겨루게 된다. 연습 모드는 이 제한이 없어 횟수 제한 없이 돌릴 수 있다.</p><h3>끝나고 나면 푼 문제를 다시 볼 수 있다</h3><p>판이 끝나면 맞힌 개수와 정확도가 나오고, 그때까지 나온 문제를 하나씩 다시 보는 목록이 함께 나온다. 목록에는 식과 정답, 그리고 내가 고른 답이 같이 적힌다. 어떤 종류에서 손이 미끄러졌는지가 여기서 보인다. 두 자리 덧셈에서 십의 자리를 놓쳤는지, 곱셈에서 끝자리를 잘못 봤는지는 판이 끝난 뒤에야 드러난다.</p><h3>고르는 방법은 두 가지다</h3><p>휴대폰에서는 보기를 손가락으로 누르고, 컴퓨터에서는 숫자 키 1부터 4까지로 고른다. 30초 안에 몇 문제를 푸는지를 재는 놀이라서 손이 가는 거리도 기록에 들어간다. 키보드가 있다면 숫자 키에 손가락 네 개를 올려 두는 편이 화면을 눌러 고르는 것보다 빠르다.</p></div>
+<!-- /read-ko -->
+<div class="read-en"><h2>How big a three second penalty is</h2><p>Choose the wrong option and three seconds vanish from the clock while that option locks. The question stays on screen, so you simply pick again. Set against a thirty second round, three seconds is a full tenth of everything you have, and roughly the time it takes to clear one or two easy questions. Guessing when you are unsure therefore has poor expected value. Answering half a beat later but correctly usually clears more questions overall.</p><h3>Difficulty climbs in steps</h3><p>The first five questions are single digit addition and subtraction. From the sixth through the twelfth they move to two digit arithmetic. From the thirteenth onward multiplication and division appear, kept inside the times tables. Subtraction never produces a negative answer and division always comes out exact. How quickly you clear those first five questions is what buys time for the harder stretch later.</p><h3>The daily round is fixed the moment it starts</h3><p>In the daily challenge every question and every wrong option is decided the instant the round begins. Someone who makes many mistakes and someone who makes none are looking at exactly the same questions. Even the positions of the four options match, so two people playing on the same day compete under identical conditions. Practice mode drops that constraint and can be replayed as often as you like.</p><h3>You can review every question afterwards</h3><p>When the clock stops you get your number correct and your accuracy, together with a list that walks back through every question that appeared. Each entry shows the expression, the correct answer and the answer you chose. That is where the pattern of your mistakes becomes visible: whether you dropped the tens digit in two digit addition, or misread the final digit of a product, only shows up after the round.</p><h3>Two ways to answer</h3><p>On a phone you tap an option; on a computer the number keys one through four select them. Since the whole point is how many questions fit into thirty seconds, even the distance your hand travels shows up in the score. If you have a keyboard, resting four fingers on the number keys is faster than reaching for the screen.</p></div>
+<!-- /read-en -->
+</section>
 <footer>
   <span data-i18n="footer">© 2026 빠른 셈 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
   <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
@@ -321,7 +329,7 @@ const I18N = {
     home:'🏠 다른 게임',
     qLbl:'문제', scoreLbl:'맞힘', timeLbl:'남은 시간',
     hint:'보기를 눌러 답을 고르세요 · 맞히면 바로 다음 문제 · 틀리면 남은 시간 −3초 · 키보드 1~4',
-    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     result:'결과', finalUnit:'문제를 맞혔습니다', again:'다시 하기', share:'결과 공유', start:'▶ 연습 모드',
     okLbl:'맞힘', badLbl:'틀림', accLbl:'정확도',
     startSub:'30초 동안 암산을 몇 개나 풀 수 있을까.<br>4지선다 · 맞히면 바로 다음 · 틀리면 −3초.',
@@ -365,7 +373,7 @@ const I18N = {
     home:'🏠 Games',
     qLbl:'Question', scoreLbl:'Solved', timeLbl:'Time left',
     hint:'Tap the right answer · correct goes straight on · a miss costs 3 seconds · keys 1–4',
-    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     result:'Result', finalUnit:'solved', again:'Play again', share:'Share result', start:'▶ Practice',
     okLbl:'Solved', badLbl:'Missed', accLbl:'Accuracy',
     startSub:'How many can you solve in 30 seconds?<br>Four choices · correct goes on · a miss costs 3s.',

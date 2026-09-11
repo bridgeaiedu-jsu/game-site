@@ -31,6 +31,7 @@
 <!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -187,7 +188,7 @@
 </header>
 
 <!-- ADSENSE (2/3) — 위 띠광고 자리. 실제 <ins class="adsbygoogle"> 는 이 div 안에 넣고 .live 를 붙인다. -->
-<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
 <div class="scores">
   <div class="score"><b id="bestNow">–</b><span data-i18n="bestLbl">최고 기록</span></div>
@@ -226,7 +227,7 @@
     </div>
     <div class="sub" id="finalSub"></div>
     <!-- ADSENSE (3/3) — 결과 카드의 사각 광고 자리. ★결과 창에 광고를 자동으로 띄우지 않는다(정책). -->
-    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
     <button class="btn primary" id="btnAgain" data-i18n="again">한 판 더</button>
     <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
     <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
@@ -298,7 +299,7 @@ const I18N = {
     docTitle:'숫자야구 — 서로 다른 숫자 넷을 열 번 안에 맞히는 추리 게임 | Number Baseball',
     title:'숫자야구', title2:'숫자야구', subtitle:'서로 다른 숫자 넷 · 열 번',
     home:'🏠 <span class="lbl">다른 게임</span>', langBtn:'EN',
-    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     bestLbl:'최고 기록', modeLbl:'모드', streakLbl:'연속',
     nTriesLbl:'시도', nResultLbl:'결과', nTimeLbl:'걸린 시간',
     result:'결과', again:'한 판 더', share:'결과 공유', start:'▶ 자유 모드',
@@ -363,7 +364,7 @@ const I18N = {
     docTitle:'Number Baseball — guess four distinct digits in ten tries | 숫자야구',
     title:'Number Baseball', title2:'Number Baseball', subtitle:'Four distinct digits · ten tries',
     home:'🏠 <span class="lbl">More games</span>', langBtn:'한국어',
-    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     bestLbl:'Best', modeLbl:'Mode', streakLbl:'Streak',
     nTriesLbl:'Tries', nResultLbl:'Result', nTimeLbl:'Time',
     result:'Result', again:'Play again', share:'Share result', start:'▶ Free play',

@@ -173,6 +173,20 @@
       "why": "두 테마(라이트·다크)에서 ★렌더된 색으로 글자 대비비를 잰다(보통 4.5:1 · 큰 글자 3:1). CDP 의 Emulation.setEmulatedMedia 로 다크를 강제한다 — 두 라운드 동안 \"다크는 강제할 수단이 없다\" 고 적혀 있던 자리가 여기서 풀렸다(R6 B5). ★always 인 이유: 대비는 제품이 안 바뀌어도 토큰·테마가 바뀌면 깨지고, \"표면 위에 새 글자가 놓이는 변경\" 은 조건부 트리거로 못 덮는다(2026-09-08 실제 사례가 그 모양이었다)."
     },
     {
+      "file": "tools/check_ad_placeholder.mjs",
+      "cmd": "node tools/check_ad_placeholder.mjs .",
+      "when": "always",
+      "why": "광고 자리표시자가 화면에 그려지지 않는가(실브라우저·HTTP·ko/en 전수 · 검출력 자기시험 동반)",
+      "kind": "cli"
+    },
+    {
+      "file": "tools/check_article_uniqueness.py",
+      "cmd": "python3 tools/check_article_uniqueness.py .",
+      "when": "always",
+      "why": "게임별 읽을 글이 서로 복제가 아닌가(문장 교집합 0 + 5-그램 유사도 임계 · 복제본 자기시험 동반)",
+      "kind": "cli"
+    },
+    {
       "file": "tools/check_daily_boundary.mjs",
       "cmd": "node tools/check_daily_boundary.mjs .",
       "when": "always",

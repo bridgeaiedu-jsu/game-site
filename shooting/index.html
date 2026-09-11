@@ -30,6 +30,8 @@
      광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
+<link rel="stylesheet" href="/css/article.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -168,7 +170,7 @@
 </header>
 
 <!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
-<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
 <div class="scores">
   <div class="score"><b id="score">0</b><span data-i18n="scoreLbl">점수</span></div>
@@ -200,7 +202,7 @@
     </div>
     <div class="sub" id="finalSub"></div>
     <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
-    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
     <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
     <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
     <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
@@ -247,6 +249,12 @@
   <details><summary data-i18n="faq4q">화면이 흔들리는 게 불편합니다</summary><p data-i18n="faq4a">기기 설정에서 '동작 줄이기'를 켜면 화면 흔들림이 자동으로 꺼집니다. 게임 진행에는 아무 차이가 없습니다.</p></details>
 </section>
 
+<section class="read" id="read">
+<div class="read-ko"><h2>버티는 게임이 아니다</h2><p>이 게임에는 아래로 흘려보낸 도형에 대한 벌이 없다. 바닥까지 그냥 내려간 것은 아무 손해도 주지 않고 사라진다. 목숨이 줄어드는 경우는 도형이 기체에 부딪혔을 때뿐이고, 부딪히면 잠깐 무적이 된다. 그러니 구석에 숨어 90초를 버티면 목숨은 셋 그대로 남지만 점수는 거의 오르지 않는다. 이 판에서 손해는 맞는 것이 아니라 쏘지 못하는 것이다.</p><h3>콤보 시계는 2.5초짜리다</h3><p>하나를 부술 때마다 콤보가 1 오르고, 2.5초 동안 아무것도 부수지 못하면 0으로 돌아간다. 점수는 부순 개수가 아니라 콤보 배수로 벌어지기 때문에, 다음 표적까지 걸리는 시간이 곧 점수다. 운석처럼 두세 방이 필요한 표적을 화면 위쪽에서부터 겨눠 두는 요령이 있는 것도 이 때문이다. 내려오는 동안 맞아 주면 그만큼 시계를 덜 쓴다.</p><h3>분노 모드는 켜지는 때를 고를 수 있다</h3><p>게이지는 도형을 부술 때마다 찬다. 즉 언제 가득 찰지는 내 손에 달려 있다. 게이지가 거의 찼는데 화면이 텅 비어 있다면 폭발이 쓸어 담을 것이 없다. 반대로 화면이 도형으로 빽빽할 때 마지막 한 개를 부수면 그 폭발 한 번이 화면 전체를 지우고, 이어지는 3초 동안 탄이 세 갈래로 퍼져 관통한다. 이 3초를 어디에 놓느냐가 한 판의 기록을 가른다.</p><h3>표적마다 필요한 타수가 다르다</h3><p>네모와 슬라임은 한 방, 운석은 두 방, 큰 덩어리는 세 방을 맞아야 부서진다. 발사 버튼이 없고 알아서 계속 쏘기 때문에, 조작으로 할 수 있는 일은 어떤 표적 앞에 서 있을지를 고르는 것뿐이다. 세 방이 필요한 표적 앞에 오래 서 있으면 그동안 한 방짜리 여러 개가 지나간다.</p><h3>한 판은 90초로 고정이다</h3><p>시간이 다 되거나 목숨이 0이 되면 게임 오버가 아니라 결과 화면이 뜬다. 점수와 최대 콤보와 부순 개수를 보여 주고 버튼 하나로 다시 시작한다. 진다는 말보다 한 판이 끝났다는 말이 어울리는 구조이고, 90초가 고정이라 기록을 견주기도 쉽다.</p></div>
+<!-- /read-ko -->
+<div class="read-en"><h2>Survival is not the point</h2><p>Nothing punishes you for letting a shape reach the bottom; it simply disappears. Lives are lost only when a shape collides with your ship, and a collision grants a brief moment of invulnerability. Hide in a corner for the full ninety seconds and you will finish with all three lives and almost no score. In this game the real loss is not being hit, it is failing to shoot.</p><h3>The combo clock runs for 2.5 seconds</h3><p>Every shape you break adds one to the combo, and the combo resets to zero if 2.5 seconds pass with nothing destroyed. Since points scale with the combo multiplier rather than with the raw number of kills, the time between targets is effectively your score. That is why aiming at tougher shapes such as meteors while they are still high on the screen pays off: they absorb hits on the way down and spend less of your clock.</p><h3>You decide when rage mode fires</h3><p>The meter fills as you destroy things, which means its timing is under your control. If it is nearly full while the screen is empty, the explosion has nothing to sweep away. Break one last shape while the screen is crowded instead and that single blast clears everything, followed by three seconds of shots that split into three lanes and pierce through. Where you place those three seconds decides how a round ends up.</p><h3>Targets take different numbers of hits</h3><p>Squares and slimes break in one hit, meteors take two, and the large blocks take three. There is no fire button and the ship shoots continuously, so the only thing your hands control is which target you are standing in front of. Parking in front of a three hit target means a stream of one hit targets drifts past while you work on it.</p><h3>A round is always ninety seconds</h3><p>When the clock runs out or the lives reach zero, what appears is a result screen rather than a game over. It shows the score, the best combo and the number destroyed, with one button to go again. Rounds end rather than being lost, and because ninety seconds is fixed, scores are easy to compare.</p></div>
+<!-- /read-en -->
+</section>
 <footer>
   <span data-i18n="footer">© 2026 슛팅 · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
   <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
@@ -273,7 +281,7 @@ const I18N = {
     startSub:'손가락으로 좌우로만 움직이세요.<br>발사는 알아서 됩니다. 90초 동안 마음껏 부수세요.',
     newBest:'🎉 최고 기록 갱신!',
     finalSub:(k,t)=>`최대 콤보 ${k} · 플레이 ${t}`,
-    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     copied:'결과가 복사됐어요',
     shareText:(s,c)=>`슛팅에서 ${s}점 · 최대 콤보 ${c}! 한 판 도전해 보세요 👉 `,
     daily:(n)=>`오늘의 도전 #${n}`, dailyDone:(n)=>`오늘의 도전 #${n} · 결과 보기`,
@@ -324,7 +332,7 @@ const I18N = {
     startSub:'Just drag left and right.<br>Firing is automatic. Smash away for 90 seconds.',
     newBest:'🎉 New best!',
     finalSub:(k,t)=>`Best combo ${k} · played ${t}`,
-    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     copied:'Result copied',
     shareText:(s,c)=>`I scored ${s} with a ${c} combo in Shooting! Try it 👉 `,
     daily:(n)=>`Daily challenge #${n}`, dailyDone:(n)=>`Daily challenge #${n} · see result`,

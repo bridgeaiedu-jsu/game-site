@@ -27,6 +27,7 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 이 페이지는 게임이 아니므로 visit 만 보낸다(play 는 게임 화이트리스트가 필요하다:
      functions/api/hit.js:84 의 kind === 'play' 검사). -->
+<link rel="stylesheet" href="/css/ad-slots.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -122,7 +123,7 @@
   </header>
 
   <!-- ADSENSE (2/3) — 상단 배너 자리 -->
-  <div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+  <div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
   <main>
     <section class="summary" id="summary" aria-live="polite">
@@ -178,7 +179,7 @@ const LANG = {
     docTitle:'오늘의 한판 — 한판고',
     h1:'오늘의 한판', slogan:'날짜가 고르는 세 가지 — 하루에 한 번씩',
     home:'전체 게임', share:'결과 공유', refresh:'다시 읽기',
-    adPlaceholder:'광고 자리 (320×50 / 728×90)',
+    adPlaceholder:'',
     no:(n)=>`오늘의 한판 #${n}`,
     count:(k,t)=>`${t}판 중 ${k}판 완료`,
     streak:(n)=> n > 0 ? `🔥 한판 연속 ${n}일` : '한판 연속 —',
@@ -195,7 +196,7 @@ const LANG = {
     docTitle:'Daily Set — Hanpango',
     h1:'Daily Set', slogan:'Three games picked by the date — one round each',
     home:'All games', share:'Share result', refresh:'Reload',
-    adPlaceholder:'Ad slot (320×50 / 728×90)',
+    adPlaceholder:'',
     no:(n)=>`Daily Set #${n}`,
     count:(k,t)=>`${k} of ${t} done`,
     streak:(n)=> n > 0 ? `🔥 ${n}-day set streak` : 'Set streak —',

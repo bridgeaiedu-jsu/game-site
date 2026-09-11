@@ -30,6 +30,8 @@
      광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
+<link rel="stylesheet" href="/css/article.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -181,7 +183,7 @@
 </header>
 
 <!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
-<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
 <div class="scores">
   <div class="score"><b id="qNo">–</b><span data-i18n="qLbl">문제</span></div>
@@ -224,7 +226,7 @@
     <div class="qgrid" id="qgrid"></div>
     <div class="sub" id="finalSub"></div>
     <!-- ADSENSE (3/3) — 결과 화면 300×250 자리. 주의: 결과 화면에 자동 팝업 광고는 정책 위반 — 고정 배너만 -->
-    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
     <button class="btn primary" id="btnAgain" data-i18n="again">다시 하기</button>
     <button class="btn ghost" id="btnShare" data-i18n="share">결과 공유</button>
     <a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;text-align:center">🏠 다른 게임</a>
@@ -269,6 +271,12 @@
   <details><summary data-i18n="faq4q">색을 구별하기 어렵습니다</summary><p data-i18n="faq4a">색 비율 문제에서 묻는 색의 타일에는 항상 줄무늬가 함께 그려집니다. 색이 아니라 줄무늬가 있는 타일을 세면 됩니다. 기기의 '동작 줄이기' 를 켜면 정답 공개 애니메이션도 꺼집니다.</p></details>
 </section>
 
+<section class="read" id="read">
+<div class="read-ko"><h2>유형마다 너그러움이 다르다</h2><p>이 퀴즈에서 정확도를 계산하는 방식은 문제 유형에 따라 다르다. 각도 문제는 45도, 비율과 면적과 색 문제는 40퍼센트포인트, 길이 비교는 60퍼센트포인트가 허용폭이고, 개수 문제만 허용폭이 정답에 따라 달라진다. 정답의 절반이며 최소 다섯이다. 정확히 맞히면 100이고 허용폭 끝까지 벗어나면 0이며 그 사이는 직선으로 줄어든다.</p><h3>같은 크기의 오차가 같은 손해는 아니다</h3><p>정답이 20인 개수 문제에서 30이라고 답하면 오차가 10이고 허용폭도 10이라 점수는 0이 된다. 그런데 길이 비교에서 10퍼센트포인트를 틀리면 허용폭이 60이라 여섯 분의 일만 깎여 83점 남짓이 남는다. 어느 유형에서 조심해야 하는지가 여기서 갈린다. 개수 문제는 정답이 작을수록 가혹해진다.</p><h3>평균을 지키는 쪽이 이긴다</h3><p>판 점수는 열 문제의 평균이다. 감점이 직선이라 한 문제에서 크게 틀리는 것이 여러 문제에서 조금씩 틀리는 것보다 훨씬 아프다. 한 문제를 완벽하게 맞혀 100을 받아도 다른 한 문제가 0이면 두 문제 평균은 50이다. 그래서 이 게임의 요령은 정답을 맞히는 기술이라기보다 크게 빗나가지 않는 습관에 가깝다. 확신이 없을 때 가운데쯤을 고르는 것이 손해를 줄이는 이유도 같다.</p><h3>여섯 가지 중 하나가 나온다</h3><p>문제는 여섯 갈래다. 두 선 사이의 각도, 흩뿌려진 점의 개수, 막대나 원에서 채워진 비율, 기준 막대에 견준 다른 막대의 길이, 틀 안에서 도형이 차지하는 면적, 두 색 타일 중 한 색의 비율이다. 자로 재거나 하나씩 세지 말고 눈으로 어림잡는 것이 이 놀이의 전제다.</p><h3>확정하면 정답이 그림 위에 겹쳐진다</h3><p>답을 확정하면 정답이 도형 위에 그대로 겹쳐 그려진다. 각도는 호와 숫자로, 점은 번호로, 비율은 눈금으로 나타난다. 내가 본 것과 실제가 어디서 어긋났는지를 같은 그림 위에서 볼 수 있다는 뜻이다. 눈대중은 타고나는 것이라기보다 이렇게 어긋남을 여러 번 겹쳐 보며 조정되는 감각에 가깝다.</p></div>
+<!-- /read-ko -->
+<div class="read-en"><h2>Each question type forgives differently</h2><p>Accuracy is computed against a tolerance that depends on the type of question. Angles allow 45 degrees, ratios and areas and colour shares allow 40 percentage points, and length comparisons allow 60. Only the counting questions have a tolerance that moves with the answer: half of the correct number, never less than five. A perfect guess scores 100, a guess at the edge of the tolerance scores 0, and everything between falls in a straight line.</p><h3>The same error is not the same loss</h3><p>Answer 30 on a counting question whose answer is 20 and your error of ten exactly fills a tolerance of ten, so the question scores nothing. Miss a length comparison by ten percentage points and you have used one sixth of a sixty point tolerance, leaving roughly 83. That is where caution should be spent. Counting questions become harsher as the true number gets smaller.</p><h3>Protecting the average wins rounds</h3><p>A round is scored as the mean of ten questions. Because the penalty is linear, one catastrophic miss hurts far more than ten small ones. A perfect 100 paired with a single zero averages out to 50. The craft here is therefore less about being right than about never being badly wrong, which is also why nudging your guess toward the middle when you have no idea tends to protect the final number.</p><h3>Six kinds of question</h3><p>Questions come in six shapes: the angle between two lines, the number of scattered dots, the filled proportion of a bar or circle, the length of a bar compared with a reference bar, the area a figure occupies inside a frame, and the share of one colour among two coloured tiles. The premise is that you judge by eye rather than measuring or counting one by one.</p><h3>Confirming overlays the true answer</h3><p>Once you confirm, the correct answer is drawn directly on top of the figure: angles as an arc with a number, dots as labels, proportions as exact marks. You see where your reading diverged from the truth on the same picture. Eyeballing is less an innate talent than a sense that gets tuned by watching that gap again and again.</p></div>
+<!-- /read-en -->
+</section>
 <footer>
   <span data-i18n="footer">© 2026 눈대중 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
   <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
@@ -296,7 +304,7 @@ const I18N = {
     newBest:'🎉 최고 기록 갱신!',
     greenLbl:'정확', yellowLbl:'근접', redLbl:'빗나감',
     finalSub:(b,t)=>`최고 ${b}% · 플레이 ${t}`,
-    adPlaceholder:'광고 자리 (320×50 / 728×90)', adPlaceholder2:'광고 자리 (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     copied:'결과가 복사됐어요',
     freeShare:(s,m)=>`👀 눈대중 정확도 ${s}% ${m}\n`,
     dailyShare:(n,s,m,r)=>`👀 눈대중 #${n} 정확도 ${s}% ${m}${r>1?` 🔥${r}일 연속`:''}\n`,
@@ -350,7 +358,7 @@ const I18N = {
     newBest:'🎉 New best!',
     greenLbl:'close', yellowLbl:'near', redLbl:'off',
     finalSub:(b,t)=>`Best ${b}% · time ${t}`,
-    adPlaceholder:'Ad slot (320×50 / 728×90)', adPlaceholder2:'Ad slot (300×250)',
+    adPlaceholder:'', adPlaceholder2:'',
     copied:'Result copied',
     freeShare:(s,m)=>`👀 Eyeball accuracy ${s}% ${m}\n`,
     dailyShare:(n,s,m,r)=>`👀 Eyeball #${n} accuracy ${s}% ${m}${r>1?` 🔥${r}-day streak`:''}\n`,

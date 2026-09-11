@@ -31,6 +31,7 @@
 <!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -185,7 +186,7 @@
     </div>
   </header>
 
-  <div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+  <div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
 
   <!-- 시작 화면 ------------------------------------------------------------ -->
   <section id="start" class="card">
@@ -223,7 +224,7 @@
       <div><b id="nPasses">0</b><span data-i18n="passesLbl">넘긴 횟수</span></div>
       <div><b id="nTime">–</b><span data-i18n="timeLbl">걸린 시간</span></div>
     </div>
-    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2">광고 자리 (300×250)</span></div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
     <p><button class="btn primary" id="btnAgain" style="width:100%" data-i18n="again">다시 하기</button></p>
     <p><a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;width:100%">🏠 다른 게임</a></p>
   </section>
@@ -329,8 +330,8 @@ var I18N = {
     home: '🏠 <span class="lbl">다른 게임</span>',
     soundOn: '🔔 <span class="lbl">소리 켬</span>',
     soundOff: '🔕 <span class="lbl">소리 끔</span>',
-    adPlaceholder: '광고 자리 (320×50 / 728×90)',
-    adPlaceholder2: '광고 자리 (300×250)',
+    adPlaceholder: '',
+    adPlaceholder2: '',
     startSub: '폰 하나를 <strong>옆 사람에게 넘기며</strong> 합니다. 화면에 뜬 미션에 <strong>소리 내어 답하고</strong> 넘기세요.<br>도화선이 <strong>얼마나 남았는지는 아무도 모릅니다</strong> — 터지는 순간 폰을 들고 있던 사람이 집니다.',
     whoLabel: '몇 명이 하나요?',
     startBtn: '💣 시작',
@@ -386,8 +387,8 @@ var I18N = {
     home: '🏠 <span class="lbl">More games</span>',
     soundOn: '🔔 <span class="lbl">Sound on</span>',
     soundOff: '🔕 <span class="lbl">Sound off</span>',
-    adPlaceholder: 'Ad slot (320×50 / 728×90)',
-    adPlaceholder2: 'Ad slot (300×250)',
+    adPlaceholder: '',
+    adPlaceholder2: '',
     startSub: 'Pass one phone <strong>around the circle</strong>. Answer the mission on screen <strong>out loud</strong>, then pass it on.<br><strong>Nobody knows how much fuse is left</strong> — whoever holds the phone when it blows loses.',
     whoLabel: 'How many players?',
     startBtn: '💣 Start',

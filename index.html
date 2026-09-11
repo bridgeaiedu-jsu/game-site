@@ -30,6 +30,7 @@
      광고 노출·클릭은 재지 않는다(애드센스 정책). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
 <!-- 공개 카운터 — 방문·판수를 보내고 화면의 숫자를 채운다(실패해도 화면은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
 <script src="/js/hp-stats.js" defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -216,7 +217,7 @@
   </header>
 
   <!-- ADSENSE (2/3) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
-  <div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder">광고 자리 (320×50 / 728×90)</span></div>
+  <div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
   <!-- ADSENSE (3/3) — 이 포털에는 게임오버 화면이 없으므로 (3/3) 슬롯은 두지 않는다.
        block-puzzle/index.html 의 게임오버 카드에만 존재한다. -->
 
@@ -430,6 +431,8 @@
 
 <footer>
   © 2026 한판고 hanpango.com ·
+  <a href="/guide/" data-i18n="navGuide">게임 고르는 법</a> ·
+  <a href="/daily/" data-i18n="navDaily">오늘의 도전이란</a> ·
   <a href="/about/" data-i18n="navAbout">소개</a> ·
   <a href="/privacy/" data-i18n="navPrivacy">개인정보 처리방침</a>
   <br><button class="donate-link" id="btnDonate" type="button" data-i18n="donate">☕ 후원</button>
@@ -447,9 +450,10 @@ const I18N = {
   ko: {
     slogan:'설치 없이 바로 하는 미니게임',
     todayTitle:'오늘의 한판', todaySub:'날짜가 고르는 세 가지 — 하루에 한 번씩',
-    adPlaceholder:'광고 자리 (320×50 / 728×90)',
+    adPlaceholder:'',
     note:'게임은 하나씩 늘려갑니다.',
     navAbout:'소개', navPrivacy:'개인정보 처리방침',
+    navGuide:'게임 고르는 법', navDaily:'오늘의 도전이란',
     soon:'곧 출시', soonDesc:'다음 게임을 준비하고 있습니다.',
     daily:'오늘의 도전',
     install:'📲 홈 화면에 추가',
@@ -461,9 +465,10 @@ const I18N = {
   en: {
     slogan:'browser mini games, no install',
     todayTitle:'Daily Set', todaySub:'Three games picked by the date — one round each',
-    adPlaceholder:'Ad slot (320×50 / 728×90)',
+    adPlaceholder:'',
     note:'More games are added one at a time.',
     navAbout:'About', navPrivacy:'Privacy Policy',
+    navGuide:'How to choose', navDaily:'Daily challenge, explained',
     soon:'Coming soon', soonDesc:'The next game is on the way.',
     daily:'Daily challenge',
     install:'📲 Add to Home Screen',
