@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>두더지잡기 — 60초 동안 아홉 구멍을 지키는 반응 게임 | Whack a Mole</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 반응 게임. 3×3 구멍 아홉 개에서 두더지가 올라왔다 내려가고, 올라와 있는 동안 누르면 1점입니다. 가끔 섞여 나오는 폭탄을 누르면 2점을 잃고, 점수는 0 밑으로 내려가지 않습니다. 한 판은 60초 · 매일 자정에 새로 열리는 오늘의 도전은 전 세계가 같은 등장 순서를 받습니다. Whack moles for 60 seconds and keep your hands off the bombs.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="두더지잡기 — 60초 동안 아홉 구멍을 지키는 반응 게임 | Whack a Mole">
+<meta property="og:description" content="두더지는 누르고 폭탄은 참습니다. 60초 뒤에 남는 것은 손이 아니라 판단입니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/mole/">
+<meta property="og:image" content="https://hanpango.com/mole/thumb.webp">
+<meta property="og:image:width" content="640">
+<meta property="og:image:height" content="640">
+<link rel="canonical" href="https://hanpango.com/mole/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="hp-ga-disclosure" content="game_start:game,mode; game_end:mode,score,hits,bombs,ms; lang_switch:lang">
+<meta name="hp-ga-labels" content="game=어느 게임인지|which game; mode=모드|mode; score=점수|score; hits=잡은 두더지 수|moles caught; bombs=누른 폭탄 수|bombs hit; ms=걸린 시간(밀리초)|elapsed milliseconds; lang=언어|language">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
+<link rel="stylesheet" href="/css/article.css">
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"두더지잡기","alternateName":"Whack a Mole","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트가 기본이고 다크는 아래 @media 에서 ★같은 이름의 값만 바꿔 끼운다.
+     ★분류는 stress(스트레스 한판) — --sig 계열 값은 tools/palette_gen.py 가 산출한 값이다.
+     ★두더지와 폭탄은 ★색이 아니라 ★글자와 테두리 모양으로 가른다(색각이상). */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#a54614; --sig-ink:#652b0c; --sig-soft:#fbe6db; --on-sig:#ffffff;
+    --good:#15803d; --bad:#b91c1c;
+    --board:#f2f4f7; --hole:#dfe3ea; --hole-line:#c8cfda;
+    --mole-face:#fde8d3; --mole-line:#8a5a2b;
+    --bomb-line:#374151;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#eea078; --sig-ink:#f6cdb7; --sig-soft:#5a2d16; --on-sig:#111827;
+      --good:#34d399; --bad:#fca5a5;
+      --board:#191540; --hole:#241f5c; --hole-line:#332c78;
+      --mole-face:#3a2a1a; --mole-line:#e6c9a8;
+      --bomb-line:#c9c6ec;
+      --scrim:rgba(6,4,24,.86); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;
+    -webkit-text-size-adjust:100%}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;
+    padding:8px 10px calc(12px + var(--safe-b));line-height:1.6}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 0 6px}
+  .brand{display:flex;flex-direction:column;gap:1px;min-width:0}
+  h1{font-size:1.12rem;margin:0;white-space:nowrap}
+  .sub{font-size:.74rem;color:var(--muted);overflow-wrap:anywhere;word-break:keep-all}
+  .tools{display:flex;gap:6px;flex:none}
+  .tools a,.tools button{font-size:.74rem;padding:5px 8px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted-2);text-decoration:none;cursor:pointer;white-space:nowrap}
+  .chips{width:100%;max-width:520px;display:flex;gap:6px;margin:0 0 8px}
+  .chip{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+  .chip b{display:block;font-size:1.05rem;line-height:1.2}
+  .chip span{font-size:.68rem;color:var(--muted)}
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);
+    font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}
+  .ad-rect{height:250px;max-width:300px}
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  main{width:100%;max-width:520px;position:relative}
+  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:var(--board);
+    border:1px solid var(--line);border-radius:14px;padding:8px}
+  .hole{position:relative;aspect-ratio:1/1;border-radius:50%;border:2px solid var(--hole-line);
+    background:var(--hole);display:flex;align-items:center;justify-content:center;
+    font-size:2.7rem;line-height:1;padding:0;cursor:pointer;color:var(--text);
+    -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  .hole:disabled{cursor:default}
+  /* ★올라온 것의 종류는 ★글자로 가른다. 테두리 모양(실선/점선)까지 달라 ★흑백으로도 구별된다. */
+  .hole.up-mole{border-style:solid;border-color:var(--mole-line);background:var(--mole-face)}
+  .hole.up-bomb{border-style:dashed;border-color:var(--bomb-line);background:var(--panel2)}
+  .hole.hit{outline:3px solid var(--good);outline-offset:-3px}
+  .hole.boom{outline:3px dashed var(--bad);outline-offset:-3px}
+  .glyph{pointer-events:none}
+  .hint{width:100%;max-width:520px;font-size:.74rem;color:var(--muted);text-align:center;margin:8px auto 0}
+  .card{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    gap:8px;background:var(--scrim);border-radius:14px;padding:14px;text-align:center;color:#fff}
+  .card.show{display:flex}
+  .card .box{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:14px;
+    padding:14px;width:100%;max-width:340px;box-shadow:0 8px 28px var(--shadow)}
+  .card h2{margin:0 0 6px;font-size:1.02rem}
+  .card p{margin:0 0 8px;font-size:.82rem;color:var(--muted-2)}
+  .card .hp-stat{color:var(--muted);font-size:.72rem;margin:8px 0 0}
+  .hp-stat[hidden]{display:none!important}
+  .card .hp-stat b{font-weight:600}
+  .btn{display:inline-block;background:var(--sig);color:var(--on-sig);border:0;border-radius:10px;
+    padding:10px 16px;font-weight:700;font-size:.9rem;cursor:pointer}
+  .btn.ghost{background:var(--panel2);color:var(--muted-2);border:1px solid var(--line);font-weight:600}
+  .rowbtn{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+  .tally{display:flex;gap:10px;justify-content:center;font-size:.8rem;color:var(--muted-2);margin:0 0 6px}
+  .new{font-size:.82rem;min-height:1.2em}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  section.doc{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:12px 14px;margin:12px auto 0}
+  section.doc h2{font-size:.98rem;margin:0 0 6px;color:var(--sig-ink)}
+  section.doc h3{font-size:.86rem;margin:10px 0 4px}
+  section.doc p,section.doc li{font-size:.82rem;color:var(--muted-2);margin:0 0 6px}
+  section.doc ul{margin:0 0 6px;padding-left:18px}
+  footer{width:100%;max-width:520px;color:var(--muted);font-size:.7rem;text-align:center;line-height:1.9;margin-top:14px}
+  footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1 data-i18n="title">두더지잡기</h1>
+    <div class="sub" data-i18n="slogan">60초 · 폭탄은 참는다</div>
+  </div>
+  <div class="tools">
+    <a href="/" data-i18n="home">🏠 다른 게임</a>
+    <button id="btnSound" type="button">🔊</button>
+    <button id="btnLang" type="button">EN</button>
+  </div>
+</header>
+
+<!-- ADSENSE (2/3) — 위 띠광고 자리. 실제 <ins class="adsbygoogle"> 는 이 div 안에 넣고 .live 를 붙인다. -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
+
+<div class="chips">
+  <div class="chip"><b id="scoreEl">0</b><span data-i18n="scoreLbl">점수</span></div>
+  <div class="chip"><b id="timeEl">60</b><span data-i18n="timeLbl">남은 시간</span></div>
+  <div class="chip"><b id="streakNowEl">0</b><span data-i18n="streakLbl">연속</span></div>
+</div>
+
+<main>
+  <div class="board" id="board">
+    <button class="hole" id="hole0" type="button" aria-label="1"><span class="glyph" id="g0"></span></button>
+    <button class="hole" id="hole1" type="button" aria-label="2"><span class="glyph" id="g1"></span></button>
+    <button class="hole" id="hole2" type="button" aria-label="3"><span class="glyph" id="g2"></span></button>
+    <button class="hole" id="hole3" type="button" aria-label="4"><span class="glyph" id="g3"></span></button>
+    <button class="hole" id="hole4" type="button" aria-label="5"><span class="glyph" id="g4"></span></button>
+    <button class="hole" id="hole5" type="button" aria-label="6"><span class="glyph" id="g5"></span></button>
+    <button class="hole" id="hole6" type="button" aria-label="7"><span class="glyph" id="g6"></span></button>
+    <button class="hole" id="hole7" type="button" aria-label="8"><span class="glyph" id="g7"></span></button>
+    <button class="hole" id="hole8" type="button" aria-label="9"><span class="glyph" id="g8"></span></button>
+  </div>
+
+  <div class="card show" id="start">
+    <div class="box">
+      <h2 data-i18n="startTitle">두더지잡기</h2>
+      <p data-i18n="startDesc">3×3 구멍에서 두더지가 잠깐 올라옵니다. 올라와 있는 동안 누르면 1점, 폭탄을 누르면 2점을 잃습니다.</p>
+      <div class="rowbtn">
+        <button class="btn" id="btnStart" type="button" data-i18n="daily">오늘의 도전</button>
+        <button class="btn ghost" id="btnFree" type="button" data-i18n="free">▶ 자유 모드</button>
+      </div>
+      <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.mole.today">–</b>판 · 누적 <b data-hp="plays.mole.total">–</b>판</p>
+    </div>
+  </div>
+
+  <div class="card" id="over">
+    <div class="box">
+      <h2 id="overTitle" data-i18n="overTitle">결과</h2>
+      <p style="font-size:1.6rem;color:var(--text);margin:0 0 4px"><b id="finalScore">0</b></p>
+      <div class="tally">
+        <span><b id="finalHits">0</b> <span data-i18n="hitsLbl">잡음</span></span>
+        <span><b id="finalMiss">0</b> <span data-i18n="missLbl">놓침</span></span>
+        <span><b id="finalBombs">0</b> <span data-i18n="bombsLbl">폭탄</span></span>
+      </div>
+      <div class="new" id="streakLine" style="color:var(--sig-ink)"></div>
+      <div class="new" id="bestLine" style="color:var(--good)"></div>
+      <!-- ADSENSE (3/3) — 결과 카드의 사각 자리. 결과 창에 광고를 자동으로 띄우지 않는다(정책). -->
+      <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
+      <div class="rowbtn">
+        <button class="btn" id="btnAgain" type="button" data-i18n="again">다시 하기</button>
+        <button class="btn ghost" id="btnShare" type="button" data-i18n="share">결과 공유</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<p class="hint" id="hintLine" data-i18n="hint">올라온 두더지를 누르세요 · 폭탄은 누르지 마세요 · 키보드 1~9</p>
+<p class="sr-only" id="srLive" role="status" aria-live="polite"></p>
+
+<section class="doc">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">3×3 으로 놓인 아홉 개 구멍에서 두더지가 하나씩 잠깐 올라왔다 내려갑니다. 올라와 있는 동안 그 구멍을 누르면 1점을 얻습니다. 내려간 뒤에 누르면 아무 일도 일어나지 않고, 놓쳤다고 점수가 깎이지도 않습니다.</p>
+  <p data-i18n="how2">가끔 두더지 대신 폭탄이 올라옵니다. 폭탄을 누르면 2점을 잃습니다. 다만 점수는 0 밑으로 내려가지 않으므로, 폭탄을 여러 번 눌러도 마이너스가 되지는 않습니다. 폭탄은 그냥 두면 아무 손해도 주지 않습니다.</p>
+  <p data-i18n="how3">두더지와 폭탄은 <b>색이 아니라 글자와 테두리로</b> 구별합니다. 두더지는 실선 테두리에 🐹, 폭탄은 점선 테두리에 💣 입니다. 색만으로 가르지 않으므로 색이 잘 구별되지 않는 분도 같은 조건에서 할 수 있습니다.</p>
+  <p data-i18n="how4">한 판은 60초입니다. 같은 구멍을 여러 번 눌러도 한 번 올라온 것에 대해서는 한 번만 인정됩니다. 컴퓨터에서는 숫자 키 1~9 로 왼쪽 위부터 차례대로 누를 수 있습니다.</p>
+
+  <h2 data-i18n="dailyTitle">오늘의 도전</h2>
+  <p data-i18n="dailyDesc">매일 자정에 새 판이 열립니다. 그날 도전하는 사람은 전 세계 누구나 <b>같은 등장 순서</b>를 받습니다. 어느 구멍에서 몇 초에 무엇이 올라오는지가 전부 같다는 뜻입니다. 하루 경계는 한국 시간(UTC+9)으로 고정되어 있어, 어디서 열어도 같은 날짜면 같은 판입니다. 하루에 한 번 도전할 수 있고, 연속으로 이어가면 🔥 스트릭이 쌓입니다. 자유 모드는 횟수 제한이 없습니다.</p>
+
+  <h2 data-i18n="tipTitle">요령</h2>
+  <h3 data-i18n="tip1t">손보다 눈을 먼저 옮기세요</h3>
+  <p data-i18n="tip1">두더지가 올라온 뒤에 찾기 시작하면 늦습니다. 아홉 칸을 한눈에 담고 바뀌는 자리를 보는 편이 빠릅니다.</p>
+  <h3 data-i18n="tip2t">폭탄은 참는 것이 이득입니다</h3>
+  <p data-i18n="tip2">두더지 하나가 1점인데 폭탄 하나는 2점입니다. 헷갈릴 때 손을 멈추는 쪽이 대체로 이득입니다.</p>
+  <h3 data-i18n="tip3t">놓친 것은 잊으세요</h3>
+  <p data-i18n="tip3">놓침에는 벌점이 없습니다. 방금 놓친 자리를 뒤늦게 누르다 다음 것을 함께 놓치는 것이 더 큰 손해입니다.</p>
+
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <h3 data-i18n="faq1q">설치가 필요한가요?</h3>
+  <p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p>
+  <h3 data-i18n="faq2q">기록은 어디에 저장되나요?</h3>
+  <p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.</p>
+  <h3 data-i18n="faq3q">오프라인에서도 되나요?</h3>
+  <p data-i18n="faq3a">한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.</p>
+</section>
+
+<section class="read" id="read">
+<div class="read-ko"><h2>운이 아니라 순서를 겨루게 만드는 것</h2><p>두더지잡기는 어디서나 본 놀이지만, 그 익숙함 때문에 한 가지가 잘 보이지 않습니다. 이 놀이의 재미는 손이 빠른 사람이 이기는 데 있지 않고 <b>같은 판을 받았을 때 누가 더 잘 나눠 쓰는가</b>에 있습니다. 그래서 이 판에서는 등장 순서를 판이 시작되는 순간 한 번에 다 정합니다. 어느 구멍에서 몇 초에 무엇이 올라오고 얼마나 머무는지가 그때 전부 확정되고, 플레이하는 동안에는 아무것도 새로 뽑지 않습니다.</p><h3>왜 그 방식이 중요한가</h3><p>누를 때마다 다시 뽑는 방식이었다면 "내가 눌러서 폭탄이 나왔다"는 의심이 늘 남습니다. 실제로 그런 일이 없더라도 확인할 방법이 없다는 점이 문제입니다. 미리 다 정해 두면 그 의심 자체가 성립하지 않습니다. 같은 날 도전한 사람은 완전히 같은 순서를 받았으므로, 점수 차이는 운이 아니라 선택의 차이입니다.</p><h3>놓침에 벌점이 없는 이유</h3><p>이 판에서 점수를 잃는 길은 폭탄을 누르는 것 하나뿐입니다. 지나간 두더지는 아무 손해도 주지 않습니다. 벌점을 붙이면 화면 전체를 지키려고 손이 급해지고, 급해진 손은 폭탄으로 갑니다. 잃는 길을 하나로 좁혀 두면 판단할 것도 하나로 좁혀집니다 — 지금 이 자리를 누를 것인가 말 것인가.</p><h3>두 점이라는 크기</h3><p>폭탄의 감점은 2점입니다. 두더지 하나가 1점이니 폭탄 한 번은 두 번의 성공을 지웁니다. 확신이 서지 않을 때 손을 멈추는 쪽이 이득이 되도록 정한 값입니다. 다만 점수는 0 밑으로 내려가지 않습니다. 초반에 크게 잃고 나서 남은 시간이 의미 없어지는 판을 만들지 않기 위해서입니다.</p><h3>색이 아니라 모양으로 가릅니다</h3><p>두더지와 폭탄은 서로 다른 글자를 쓰고 테두리 모양도 다릅니다. 실선과 점선입니다. 색 대비만으로 종류를 가르는 화면은 색이 잘 구별되지 않는 사람에게 다른 게임이 되어 버립니다. 흑백으로 인쇄해도 구별되는지를 기준으로 삼으면 그 문제가 처음부터 생기지 않습니다.</p></div>
+<!-- /read-ko -->
+<div class="read-en"><h2>Making it a contest of order, not luck</h2><p>Whacking moles is a familiar game, and the familiarity hides one thing. The interest is not in who has the faster hand but in <b>who spends the same board better</b>. That is why the sequence here is decided in full the moment a round begins. Which hole, at which second, showing what, and for how long — all of it is fixed at that instant, and nothing new is drawn while you play.</p><h3>Why that matters</h3><p>If the game rolled again on every tap, the suspicion that your own press produced the bomb would never quite go away. The trouble is not that it happens; it is that you could never check. Deciding everything in advance removes the question. Two people who played on the same day received exactly the same order, so a gap in score is a gap in choices.</p><h3>Why a miss costs nothing</h3><p>There is exactly one way to lose points here, and that is pressing a bomb. A mole that goes back down costs you nothing. Adding a penalty for misses would push you to defend the whole board, and hurried hands find bombs. Narrowing the ways to lose narrows what you have to judge: press this one, or leave it.</p><h3>The size of two points</h3><p>A bomb costs two points while a mole pays one, so one bomb erases two successes. The number was chosen so that stopping when you are unsure is the better bet. The score never falls below zero, though, because a round where an early disaster makes the remaining seconds meaningless is not worth playing out.</p><h3>Shape, not colour</h3><p>Moles and bombs use different characters and different border styles, solid against dashed. A screen that separates two kinds of thing by hue alone becomes a different game for someone who does not see that difference. Ask whether it still reads in black and white and the problem never arises.</p></div>
+<!-- /read-en -->
+</section>
+
+<footer>
+  © 2026 두더지잡기 · <span data-i18n="privacyNote">이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+  <br><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a>
+</footer>
+
+<script>
+(() => {
+'use strict';
+
+/* ======================= 문안 ======================= */
+const I18N = {
+  ko: {
+    title:'두더지잡기', slogan:'60초 · 폭탄은 참는다',
+    home:'🏠 다른 게임', adPlaceholder:'', adPlaceholder2:'',
+    scoreLbl:'점수', timeLbl:'남은 시간', streakLbl:'연속',
+    startTitle:'두더지잡기',
+    startDesc:'3×3 구멍에서 두더지가 잠깐 올라옵니다. 올라와 있는 동안 누르면 1점, 폭탄을 누르면 2점을 잃습니다.',
+    daily:'오늘의 도전', free:'▶ 자유 모드', again:'다시 하기', share:'결과 공유',
+    overTitle:'결과', hitsLbl:'잡음', missLbl:'놓침', bombsLbl:'폭탄',
+    hint:'올라온 두더지를 누르세요 · 폭탄은 누르지 마세요 · 키보드 1~9',
+    statPlays:'오늘 <b data-hp="plays.mole.today">–</b>판 · 누적 <b data-hp="plays.mole.total">–</b>판',
+    howTitle:'게임 방법',
+    how1:'3×3 으로 놓인 아홉 개 구멍에서 두더지가 하나씩 잠깐 올라왔다 내려갑니다. 올라와 있는 동안 그 구멍을 누르면 1점을 얻습니다. 내려간 뒤에 누르면 아무 일도 일어나지 않고, 놓쳤다고 점수가 깎이지도 않습니다.',
+    how2:'가끔 두더지 대신 폭탄이 올라옵니다. 폭탄을 누르면 2점을 잃습니다. 다만 점수는 0 밑으로 내려가지 않으므로, 폭탄을 여러 번 눌러도 마이너스가 되지는 않습니다. 폭탄은 그냥 두면 아무 손해도 주지 않습니다.',
+    how3:'두더지와 폭탄은 <b>색이 아니라 글자와 테두리로</b> 구별합니다. 두더지는 실선 테두리에 🐹, 폭탄은 점선 테두리에 💣 입니다. 색만으로 가르지 않으므로 색이 잘 구별되지 않는 분도 같은 조건에서 할 수 있습니다.',
+    how4:'한 판은 60초입니다. 같은 구멍을 여러 번 눌러도 한 번 올라온 것에 대해서는 한 번만 인정됩니다. 컴퓨터에서는 숫자 키 1~9 로 왼쪽 위부터 차례대로 누를 수 있습니다.',
+    dailyTitle:'오늘의 도전',
+    dailyDesc:'매일 자정에 새 판이 열립니다. 그날 도전하는 사람은 전 세계 누구나 <b>같은 등장 순서</b>를 받습니다. 어느 구멍에서 몇 초에 무엇이 올라오는지가 전부 같다는 뜻입니다. 하루 경계는 한국 시간(UTC+9)으로 고정되어 있어, 어디서 열어도 같은 날짜면 같은 판입니다. 하루에 한 번 도전할 수 있고, 연속으로 이어가면 🔥 스트릭이 쌓입니다. 자유 모드는 횟수 제한이 없습니다.',
+    tipTitle:'요령',
+    tip1t:'손보다 눈을 먼저 옮기세요', tip1:'두더지가 올라온 뒤에 찾기 시작하면 늦습니다. 아홉 칸을 한눈에 담고 바뀌는 자리를 보는 편이 빠릅니다.',
+    tip2t:'폭탄은 참는 것이 이득입니다', tip2:'두더지 하나가 1점인데 폭탄 하나는 2점입니다. 헷갈릴 때 손을 멈추는 쪽이 대체로 이득입니다.',
+    tip3t:'놓친 것은 잊으세요', tip3:'놓침에는 벌점이 없습니다. 방금 놓친 자리를 뒤늦게 누르다 다음 것을 함께 놓치는 것이 더 큰 손해입니다.',
+    faqTitle:'자주 묻는 질문',
+    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faq2q:'기록은 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.',
+    faq3q:'오프라인에서도 되나요?', faq3a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
+    privacyNote:'이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy:'개인정보처리방침', navAbout:'소개',
+    docTitle:'두더지잡기 — 60초 동안 아홉 구멍을 지키는 반응 게임 | Whack a Mole', langBtn:'EN',
+    doneToday:'오늘의 도전은 이미 마쳤습니다. 자유 모드로 계속할 수 있습니다.',
+    streakGo:n => `🔥 ${n}일 연속`,
+    bestNew:n => `최고 기록 ${n}점`,
+    dailyShare:(no, sc, h, b, streak) => `두더지잡기 #${no} ${sc}점\n🐹 ${h} · 💣 ${b}\n🔥 ${streak}일 연속\n`,
+    freeShare:(sc, h, b) => `두더지잡기 ${sc}점\n🐹 ${h} · 💣 ${b}\n`,
+    ariaSoundOn:'소리 끄기', ariaSoundOff:'소리 켜기', ariaLang:'영어로 보기',
+    liveHit:'잡았습니다', liveBoom:'폭탄입니다', liveEnd:'끝났습니다'
+  },
+  en: {
+    title:'Whack a Mole', slogan:'60 seconds · spare the bombs',
+    home:'🏠 More games', adPlaceholder:'', adPlaceholder2:'',
+    scoreLbl:'Score', timeLbl:'Time left', streakLbl:'Streak',
+    startTitle:'Whack a Mole',
+    startDesc:'Moles pop up briefly across nine holes. Tap one while it is up for a point; tap a bomb and you lose two.',
+    daily:'Daily challenge', free:'▶ Free play', again:'Play again', share:'Share result',
+    overTitle:'Result', hitsLbl:'caught', missLbl:'missed', bombsLbl:'bombs',
+    hint:'Tap the moles that are up · leave the bombs alone · keys 1–9',
+    statPlays:'<b data-hp="plays.mole.today">–</b> today · <b data-hp="plays.mole.total">–</b> all-time',
+    howTitle:'How to play',
+    how1:'Moles pop up one at a time across nine holes arranged in a 3×3 grid. Tap a hole while its mole is up and you score one point. Tapping after it has gone back down does nothing, and missing costs you nothing either.',
+    how2:'Now and then a bomb comes up instead of a mole. Tapping a bomb costs two points. The score never drops below zero, so repeated bombs cannot push you into the negative. A bomb left alone does no harm at all.',
+    how3:'Moles and bombs are told apart <b>by character and border, not by colour</b>. A mole is 🐹 inside a solid border; a bomb is 💣 inside a dashed one. Nothing depends on hue alone, so colour vision makes no difference to the game.',
+    how4:'A round lasts 60 seconds. Tapping the same hole repeatedly counts only once per appearance. On a computer the number keys 1–9 map to the holes from the top left.',
+    dailyTitle:'Daily challenge',
+    dailyDesc:'A new round opens every midnight, and everyone playing that day receives <b>the same sequence</b>: the same hole, the same second, the same thing coming up. The day boundary is fixed to Korean time (UTC+9), so the same date gives the same round wherever you open it. One attempt per day, with a 🔥 streak for consecutive days. Free play has no limit.',
+    tipTitle:'Tips',
+    tip1t:'Move your eyes before your hand', tip1:'Starting to search after a mole appears is already late. Holding all nine holes in view and watching for the change is faster.',
+    tip2t:'Restraint pays against bombs', tip2:'A mole is worth one point and a bomb costs two. When you are unsure, stopping your hand is usually the better trade.',
+    tip3t:'Forget what you missed', tip3:'Misses carry no penalty. Chasing the one that just went down and losing the next one as well is the larger loss.',
+    faqTitle:'FAQ',
+    faq1q:'Do I need to install anything?', faq1a:'No. It runs straight in the browser, and adding it to your home screen makes it behave like an app.',
+    faq2q:'Where are my records kept?', faq2a:'Only in the browser on the device you are using. Nothing is sent to a server.',
+    faq3q:'Does it work offline?', faq3a:'Once the page has loaded, you can keep playing without a connection.',
+    privacyNote:'This game keeps records on your device only; third parties such as Google may use cookies to serve ads.',
+    navPrivacy:'Privacy Policy', navAbout:'About',
+    docTitle:'Whack a Mole — sixty seconds across nine holes | 두더지잡기', langBtn:'한국어',
+    doneToday:'Today’s challenge is already done. Free play is still open.',
+    streakGo:n => `🔥 ${n}-day streak`,
+    bestNew:n => `Best ${n}`,
+    dailyShare:(no, sc, h, b, streak) => `Whack a Mole #${no} ${sc}\n🐹 ${h} · 💣 ${b}\n🔥 ${streak}-day streak\n`,
+    freeShare:(sc, h, b) => `Whack a Mole ${sc}\n🐹 ${h} · 💣 ${b}\n`,
+    ariaSoundOn:'Turn sound off', ariaSoundOff:'Turn sound on', ariaLang:'View in Korean',
+    liveHit:'caught', liveBoom:'bomb', liveEnd:'finished'
+  }
+};
+let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+if (lang !== 'ko' && lang !== 'en') lang = 'en';
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+let soundOn = localStorage.getItem('mole.sound') !== '0', actx = null;
+
+/* ======================= 판 계약 ======================= */
+const HOLES = 9;
+const DURATION_MS = 60000;
+const BOMB_PENALTY = 2;
+const SEED_NS = 'mole:';
+const GA_GAME = 'mole';
+/* GA 발화는 한 곳으로 모은다 — 실패해도 게임은 그대로 돈다 */
+const ga = (name, params) => { try { gtag('event', name, params); } catch(_){ } };
+/* ★두더지와 폭탄은 ★글자로 가른다 — 색만 다르게 두면 색각이상에서 같은 것이 된다(브리프 2절). */
+const GLYPH = { mole: '🐹', bomb: '💣' };
+
+/* ======================= 일일 도전(seed) ======================= */
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);   /* 2026-08-23 = #1 (다른 게임과 동일 기준일) */
+const pad2 = n => String(n).padStart(2,'0');
+/* ★하루 경계 = KST(UTC+9) 고정 — ★시계를 읽는 곳은 kstParts 하나다(오너 결정 2026-09-09 · T0909-daily-kst).
+   ★키와 회차를 ★같은 부품에서 파생한다. 갈라지면 키와 #N 이 서로 다른 날을 가리킨다. */
+function kstParts(d){ const k = new Date((d ? d.getTime() : new Date().getTime()) + 9*3600000); return { y:k.getUTCFullYear(), m:k.getUTCMonth(), d:k.getUTCDate() }; }
+function dayKey(d){ const k = kstParts(d); return `${k.y}-${pad2(k.m+1)}-${pad2(k.d)}`; }
+function dailyNo(d){ const k = kstParts(d); return Math.floor((Date.UTC(k.y,k.m,k.d) - DAILY_EPOCH)/86400000) + 1; }
+function prevDayKey(day){ const [y, m, d] = day.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1, d) - 86400000); return `${t.getUTCFullYear()}-${pad2(t.getUTCMonth()+1)}-${pad2(t.getUTCDate())}`; }   /* ★키 문자열의 UTC 산술 — 로컬 new Date(y,m,d) 를 경유하면 UTC+9 를 넘는 시간대에서 ★이틀 전을 준다 */
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ★판을 뽑는 자리는 여기 하나다. ★이 함수 안에서 시계를 읽지 않는다 —
+   읽으면 같은 날인데 사람마다 다른 순서가 나온다. ★시간 예산을 두고 다시 뽑는 것도 금지다 —
+   느린 기기에서만 다른 판이 나와 '같은 seed = 같은 결과' 가 기기마다 갈라진다.
+   ★난수는 판을 짤 때 여기서 전부 소비하고, ★플레이 중에는 한 번도 굴리지 않는다.
+   등장 간격은 뒤로 갈수록 조금 짧아진다 — 그 줄어듦도 ★시계가 아니라 진행 비율에서 나온다. */
+function planFor(key){
+  const r = mulberry32(hashStr(SEED_NS + key));
+  const out = [];
+  let t = 700;
+  let last = -1;
+  while (t < DURATION_MS - 1000){
+    const prog = t / DURATION_MS;                      /* 0 → 1 로 가는 진행 비율 */
+    const up = Math.round(1100 - 450 * prog + r() * 260);
+    let hole = Math.floor(r() * HOLES);
+    if (hole === last) hole = (hole + 1 + Math.floor(r() * (HOLES - 1))) % HOLES;   /* 같은 구멍 연속 금지 */
+    last = hole;
+    const kind = r() < 0.18 ? 'bomb' : 'mole';
+    out.push({ t, hole, kind, up });
+    t += Math.round(820 - 380 * prog + r() * 320);
+  }
+  return out;
+}
+/* ★점수식도 순수 함수다 — 화면의 규칙 문면과 같은 식이어야 한다(검증기가 대조한다).
+   잡은 두더지 1점 · 누른 폭탄 −2점 · ★0 밑으로 내려가지 않는다. */
+function scoreOf(hits, bombs){ const s = hits - BOMB_PENALTY * bombs; return s < 0 ? 0 : s; }
+/* ★자유 모드의 씨앗만 난수에서 얻는다 — ★판을 짜는 순간에 한 번이고, 플레이 중에는 굴리지 않는다. */
+const freeSeedKey = () => 'free-' + ((Math.random() * 4294967296) >>> 0).toString(36);
+
+/* ★구 로컬 키 1회 정규화(이행 · master 판정 ② 비대칭 관용).
+   경계를 KST 로 옮기면 저장된 스트릭의 last 가 ★구 로컬 날짜다. 만난 순간 KST 키로 한 번 이관하고
+   그 뒤로는 KST 만 본다 — ★날짜 상수를 박지 않는다(언제 지울지를 다음 사람 숙제로 남기지 않는다).
+   ★완료 잠금(dailyDoneToday)에는 관용을 주지 않는다: 주면 KST 로 이미 넘어간 날의 판이 잠겨
+   사용자가 하루를 통째로 잃는다. 끊긴 스트릭은 복구할 수 없고, 전환일 1회 재플레이는 더 가벼운 손해다. */
+(function normalizeStreakOnce(){ try{
+  const K = 'mole.streak';
+  const raw = localStorage.getItem(K); if (!raw) return;
+  const st = JSON.parse(raw); if (!st || !st.last) return;
+  const prev = k => { const [y,m,d] = k.split('-').map(Number); const t = new Date(Date.UTC(y,m-1,d) - 86400000);
+                      return `${t.getUTCFullYear()}-${pad2(t.getUTCMonth()+1)}-${pad2(t.getUTCDate())}`; };
+  const today = dayKey(), yest = prev(today);
+  if (st.last === today || st.last === yest) return;          /* 이미 KST 계열 — 건드리지 않는다 */
+  const n0 = new Date(), lt = `${n0.getFullYear()}-${pad2(n0.getMonth()+1)}-${pad2(n0.getDate())}`;
+  const mapped = st.last === lt ? today : (st.last === prev(lt) ? yest : null);
+  if (!mapped) return;                                        /* 이틀 이상 지난 기록은 이관 대상이 아니다 */
+  localStorage.setItem(K, JSON.stringify(Object.assign({}, st, { last: mapped })));
+}catch(_){ } })();
+
+const dailyRec = () => { try{ return JSON.parse(localStorage.getItem('mole.daily')||'null'); }catch(_){ return null; } };
+function dailyDoneToday(){ const r = dailyRec(); return !!(r && r.date === dayKey() && r.result); }
+function saveDaily(result){
+  localStorage.setItem('mole.daily', JSON.stringify({ date: runDay, no: runNo, result }));
+}
+function bumpStreak(day){
+  let st; try{ st = JSON.parse(localStorage.getItem('mole.streak')||'{}'); }catch(_){ st = {}; }
+  /* ★같은 날 두 번째 판이 스트릭을 1 로 되돌리지 않는다 — 전환일에는 재플레이가 열려 있으므로
+     이 경로가 ★실제로 밟힌다(완료 잠금에 관용을 주지 않는 대신 여기를 막는다). */
+  if (st && st.last === day) return st.n || 1;
+  const n = (st && st.last === prevDayKey(day)) ? (st.n || 0) + 1 : 1;
+  localStorage.setItem('mole.streak', JSON.stringify({ last: day, n }));
+  return n;
+}
+const streakNow = () => { try{ const s = JSON.parse(localStorage.getItem('mole.streak')||'{}'); const today = dayKey();
+  return (s && (s.last === today || s.last === prevDayKey(today))) ? (s.n || 0) : 0; }catch(_){ return 0; } };
+function loadBest(){
+  try{
+    const raw = localStorage.getItem('mole.best');
+    if (!raw) return null;
+    const v = JSON.parse(raw);
+    return (v && typeof v.score === 'number' && isFinite(v.score)) ? v : null;
+  }catch(_){ return null; }
+}
+function saveBest(rec){ localStorage.setItem('mole.best', JSON.stringify(rec)); }
+const betterThan = (a, b) => !b || a.score > b.score;
+
+/* ======================= 상태 ======================= */
+/* ★ST.plan 이 이 판의 ★정본이다. 판을 짤 때 한 번 정하고 그 뒤로 바뀌지 않는다. */
+const ST = { mode:'daily', running:false, plan:[], hits:0, bombs:0, taken:new Set(),
+             startMs:0, elapsed:0, over:false };
+let runDay = '', runNo = 0, seedKeyNow = '', lastResult = null, rafId = 0;
+
+function elapsedNow(){ return ST.running ? Math.min(DURATION_MS, Date.now() - ST.startMs) : ST.elapsed; }
+/* 지금 그 구멍에 올라와 있는 등장을 찾는다 — ★순수 조회다(상태를 바꾸지 않는다) */
+function upAt(idx, el){
+  for (const e of ST.plan){ if (e.hole === idx && el >= e.t && el < e.t + e.up) return e; }
+  return null;
+}
+const evId = e => e.t + ':' + e.hole;
+
+function startRun(mode){
+  ST.mode = mode;
+  runDay = dayKey();
+  runNo = dailyNo();
+  seedKeyNow = (mode === 'daily') ? runDay : freeSeedKey();
+  ST.plan = planFor(seedKeyNow);      /* ★난수는 여기서 끝난다 */
+  ST.running = true; ST.over = false;
+  ST.hits = 0; ST.bombs = 0; ST.taken = new Set();
+  ST.startMs = Date.now(); ST.elapsed = 0;
+  $('start').classList.remove('show');
+  $('over').classList.remove('show');
+  paint();
+  if (!rafId) rafId = requestAnimationFrame(tick);
+  ga('game_start', { game: GA_GAME, mode: ST.mode });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+}
+
+function onHole(idx){
+  if (!ST.running) return;
+  const el = elapsedNow();
+  const e = upAt(idx, el);
+  if (!e) return;
+  const id = evId(e);
+  if (ST.taken.has(id)) return;      /* ★한 등장에 한 번만 인정한다 */
+  ST.taken.add(id);
+  if (e.kind === 'bomb'){ ST.bombs++; beep(160); say(T('liveBoom')); flash(idx, 'boom'); }
+  else { ST.hits++; beep(680); say(T('liveHit')); flash(idx, 'hit'); }
+  paintChips();
+}
+
+function flash(idx, cls){
+  const b = $('hole' + idx); if (!b) return;
+  b.classList.add(cls);
+  setTimeout(() => b.classList.remove(cls), 180);
+}
+function say(msg){ const el = $('srLive'); if (el) el.textContent = msg; }
+
+function paintChips(){
+  $('scoreEl').textContent = String(scoreOf(ST.hits, ST.bombs));
+  $('timeEl').textContent = String(Math.max(0, Math.ceil((DURATION_MS - elapsedNow())/1000)));
+  $('streakNowEl').textContent = String(streakNow());
+}
+function paint(){
+  const el = elapsedNow();
+  for (let i = 0; i < HOLES; i++){
+    const e = ST.running ? upAt(i, el) : null;
+    const btn = $('hole' + i), g = $('g' + i);
+    const shown = e && !ST.taken.has(evId(e)) ? e.kind : null;
+    btn.classList.toggle('up-mole', shown === 'mole');
+    btn.classList.toggle('up-bomb', shown === 'bomb');
+    g.textContent = shown ? GLYPH[shown] : '';
+  }
+  paintChips();
+}
+function tick(){
+  rafId = 0;
+  if (!ST.running) return;
+  if (Date.now() - ST.startMs >= DURATION_MS){ finish(); return; }
+  paint();
+  rafId = requestAnimationFrame(tick);
+}
+
+function finish(){
+  ST.running = false;
+  ST.elapsed = DURATION_MS;
+  ST.over = true;
+  paint();
+  const score = scoreOf(ST.hits, ST.bombs);
+  const moles = ST.plan.filter(e => e.kind === 'mole').length;
+  const r = { mode: ST.mode, no: runNo, score, hits: ST.hits, bombs: ST.bombs,
+              missed: Math.max(0, moles - ST.hits), streak: 0, best: false };
+  if (ST.mode === 'daily'){
+    if (!dailyDoneToday()) saveDaily({ score: r.score, hits: r.hits, bombs: r.bombs });
+    r.streak = bumpStreak(runDay);
+  } else {
+    r.streak = streakNow();
+  }
+  const b = loadBest();
+  if (betterThan(r, b)){ saveBest({ score: r.score }); r.best = true; }
+  lastResult = r;
+  $('finalScore').textContent = String(r.score);
+  $('finalHits').textContent = String(r.hits);
+  $('finalMiss').textContent = String(r.missed);
+  $('finalBombs').textContent = String(r.bombs);
+  $('streakLine').textContent = (r.mode === 'daily' && r.streak) ? T('streakGo', r.streak) : '';
+  $('bestLine').textContent = r.best ? T('bestNew', r.score) : '';
+  $('over').classList.add('show');
+  say(T('liveEnd'));
+  ga('game_end', { mode: r.mode, score: r.score, hits: r.hits, bombs: r.bombs, ms: DURATION_MS });
+}
+
+function shareText(r, url){
+  const body = (r.mode === 'daily')
+    ? T('dailyShare', r.no, r.score, r.hits, r.bombs, r.streak)
+    : T('freeShare', r.score, r.hits, r.bombs);
+  return body + url;
+}
+
+/* ======================= 소리 ======================= */
+function beep(freq){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.frequency.value = freq; o.type = 'square';
+    g.gain.value = 0.04;
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + 0.06);
+  }catch(_){ }
+}
+
+/* ======================= 문안 적용 ======================= */
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.title = T('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (I18N[lang][k] !== undefined) el.innerHTML = T(k);
+  });
+  $('btnLang').textContent = T('langBtn');
+  applyA11yLabels();
+  localStorage.setItem('bp.lang', lang);
+  /* 문안을 innerHTML 로 갈아 끼우면 채운 숫자가 지워진다 — 다시 채운다.
+     hp-stats.js 는 defer 라 없을 수도 있으므로 있는지 보고 부른다. */
+  if (window.hpStats) window.hpStats();
+}
+function applyA11yLabels(){
+  const b = $('btnSound');
+  if (b){ b.setAttribute('aria-label', soundOn ? T('ariaSoundOn') : T('ariaSoundOff'));
+          b.setAttribute('aria-pressed', soundOn ? 'true' : 'false'); }
+  const l = $('btnLang');
+  if (l) l.setAttribute('aria-label', T('ariaLang'));
+}
+
+/* ======================= 붙임새 ======================= */
+for (let i = 0; i < HOLES; i++){
+  const btn = $('hole' + i);
+  if (btn) btn.onclick = () => onHole(i);
+}
+$('btnStart').onclick = () => {
+  if (dailyDoneToday()){ say(T('doneToday')); $('hintLine').textContent = T('doneToday'); return; }
+  startRun('daily');
+};
+$('btnFree').onclick = () => startRun('free');
+$('btnAgain').onclick = () => { $('over').classList.remove('show'); $('start').classList.add('show'); paint(); };
+$('btnShare').onclick = async () => {
+  if (!lastResult) return;
+  const txt = shareText(lastResult, 'https://hanpango.com/mole/');
+  try{
+    if (navigator.share) await navigator.share({ text: txt });
+    else await navigator.clipboard.writeText(txt);
+  }catch(_){ }
+};
+$('btnSound').onclick = () => {
+  soundOn = !soundOn;
+  localStorage.setItem('mole.sound', soundOn ? '1' : '0');
+  $('btnSound').textContent = soundOn ? '🔊' : '🔇';
+  applyA11yLabels();
+};
+$('btnLang').onclick = () => { lang = (lang === 'ko') ? 'en' : 'ko'; applyLang(); paint(); };
+document.addEventListener('keydown', ev => {
+  const n = Number(ev.key);
+  if (n >= 1 && n <= 9) onHole(n - 1);
+});
+
+/* ======================= 검증 창구(관측 전용) =======================
+   ★배포되는 이 창구에는 ★읽기만 하는 getter 와 ★순수 함수만 둔다. 판을 시작하거나 판을 바꾸는
+     상태 변경 명령은 여기에 두지 않는다 — 검증 하네스는 ★진짜 입력 사건(click·keydown)으로 두드린다.
+   ★planSrc() 를 두는 이유: 창구가 감싼 함수만 보이면 '판을 뽑는 경로에 시계가 없다' 는 정적 검사가
+     껍데기를 읽어 ★공허해진다(2026-09-12 자기시험에서 실제로 새는 것을 보고 추가했다). */
+const copy = o => JSON.parse(JSON.stringify(o));
+window.__mole = {
+  const: () => ({ HOLES, DURATION_MS, BOMB_PENALTY, SEED_NS, DAILY_EPOCH, GLYPH: Object.assign({}, GLYPH) }),
+  dayKey: d => dayKey(d ? new Date(d) : undefined),
+  dailyNo: d => dailyNo(d ? new Date(d) : undefined),
+  prevDayKey: k => prevDayKey(String(k)),
+  planFor: k => planFor(String(k)),
+  planSrc: () => String(planFor),
+  scoreOf: (h, b) => scoreOf(h, b),
+  glyphOf: k => GLYPH[k] || '',
+  upAt: (i, el) => copy(upAt(i, el) || null),
+  state: () => ({ mode: ST.mode, running: ST.running, plan: copy(ST.plan), hits: ST.hits, bombs: ST.bombs,
+                  score: scoreOf(ST.hits, ST.bombs), elapsed: elapsedNow(), over: ST.over,
+                  taken: [...ST.taken], seedKey: seedKeyNow, runDay, runNo }),
+  daily: () => ({ done: dailyDoneToday(), rec: copy(dailyRec()), no: dailyNo(), streak: streakNow() }),
+  best: () => copy(loadBest()),
+  result: () => copy(lastResult),
+  shareText: () => lastResult ? shareText(lastResult, 'https://hanpango.com/mole/') : '',
+  glyphText: i => { const e = $('g' + i); return e ? e.textContent : null; },
+  holeClass: i => { const e = $('hole' + i); return e ? e.className : null; },
+  chips: () => ({ score: $('scoreEl').textContent, time: $('timeEl').textContent, streak: $('streakNowEl').textContent })
+};
+
+/* ======================= 기동 ======================= */
+$('btnSound').textContent = soundOn ? '🔊' : '🔇';
+applyLang();
+paint();
+/* 방문 1회 — hp-stats.js 가 defer 라 이 줄보다 늦게 실행된다. 화면이 준비된 뒤에 부른다. */
+setTimeout(() => { try { if (window.hpHit) window.hpHit('visit', GA_GAME); if (window.hpStats) window.hpStats(); } catch(_){} }, 0);
+})();
+</script>
+
+</body>
+</html>

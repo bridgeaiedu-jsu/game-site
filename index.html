@@ -135,6 +135,7 @@
   .card[href="/four/"]{--sig:#665f00;--sig-ink:#1f1d00}
   .card[href="/quick-math/"]{--sig:#a800ad;--sig-ink:#630066}
   .card[href="/number-baseball/"]{--sig:#0ba207;--sig-ink:#075d04}
+  .card[href="/mole/"]{--sig:#a54614;--sig-ink:#652b0c}
   @media (prefers-color-scheme: dark){
     /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다. ★라이트 규칙 뒤에 와야 이긴다(@media 는 명시도를 안 올린다). */
     .card[href="/block-puzzle/"]{--sig:#376fec;--sig-ink:#789ef2}
@@ -165,6 +166,7 @@
     .card[href="/four/"]{--sig:#aea100;--sig-ink:#f5e400}
     .card[href="/quick-math/"]{--sig:#f80aff;--sig-ink:#fa51ff}
     .card[href="/number-baseball/"]{--sig:#62f85e;--sig-ink:#a5fba2}
+    .card[href="/mole/"]{--sig:#eea078;--sig-ink:#f6cdb7}
   }
   .card.soon::before{background:var(--line)}
   .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
@@ -405,6 +407,12 @@
             <span class="badges"><span class="badge">한 판 2~5분 / 2-5 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
           <span class="body"><h2>숫자야구 / Number Baseball</h2>
             <p>서로 다른 숫자 넷을 열 번 안에 맞히는 추리 게임 — 자리까지 맞으면 스트라이크, 숫자만 맞으면 볼<br>Find four distinct digits in ten tries — right slot is a strike, right digit is a ball</p></span>
+        </a></li>
+        <li><a class="card" href="/mole/">
+          <span class="thumb"><img src="/mole/thumb.webp" alt="두더지잡기 / Whack a Mole" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 60초 / 60 seconds a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>두더지잡기 / Whack a Mole</h2>
+            <p>3×3 구멍에서 올라오는 두더지를 60초 동안 누르는 반응 게임 — 폭탄을 누르면 2점을 잃는다<br>Tap moles popping from nine holes for 60 seconds — a bomb costs you two points</p></span>
         </a></li>
       </ul>
     </noscript>
@@ -678,6 +686,13 @@ const FALLBACK = [{
   thumb:'/number-baseball/thumb.webp',
   playtime:{ko:'한 판 2~5분',en:'2-5 min a round'},
   maxMinutes:5, daily:true, category:'puzzle', released:'2026-09-11', tags:['logic','deduction','number','daily']
+},{
+  id:'mole', path:'/mole/',
+  title:{ko:'두더지잡기',en:'Whack a Mole'},
+  desc:{ko:'3×3 구멍에서 올라오는 두더지를 60초 동안 누르는 반응 게임 — 폭탄을 누르면 2점을 잃는다',en:'Tap moles popping from nine holes for 60 seconds — a bomb costs you two points'},
+  thumb:'/mole/thumb.webp',
+  playtime:{ko:'한 판 60초',en:'60 seconds a round'},
+  maxMinutes:1, daily:true, category:'stress', released:'2026-09-12', tags:['arcade','reaction','casual','daily']
 }];
 
 let games = FALLBACK;

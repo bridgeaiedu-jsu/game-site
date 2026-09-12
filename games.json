@@ -755,5 +755,32 @@
       "number",
       "daily"
     ]
+  },
+  {
+    "id": "mole",
+    "path": "/mole/",
+    "title": {
+      "ko": "두더지잡기",
+      "en": "Whack a Mole"
+    },
+    "desc": {
+      "ko": "3×3 구멍에서 올라오는 두더지를 60초 동안 누르는 반응 게임 — 폭탄을 누르면 2점을 잃는다",
+      "en": "Tap moles popping from nine holes for 60 seconds — a bomb costs you two points"
+    },
+    "thumb": "/mole/thumb.webp",
+    "playtime": {
+      "ko": "한 판 60초",
+      "en": "60 seconds a round"
+    },
+    "maxMinutes": 1,
+    "daily": true,
+    "category": "stress",
+    "released": "2026-09-12",
+    "tags": [
+      "arcade",
+      "reaction",
+      "casual",
+      "daily"
+    ]
   }
 ]

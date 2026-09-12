@@ -351,6 +351,11 @@
       "kind": "검증기"
     },
     {
+      "file": "tools/verify_mole.js",
+      "game": "mole",
+      "kind": "검증기"
+    },
+    {
       "file": "tools/run_mutations_kst.py",
       "game": "(전 게임 · 하루 경계)",
       "kind": "뮤테이션 러너"
