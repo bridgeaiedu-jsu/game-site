@@ -809,5 +809,34 @@
       "quiz",
       "daily"
     ]
+  },
+  {
+    "id": "saja",
+    "path": "/saja/",
+    "title": {
+      "ko": "사자성어 퀴즈",
+      "en": "Korean Idiom Quiz"
+    },
+    "desc": {
+      "ko": "뜻 고르기·성어 고르기·빈칸 채우기 세 갈래로 푸는 사자성어 10문제 — 틀리면 한자와 쓰임을 바로 보여 준다",
+      "en": "Ten four-syllable idioms three ways: pick the meaning, pick the idiom, fill the blank"
+    },
+    "thumb": "/saja/thumb.webp",
+    "playtime": {
+      "ko": "한 판 1~2분",
+      "en": "1-2 min a round"
+    },
+    "maxMinutes": 2,
+    "daily": true,
+    "category": "word",
+    "released": "2026-09-14",
+    "tags": [
+      "사자성어",
+      "퀴즈",
+      "한자",
+      "공부",
+      "word",
+      "daily"
+    ]
   }
 ]
