@@ -161,6 +161,10 @@
 
   /* ── 초성 맞히기 전용 ───────────────────────────────────────────── */
   .quiz{margin:14px auto 0;max-width:560px;padding:0 12px}
+  /* ★main 의 display:flex 는 선택자가 더 세서 브라우저 기본값 [hidden] → display:none 을 덮는다.
+     그러면 결과 화면이 떠도 플레이 영역이 그대로 남는다(실브라우저 스모크에서 실측).
+     저장소가 .hp-stat 에서 이미 겪은 것과 같은 자리다. */
+  .quiz[hidden]{display:none!important}
   .cho{font-size:clamp(40px,13vw,72px);font-weight:800;letter-spacing:.14em;text-align:center;
        color:var(--sig-ink);background:var(--sig-soft);border:1px solid var(--line);border-radius:16px;
        padding:18px 10px;margin:0 0 10px;word-break:keep-all}
