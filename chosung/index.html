@@ -203,6 +203,8 @@
     <button id="mFree" type="button" data-i18n="mFree">무한 연습</button>
   </div>
 
+  <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.chosung.today">–</b>판 · 누적 <b data-hp="plays.chosung.total">–</b>판</p>
+
   <div class="meta">
     <span><span data-i18n="qLbl">문제</span> <b id="qNo">1</b>/<b id="qTot">10</b></span>
     <span><span data-i18n="scoreLbl">점수</span> <b id="scoreEl">0</b></span>
@@ -422,6 +424,7 @@ const I18N = {
         lenMsg:n => `${n}글자로 적어 주세요`, doneToday:'오늘의 10은 이미 끝냈습니다',
         copied:'복사했습니다', hint1Msg:cs => `첫 글자 후보 · ${cs}`, hint2Msg:w => `상용어 힌트 · ${w}`,
         faqTitle:'자주 묻는 질문',
+        statPlays:'오늘 <b data-hp="plays.chosung.today">–</b>판 · 누적 <b data-hp="plays.chosung.total">–</b>판',
         faq1q:'정답이 여러 개인가요?',
         faq1a:'네. 그 초성에 맞는 사전 속 단어는 전부 정답입니다. 하나를 맞히면 다음으로 넘어갈 수 있고, 더 찾으면 추가 점수를 받습니다.',
         faq2q:'기록은 어디에 저장되나요?',
@@ -440,6 +443,7 @@ const I18N = {
         lenMsg:n => `Please write ${n} syllables`, doneToday:'You already finished today\'s ten',
         copied:'Copied', hint1Msg:cs => `First letters · ${cs}`, hint2Msg:w => `Common word · ${w}`,
         faqTitle:'FAQ',
+        statPlays:'<b data-hp="plays.chosung.today">–</b> today · <b data-hp="plays.chosung.total">–</b> all-time',
         faq1q:'Is there more than one answer?',
         faq1a:'Yes. Every word in the dictionary matching those initials counts. One correct answer lets you move on, and each extra one you find adds points.',
         faq2q:'Where are my results stored?',
@@ -561,14 +565,19 @@ function start(m){
   startedAt = Date.now();
   say(''); paint(); $('inp').focus();
   ga('game_start', { game: GA_GAME, mode: m });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
 }
 
 function applyLang(){
   document.documentElement.lang = lang;
-  document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (I18N[lang][k]) el.textContent = T(k); });
+  document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (I18N[lang][k] !== undefined) el.innerHTML = T(k); });
   document.querySelectorAll('.read-ko').forEach(el => { el.hidden = lang !== 'ko'; });
   document.querySelectorAll('.read-en').forEach(el => { el.hidden = lang !== 'en'; });
   $('btnLang').textContent = lang === 'ko' ? 'EN' : '한국어';
+  localStorage.setItem('bp.lang', lang);
+  /* 문안을 innerHTML 로 갈아 끼우면 채운 숫자가 지워진다 — 다시 채운다.
+     hp-stats.js 는 defer 라 없을 수도 있으므로 있는지 보고 부른다. */
+  if (window.hpStats) window.hpStats();
   paint();
 }
 
@@ -584,7 +593,7 @@ $('btnAgain').addEventListener('click', () => start(mode));
 $('btnCopy').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText($('grid').textContent); say(T('copied'), 'good'); } catch(_){ }
 });
-$('btnLang').addEventListener('click', () => { lang = lang === 'ko' ? 'en' : 'ko'; localStorage.setItem('bp.lang', lang); applyLang(); });
+$('btnLang').addEventListener('click', () => { lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); });
 /* ★자정을 넘겨 돌아오면 날짜·회차를 다시 짓는다 */
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && mode === 'daily' && dayKey() !== runDay) start('daily');
@@ -601,6 +610,7 @@ window.__ch = {
 
 applyLang();
 start('daily');
+setTimeout(() => { try { if (window.hpHit) window.hpHit('visit', GA_GAME); if (window.hpStats) window.hpStats(); } catch(_){} }, 0);
 </script>
 </body>
 </html>
