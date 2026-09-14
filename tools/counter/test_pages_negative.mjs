@@ -97,6 +97,34 @@ const CASES = [
       "  if (window.hpHit) window.hpHit('play', GA_GAME);",
       "  window.hpHit('play', GA_GAME);")
   },
+  /* ★미룬 발화(defer) 꼴 — chosung 처럼 열자마자 시작하는 게임이 쓰는 짝이다.
+     검사기가 이 꼴을 받아 주게 넓혔으니, 넓힌 만큼 **무엇을 여전히 잡는지**를 여기서 증명한다.
+     (2026-09-14 이관 직후: 이 꼴을 몰라 제품이 멀쩡한데 게이트가 빨갰다 — 도구 노후였다.) */
+  {
+    name: 'defer-wrong-event',
+    what: "미룬 발화자가 'play' 가 아니라 'visit' 을 보낸다(판수가 영영 안 는다)",
+    catches: [PAIR_RULE, COUNT_RULE],
+    apply: d => edit(d, 'chosung/index.html',
+      "  const fireHit = () => { if (window.hpHit) window.hpHit('play', GA_GAME); };",
+      "  const fireHit = () => { if (window.hpHit) window.hpHit('visit', GA_GAME); };")
+  },
+  {
+    name: 'defer-no-else',
+    what: '이미 로드된 경우의 가지(else)를 지운다 — 늦게 열면 한 판도 안 세어진다',
+    catches: [PAIR_RULE],
+    apply: d => edit(d, 'chosung/index.html',
+      "  else fireHit();",
+      "  /* else 가지를 지웠다 */")
+  },
+  {
+    name: 'defer-unguarded',
+    what: '미룬 발화자가 있는지 보지 않고 바로 부른다(스크립트가 막히면 게임이 깨진다)',
+    catches: [PAIR_RULE, GUARD_RULE],
+    apply: d => edit(d, 'chosung/index.html',
+      "  const fireHit = () => { if (window.hpHit) window.hpHit('play', GA_GAME); };",
+      "  const fireHit = () => { window.hpHit('play', GA_GAME); };")
+  },
+
   {
     name: 'en-copy-reversed',
     what: "영어 문안을 소수파 꼴(Today <b>N</b> · total <b>N</b>)로 되돌린다",

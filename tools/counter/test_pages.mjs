@@ -106,7 +106,18 @@ for (const KEY of PLAYABLE){
        · 첫 항목이 반드시 `game: GA_GAME` 상수일 것 — 뒤에 식별자 글자가 이어지면 다른 상수다
        · `[^;\n]*` 로 **같은 줄·같은 문장 안**에서만 인자를 허용할 것(다른 문장을 삼키지 못한다)
      그 다음 줄에 가드가 붙은 hpHit('play', GA_GAME) 이 와야 한다는 조건은 그대로다. */
-  const paired = [...html.matchAll(/ga\('game_start', \{ game: GA_GAME(?![A-Za-z0-9_$])[^;\n]*\);(\s*\/\*[^*]*\*\/)?\s*\n\s*if \(window\.hpHit\) window\.hpHit\('play', GA_GAME\);/g)].length;
+  const pairedDirect = [...html.matchAll(/ga\('game_start', \{ game: GA_GAME(?![A-Za-z0-9_$])[^;\n]*\);(\s*\/\*[^*]*\*\/)?\s*\n\s*if \(window\.hpHit\) window\.hpHit\('play', GA_GAME\);/g)].length;
+  /* ★열자마자 시작하는 게임은 발화를 로드 뒤로 미뤄야 한다 — 그때 짝은 '다음 줄의 호출' 이 아니라
+     **이름 붙인 발화자와 그것을 부르는 두 갈래**다(chosung, 2026-09-14: defer 로 실린 hp-stats.js 가
+     아직 없어 첫 판이 영영 안 세어졌다 — 라이브 /api/stats 로 확인된 진짜 결함이었다).
+     그 꼴을 받아 주되 느슨해지지 않도록 네 가지를 한 번에 못박는다:
+       · 발화자 안의 호출은 **가드가 붙은 hpHit('play', GA_GAME)** 뿐일 것
+       · 파싱 중이면 DOMContentLoaded 로 미루고 { once: true } 로 **한 번만** 보낼 것
+       · 아니면 즉시 부를 것 — else 가지가 없으면 이미 로드된 경우에 영영 안 센다
+       · 두 갈래가 부르는 이름이 **같을 것**(역참조 \1) — 다른 함수를 부르면 짝이 아니다
+     검출력은 자기시험(test_pages_negative.mjs) defer-* 3건이 지킨다. */
+  const pairedDeferred = [...html.matchAll(/ga\('game_start', \{ game: GA_GAME(?![A-Za-z0-9_$])[^;\n]*\);(?:\s*\/\*[\s\S]*?\*\/)?\s*\n\s*const ([A-Za-z0-9_$]+) = \(\) => \{ if \(window\.hpHit\) window\.hpHit\('play', GA_GAME\); \};\s*\n\s*if \(document\.readyState === 'loading'\) document\.addEventListener\('DOMContentLoaded', \1, \{ once: true \}\);\s*\n\s*else \1\(\);/g)].length;
+  const paired = pairedDirect + pairedDeferred;
   ok(`hpHit('play') 가 시작 지점 ${gaStarts}곳 전부에 짝지어 있다`, paired === gaStarts && gaStarts > 0,
      `짝 ${paired} / 시작 ${gaStarts}`);
   /* ★짝 검사는 '시작 지점 옆에 붙은 호출' 만 센다 — 엉뚱한 자리에 하나 더 있는 호출은
