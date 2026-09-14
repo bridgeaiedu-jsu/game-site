@@ -283,6 +283,12 @@ Sitemap: https://hanpango.com/sitemap.xml
    - [ ] 형제 게임의 **검증기**도 같은 규칙이다 — 그 라운드에서 손댄 게임의 것을 ★커밋본 바이트로 돌린다:
          `tools/verify_{bomb,fakeone,four,gomoku,higherlower,howmany,justright,memory,mole,nonogram,numberbaseball,push,puzzle_tray,reverse,stop,tensec,together,word}.js`
          (「빠른 셈」은 위 항목에 따로 적혀 있다).
+   - [ ] (「사자성어 퀴즈」를 손댄 라운드에서만) `node tools/verify_saja.js` → **rc=0 일 때만** 통과다.
+         제품보다 먼저 쓰인 검증기다 — 제품이 없으면 rc=2(판정 불가)이고 통과로 세지 않는다.
+         재는 계약: 한 판 10문항·유형 비율 4·3·3 고정 · 같은 KST 날이면 벽시계를 옮겨도 같은 판 ·
+         이어지는 7일의 성어 겹침 0 · 보기 넷이 서로 다르고 정답이 정확히 하나 · 빈칸의 정답이 원래 글자 ·
+         판을 짜는 데 난수를 안 쓰고 그 함수에 시각 읽기가 없다 · 점수는 맞힌 개수(감점 없음) · 은행 무결성.
+         ★탐지력은 `node tools/verify_saja.js --selftest` 로 잰다(뮤테이션 6종 · 어긋남 0 이 합격선).
    - [ ] (「초성 맞히기」를 손댄 라운드에서만) `python3 tools/verify_chosung.py .` → **rc=0 일 때만** 통과다.
          풀 계약의 빌드 리포트 겸 검증기다 — 적격 풀·**티어별 소진일(분리 출력)**·미사용 잔량·불변식
          (재출제 간격 < 최소 소진일)을 찍고, 1,000일 스케줄을 실제로 구성해 하루 문제 수·쉬움 상용어
