@@ -356,6 +356,11 @@
       "kind": "검증기"
     },
     {
+      "file": "tools/verify_chosung.py",
+      "game": "chosung",
+      "kind": "풀·불변식 검증기(빌드 리포트 · 적격 풀·티어별 소진일·미사용 잔량·불변식)"
+    },
+    {
       "file": "tools/run_mutations_kst.py",
       "game": "(전 게임 · 하루 경계)",
       "kind": "뮤테이션 러너"
@@ -365,6 +370,10 @@
     {
       "file": "tools/README.md",
       "why": "도구 설명 문서"
+    },
+    {
+      "file": "tools/chosung_contract.json",
+      "why": "초성 풀 계약 ★정본 데이터(verify_chosung.py 와 게임이 함께 읽는다 — 도구가 자기 상수를 증명하지 않게 분리했다)"
     },
     {
       "file": "tools/bomb_locked_contracts.json",

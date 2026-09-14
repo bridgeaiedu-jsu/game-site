@@ -782,5 +782,32 @@
       "casual",
       "daily"
     ]
+  },
+  {
+    "id": "chosung",
+    "path": "/chosung/",
+    "title": {
+      "ko": "초성 맞히기",
+      "en": "Korean Initials Quiz"
+    },
+    "desc": {
+      "ko": "ㄱㅈ 같은 초성만 보고 우리말을 떠올리는 낱말 게임 — 그 초성에 맞는 말이면 전부 정답이다",
+      "en": "Guess Korean words from their initial consonants — every matching word in the dictionary counts"
+    },
+    "thumb": "/chosung/thumb.webp",
+    "playtime": {
+      "ko": "한 판 2~3분",
+      "en": "2-3 min a round"
+    },
+    "maxMinutes": 3,
+    "daily": true,
+    "category": "word",
+    "released": "2026-09-14",
+    "tags": [
+      "word",
+      "korean",
+      "quiz",
+      "daily"
+    ]
   }
 ]

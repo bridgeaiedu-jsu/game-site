@@ -283,6 +283,13 @@ Sitemap: https://hanpango.com/sitemap.xml
    - [ ] 형제 게임의 **검증기**도 같은 규칙이다 — 그 라운드에서 손댄 게임의 것을 ★커밋본 바이트로 돌린다:
          `tools/verify_{bomb,fakeone,four,gomoku,higherlower,howmany,justright,memory,mole,nonogram,numberbaseball,push,puzzle_tray,reverse,stop,tensec,together,word}.js`
          (「빠른 셈」은 위 항목에 따로 적혀 있다).
+   - [ ] (「초성 맞히기」를 손댄 라운드에서만) `python3 tools/verify_chosung.py .` → **rc=0 일 때만** 통과다.
+         풀 계약의 빌드 리포트 겸 검증기다 — 적격 풀·**티어별 소진일(분리 출력)**·미사용 잔량·불변식
+         (재출제 간격 < 최소 소진일)을 찍고, 1,000일 스케줄을 실제로 구성해 하루 문제 수·쉬움 상용어
+         2문제·쿨다운·곡선 이탈을 센다. **불변식 위반은 경고가 아니라 실패**다(rc=1). rc=2 는 판정 불가
+         (정본 `tools/chosung_contract.json` 이나 사전을 못 읽음)이며 통과가 아니다.
+         ★상수는 도구가 아니라 정본 데이터에 있다 — 게임(`chosung/index.html`)이 생기면 게임에 박힌
+         값과 정본을 양방향 대조하는 축이 자동으로 켜진다.
          ★왜 여기 적나(2026-09-08 R4 F7): 등록부의 방향③ 분모가 `gates[]` 21종뿐이라 **게임별 30종이
          그물 밖**이었다 — DEPLOY 에서 `verify_quickmath.js` 를 ★개명하면 잡히는데 ★삭제하면 rc=0 이었다.
          이제 분모가 `gates[] + per_game` 이고 이 묶음표기는 검사기가 ★전개해서 센다.

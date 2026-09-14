@@ -1,0 +1,47 @@
+{
+  "_contract": "초성 맞히기 풀 계약의 ★정본 데이터다. tools/verify_chosung.py 가 이 값으로 풀을 산출하고, 게임(chosung/index.html)이 생기면 게임에 박힌 값과 ★양방향 대조한다 — 도구가 자기 상수를 증명하지 않게 하려고 분리했다(tools/check_today_pool.mjs 의 설계 원칙 1과 같은 이유).",
+  "_source": "round/MASTER_DESIGN_CHOSUNG_20260913.md v8 (sha256 앞16 d33eadb28e34293f) §11",
+  "dict_source": "wordchain/index.html",
+  "word_lengths": [
+    2,
+    3
+  ],
+  "tiers": {
+    "easy": [
+      12,
+      999999
+    ],
+    "normal": [
+      5,
+      11
+    ],
+    "hard": [
+      2,
+      4
+    ]
+  },
+  "per_day": {
+    "easy": 3,
+    "normal": 4,
+    "hard": 3
+  },
+  "easy_common_min": 2,
+  "cooldown_days": 100,
+  "sim_days": 1000,
+  "expected": {
+    "eligible_total": 1514,
+    "common_total": 440,
+    "tiers": {
+      "easy": 337,
+      "normal": 453,
+      "hard": 724
+    },
+    "exhaust_days": {
+      "easy": 112.3,
+      "normal": 113.2,
+      "hard": 241.3
+    },
+    "easy_common": 230,
+    "first_repeat_day_min": 112
+  }
+}
