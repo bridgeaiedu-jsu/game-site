@@ -369,6 +369,11 @@
       "file": "tools/verify_saja.js",
       "game": "saja",
       "kind": "검증기(출제 결정론·유형 비율·보기 계약·은행 무결성)"
+    },
+    {
+      "file": "tools/verify_hanbut.js",
+      "game": "hanbut",
+      "kind": "검증기(판 결정론·해답 존재·최단 대조·걸음 규칙·되돌리기)"
     }
   ],
   "non_gate_tools": [

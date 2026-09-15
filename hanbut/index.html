@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>한붓 배달 — 한 번의 길로 배달을 모두 지나 출구까지 | One-Stroke Delivery</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 경로 퍼즐. 한 번 지난 칸은 다시 밟을 수 없습니다. 배달 지점을 모두 지나 출구까지 한 붓으로 잇고, 최단 몇 칸이면 되는지와 당신의 칸 수를 나란히 봅니다. 오늘의 배달은 모두에게 같은 판입니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="한붓 배달 — 한 번의 길로 배달을 모두 지나 출구까지 | One-Stroke Delivery">
+<meta property="og:description" content="지난 칸은 다시 못 밟습니다. 오늘의 판은 최단 몇 칸일까요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/hanbut/">
+<meta property="og:image" content="https://hanpango.com/hanbut/thumb.webp">
+<meta property="og:image:width" content="640">
+<meta property="og:image:height" content="640">
+<link rel="canonical" href="https://hanpango.com/hanbut/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 판수 줄을 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
+<link rel="stylesheet" href="/css/article.css">
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"한붓 배달","alternateName":"One-Stroke Delivery","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ────────────────────────────────────────────────────────
+     분류는 ★머리 한판(puzzle)이다. --sig 는 손으로 고르지 않는다 —
+     tools/check_palette.py 의 자로 골라 적었다: 기준색 #0a8e06 과 색상각 2도 이내 ·
+     형제 5종과 ΔE2000 6.03(하한 5.0) · 원형 여유 5.01(하한 1.0 · 경고선 2.0).
+     다크는 기준색보다 밝고(L 50.0 > 29.0) 형제와 ΔE2000 6.38 · 여유 6.15 다. */
+  :root{
+    --bg:#ffffff; --fg:#111827; --muted:#6b7280; --line:#e5e7eb; --card:#f9fafb;
+    --sig:#398637; --sig-ink:#1c4a1a; --sig-soft:#dcefda; --on-sig:#ffffff;
+    --wall:#cbd5e1; --floor:#f1f5f9;
+    --ad-bg:rgba(17,24,39,.03);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --fg:#f3f4f6; --muted:#9ca3af; --line:#26254a; --card:#141234;
+      --sig:#5aad52; --sig-ink:#9bd894; --sig-soft:#1e3a1c; --on-sig:#111827;
+      --wall:#2b3350; --floor:#181a3a;
+      --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif}
+  .wrap{max-width:560px;margin:0 auto;padding:12px 14px 40px}
+  header{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  h1{font-size:1.25rem;margin:.2em 0}
+  h1 small{display:block;font-size:.78rem;font-weight:400;color:var(--muted)}
+  .spacer{flex:1}
+  .ibtn{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;
+        padding:6px 10px;font-size:.85rem;cursor:pointer;text-decoration:none}
+  .ibtn:focus-visible,button:focus-visible{outline:3px solid var(--sig);outline-offset:3px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 8px}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.8rem;color:var(--muted)}
+  .chip b{color:var(--fg);font-variant-numeric:tabular-nums}
+  #board{display:grid;gap:3px;background:var(--line);border:3px solid var(--line);border-radius:12px;
+         width:100%;max-width:360px;margin:0 auto;aspect-ratio:1/1;touch-action:none;user-select:none}
+  .cell{position:relative;background:var(--floor);display:flex;align-items:center;justify-content:center;
+        font-size:1.1rem;font-weight:800;color:var(--sig-ink);cursor:pointer}
+  .cell.wall{background:var(--wall);cursor:default}
+  .cell.on{background:var(--sig-soft)}
+  .cell.head{background:var(--sig);color:var(--on-sig)}
+  .cell .mark{font-size:.72rem;line-height:1.1;font-weight:700;text-align:center;padding:0 2px}
+  .cell .num{position:absolute;right:3px;bottom:2px;font-size:.6rem;color:var(--muted);font-weight:600}
+  /* ---- 광고 슬롯 — 승인 전에는 css/ad-slots.css 가 통째로 감춘다(게이트가 렌더로 확인한다) ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
+  .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 결과 화면 자리 */
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  .row{display:flex;gap:8px;justify-content:center;margin:10px 0}
+  .btn{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:12px;
+       padding:10px 14px;font-size:.92rem;font-weight:700;cursor:pointer;min-height:44px}
+  .btn.primary{background:var(--sig);color:var(--on-sig);border-color:var(--sig)}
+  .hint{color:var(--muted);font-size:.8rem;text-align:center;margin:.4em 0}
+  .hp-stat{color:var(--muted);font-size:.78rem;text-align:center;margin:.2em 0}
+  .hp-stat[hidden]{display:none!important}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  #over{display:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:12px}
+  #over.show{display:block}
+  .nums{display:flex;gap:14px;flex-wrap:wrap;margin:.4em 0}
+  .nums b{font-size:1.15rem;font-variant-numeric:tabular-nums;display:block}
+  .nums span{font-size:.78rem;color:var(--muted)}
+  .cell{transition:background .12s ease}
+  @media (prefers-reduced-motion: reduce){ .cell{transition:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1><span data-i18n="title">한붓 배달</span>
+    <small data-i18n="subtitle">지난 칸은 다시 밟을 수 없습니다 — 오늘의 판은 모두에게 같습니다</small></h1>
+  <span class="spacer"></span>
+  <a class="ibtn" href="/" data-i18n="home">🏠 다른 게임</a>
+  <button class="ibtn" id="btnLang" type="button">EN</button>
+</header>
+
+<div class="chips">
+  <span class="chip"><span data-i18n="dayLbl">오늘의 배달</span> <b id="dayNo">–</b></span>
+  <span class="chip"><span data-i18n="minLbl">최단</span> <b id="best">–</b><span data-i18n="cellUnit">칸</span></span>
+  <span class="chip"><span data-i18n="yourLbl">내 이동</span> <b id="mine">0</b><span data-i18n="cellUnit2">칸</span></span>
+  <span class="chip"><span data-i18n="leftLbl">남은 배달</span> <b id="left">–</b></span>
+</div>
+
+<!-- ADSENSE (1/2) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
+
+<!-- 판 — 진행 중에 바뀌는 자리라 data-i18n 을 붙이지 않는다(언어 전환이 판을 덮으면 안 된다) -->
+<div id="board" role="application" data-i18n-aria="ariaBoard" aria-label="한붓 배달 판"></div>
+
+<div class="row">
+  <button class="btn" id="btnUndo" type="button" data-i18n="undo">↩ 한 칸 되돌리기</button>
+  <button class="btn" id="btnReset" type="button" data-i18n="reset">처음부터</button>
+</div>
+
+<p class="hint" id="hint" data-i18n="hint">시작 칸에서 이어 붙여 배달을 모두 지나고 출구에 닿으면 끝납니다 · 칸을 누르거나 손가락으로 끌어 이으세요</p>
+<p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.hanbut.today">–</b>판 · 누적 <b data-hp="plays.hanbut.total">–</b>판</p>
+<p class="sr-only" id="srLive" aria-live="polite"></p>
+
+<div id="over">
+  <h2 data-i18n="done">배달 완료</h2>
+  <div class="nums">
+    <div><b id="rBest">–</b><span data-i18n="rBestLbl">최단</span></div>
+    <div><b id="rMine">–</b><span data-i18n="rMineLbl">내 이동</span></div>
+    <div><b id="rExtra">–</b><span data-i18n="rExtraLbl">추가</span></div>
+    <div><b id="rUndo">–</b><span data-i18n="rUndoLbl">되돌리기</span></div>
+  </div>
+  <p id="verdict" style="margin:.2em 0 .6em"></p>
+  <!-- ADSENSE (2/2) — 결과 화면 자리 -->
+  <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
+  <div class="row" style="justify-content:flex-start">
+    <button class="btn primary" id="btnShare" type="button" data-i18n="share">결과 공유</button>
+    <button class="btn" id="btnAgain" type="button" data-i18n="again">다시 풀기</button>
+  </div>
+</div>
+</div>
+
+<script type="module">
+/* ══════════════════════════════════════════════════════════════════════
+   한붓 배달 — 배달 지점을 모두 지나 출구까지 ★한 번의 길로 잇는 퍼즐.
+   ★설계의 뼈대
+     · 판은 ★날짜 문자열 하나로 정해진다(시계를 읽지 않는다). 같은 날 = 같은 판.
+     · 판을 만들 때 ★먼저 정답이 될 길을 깔고, 그 길 위에 시작·배달·출구를 얹는다.
+       ⇒ 해가 없는 판이 원리적으로 안 나온다.
+     · 그래도 믿지 않고 ★최단 이동 수는 따로 푼다(shortestOf). 검증기는 ★자기 솔버로 또 푼다.
+     · 플레이는 난수를 ★한 톨도 쓰지 않는다 — 판을 짤 때 전부 굴린다.
+   ══════════════════════════════════════════════════════════════════════ */
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const GA_GAME = 'hanbut';
+const SEED_NS = 'hanpango-hanbut-';
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);      /* 2026-08-23 = #1 (다른 게임과 같은 기준일) */
+const CFG = { W: 5, H: 5, MIN_DELIVERIES: 2, MAX_DELIVERIES: 3, MIN_BEST: 8, WALL_MAX: 5 };
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ── 결정론 난수 ── */
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ── 날짜(KST) ── */
+const pad2 = n => String(n).padStart(2, '0');
+function todayKey(now = new Date()){ const k = new Date(now.getTime() + 9 * 3600000);
+  return `${k.getUTCFullYear()}-${pad2(k.getUTCMonth() + 1)}-${pad2(k.getUTCDate())}`; }
+function dayNumber(key){ const [y, m, d] = String(key).split('-').map(Number);
+  return Math.floor((Date.UTC(y, m - 1, d) - DAILY_EPOCH) / 86400000) + 1; }
+function prevDayKey(key){ const [y, m, d] = String(key).split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d) - 86400000);
+  return `${t.getUTCFullYear()}-${pad2(t.getUTCMonth() + 1)}-${pad2(t.getUTCDate())}`; }
+
+/* ── 판 만들기 ─────────────────────────────────────────────────────────
+   ①무작위로 ★한 붓 길을 깐다(같은 칸을 다시 밟지 않는 단순 경로).
+   ②그 길의 처음이 시작, 끝이 출구, 중간 몇 곳이 배달이다.
+   ③길에 없는 칸 일부를 벽으로 세운다 — 길은 그대로 남으므로 해는 보장된다.
+   ★시계를 읽지 않는다. 난수는 오직 key 에서 온다. */
+function neighborsOf(i, w, h){
+  const x = i % w, y = (i / w) | 0, out = [];
+  if (x > 0) out.push(i - 1);
+  if (x < w - 1) out.push(i + 1);
+  if (y > 0) out.push(i - w);
+  if (y < h - 1) out.push(i + w);
+  return out;
+}
+function carvePath(rng, w, h, want){
+  const n = w * h;
+  for (let tries = 0; tries < 200; tries++){
+    const start = Math.floor(rng() * n);
+    const path = [start];
+    const seen = new Set([start]);
+    while (path.length < want){
+      const cands = neighborsOf(path[path.length - 1], w, h).filter(j => !seen.has(j));
+      if (!cands.length) break;
+      const next = cands[Math.floor(rng() * cands.length)];
+      path.push(next); seen.add(next);
+    }
+    if (path.length >= want) return path;
+  }
+  return null;
+}
+/* 최단 이동 수 — 지난 칸을 다시 밟을 수 없으므로 (칸, 지나온 칸) 이 상태다.
+   칸이 적어(25) 깊이우선 + 최선값 가지치기로 정확한 최소를 구한다. */
+function shortestOf(b){
+  const wall = new Set(b.walls), deliv = new Set(b.deliveries);
+  let best = Infinity;
+  const visit = new Set([b.start]);
+  (function dfs(at, got, moves){
+    if (moves >= best) return;
+    if (at === b.exit && got === deliv.size){ best = moves; return; }
+    for (const j of neighborsOf(at, b.w, b.h)){
+      if (wall.has(j) || visit.has(j)) continue;
+      visit.add(j);
+      dfs(j, got + (deliv.has(j) ? 1 : 0), moves + 1);
+      visit.delete(j);
+    }
+  })(b.start, deliv.has(b.start) ? 1 : 0, 0);
+  return Number.isFinite(best) ? best : null;
+}
+function boardFor(key){
+  const rng = mulberry32(hashStr(SEED_NS + String(key)));
+  const { W, H, MIN_DELIVERIES, MAX_DELIVERIES, MIN_BEST, WALL_MAX } = CFG;
+  for (let attempt = 0; attempt < 60; attempt++){
+    const want = MIN_BEST + 1 + Math.floor(rng() * 6);            /* 길 길이(칸 수) */
+    const path = carvePath(rng, W, H, Math.min(want, W * H));
+    if (!path) continue;
+    const nDeliv = MIN_DELIVERIES + Math.floor(rng() * (MAX_DELIVERIES - MIN_DELIVERIES + 1));
+    const inner = path.slice(1, -1);
+    if (inner.length < nDeliv) continue;
+    const picked = [];
+    const pool = inner.slice();
+    for (let k = 0; k < nDeliv && pool.length; k++){
+      picked.push(pool.splice(Math.floor(rng() * pool.length), 1)[0]);
+    }
+    const onPath = new Set(path);
+    const off = [];
+    for (let i = 0; i < W * H; i++) if (!onPath.has(i)) off.push(i);
+    const walls = [];
+    for (let k = 0; k < WALL_MAX && off.length; k++){
+      walls.push(off.splice(Math.floor(rng() * off.length), 1)[0]);
+    }
+    const board = { w: W, h: H, start: path[0], exit: path[path.length - 1],
+                    deliveries: picked.sort((a, b2) => a - b2), walls: walls.sort((a, b2) => a - b2) };
+    const shortest = shortestOf(board);
+    if (shortest === null || shortest < MIN_BEST) continue;
+    return Object.assign(board, { key: String(key), best: shortestOf(board), attempts: attempt + 1 });
+  }
+  /* 여기 오면 규격을 못 맞춘 것이다 — 조용히 쉬운 판을 내지 않고 ★마지막 판을 그대로 준다. */
+  const fallback = { w: W, h: H, start: 0, exit: W * H - 1, deliveries: [W + 1], walls: [] };
+  return Object.assign(fallback, { key: String(key), best: shortestOf(fallback), attempts: 60, usedFallback: true });
+}
+
+/* ── 걸음 규칙(순수 함수) ──
+   길은 칸 목록이다. 이어 붙일 수 있는 칸은 ★상하좌우로 붙어 있고 ★벽이 아니며 ★아직 안 지난 칸뿐이다. */
+function stepInto(b, st, next){
+  if (!neighborsOf(st.path[st.path.length - 1], b.w, b.h).includes(next)) return { ok: false, why: 'far' };
+  if (b.walls.includes(next)) return { ok: false, why: 'wall' };
+  if (st.path.includes(next)) return { ok: false, why: 'revisit' };
+  st.path.push(next);
+  return { ok: true };
+}
+function undoStep(st){
+  if (st.path.length <= 1) return false;
+  st.path.pop();
+  st.undos++;
+  return true;
+}
+function statusOf(b, st){
+  const got = st.path.filter(c => b.deliveries.includes(c)).length;
+  const moves = st.path.length - 1;
+  return { moves, got, left: b.deliveries.length - got,
+           done: got === b.deliveries.length && st.path[st.path.length - 1] === b.exit,
+           extra: Math.max(0, moves - b.best) };
+}
+/* 판 하나의 해답 경로 하나 — 검증과 힌트가 쓴다. 최단 경로를 그대로 돌려준다. */
+function solvePath(b){
+  const wall = new Set(b.walls), deliv = new Set(b.deliveries);
+  let best = Infinity, bestPath = null;
+  const path = [b.start];
+  const visit = new Set([b.start]);
+  (function dfs(at, got, moves){
+    if (moves >= best) return;
+    if (at === b.exit && got === deliv.size){ best = moves; bestPath = path.slice(); return; }
+    for (const j of neighborsOf(at, b.w, b.h)){
+      if (wall.has(j) || visit.has(j)) continue;
+      visit.add(j); path.push(j);
+      dfs(j, got + (deliv.has(j) ? 1 : 0), moves + 1);
+      path.pop(); visit.delete(j);
+    }
+  })(b.start, deliv.has(b.start) ? 1 : 0, 0);
+  return bestPath;
+}
+
+/* ── 문안 ── */
+const I18N = {
+  ko: { title:'한붓 배달', subtitle:'지난 칸은 다시 밟을 수 없습니다 — 오늘의 판은 모두에게 같습니다',
+        home:'🏠 다른 게임', dayLbl:'오늘의 배달', minLbl:'최단', yourLbl:'내 이동', leftLbl:'남은 배달',
+        cellUnit:'칸', cellUnit2:'칸', undo:'↩ 한 칸 되돌리기', reset:'처음부터',
+        hint:'시작 칸에서 이어 붙여 배달을 모두 지나고 출구에 닿으면 끝납니다 · 칸을 누르거나 손가락으로 끌어 이으세요',
+        statPlays:'오늘 <b data-hp="plays.hanbut.today">–</b>판 · 누적 <b data-hp="plays.hanbut.total">–</b>판',
+        done:'배달 완료', rBestLbl:'최단', rMineLbl:'내 이동', rExtraLbl:'추가', rUndoLbl:'되돌리기',
+        share:'결과 공유', again:'다시 풀기', copied:'결과가 복사됐어요',
+        adPlaceholder:'', adPlaceholder2:'',
+        perfect:'최단으로 끝냈습니다', over:(n)=>`최단보다 ${n}칸 더 걸었습니다`,
+        ariaBoard:'한붓 배달 판', langBtn:'EN', markStart:'출발', markExit:'출구',
+        srStart:'배달 시작.', srStep:(n,l)=>`${n}칸째. 남은 배달 ${l}곳.`,
+        srBad:(why)=>({ wall:'벽입니다.', revisit:'이미 지난 칸입니다.', far:'붙어 있지 않은 칸입니다.' })[why] || '둘 수 없습니다.',
+        srDone:(m,e)=>`완료. ${m}칸, 최단보다 ${e}칸 더.`,
+        shareText:(no,m,e,u)=>`🚚 한붓 배달 #${no} ${m}칸 · 최단 +${e} · 되돌리기 ${u}\n` },
+  en: { title:'One-Stroke Delivery', subtitle:'A cell you have crossed is closed for good — everyone gets the same board today',
+        home:'🏠 More games', dayLbl:'Daily run', minLbl:'shortest', yourLbl:'your moves', leftLbl:'left to deliver',
+        cellUnit:' cells', cellUnit2:' cells', undo:'↩ Undo one cell', reset:'Restart',
+        hint:'Extend the line from the start, pass every delivery, then reach the exit · tap cells or drag across them',
+        statPlays:'<b data-hp="plays.hanbut.today">–</b> today · <b data-hp="plays.hanbut.total">–</b> all-time',
+        done:'Delivered', rBestLbl:'shortest', rMineLbl:'your moves', rExtraLbl:'extra', rUndoLbl:'undos',
+        share:'Share result', again:'Play again', copied:'Result copied',
+        adPlaceholder:'', adPlaceholder2:'',
+        perfect:'You finished on the shortest route', over:(n)=>`${n} cells longer than the shortest route`,
+        ariaBoard:'One-Stroke Delivery board', langBtn:'한국어', markStart:'Start', markExit:'Exit',
+        srStart:'Run started.', srStep:(n,l)=>`Cell ${n}. ${l} deliveries left.`,
+        srBad:(why)=>({ wall:'That is a wall.', revisit:'You have already crossed that cell.', far:'That cell is not adjacent.' })[why] || 'Not allowed.',
+        srDone:(m,e)=>`Done. ${m} cells, ${e} more than the shortest.`,
+        shareText:(no,m,e,u)=>`🚚 One-Stroke Delivery #${no} ${m} cells · shortest +${e} · undo ${u}\n` },
+};
+let lang = localStorage.getItem('bp.lang') || ((navigator.language || '').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (I18N[lang][k] !== undefined) el.innerHTML = T(k); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => { const k = el.getAttribute('data-i18n-aria'); if (I18N[lang][k] !== undefined) el.setAttribute('aria-label', T(k)); });
+  document.querySelectorAll('.read-ko').forEach(el => { el.hidden = lang !== 'ko'; });
+  document.querySelectorAll('.read-en').forEach(el => { el.hidden = lang !== 'en'; });
+  $('btnLang').textContent = T('langBtn');
+  localStorage.setItem('bp.lang', lang);
+  /* 문안을 갈아 끼우면 채운 숫자가 지워진다 — 다시 채운다. hp-stats.js 는 defer 라 없을 수도 있다. */
+  if (window.hpStats) window.hpStats();
+  draw();
+}
+
+/* ── 상태 ── */
+let board = null;
+let st = { path: [], undos: 0 };
+let started = false, over = false, lastResult = null;
+const say = t => { $('srLive').textContent = t; };
+
+function newRun(key){
+  board = boardFor(key);
+  st = { path: [board.start], undos: 0 };
+  started = false; over = false;
+  $('over').classList.remove('show');
+  $('dayNo').textContent = '#' + dayNumber(board.key);
+  $('best').textContent = board.best === null ? '–' : board.best;
+  draw();
+}
+function draw(){
+  const bd = $('board');
+  if (!board) return;
+  bd.style.gridTemplateColumns = `repeat(${board.w}, 1fr)`;
+  bd.innerHTML = '';
+  const s = statusOf(board, st);
+  const order = new Map(st.path.map((c, i) => [c, i]));
+  for (let i = 0; i < board.w * board.h; i++){
+    const el = document.createElement('div');
+    el.className = 'cell';
+    el.id = 'c' + i;
+    el.dataset.cell = String(i);
+    if (board.walls.includes(i)) el.classList.add('wall');
+    if (order.has(i)) el.classList.add('on');
+    if (st.path[st.path.length - 1] === i) el.classList.add('head');
+    const mark = document.createElement('span');
+    mark.className = 'mark';
+    if (i === board.start) mark.textContent = T('markStart');
+    else if (i === board.exit) mark.textContent = T('markExit');
+    else if (board.deliveries.includes(i)) mark.textContent = order.has(i) ? '✓' : '●';
+    el.appendChild(mark);
+    if (order.has(i)){
+      const num = document.createElement('span');
+      num.className = 'num';
+      num.textContent = String(order.get(i));
+      el.appendChild(num);
+    }
+    bd.appendChild(el);
+  }
+  $('mine').textContent = s.moves;
+  $('left').textContent = s.left;
+}
+function tryStep(next){
+  if (over || board === null) return;
+  const r = stepInto(board, st, next);
+  if (!r.ok){ say(T('srBad', r.why)); return; }
+  if (!started){
+    started = true;
+    ga('game_start', { game: GA_GAME });
+    if (window.hpHit) window.hpHit('play', GA_GAME);
+  }
+  const s = statusOf(board, st);
+  draw();
+  say(T('srStep', s.moves, s.left));
+  if (s.done) finish();
+}
+function finish(){
+  const s = statusOf(board, st);
+  over = true;
+  lastResult = { no: dayNumber(board.key), moves: s.moves, extra: s.extra, undos: st.undos, best: board.best };
+  $('rBest').textContent = board.best;
+  $('rMine').textContent = s.moves;
+  $('rExtra').textContent = '+' + s.extra;
+  $('rUndo').textContent = st.undos;
+  $('verdict').textContent = s.extra === 0 ? T('perfect') : T('over', s.extra);
+  $('over').classList.add('show');
+  say(T('srDone', s.moves, s.extra));
+  try { localStorage.setItem('hb.daily', JSON.stringify({ date: board.key, result: lastResult })); } catch (_) {}
+  ga('daily_complete', { game: GA_GAME });
+}
+
+/* ── 입력 — 탭과 드래그 둘 다 ── */
+const cellAt = target => { const el = target && target.closest ? target.closest('.cell') : null; return el ? Number(el.dataset.cell) : null; };
+$('board').addEventListener('pointerdown', e => { const c = cellAt(e.target); if (c !== null) tryStep(c); });
+$('board').addEventListener('pointermove', e => {
+  if (e.buttons !== 1) return;
+  const el = document.elementFromPoint ? document.elementFromPoint(e.clientX, e.clientY) : null;
+  const c = cellAt(el);
+  if (c !== null) tryStep(c);
+});
+$('btnUndo').addEventListener('click', () => { if (undoStep(st)){ over = false; $('over').classList.remove('show'); draw(); } });
+$('btnReset').addEventListener('click', () => { st = { path: [board.start], undos: st.undos }; over = false; $('over').classList.remove('show'); draw(); });
+$('btnAgain').addEventListener('click', () => { st = { path: [board.start], undos: st.undos }; over = false; $('over').classList.remove('show'); draw(); });
+$('btnLang').addEventListener('click', () => { lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); });
+$('btnShare').addEventListener('click', async () => {
+  if (!lastResult) return;
+  const text = T('shareText', lastResult.no, lastResult.moves, lastResult.extra, lastResult.undos) + 'https://hanpango.com/hanbut/';
+  try { await navigator.clipboard.writeText(text); say(T('copied')); } catch (_) {}
+});
+document.addEventListener('keydown', e => {
+  if (!board || over) return;
+  const head = st.path[st.path.length - 1];
+  const d = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -board.w, ArrowDown: board.w }[e.key];
+  if (d === undefined) return;
+  const x = head % board.w;
+  if ((d === -1 && x === 0) || (d === 1 && x === board.w - 1)) return;
+  e.preventDefault();
+  tryStep(head + d);
+});
+
+/* ── 시작 ── */
+newRun(todayKey());
+applyLang();
+setTimeout(() => { try { if (window.hpHit) window.hpHit('visit', GA_GAME); if (window.hpStats) window.hpStats(); } catch (_) {} }, 0);
+
+/* ══════════════════ 검증 창구(관측 전용) ══════════════════
+   ★읽기만 하는 getter 와 순수 함수만 둔다. 판을 시작하거나 상태를 바꾸는 명령은 두지 않는다.
+   검증기는 여기 값과 ★자기 솔버로 따로 푼 값을 대조한다. */
+const copy = o => JSON.parse(JSON.stringify(o));
+window.__hanbut = {
+  consts: () => copy(CFG),
+  todayKey: iso => todayKey(iso ? new Date(iso) : new Date()),
+  dayNumber: k => dayNumber(String(k)),
+  prevDayKey: k => prevDayKey(String(k)),
+  boardFor: k => copy(boardFor(String(k))),
+  boardSrc: () => String(boardFor),
+  solvePath: b => { const p = solvePath(copy(b)); return p ? p.slice() : null; },
+  /* 경로 하나를 규칙대로 걸어 본다 — 상태를 만들지 않고 사본 위에서만 논다. */
+  walk: (b, cells) => {
+    const bb = copy(b);
+    const s2 = { path: [bb.start], undos: 0 };
+    for (const c of cells.slice(1)) stepInto(bb, s2, c);
+    return statusOf(bb, s2);
+  },
+  /* 무효 입력 세 종류가 실제로 막히는지, 그리고 이동 수가 늘지 않는지 */
+  invalidProbe: b => {
+    const bb = copy(b);
+    const s2 = { path: [bb.start], undos: 0 };
+    const before = statusOf(bb, s2).moves;
+    const wallCell = bb.walls.length ? bb.walls[0] : null;
+    const wallRejected = wallCell === null ? true : !stepInto(bb, s2, wallCell).ok;
+    const diag = bb.start + bb.w + 1;
+    const diagRejected = !stepInto(bb, s2, diag).ok;
+    const first = neighborsOf(bb.start, bb.w, bb.h).find(j => !bb.walls.includes(j));
+    stepInto(bb, s2, first);
+    const revisitRejected = !stepInto(bb, s2, bb.start).ok;
+    return { wallRejected, diagRejected, revisitRejected, movesUnchanged: statusOf(bb, s2).moves === before + 1 };
+  },
+  undoProbe: b => {
+    const bb = copy(b);
+    const s2 = { path: [bb.start], undos: 0 };
+    const p = solvePath(bb) || [];
+    for (const c of p.slice(1, 4)) stepInto(bb, s2, c);
+    const before = statusOf(bb, s2).moves;
+    undoStep(s2);
+    return { before, after: statusOf(bb, s2).moves };
+  },
+  state: () => ({ key: board.key, path: st.path.slice(), undos: st.undos, over, started }),
+  result: () => copy(lastResult),
+  lang: () => lang,
+};
+})();
+</script>
+
+<section class="read" id="read">
+<div class="read-ko"><h2>한 번 지난 칸이 닫힌다는 규칙 하나</h2><p>이 퍼즐의 규칙은 짧다. 시작 칸에서 선을 이어 배달 지점을 모두 지나고 출구에 닿으면 끝난다. 여기에 조건이 하나 붙는다. 한 번 지난 칸은 다시 밟을 수 없다. 그 한 줄이 게임을 통째로 바꾼다. 길이 막히는 이유가 벽이 아니라 조금 전의 내 선택이 되기 때문이다.</p><h3>움직이기 전에 순서를 정하는 놀이</h3><p>배달 지점이 둘이면 어느 쪽을 먼저 들를지 두 가지 순서가 있고, 셋이면 여섯 가지가 된다. 그중 출구까지 끊기지 않고 이어지는 순서는 대개 하나둘뿐이다. 그래서 이 게임은 손이 빠른 사람이 아니라 먼저 그려 보는 사람이 잘한다. 선을 긋기 전에 눈으로 한 바퀴 돌려 보는 시간이 곧 실력이다.</p><h3>최단이 몇 칸인지 우리가 알고 있다</h3><p>판을 만들 때 정답이 될 길을 먼저 깔고 그 위에 시작과 배달과 출구를 얹는다. 그래서 풀 수 없는 판은 원리적으로 나오지 않는다. 그리고 판마다 최단 이동 수를 따로 계산해 둔다. 화면 위쪽의 최단 칸수가 그것이고, 끝나면 내가 몇 칸 더 걸었는지가 함께 나온다. 완주만으로 끝이 아니라 몇 칸에 끝냈는지가 기록이다.</p><h3>되돌리기는 벌점이 아니다</h3><p>막히면 한 칸씩 되돌릴 수 있다. 되돌린 횟수는 기록에 남지만 점수를 깎지는 않는다. 벽이나 이미 지난 칸을 눌러도 아무 일이 일어나지 않고 이동 수도 늘지 않는다. 잘못 누른 것이 손해가 되면 사람은 판을 살피는 대신 조심만 하게 되고, 그러면 이 게임에서 제일 재미있는 부분인 탐색이 사라진다.</p><h3>같은 날에는 모두가 같은 판을 받는다</h3><p>오늘의 배달은 날짜만으로 정해진다. 언제 열든 몇 번을 다시 열든 같은 판이고, 하루 경계는 한국 시각을 따른다. 결과는 걸린 칸 수와 최단 대비 몇 칸을 더 걸었는지, 되돌리기를 몇 번 썼는지로 공유된다. 경로는 공유에 담기지 않으므로 친구의 답을 먼저 보게 되는 일은 없다.</p></div>
+<!-- /read-ko -->
+<div class="read-en"><h2>One rule: a crossed cell closes behind you</h2><p>The rules are short. Draw a line from the start, pass every delivery point, and reach the exit. One condition changes everything: a cell you have already crossed can never be entered again. Because of that single line, the thing blocking your route is rarely a wall. It is a choice you made three moves ago.</p><h3>A game about deciding the order before you move</h3><p>Two delivery points give two possible orders; three give six. Usually only one or two of those orders leave a path that still reaches the exit. So this puzzle rewards the player who traces the route in their head rather than the one with the quickest hands. The seconds you spend looking before drawing are the skill.</p><h3>We already know the shortest route</h3><p>Each board is built by laying down a valid route first and then placing the start, the deliveries, and the exit on top of it. An unsolvable board therefore cannot occur. The shortest number of moves is then computed separately and shown at the top of the screen, so when you finish you also learn how many extra cells you walked. Completing is not the whole record; the length is.</p><h3>Undo is not a penalty</h3><p>When you hit a dead end you can step back one cell at a time. The number of undos appears in your result but never reduces your score. Tapping a wall or an already-crossed cell simply does nothing, and your move count stays where it was. If a mistap cost you something, people would stop exploring and start being careful, and exploring is the best part of this puzzle.</p><h3>Everyone plays the same board each day</h3><p>The daily run is decided by the date alone. Open it whenever, reopen it as often as you like, and the board is identical; the day boundary follows Korean time. Results share the number of cells you used, how many more that is than the shortest route, and how many undos you spent. The route itself is never included, so nobody accidentally sees a friend's answer.</p></div>
+<!-- /read-en -->
+</section>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

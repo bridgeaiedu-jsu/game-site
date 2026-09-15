@@ -138,6 +138,7 @@
   .card[href="/mole/"]{--sig:#a54614;--sig-ink:#652b0c}
   .card[href="/chosung/"]{--sig:#185a46;--sig-ink:#09221a}
   .card[href="/saja/"]{--sig:#277960;--sig-ink:#0b2b21}
+  .card[href="/hanbut/"]{--sig:#398637;--sig-ink:#1c4a1a}
   @media (prefers-color-scheme: dark){
     /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다. ★라이트 규칙 뒤에 와야 이긴다(@media 는 명시도를 안 올린다). */
     .card[href="/block-puzzle/"]{--sig:#376fec;--sig-ink:#789ef2}
@@ -171,6 +172,7 @@
     .card[href="/mole/"]{--sig:#eea078;--sig-ink:#f6cdb7}
     .card[href="/chosung/"]{--sig:#428c75;--sig-ink:#61b59b}
     .card[href="/saja/"]{--sig:#55d4ad;--sig-ink:#7fe0c2}
+    .card[href="/hanbut/"]{--sig:#5aad52;--sig-ink:#9bd894}
   }
   .card.soon::before{background:var(--line)}
   .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
@@ -429,6 +431,12 @@
             <span class="badges"><span class="badge">한 판 1~2분 / 1-2 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
           <span class="body"><h2>사자성어 퀴즈 / Korean Idiom Quiz</h2>
             <p>뜻 고르기·성어 고르기·빈칸 채우기 세 갈래로 푸는 사자성어 10문제 — 틀리면 한자와 쓰임을 바로 보여 준다<br>Ten four-syllable idioms three ways: pick the meaning, pick the idiom, fill the blank</p></span>
+        </a></li>
+        <li><a class="card" href="/hanbut/">
+          <span class="thumb"><img src="/hanbut/thumb.webp" alt="한붓 배달 / One-Stroke Delivery" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 1~2분 / 1-2 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>한붓 배달 / One-Stroke Delivery</h2>
+            <p>한 번 지난 칸은 다시 밟을 수 없는 길 잇기 — 배달 지점을 모두 지나 출구까지 잇고 최단 칸수와 견준다<br>One unbroken line through every delivery to the exit — a cell you crossed closes behind you</p></span>
         </a></li>
       </ul>
     </noscript>
@@ -723,6 +731,13 @@ const FALLBACK = [{
   thumb:'/saja/thumb.webp',
   playtime:{ko:'한 판 1~2분',en:'1-2 min a round'},
   maxMinutes:2, daily:true, category:'word', released:'2026-09-14', tags:['사자성어','퀴즈','한자','공부','word','daily']
+},{
+  id:'hanbut', path:'/hanbut/',
+  title:{ko:'한붓 배달',en:'One-Stroke Delivery'},
+  desc:{ko:'한 번 지난 칸은 다시 밟을 수 없는 길 잇기 — 배달 지점을 모두 지나 출구까지 잇고 최단 칸수와 견준다',en:'One unbroken line through every delivery to the exit — a cell you crossed closes behind you'},
+  thumb:'/hanbut/thumb.webp',
+  playtime:{ko:'한 판 1~2분',en:'1-2 min a round'},
+  maxMinutes:2, daily:true, category:'puzzle', released:'2026-09-15', tags:['퍼즐','경로','한붓그리기','puzzle','daily']
 }];
 
 let games = FALLBACK;

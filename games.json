@@ -838,5 +838,33 @@
       "word",
       "daily"
     ]
+  },
+  {
+    "id": "hanbut",
+    "path": "/hanbut/",
+    "title": {
+      "ko": "한붓 배달",
+      "en": "One-Stroke Delivery"
+    },
+    "desc": {
+      "ko": "한 번 지난 칸은 다시 밟을 수 없는 길 잇기 — 배달 지점을 모두 지나 출구까지 잇고 최단 칸수와 견준다",
+      "en": "One unbroken line through every delivery to the exit — a cell you crossed closes behind you"
+    },
+    "thumb": "/hanbut/thumb.webp",
+    "playtime": {
+      "ko": "한 판 1~2분",
+      "en": "1-2 min a round"
+    },
+    "maxMinutes": 2,
+    "daily": true,
+    "category": "puzzle",
+    "released": "2026-09-15",
+    "tags": [
+      "퍼즐",
+      "경로",
+      "한붓그리기",
+      "puzzle",
+      "daily"
+    ]
   }
 ]
