@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>돌려 맞춰 — 끊긴 길을 돌려서 잇는 한 판 | Turn to Connect</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 공간 추론 퍼즐. 조각을 누를 때마다 시계 방향으로 90도 돌아갑니다. 들어오는 입구에서 나가는 출구까지 길 하나를 이으면 끝나고, 어디로도 새지 않아야 완성입니다. 빨리 누르는 사람이 아니라 적게 돌리는 사람이 잘합니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="돌려 맞춰 — 끊긴 길을 돌려서 잇는 한 판 | Turn to Connect">
+<meta property="og:description" content="적게 돌린 사람이 이깁니다. 오늘의 판은 모두에게 같습니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/dolryeo/">
+<meta property="og:image" content="https://hanpango.com/dolryeo/thumb.webp">
+<meta property="og:image:width" content="640">
+<meta property="og:image:height" content="640">
+<link rel="canonical" href="https://hanpango.com/dolryeo/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 판수 줄을 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
+<link rel="stylesheet" href="/css/article.css">
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"돌려 맞춰","alternateName":"Turn to Connect","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ────────────────────────────────────────────────────────
+     분류는 ★머리 한판(puzzle)이다. --sig 는 손으로 고르지 않는다 —
+     tools/check_palette.py 의 자로 골라 적었다(기준색 #0a8e06 과 색상각 2도 이내 ·
+     형제 6종과 ΔE2000 6.47 · 원형 여유 3.31). 다크는 기준색보다 밝고(L 58.0 > 29.0)
+     형제와 ΔE2000 6.57 · 여유 4.66 이다. */
+  :root{
+    --bg:#ffffff; --fg:#111827; --muted:#6b7280; --line:#e5e7eb; --card:#f9fafb;
+    --sig:#489843; --sig-ink:#1d4a1b; --sig-soft:#e2f2e0; --on-sig:#111827;
+    --tile:#f1f5f9; --tile-lock:#dbe3ea; --pipe:#94a3b8;
+    --ad-bg:rgba(17,24,39,.03);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --fg:#f3f4f6; --muted:#9ca3af; --line:#26254a; --card:#141234;
+      --sig:#63d553; --sig-ink:#a9e0a5; --sig-soft:#1d3b1c; --on-sig:#111827;
+      --tile:#181a3a; --tile-lock:#252a52; --pipe:#5b6489;
+      --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif}
+  .wrap{max-width:560px;margin:0 auto;padding:12px 14px 40px}
+  header{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  h1{font-size:1.25rem;margin:.2em 0}
+  h1 small{display:block;font-size:.78rem;font-weight:400;color:var(--muted)}
+  .spacer{flex:1}
+  .ibtn{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;
+        padding:6px 10px;font-size:.85rem;cursor:pointer;text-decoration:none}
+  .ibtn:focus-visible,button:focus-visible{outline:3px solid var(--sig);outline-offset:3px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 8px}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.8rem;color:var(--muted)}
+  .chip b{color:var(--fg);font-variant-numeric:tabular-nums}
+  /* ---- 광고 슬롯 — 승인 전에는 css/ad-slots.css 가 통째로 감춘다(게이트가 렌더로 확인한다) ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
+  .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 결과 화면 자리 */
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  /* 판 — 양옆에 들어오는 입구와 나가는 출구 표시를 두고 가운데에 격자를 놓는다 */
+  .boardrow{display:flex;align-items:center;justify-content:center;gap:6px;margin:0 auto;max-width:420px}
+  .port{font-size:.72rem;color:var(--sig-ink);font-weight:700;text-align:center;width:40px;line-height:1.15;white-space:nowrap;font-style:normal}
+  .port span{display:block;font-size:1.1rem}
+  #board{display:grid;gap:2px;background:var(--line);border:2px solid var(--line);border-radius:10px;
+         flex:1;max-width:340px;aspect-ratio:1/1;touch-action:manipulation;user-select:none}
+  .tile{position:relative;background:var(--tile);cursor:pointer;display:block;padding:0;border:0}
+  .tile.lock{background:var(--tile-lock);cursor:default}
+  .tile.on{background:var(--sig-soft)}
+  .tile svg{display:block;width:100%;height:100%}
+  .tile .pipe{stroke:var(--pipe);stroke-width:9;stroke-linecap:round;fill:none}
+  .tile.on .pipe{stroke:var(--sig);stroke-width:13}
+  .tile .lockdot{fill:var(--muted);stroke:var(--tile-lock);stroke-width:3}
+  .tile.cursor{outline:3px solid var(--sig);outline-offset:-3px}
+  .row{display:flex;gap:8px;justify-content:center;margin:10px 0}
+  .btn{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:12px;
+       padding:10px 14px;font-size:.92rem;font-weight:700;cursor:pointer;min-height:44px}
+  .btn.primary{background:var(--sig);color:var(--on-sig);border-color:var(--sig)}
+  .hint{color:var(--muted);font-size:.8rem;text-align:center;margin:.4em 0}
+  .hp-stat{color:var(--muted);font-size:.78rem;text-align:center;margin:.2em 0}
+  .hp-stat[hidden]{display:none!important}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  #over{display:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:12px}
+  #over.show{display:block}
+  .nums{display:flex;gap:14px;flex-wrap:wrap;margin:.4em 0}
+  .nums b{font-size:1.15rem;font-variant-numeric:tabular-nums;display:block}
+  .nums span{font-size:.78rem;color:var(--muted)}
+  .tile svg{transition:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1><span data-i18n="title">돌려 맞춰</span>
+    <small data-i18n="subtitle">끊긴 길을 돌려서 잇습니다 — 적게 돌린 사람이 잘한 것입니다</small></h1>
+  <span class="spacer"></span>
+  <a class="ibtn" href="/" data-i18n="home">🏠 다른 게임</a>
+  <button class="ibtn" id="btnLang" type="button">EN</button>
+</header>
+
+<div class="chips">
+  <span class="chip"><span data-i18n="dayLbl">오늘의 판</span> <b id="dayNo">–</b></span>
+  <span class="chip"><span data-i18n="sizeLbl">판 크기</span> <b id="size">–</b></span>
+  <span class="chip"><span data-i18n="minLbl">최소</span> <b id="best">–</b><span data-i18n="turnUnit">번</span></span>
+  <span class="chip"><span data-i18n="mineLbl">내 회전</span> <b id="mine">0</b><span data-i18n="turnUnit2">번</span></span>
+</div>
+
+<!-- ADSENSE (1/2) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
+
+<div class="boardrow">
+  <div class="port" id="portIn"><span>▶</span><em id="portInLbl">입구</em></div>
+  <!-- 판 — 진행 중에 바뀌는 자리라 data-i18n 을 붙이지 않는다(언어 전환이 판을 덮으면 안 된다) -->
+  <div id="board" role="application" data-i18n-aria="ariaBoard" aria-label="돌려 맞춰 판"></div>
+  <div class="port" id="portOut"><span>▶</span><em id="portOutLbl">출구</em></div>
+</div>
+
+<div class="row">
+  <button class="btn" id="btnUndo" type="button" data-i18n="undo">↩ 한 번 되돌리기</button>
+  <button class="btn" id="btnReset" type="button" data-i18n="reset">처음부터</button>
+</div>
+
+<p class="hint" id="hint" data-i18n="hint">조각을 누르면 시계 방향으로 90도 돌아갑니다 · 굵은 선은 들어오는 입구에서 이어진 길입니다 · 자물쇠 조각은 돌지 않습니다</p>
+<p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.dolryeo.today">–</b>판 · 누적 <b data-hp="plays.dolryeo.total">–</b>판</p>
+<p class="sr-only" id="srLive" aria-live="polite"></p>
+
+<div id="over">
+  <h2 data-i18n="done">길이 이어졌습니다</h2>
+  <div class="nums">
+    <div><b id="rBest">–</b><span data-i18n="rBestLbl">최소</span></div>
+    <div><b id="rMine">–</b><span data-i18n="rMineLbl">내 회전</span></div>
+    <div><b id="rExtra">–</b><span data-i18n="rExtraLbl">추가</span></div>
+    <div><b id="rUndo">–</b><span data-i18n="rUndoLbl">되돌리기</span></div>
+  </div>
+  <p id="verdict" style="margin:.2em 0 .6em"></p>
+  <!-- ADSENSE (2/2) — 결과 화면 자리 -->
+  <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
+  <div class="row" style="justify-content:flex-start">
+    <button class="btn primary" id="btnShare" type="button" data-i18n="share">결과 공유</button>
+    <button class="btn" id="btnAgain" type="button" data-i18n="again">다시 맞추기</button>
+  </div>
+</div>
+</div>
+
+<script type="module">
+/* ══════════════════════════════════════════════════════════════════════
+   돌려 맞춰 — 조각을 돌려 끊긴 길을 잇는 공간 추론 퍼즐(기획 보고서 6절).
+   ★설계의 뼈대
+     · 한 조각은 ★열린 방향 넷의 비트다 — 1 위 · 2 오른쪽 · 4 아래 · 8 왼쪽.
+       직선 5·10 · 굽은 것 3·6·12·9 · 0 은 빈 칸. 시계 90도 = ((m<<1)|(m>>3))&15.
+     · 판정은 ★정답 방향과의 일치가 아니라 ★실제 연결 상태다. 그래서 답이 여럿이어도
+       모두 맞다. 시작에서 닿지 않는 ★고립 고리는 완성이 아니고, 이어진 길의 끝이
+       판 밖이나 빈 칸으로 ★새도 완성이 아니다.
+     · 판은 ★날짜 문자열 하나로 정해진다(시계를 읽지 않는다). 같은 날 = 같은 판.
+     · 판을 만들 때 ★먼저 이어질 길을 깔고, 그 위의 조각을 돌려 흩는다.
+       ⇒ 맞출 수 없는 판이 원리적으로 안 나온다. 그래도 ★최소 회전 수는 전수로 센다.
+   ══════════════════════════════════════════════════════════════════════ */
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const GA_GAME = 'dolryeo';
+const SEED_NS = 'hanpango-dolryeo-';
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);      /* 2026-08-23 = #1 (다른 게임과 같은 기준일) */
+const CFG = { SIZES: [3, 4], MIN_PATH: 4, MAX_FREE: 9 };
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+const UP = 1, RIGHT = 2, DOWN = 4, LEFT = 8;
+const OPP = { 1: DOWN, 2: LEFT, 4: UP, 8: RIGHT };
+const rot1 = m => ((m << 1) | (m >> 3)) & 15;
+const rotN = (m, n) => { let v = m; for (let i = 0; i < ((n % 4) + 4) % 4; i++) v = rot1(v); return v; };
+/* 한 조각의 ★서로 다른 방향 수 — 직선은 2(180도가 제자리), 굽은 것은 4, 빈 칸은 1 */
+function orientCount(m){
+  const seen = new Set();
+  let v = m;
+  for (let i = 0; i < 4; i++){ seen.add(v); v = rot1(v); }
+  return seen.size;
+}
+/* 지금 방향에서 목표 방향까지 ★시계 방향으로 몇 번 도는가 */
+function turnsTo(from, to){
+  let v = from;
+  for (let t = 0; t < 4; t++){ if (v === to) return t; v = rot1(v); }
+  return 0;
+}
+
+/* ── 결정론 난수 ── */
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ── 날짜(KST) ── */
+const pad2 = n => String(n).padStart(2, '0');
+function todayKey(now = new Date()){ const k = new Date(now.getTime() + 9 * 3600000);
+  return `${k.getUTCFullYear()}-${pad2(k.getUTCMonth() + 1)}-${pad2(k.getUTCDate())}`; }
+function dayNumber(key){ const [y, m, d] = String(key).split('-').map(Number);
+  return Math.floor((Date.UTC(y, m - 1, d) - DAILY_EPOCH) / 86400000) + 1; }
+
+/* ── 연결 판정 ─────────────────────────────────────────────────────────
+   들어오는 입구에서 시작해 마주 열린 조각끼리만 따라간다.
+   ★샌다(leak) = 열린 입이 판 밖이나 마주 닫힌 이웃을 향한다. 바깥 포트 두 곳은 예외다. */
+function trace(b, cells){
+  const { w, h } = b;
+  const delta = { 1: -w, 2: 1, 4: w, 8: -1 };
+  const edgeOk = (i, d) => {
+    const x = i % w, y = (i / w) | 0;
+    if (d === UP) return y > 0;
+    if (d === DOWN) return y < h - 1;
+    if (d === LEFT) return x > 0;
+    return x < w - 1;
+  };
+  const seen = new Set([b.start]);
+  const stack = [b.start];
+  let leak = false;
+  while (stack.length){
+    const at = stack.pop();
+    for (const d of [UP, RIGHT, DOWN, LEFT]){
+      if (!(cells[at] & d)) continue;
+      if (!edgeOk(at, d)){
+        if (!(at === b.start && d === b.startPort) && !(at === b.exit && d === b.exitPort)) leak = true;
+        continue;
+      }
+      const j = at + delta[d];
+      if (!(cells[j] & OPP[d])){ leak = true; continue; }
+      if (!seen.has(j)){ seen.add(j); stack.push(j); }
+    }
+  }
+  return { reachesExit: seen.has(b.exit), leak, lit: seen };
+}
+function isSolved(b, cells){
+  const r = trace(b, cells);
+  return r.reachesExit && !r.leak;
+}
+/* 지금 방향들에서 ★맞춘 상태까지의 최소 회전 수 — 자유 조각만 훑는 전수 탐색.
+   ★답이 여럿이면 그중 가장 적게 도는 것을 고른다(정답 하나를 박아 두지 않는다). */
+function bestTurns(cells, b){
+  const n = b.w * b.h;
+  const free = [];
+  for (let i = 0; i < n; i++){
+    if (cells[i] === 0 || b.locked.includes(i)) continue;
+    const k = orientCount(cells[i]);
+    if (k > 1) free.push({ i, k });
+  }
+  const cur = cells.slice();
+  let best = Infinity;
+  (function walk(idx, turns){
+    if (turns >= best) return;
+    if (idx === free.length){ if (isSolved(b, cur)) best = turns; return; }
+    const { i, k } = free[idx];
+    const keep = cur[i];
+    for (let t = 0; t < k; t++){ cur[i] = rotN(keep, t); walk(idx + 1, turns + t); }
+    cur[i] = keep;
+  })(0, 0);
+  return Number.isFinite(best) ? best : null;
+}
+
+/* ── 판 만들기 ─────────────────────────────────────────────────────────
+   ①왼쪽 가장자리에서 오른쪽 가장자리까지 ★단순 경로를 깐다.
+   ②그 길의 조각 모양을 이웃 방향으로 정한다(끝 두 칸에는 바깥 포트를 더한다).
+   ③길에 없는 칸은 빈 칸이다.
+   ④몇 조각을 ★잠그고(맞은 채로 고정) 나머지를 돌려 흩는다.
+   ★시계를 읽지 않는다. 난수는 오직 key 에서 온다. */
+function neighborsOf(i, w, h){
+  const x = i % w, y = (i / w) | 0, out = [];
+  if (y > 0) out.push([i - w, UP]);
+  if (x < w - 1) out.push([i + 1, RIGHT]);
+  if (y < h - 1) out.push([i + w, DOWN]);
+  if (x > 0) out.push([i - 1, LEFT]);
+  return out;
+}
+function carve(rng, w, h, start, exit, want){
+  for (let tries = 0; tries < 400; tries++){
+    const path = [start];
+    const seen = new Set([start]);
+    let at = start;
+    while (path.length < want){
+      const cands = neighborsOf(at, w, h).filter(([j]) => !seen.has(j) && j !== exit);
+      if (!cands.length) break;
+      const [next] = cands[Math.floor(rng() * cands.length)];
+      path.push(next); seen.add(next); at = next;
+    }
+    /* 마지막은 출구와 맞닿아야 한다 */
+    if (path.length >= want && neighborsOf(at, w, h).some(([j]) => j === exit)){
+      path.push(exit);
+      return path;
+    }
+  }
+  return null;
+}
+function boardFor(key){
+  const rng = mulberry32(hashStr(SEED_NS + String(key)));
+  for (let attempt = 0; attempt < 80; attempt++){
+    const size = CFG.SIZES[Math.floor(rng() * CFG.SIZES.length)];
+    const w = size, h = size, n = w * h;
+    const start = Math.floor(rng() * h) * w;              /* 왼쪽 가장자리 */
+    const exit = Math.floor(rng() * h) * w + (w - 1);     /* 오른쪽 가장자리 */
+    if (start === exit) continue;
+    const want = CFG.MIN_PATH + Math.floor(rng() * (n - CFG.MIN_PATH - 1));
+    const path = carve(rng, w, h, start, exit, Math.min(want, n - 1));
+    if (!path || path.length < CFG.MIN_PATH) continue;
+
+    const answer = new Array(n).fill(0);
+    for (let k = 0; k < path.length; k++){
+      let m = 0;
+      const here = path[k];
+      for (const [j, d] of neighborsOf(here, w, h)){
+        if (k > 0 && j === path[k - 1]) m |= d;
+        if (k < path.length - 1 && j === path[k + 1]) m |= d;
+      }
+      answer[here] = m;
+    }
+    answer[start] |= LEFT;
+    answer[exit] |= RIGHT;
+    /* 조각이 두 입을 가져야 한다 — 분기(셋 이상)는 최초 출시 범위 밖이다 */
+    const bits = m => (m & 1) + ((m >> 1) & 1) + ((m >> 2) & 1) + ((m >> 3) & 1);
+    if (path.some(i => bits(answer[i]) !== 2)) continue;
+
+    /* 잠금 — 길의 조각 가운데 몇을 맞은 채로 고정한다(자유 조각 수를 규격 안에 둔다) */
+    const movable = path.filter(i => orientCount(answer[i]) > 1);
+    /* ★잠금은 옵션이 아니다 — 보고서의 '고정 조각'이고, 없으면 그 계약을 잴 수 없다.
+       그래서 움직일 수 있는 조각이 셋을 넘으면 ★적어도 하나는 잠근다. */
+    const lockCount = Math.max(movable.length > 3 ? 1 : 0, movable.length - CFG.MAX_FREE);
+    const pool = movable.slice();
+    const locked = [];
+    for (let k = 0; k < lockCount && pool.length > 1; k++){
+      locked.push(pool.splice(Math.floor(rng() * pool.length), 1)[0]);
+    }
+    locked.sort((a, b2) => a - b2);
+
+    /* 흩기 — 잠기지 않은 조각을 돌린다. 한 번도 안 돌아간 판은 버린다 */
+    const cells = answer.slice();
+    let moved = 0;
+    for (const i of pool){
+      const t = Math.floor(rng() * orientCount(answer[i]));
+      cells[i] = rotN(answer[i], t);
+      if (t) moved++;
+    }
+    if (!moved) continue;
+
+    const board = { w, h, start, exit, startPort: LEFT, exitPort: RIGHT, cells, locked, answer };
+    const best = bestTurns(cells, board);
+    if (best === null || best === 0) continue;
+    return Object.assign(board, { key: String(key), best: bestTurns(cells, board), free: pool.length });
+  }
+  /* 여기 오면 규격을 못 맞춘 것이다 — 쉬운 판을 조용히 내지 않고 ★한 줄짜리 판을 준다. */
+  const cells = [rot1(10), 10, 10];
+  const fb = { w: 3, h: 1, start: 0, exit: 2, startPort: LEFT, exitPort: RIGHT, cells, locked: [], answer: [10, 10, 10] };
+  return Object.assign(fb, { key: String(key), best: bestTurns(cells, fb), free: 1, usedFallback: true });
+}
+
+/* ── 조작(순수 함수) ── */
+function rotateAt(b, st, i){
+  if (b.cells[i] === 0) return { ok: false, why: 'empty' };
+  if (b.locked.includes(i)) return { ok: false, why: 'locked' };
+  st.cells[i] = rot1(st.cells[i]);
+  st.log.push(i);
+  return { ok: true };
+}
+function undoTurn(st){
+  if (!st.log.length) return false;
+  const i = st.log[st.log.length - 1];
+  st.log.pop();
+  st.cells[i] = rotN(st.cells[i], 3);
+  st.undos++;
+  return true;
+}
+const turnsOf = st => st.log.length;
+
+/* ── 문안 ── */
+const I18N = {
+  ko: { title:'돌려 맞춰', subtitle:'끊긴 길을 돌려서 잇습니다 — 적게 돌린 사람이 잘한 것입니다',
+        home:'🏠 다른 게임', dayLbl:'오늘의 판', sizeLbl:'판 크기', minLbl:'최소', mineLbl:'내 회전',
+        turnUnit:'번', turnUnit2:'번', undo:'↩ 한 번 되돌리기', reset:'처음부터',
+        hint:'조각을 누르면 시계 방향으로 90도 돌아갑니다 · 굵은 선은 들어오는 입구에서 이어진 길입니다 · 자물쇠 조각은 돌지 않습니다',
+        statPlays:'오늘 <b data-hp="plays.dolryeo.today">–</b>판 · 누적 <b data-hp="plays.dolryeo.total">–</b>판',
+        done:'길이 이어졌습니다', rBestLbl:'최소', rMineLbl:'내 회전', rExtraLbl:'추가', rUndoLbl:'되돌리기',
+        share:'결과 공유', again:'다시 맞추기', copied:'결과가 복사됐어요',
+        adPlaceholder:'', adPlaceholder2:'',
+        perfect:'최소 회전으로 맞췄습니다', over:(n)=>`최소보다 ${n}번 더 돌렸습니다`,
+        ariaBoard:'돌려 맞춰 판', langBtn:'EN', portIn:'입구', portOut:'출구',
+        srLocked:'자물쇠 조각이라 돌지 않습니다.', srTurn:(n,l)=>`${n}번째 회전. 이어진 칸 ${l}개.`,
+        srDone:(m,e)=>`완성. ${m}번, 최소보다 ${e}번 더.`,
+        shareText:(no,sz,m,e,u)=>`🔧 돌려 맞춰 #${no} ${sz} ${m}번 · 최소 +${e} · 되돌리기 ${u}\n` },
+  en: { title:'Turn to Connect', subtitle:'Rotate the broken pipes into one line — fewer turns is the better score',
+        home:'🏠 More games', dayLbl:'Daily board', sizeLbl:'board', minLbl:'fewest', mineLbl:'your turns',
+        turnUnit:' turns', turnUnit2:' turns', undo:'↩ Undo one turn', reset:'Restart',
+        hint:'Tap a piece to rotate it 90° clockwise · the thick line is what the inlet already reaches · locked pieces do not turn',
+        statPlays:'<b data-hp="plays.dolryeo.today">–</b> today · <b data-hp="plays.dolryeo.total">–</b> all-time',
+        done:'The line is connected', rBestLbl:'fewest', rMineLbl:'your turns', rExtraLbl:'extra', rUndoLbl:'undos',
+        share:'Share result', again:'Play again', copied:'Result copied',
+        adPlaceholder:'', adPlaceholder2:'',
+        perfect:'You solved it in the fewest turns', over:(n)=>`${n} turns more than the fewest`,
+        ariaBoard:'Turn to Connect board', langBtn:'한국어', portIn:'in', portOut:'out',
+        srLocked:'That piece is locked.', srTurn:(n,l)=>`Turn ${n}. ${l} cells connected.`,
+        srDone:(m,e)=>`Solved. ${m} turns, ${e} more than the fewest.`,
+        shareText:(no,sz,m,e,u)=>`🔧 Turn to Connect #${no} ${sz} ${m} turns · fewest +${e} · undo ${u}\n` },
+};
+let lang = localStorage.getItem('bp.lang') || ((navigator.language || '').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (I18N[lang][k] !== undefined) el.innerHTML = T(k); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => { const k = el.getAttribute('data-i18n-aria'); if (I18N[lang][k] !== undefined) el.setAttribute('aria-label', T(k)); });
+  document.querySelectorAll('.read-ko').forEach(el => { el.hidden = lang !== 'ko'; });
+  document.querySelectorAll('.read-en').forEach(el => { el.hidden = lang !== 'en'; });
+  $('btnLang').textContent = T('langBtn');
+  $('portInLbl').textContent = T('portIn');
+  $('portOutLbl').textContent = T('portOut');
+  localStorage.setItem('bp.lang', lang);
+  /* 문안을 갈아 끼우면 채운 숫자가 지워진다 — 다시 채운다. hp-stats.js 는 defer 라 없을 수도 있다. */
+  if (window.hpStats) window.hpStats();
+  draw();
+}
+
+/* ── 상태 ── */
+let board = null;
+let st = { cells: [], log: [], undos: 0 };
+let started = false, over = false, lastResult = null, cursor = 0;
+const say = t => { $('srLive').textContent = t; };
+
+function newRun(key){
+  board = boardFor(key);
+  st = { cells: board.cells.slice(), log: [], undos: 0 };
+  started = false; over = false; cursor = board.start;
+  $('over').classList.remove('show');
+  $('dayNo').textContent = '#' + dayNumber(board.key);
+  $('size').textContent = `${board.w}×${board.h}`;
+  $('best').textContent = board.best === null ? '–' : board.best;
+  draw();
+}
+/* 한 조각의 그림 — 가운데에서 열린 방향마다 선을 뻗는다(색만으로 구별하지 않게 굵기도 함께 쓴다) */
+function pipeSvg(m, locked){
+  const seg = { 1: 'M50 50 L50 0', 2: 'M50 50 L100 50', 4: 'M50 50 L50 100', 8: 'M50 50 L0 50' };
+  let d = '';
+  for (const k of [1, 2, 4, 8]) if (m & k) d += seg[k] + ' ';
+  /* 자물쇠 표시는 ★모서리에 찍는다 — 가운데는 관 선이 지나가 묻힌다 */
+  const dot = locked ? '<circle class="lockdot" cx="83" cy="17" r="8"></circle>' : '';
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><path class="pipe" d="${d.trim()}"></path>${dot}</svg>`;
+}
+function draw(){
+  const bd = $('board');
+  if (!board) return;
+  bd.style.gridTemplateColumns = `repeat(${board.w}, 1fr)`;
+  bd.innerHTML = '';
+  const lit = trace(board, st.cells).lit;
+  for (let i = 0; i < board.w * board.h; i++){
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'tile';
+    el.id = 't' + i;
+    el.dataset.cell = String(i);
+    const locked = board.locked.includes(i);
+    if (locked) el.classList.add('lock');
+    if (lit.has(i) && st.cells[i]) el.classList.add('on');
+    if (i === cursor) el.classList.add('cursor');
+    el.innerHTML = st.cells[i] ? pipeSvg(st.cells[i], locked) : '';
+    bd.appendChild(el);
+  }
+  $('mine').textContent = turnsOf(st);
+}
+function tapCell(i){
+  if (over || board === null) return;
+  cursor = i;
+  const r = rotateAt(board, st, i);
+  if (!r.ok){ draw(); if (r.why === 'locked') say(T('srLocked')); return; }
+  if (!started){
+    started = true;
+    ga('game_start', { game: GA_GAME });
+    if (window.hpHit) window.hpHit('play', GA_GAME);
+  }
+  const done = isSolved(board, st.cells);
+  draw();
+  say(T('srTurn', turnsOf(st), trace(board, st.cells).lit.size));
+  if (done) finish();
+}
+function finish(){
+  over = true;
+  const moves = turnsOf(st);
+  const extra = Math.max(0, moves - board.best);
+  lastResult = { no: dayNumber(board.key), size: `${board.w}×${board.h}`, moves, extra, undos: st.undos, best: board.best };
+  $('rBest').textContent = board.best;
+  $('rMine').textContent = moves;
+  $('rExtra').textContent = '+' + extra;
+  $('rUndo').textContent = st.undos;
+  $('verdict').textContent = extra === 0 ? T('perfect') : T('over', extra);
+  $('over').classList.add('show');
+  say(T('srDone', moves, extra));
+  try { localStorage.setItem('dr.daily', JSON.stringify({ date: board.key, result: lastResult })); } catch (_) {}
+  ga('daily_complete', { game: GA_GAME });
+}
+
+/* ── 입력 ── */
+$('board').addEventListener('click', e => {
+  const el = e.target && e.target.closest ? e.target.closest('.tile') : null;
+  if (el) tapCell(Number(el.dataset.cell));
+});
+$('btnUndo').addEventListener('click', () => { if (undoTurn(st)){ over = false; $('over').classList.remove('show'); draw(); } });
+const restart = () => { st = { cells: board.cells.slice(), log: [], undos: st.undos }; over = false; $('over').classList.remove('show'); draw(); };
+$('btnReset').addEventListener('click', restart);
+$('btnAgain').addEventListener('click', restart);
+$('btnLang').addEventListener('click', () => { lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); });
+$('btnShare').addEventListener('click', async () => {
+  if (!lastResult) return;
+  const text = T('shareText', lastResult.no, lastResult.size, lastResult.moves, lastResult.extra, lastResult.undos) + 'https://hanpango.com/dolryeo/';
+  try { await navigator.clipboard.writeText(text); say(T('copied')); } catch (_) {}
+});
+/* 키보드 — 칸을 옮기고 Enter 로 돌린다(보고서 「화면과 결과 공유」) */
+document.addEventListener('keydown', e => {
+  if (!board || over) return;
+  if (e.key === 'Enter' || e.key === ' '){
+    if (document.activeElement && document.activeElement.classList && document.activeElement.classList.contains('tile')) return;
+    e.preventDefault(); tapCell(cursor); return;
+  }
+  const d = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -board.w, ArrowDown: board.w }[e.key];
+  if (d === undefined) return;
+  const x = cursor % board.w;
+  if ((d === -1 && x === 0) || (d === 1 && x === board.w - 1)) return;
+  const next = cursor + d;
+  if (next < 0 || next >= board.w * board.h) return;
+  e.preventDefault();
+  cursor = next;
+  draw();
+});
+
+/* ── 시작 ── */
+newRun(todayKey());
+applyLang();
+setTimeout(() => { try { if (window.hpHit) window.hpHit('visit', GA_GAME); if (window.hpStats) window.hpStats(); } catch (_) {} }, 0);
+
+/* ══════════════════ 검증 창구(관측 전용) ══════════════════
+   ★읽기만 하는 getter 와 순수 함수만 둔다. 검증기는 여기 값과 ★자기 판정기를 대조한다. */
+const copy = o => JSON.parse(JSON.stringify(o));
+window.__dolryeo = {
+  consts: () => copy(CFG),
+  todayKey: iso => todayKey(iso ? new Date(iso) : new Date()),
+  dayNumber: k => dayNumber(String(k)),
+  boardFor: k => copy(boardFor(String(k))),
+  boardSrc: () => String(boardFor),
+  orientCount: m => orientCount(Number(m)),
+  isSolved: (b, cells) => isSolved(copy(b), cells.slice()),
+  /* 맞춘 상태 하나 — 최소 회전으로 닿는 자리를 돌려준다 */
+  solveCells: b => {
+    const bb = copy(b);
+    const n = bb.w * bb.h;
+    const free = [];
+    for (let i = 0; i < n; i++){
+      if (bb.cells[i] === 0 || bb.locked.includes(i)) continue;
+      if (orientCount(bb.cells[i]) > 1) free.push({ i, k: orientCount(bb.cells[i]) });
+    }
+    const cur = bb.cells.slice();
+    let best = Infinity, bestCells = null;
+    (function walk(idx, turns){
+      if (turns >= best) return;
+      if (idx === free.length){ if (isSolved(bb, cur)){ best = turns; bestCells = cur.slice(); } return; }
+      const { i, k } = free[idx];
+      const keep = cur[i];
+      for (let t = 0; t < k; t++){ cur[i] = rotN(keep, t); walk(idx + 1, turns + t); }
+      cur[i] = keep;
+    })(0, 0);
+    return bestCells;
+  },
+  /* ★시작과 무관한 고리를 억지로 만든다 — 완성으로 세면 안 된다 */
+  probeIsolatedRing: b => {
+    const bb = copy(b);
+    const cells = new Array(bb.w * bb.h).fill(0);
+    /* 오른쪽 위 2×2 로 닫힌 네모를 만든다(시작 칸과 닿지 않는다) */
+    const x0 = bb.w - 2, y0 = 0;
+    const at = (x, y) => y * bb.w + x;
+    cells[at(x0, y0)] = RIGHT | DOWN;
+    cells[at(x0 + 1, y0)] = LEFT | DOWN;
+    cells[at(x0, y0 + 1)] = RIGHT | UP;
+    cells[at(x0 + 1, y0 + 1)] = LEFT | UP;
+    return { cells, productSolved: isSolved(bb, cells) };
+  },
+  /* ★이어진 길의 끝이 빈 칸으로 새게 만든다 — 완성으로 세면 안 된다 */
+  probeLeak: b => {
+    const bb = copy(b);
+    const cells = new Array(bb.w * bb.h).fill(0);
+    cells[bb.start] = LEFT | RIGHT;   /* 입구에서 들어와 오른쪽으로 새 나간다 */
+    return { cells, productSolved: isSolved(bb, cells) };
+  },
+  lockProbe: b => {
+    const bb = copy(b);
+    const s2 = { cells: bb.cells.slice(), log: [], undos: 0 };
+    const i = bb.locked.length ? bb.locked[0] : -1;
+    if (i < 0) return { unchanged: true, turnsBefore: 0, turnsAfter: 0, note: '잠금 조각 없음' };
+    const before = turnsOf(s2);
+    const wasCell = s2.cells[i];
+    rotateAt(bb, s2, i);
+    return { unchanged: s2.cells[i] === wasCell, turnsBefore: before, turnsAfter: turnsOf(s2) };
+  },
+  undoProbe: b => {
+    const bb = copy(b);
+    const s2 = { cells: bb.cells.slice(), log: [], undos: 0 };
+    const i = bb.cells.findIndex((m, k) => m !== 0 && !bb.locked.includes(k) && orientCount(m) > 1);
+    rotateAt(bb, s2, i); rotateAt(bb, s2, i); rotateAt(bb, s2, i);
+    const before = turnsOf(s2);
+    const wasCell = s2.cells[i];
+    undoTurn(s2);
+    return { before, after: turnsOf(s2), cellBack: s2.cells[i] === rotN(wasCell, 3) };
+  },
+  /* ★연속 탭 — 네 번 돌리면 처음으로 돌아오고, 그 사이 판정이 빠지지 않는다 */
+  fourTapProbe: b => {
+    const bb = copy(b);
+    const s2 = { cells: bb.cells.slice(), log: [], undos: 0 };
+    const i = bb.cells.findIndex((m, k) => m !== 0 && !bb.locked.includes(k) && orientCount(m) > 1);
+    const before = s2.cells.slice();
+    let judged = 0;
+    for (let t = 0; t < 4; t++){ rotateAt(bb, s2, i); isSolved(bb, s2.cells); judged++; }
+    return { sameCells: s2.cells.join() === before.join(), turns: turnsOf(s2), judged };
+  },
+  state: () => ({ key: board.key, cells: st.cells.slice(), turns: turnsOf(st), undos: st.undos, over, started }),
+  result: () => copy(lastResult),
+  lang: () => lang,
+};
+})();
+</script>
+
+<section class="read" id="read">
+<div class="read-ko"><h2>돌리는 손이 아니라 세는 머리를 쓰는 퍼즐</h2><p>화면에는 끊어진 관 조각들이 아무렇게나 놓여 있습니다. 조각을 누르면 시계 방향으로 한 번 돌아갑니다. 왼쪽으로 들어온 길이 오른쪽 출구까지 하나로 이어지면 끝입니다. 규칙은 이것뿐인데, 잘하는 방법은 빨리 누르는 것이 아니라 누르기 전에 세어 보는 것입니다.</p><h3>시계 방향으로만 돌기 때문에 생기는 셈</h3><p>조각은 한쪽으로만 돕니다. 지금 왼쪽을 보고 있는 굽은 조각을 위로 보내려면 세 번을 눌러야 할 수도 있고 한 번이면 될 수도 있습니다. 그래서 어느 방향으로 맞출지 정하는 순간 이미 비용이 정해집니다. 화면 위쪽의 최소 회전 수는 그 비용을 가장 적게 쓰는 길이 몇 번인지 미리 계산해 둔 값입니다.</p><h3>정답 하나를 맞히는 것이 아닙니다</h3><p>이 게임은 미리 정해 둔 배치와 똑같아지는지를 보지 않습니다. 실제로 길이 이어졌는지만 봅니다. 그래서 만드는 사람이 생각한 것과 다른 모양으로 이어도 완성입니다. 대신 조건이 둘 붙습니다. 길이 들어오는 입구에서 출발해 출구까지 닿아야 하고, 도중에 어느 조각의 입도 허공이나 빈 칸을 향하면 안 됩니다.</p><h3>닫힌 고리는 완성이 아닙니다</h3><p>조각들을 돌리다 보면 네 조각이 동그랗게 물려 닫힌 네모가 생기기도 합니다. 새는 곳이 하나도 없어 보여서 다 된 것처럼 보이지만, 그 고리는 입구와 닿아 있지 않습니다. 그래서 완성으로 세지 않습니다. 굵은 선으로 표시되는 구간이 입구에서 실제로 이어진 길이니, 그 선이 출구까지 닿았는지를 보시면 됩니다.</p><h3>자물쇠 조각과 하루 한 판</h3><p>가운데 점이 찍힌 조각은 잠겨 있어 눌러도 돌지 않습니다. 잘못 눌러도 회전 수가 늘지 않으니 마음 놓고 확인하셔도 됩니다. 오늘의 판은 날짜만으로 정해져 누가 언제 열어도 같고, 하루 경계는 한국 시각을 따릅니다. 결과에는 몇 번 돌렸는지와 최소보다 몇 번 더 썼는지만 담기고 완성된 배치는 담기지 않습니다.</p></div>
+<!-- /read-ko -->
+<div class="read-en"><h2>A puzzle for counting, not for fast fingers</h2><p>The screen shows broken pipe segments scattered at random angles. Tap one and it turns ninety degrees clockwise. When the line entering from the left runs unbroken to the outlet on the right, the board is done. That is the whole rule, and yet the way to do well is not to tap quickly but to count before tapping at all.</p><h3>Turning one way only is what creates the arithmetic</h3><p>Pieces rotate in a single direction. A bent piece currently facing left may need three taps to face up, or one, depending on which way you want it. So the moment you decide on an orientation you have also decided its cost. The fewest-turns figure at the top of the screen is that cost solved in advance for the cheapest possible arrangement.</p><h3>There is no single correct arrangement</h3><p>The game never checks whether your board matches some stored answer. It checks whether the line is actually connected. Arrange the pipes differently from whatever the designer had in mind and it still counts. Two conditions come attached: the line has to start at the inlet and reach the outlet, and no piece along the way may leave an opening pointing into a wall or an empty square.</p><h3>A closed loop is not a solution</h3><p>Rotate long enough and four pieces will lock into a neat closed square. Nothing leaks, so it looks finished, but that loop never touches the inlet. It does not count. The thicker line marks the run that the inlet genuinely reaches, so the question to ask is simply whether that thick line has arrived at the outlet.</p><h3>Locked pieces and one board a day</h3><p>A piece with a dot in the middle is locked and will not turn. Tapping it costs you nothing, so you can probe freely. The daily board is decided by the date alone and is identical for everyone whenever they open it, with the day boundary following Korean time. Your result carries the number of turns you used and how many more that is than the fewest, never the finished layout.</p></div>
+<!-- /read-en -->
+</section>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

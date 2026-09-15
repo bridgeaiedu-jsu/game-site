@@ -866,5 +866,33 @@
       "puzzle",
       "daily"
     ]
+  },
+  {
+    "id": "dolryeo",
+    "path": "/dolryeo/",
+    "title": {
+      "ko": "돌려 맞춰",
+      "en": "Turn to Connect"
+    },
+    "desc": {
+      "ko": "조각을 눌러 90도씩 돌려 끊긴 길을 잇는 퍼즐 — 빨리 누르는 사람이 아니라 적게 돌리는 사람이 잘한다",
+      "en": "Rotate the broken pipes a quarter turn at a time until one unbroken line runs from inlet to outlet"
+    },
+    "thumb": "/dolryeo/thumb.webp",
+    "playtime": {
+      "ko": "한 판 1~2분",
+      "en": "1-2 min a round"
+    },
+    "maxMinutes": 2,
+    "daily": true,
+    "category": "puzzle",
+    "released": "2026-09-16",
+    "tags": [
+      "퍼즐",
+      "공간추론",
+      "파이프",
+      "puzzle",
+      "daily"
+    ]
   }
 ]

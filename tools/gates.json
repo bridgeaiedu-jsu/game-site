@@ -374,6 +374,11 @@
       "file": "tools/verify_hanbut.js",
       "game": "hanbut",
       "kind": "검증기(판 결정론·해답 존재·최단 대조·걸음 규칙·되돌리기)"
+    },
+    {
+      "file": "tools/verify_dolryeo.js",
+      "game": "dolryeo",
+      "kind": "검증기(판 결정론·연결 판정·최소 회전 대조·잠금·되돌리기)"
     }
   ],
   "non_gate_tools": [

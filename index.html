@@ -139,6 +139,7 @@
   .card[href="/chosung/"]{--sig:#185a46;--sig-ink:#09221a}
   .card[href="/saja/"]{--sig:#277960;--sig-ink:#0b2b21}
   .card[href="/hanbut/"]{--sig:#398637;--sig-ink:#1c4a1a}
+  .card[href="/dolryeo/"]{--sig:#489843;--sig-ink:#1d4a1b}
   @media (prefers-color-scheme: dark){
     /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다. ★라이트 규칙 뒤에 와야 이긴다(@media 는 명시도를 안 올린다). */
     .card[href="/block-puzzle/"]{--sig:#376fec;--sig-ink:#789ef2}
@@ -173,6 +174,7 @@
     .card[href="/chosung/"]{--sig:#428c75;--sig-ink:#61b59b}
     .card[href="/saja/"]{--sig:#55d4ad;--sig-ink:#7fe0c2}
     .card[href="/hanbut/"]{--sig:#5aad52;--sig-ink:#9bd894}
+    .card[href="/dolryeo/"]{--sig:#63d553;--sig-ink:#a9e0a5}
   }
   .card.soon::before{background:var(--line)}
   .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
@@ -437,6 +439,12 @@
             <span class="badges"><span class="badge">한 판 1~2분 / 1-2 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
           <span class="body"><h2>한붓 배달 / One-Stroke Delivery</h2>
             <p>한 번 지난 칸은 다시 밟을 수 없는 길 잇기 — 배달 지점을 모두 지나 출구까지 잇고 최단 칸수와 견준다<br>One unbroken line through every delivery to the exit — a cell you crossed closes behind you</p></span>
+        </a></li>
+        <li><a class="card" href="/dolryeo/">
+          <span class="thumb"><img src="/dolryeo/thumb.webp" alt="돌려 맞춰 / Turn to Connect" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 1~2분 / 1-2 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>돌려 맞춰 / Turn to Connect</h2>
+            <p>조각을 눌러 90도씩 돌려 끊긴 길을 잇는 퍼즐 — 빨리 누르는 사람이 아니라 적게 돌리는 사람이 잘한다<br>Rotate the broken pipes a quarter turn at a time until one unbroken line runs from inlet to outlet</p></span>
         </a></li>
       </ul>
     </noscript>
@@ -738,6 +746,13 @@ const FALLBACK = [{
   thumb:'/hanbut/thumb.webp',
   playtime:{ko:'한 판 1~2분',en:'1-2 min a round'},
   maxMinutes:2, daily:true, category:'puzzle', released:'2026-09-15', tags:['퍼즐','경로','한붓그리기','puzzle','daily']
+},{
+  id:'dolryeo', path:'/dolryeo/',
+  title:{ko:'돌려 맞춰',en:'Turn to Connect'},
+  desc:{ko:'조각을 눌러 90도씩 돌려 끊긴 길을 잇는 퍼즐 — 빨리 누르는 사람이 아니라 적게 돌리는 사람이 잘한다',en:'Rotate the broken pipes a quarter turn at a time until one unbroken line runs from inlet to outlet'},
+  thumb:'/dolryeo/thumb.webp',
+  playtime:{ko:'한 판 1~2분',en:'1-2 min a round'},
+  maxMinutes:2, daily:true, category:'puzzle', released:'2026-09-16', tags:['퍼즐','공간추론','파이프','puzzle','daily']
 }];
 
 let games = FALLBACK;
