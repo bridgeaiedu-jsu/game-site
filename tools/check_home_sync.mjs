@@ -35,6 +35,7 @@
  *   [fallback-content]  양쪽에 다 있는 id 의 FALLBACK 항목이 games.json 항목과 **완전히 같다**(깊은 비교)
  *   [about-count]       /about/ 이 적은 게임 수(국문·영문·meta)와 오늘의 도전 종수가 games.json 과 같다
  *   [about-names]       /about/ 이 나열한 게임 이름이 games.json 의 title.ko / title.en 과 같다(양방향)
+ *   [docs-count]        /guide/ 와 /daily/ 가 적은 게임 수·오늘의 도전 종수가 games.json 과 같다(국문·영문)
  *
  * ★이 도구가 못 보는 것(정직한 한계)
  *   · 자바스크립트가 실제로 무엇을 그리는지는 보지 않는다. 이 도구는 **원본 HTML 의 마크업**과
@@ -178,6 +179,39 @@ function readAbout(root){
   };
 }
 
+/* /guide/ · /daily/ 의 수 — 두 문서는 산문이라 정본에서 파생되지 않는다. 그래서 낡는다.
+   ★읽지 못하면 통과가 아니라 판정 불가다(앵커가 바뀌었다는 뜻이고, 그때는 사람이 봐야 한다). */
+function readDocs(root){
+  const out = { err: null, nums: [] };
+  const add = (where, what, n) => out.nums.push({ where, what, n });
+  const miss = [];
+  const grab = (raw, re, where, what, groups) => {
+    const m = re.exec(raw);
+    if (!m){ miss.push(where + ' ' + what); return; }
+    groups.forEach((g, i) => add(where, g, +m[i + 1]));
+  };
+  const guide = readText(root, path.join('guide', 'index.html'));
+  const daily = readText(root, path.join('daily', 'index.html'));
+  if (guide === null) miss.push('guide/index.html 을 읽지 못했다');
+  if (daily === null) miss.push('daily/index.html 을 읽지 못했다');
+  if (guide !== null){
+    /* meta 와 og 두 곳에 같은 문장이 있다 — 둘 다 센다(한쪽만 고치는 실수를 잡는다). */
+    const metas = [...guide.matchAll(/한판고의 게임 (\d+)종을/g)];
+    if (!metas.length) miss.push('/guide/ meta 종수');
+    metas.forEach((m, i) => add('/guide/', 'meta 종수 ' + (i + 1), +m[1]));
+    grab(guide, /<p>목록에 게임이 (\d+)종 있습니다\./, '/guide/', '국문 종수', ['국문 종수']);
+    grab(guide, /<p>(\d+)종 가운데 (\d+)종에는 <strong>오늘의 도전<\/strong>/, '/guide/', '국문 도전', ['국문 도전 전체', '국문 도전 종수']);
+    grab(guide, /There are (\d+) games in the list\./, '/guide/', '영문 종수', ['영문 종수']);
+    grab(guide, /(\d+) of the (\d+) games carry a <strong>daily challenge<\/strong>/, '/guide/', '영문 도전', ['영문 도전 종수', '영문 도전 전체']);
+  }
+  if (daily !== null){
+    grab(daily, /<p>(\d+)종 가운데 (\d+)종에 오늘의 도전이 있습니다\./, '/daily/', '국문 도전', ['국문 도전 전체', '국문 도전 종수']);
+    grab(daily, /(\d+) of the (\d+) games carry a daily challenge,/, '/daily/', '영문 도전', ['영문 도전 종수', '영문 도전 전체']);
+  }
+  if (miss.length){ out.err = '다음을 읽지 못했다 — ' + miss.join(' · '); }
+  return out;
+}
+
 /* ── 대조 ────────────────────────────────────────────────────────────────── */
 /* ★양방향으로 센다 — 한 방향만 보면 '뺐는데 대문에 남은 유령' 을 못 잡는다. */
 function compareIds(rule, where, want, got){
@@ -208,7 +242,7 @@ function run(root){
 
   /* 정본을 못 읽으면 아무 자리도 판정할 수 없다 — 통과로 접지 않고 전부 판정 불가로 올린다. */
   if (G.err){
-    for (const r of ['noscript-ids', 'fallback-ids', 'functions-ids', 'noscript-content', 'fallback-content', 'about-count', 'about-names']) indet(r, G.err);
+    for (const r of ['noscript-ids', 'fallback-ids', 'functions-ids', 'noscript-content', 'fallback-content', 'about-count', 'about-names', 'docs-count']) indet(r, G.err);
     return 2;
   }
   const wantIds = G.list.map(g => g.id);
@@ -275,6 +309,16 @@ function run(root){
     compareIds('about-names', '/about/ 영문 게임 이름', G.list.map(g => g.title.en), A.namesEn);
   }
 
+  const D = readDocs(root);
+  if (D.err) indet('docs-count', D.err);
+  else {
+    const nDaily2 = G.list.filter(g => !!g.daily).length;
+    const wrong = D.nums.filter(x => x.what.indexOf('도전 종수') >= 0 ? x.n !== nDaily2 : x.n !== wantIds.length);
+    if (wrong.length) bad('docs-count', '/guide/ · /daily/ 가 적은 수가 games.json 과 다르다 — ' +
+      wrong.map(x => x.where + ' ' + x.what + ' ' + x.n + ' ≠ ' + (x.what.indexOf('도전 종수') >= 0 ? nDaily2 : wantIds.length)).join(' · '));
+    else good('docs-count', '/guide/ · /daily/ 의 수 ' + D.nums.length + '자리가 games.json 과 같다(' + wantIds.length + '종 · 오늘의 도전 ' + nDaily2 + '종)');
+  }
+
   console.log('결과: 통과 ' + passCount + ' · 미달 ' + failCount + ' · 판정 불가 ' + indetCount);
   if (indetCount) return 2;
   return failCount ? 1 : 0;
@@ -284,9 +328,21 @@ function run(root){
 /* ★한 자리만 건드린 변이는 **그 자리를 지목하는 규칙**으로만 붉어져야 한다.
    다른 규칙이 대신 붉으면 무임승차다. games.json 은 정본이므로 거기서 빼면 세 자리가 함께 붉는다. */
 const MUTATIONS = {
+  'stale-guide-count': {
+    why: '/guide/ 의 국문 종수만 한 종 줄인다(문서가 낡은 채 남는 자리 — 2026-09-15 에 실제로 28종으로 멈춰 있었다)',
+    rules: ['docs-count'],
+    apply(stage){
+      const p = path.join(stage, 'guide', 'index.html');
+      const s = fs.readFileSync(p, 'utf8');
+      const m = /<p>목록에 게임이 (\d+)종 있습니다\./.exec(s);
+      if (!m) return false;
+      fs.writeFileSync(p, s.replace(m[0], '<p>목록에 게임이 ' + (+m[1] - 1) + '종 있습니다.'));
+      return true;
+    }
+  },
   'drop-json': {
     why: 'games.json 에서 마지막 항목을 뺀다(정본이 줄면 대문 세 자리와 /about/ 두 자리가 함께 어긋난다)',
-    rules: ['noscript-ids', 'fallback-ids', 'functions-ids', 'about-count', 'about-names'],
+    rules: ['noscript-ids', 'fallback-ids', 'functions-ids', 'about-count', 'about-names', 'docs-count'],
     apply(stage){
       const p = path.join(stage, 'games.json');
       const v = JSON.parse(fs.readFileSync(p, 'utf8'));
@@ -427,12 +483,15 @@ function writeBack(p, s, from, to, text){
   fs.writeFileSync(p, s.slice(0, from) + text + s.slice(to), 'utf8');
   return true;
 }
-/* 대조에 쓰는 세 파일만 임시 폴더로 복사한다(원본은 절대 건드리지 않는다). */
+/* 대조에 쓰는 파일만 임시 폴더로 복사한다(원본은 절대 건드리지 않는다).
+   ★[docs-count] 를 더하면서 /guide/ · /daily/ 도 복사 목록에 들어왔다 — 빠뜨리면 그 규칙이
+   모든 뮤테이션에서 '판정 불가' 를 내고, 다른 규칙의 검출력까지 rc=2 로 덮어 버린다. */
 function stage(root){
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'home-sync-'));
-  fs.mkdirSync(path.join(dir, 'functions'), { recursive: true });
-  fs.mkdirSync(path.join(dir, 'about'), { recursive: true });
-  for (const rel of ['games.json', 'index.html', path.join('functions', '_games.js'), path.join('about', 'index.html')]){
+  const rels = ['games.json', 'index.html', path.join('functions', '_games.js'),
+                path.join('about', 'index.html'), path.join('guide', 'index.html'), path.join('daily', 'index.html')];
+  for (const rel of rels){
+    fs.mkdirSync(path.join(dir, path.dirname(rel)), { recursive: true });
     fs.copyFileSync(path.join(root, rel), path.join(dir, rel));
   }
   return dir;

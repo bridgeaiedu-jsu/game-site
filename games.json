@@ -710,7 +710,7 @@
       "en": "Quick Math"
     },
     "desc": {
-      "ko": "30초 동안 사칙연산을 4지선다로 연속해서 푸는 암산 게임 — 맞히면 바로 다음, 틀리면 남은 시간 3초",
+      "ko": "30초 동안 사칙연산을 4지선다로 연속해서 푸는 암산 게임 — 맞히면 바로 다음, 오답마다 남은 시간 3초 차감",
       "en": "Mental math against a 30-second clock, four choices a question — a miss costs three seconds"
     },
     "thumb": "/quick-math/thumb.webp",
