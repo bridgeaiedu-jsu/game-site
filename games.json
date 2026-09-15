@@ -951,5 +951,33 @@
       "puzzle",
       "daily"
     ]
+  },
+  {
+    "id": "dari",
+    "path": "/dari/",
+    "title": {
+      "ko": "단어 다리",
+      "en": "Word Bridge"
+    },
+    "desc": {
+      "ko": "두 글자 낱말에서 한 번에 한 글자만 바꿔 목표 낱말까지 가는 한국어 경로 퍼즐 — 매 단계가 사전에 있어야 한다",
+      "en": "Change one syllable at a time to bridge two Korean words, and every step has to be a real dictionary word"
+    },
+    "thumb": "/dari/thumb.webp",
+    "playtime": {
+      "ko": "한 판 2~4분",
+      "en": "2-4 min a round"
+    },
+    "maxMinutes": 4,
+    "daily": true,
+    "category": "word",
+    "released": "2026-09-16",
+    "tags": [
+      "낱말",
+      "한국어",
+      "퍼즐",
+      "word",
+      "daily"
+    ]
   }
 ]

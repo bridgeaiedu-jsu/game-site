@@ -142,6 +142,7 @@
   .card[href="/dolryeo/"]{--sig:#489843;--sig-ink:#1d4a1b}
   .card[href="/talchul/"]{--sig:#a30044;--sig-ink:#6b002d}
   .card[href="/gyuchik/"]{--sig:#245421;--sig-ink:#0f2d0d}
+  .card[href="/dari/"]{--sig:#3b6d5f;--sig-ink:#16332b}
   @media (prefers-color-scheme: dark){
     /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다. ★라이트 규칙 뒤에 와야 이긴다(@media 는 명시도를 안 올린다). */
     .card[href="/block-puzzle/"]{--sig:#376fec;--sig-ink:#789ef2}
@@ -179,6 +180,7 @@
     .card[href="/dolryeo/"]{--sig:#63d553;--sig-ink:#a9e0a5}
     .card[href="/talchul/"]{--sig:#f3afce;--sig-ink:#f6c9dd}
     .card[href="/gyuchik/"]{--sig:#71c266;--sig-ink:#a5dc9d}
+    .card[href="/dari/"]{--sig:#27b49a;--sig-ink:#7fe3cd}
   }
   .card.soon::before{background:var(--line)}
   .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
@@ -461,6 +463,12 @@
             <span class="badges"><span class="badge">한 판 1~2분 / 1-2 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
           <span class="body"><h2>규칙 찾기 / Find the Rule</h2>
             <p>예시 세 칸에서 숨은 규칙을 찾아 네 번째 칸을 고르는 추론 퀴즈 — 시간을 재지 않고 다섯 문제를 푼다<br>Spot the hidden rule in three panels and pick the fourth — five questions, no timer</p></span>
+        </a></li>
+        <li><a class="card" href="/dari/">
+          <span class="thumb"><img src="/dari/thumb.webp" alt="단어 다리 / Word Bridge" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 2~4분 / 2-4 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>단어 다리 / Word Bridge</h2>
+            <p>두 글자 낱말에서 한 번에 한 글자만 바꿔 목표 낱말까지 가는 한국어 경로 퍼즐 — 매 단계가 사전에 있어야 한다<br>Change one syllable at a time to bridge two Korean words, and every step has to be a real dictionary word</p></span>
         </a></li>
       </ul>
     </noscript>
@@ -783,6 +791,13 @@ const FALLBACK = [{
   thumb:'/gyuchik/thumb.webp',
   playtime:{ko:'한 판 1~2분',en:'1-2 min a round'},
   maxMinutes:2, daily:true, category:'puzzle', released:'2026-09-16', tags:['추론','퀴즈','패턴','puzzle','daily']
+},{
+  id:'dari', path:'/dari/',
+  title:{ko:'단어 다리',en:'Word Bridge'},
+  desc:{ko:'두 글자 낱말에서 한 번에 한 글자만 바꿔 목표 낱말까지 가는 한국어 경로 퍼즐 — 매 단계가 사전에 있어야 한다',en:'Change one syllable at a time to bridge two Korean words, and every step has to be a real dictionary word'},
+  thumb:'/dari/thumb.webp',
+  playtime:{ko:'한 판 2~4분',en:'2-4 min a round'},
+  maxMinutes:4, daily:true, category:'word', released:'2026-09-16', tags:['낱말','한국어','퍼즐','word','daily']
 }];
 
 let games = FALLBACK;

@@ -389,6 +389,11 @@
       "file": "tools/verify_gyuchik.js",
       "game": "gyuchik",
       "kind": "검증기(출제 결정론·규칙군 전수 대조·정답 재계산·7일 겹침·힌트·제출 1회)"
+    },
+    {
+      "file": "tools/verify_dari.js",
+      "game": "dari",
+      "kind": "검증기(문제 결정론·경로 존재·최단 대조·한 음절 규칙·사전 계약·힌트 단계)"
     }
   ],
   "non_gate_tools": [
