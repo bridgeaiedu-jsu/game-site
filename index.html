@@ -140,6 +140,7 @@
   .card[href="/saja/"]{--sig:#277960;--sig-ink:#0b2b21}
   .card[href="/hanbut/"]{--sig:#398637;--sig-ink:#1c4a1a}
   .card[href="/dolryeo/"]{--sig:#489843;--sig-ink:#1d4a1b}
+  .card[href="/talchul/"]{--sig:#a30044;--sig-ink:#6b002d}
   @media (prefers-color-scheme: dark){
     /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다. ★라이트 규칙 뒤에 와야 이긴다(@media 는 명시도를 안 올린다). */
     .card[href="/block-puzzle/"]{--sig:#376fec;--sig-ink:#789ef2}
@@ -175,6 +176,7 @@
     .card[href="/saja/"]{--sig:#55d4ad;--sig-ink:#7fe0c2}
     .card[href="/hanbut/"]{--sig:#5aad52;--sig-ink:#9bd894}
     .card[href="/dolryeo/"]{--sig:#63d553;--sig-ink:#a9e0a5}
+    .card[href="/talchul/"]{--sig:#f3afce;--sig-ink:#f6c9dd}
   }
   .card.soon::before{background:var(--line)}
   .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
@@ -445,6 +447,12 @@
             <span class="badges"><span class="badge">한 판 1~2분 / 1-2 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
           <span class="body"><h2>돌려 맞춰 / Turn to Connect</h2>
             <p>조각을 눌러 90도씩 돌려 끊긴 길을 잇는 퍼즐 — 빨리 누르는 사람이 아니라 적게 돌리는 사람이 잘한다<br>Rotate the broken pipes a quarter turn at a time until one unbroken line runs from inlet to outlet</p></span>
+        </a></li>
+        <li><a class="card" href="/talchul/">
+          <span class="thumb"><img src="/talchul/thumb.webp" alt="함께 탈출 / Escape Together" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 2~4분 / 2-4 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
+          <span class="body"><h2>함께 탈출 / Escape Together</h2>
+            <p>둘이 한 기기로 서로의 문을 열어 주며 나가는 협동 퍼즐 — 내가 스위치에 서 있어야 동료의 길이 열린다<br>A two-player co-op puzzle on one screen: your partner’s door only opens while you stand on the switch</p></span>
         </a></li>
       </ul>
     </noscript>
@@ -753,6 +761,13 @@ const FALLBACK = [{
   thumb:'/dolryeo/thumb.webp',
   playtime:{ko:'한 판 1~2분',en:'1-2 min a round'},
   maxMinutes:2, daily:true, category:'puzzle', released:'2026-09-16', tags:['퍼즐','공간추론','파이프','puzzle','daily']
+},{
+  id:'talchul', path:'/talchul/',
+  title:{ko:'함께 탈출',en:'Escape Together'},
+  desc:{ko:'둘이 한 기기로 서로의 문을 열어 주며 나가는 협동 퍼즐 — 내가 스위치에 서 있어야 동료의 길이 열린다',en:'A two-player co-op puzzle on one screen: your partner’s door only opens while you stand on the switch'},
+  thumb:'/talchul/thumb.webp',
+  playtime:{ko:'한 판 2~4분',en:'2-4 min a round'},
+  maxMinutes:4, daily:true, solo:false, category:'two-player', released:'2026-09-16', tags:['2인용','협동','퍼즐','two-player','daily']
 }];
 
 let games = FALLBACK;

@@ -379,6 +379,11 @@
       "file": "tools/verify_dolryeo.js",
       "game": "dolryeo",
       "kind": "검증기(판 결정론·연결 판정·최소 회전 대조·잠금·되돌리기)"
+    },
+    {
+      "file": "tools/verify_talchul.js",
+      "game": "talchul",
+      "kind": "검증기(판 결정론·두 말 동시 탐색·한쪽 불가·갇힘 0·문 보류·되돌리기)"
     }
   ],
   "non_gate_tools": [

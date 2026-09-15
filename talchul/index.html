@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>함께 탈출 — 둘이 한 기기로 서로의 문을 열어 주는 협동 퍼즐 | Escape Together</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 2인 협동 퍼즐. 한 기기를 나눠 쓰며 동그라미와 세모를 한 사람씩 맡습니다. 내가 스위치에 서 있어야 동료의 문이 열리므로 순서를 말로 맞춰야 합니다. 둘이 동시에 각자의 출구에 서면 함께 성공입니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="함께 탈출 — 둘이 한 기기로 서로의 문을 열어 주는 협동 퍼즐 | Escape Together">
+<meta property="og:description" content="내가 서 있어야 동료의 길이 열립니다. 둘이 동시에 나가야 성공입니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/talchul/">
+<meta property="og:image" content="https://hanpango.com/talchul/thumb.webp">
+<meta property="og:image:width" content="640">
+<meta property="og:image:height" content="640">
+<link rel="canonical" href="https://hanpango.com/talchul/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 판수 줄을 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
+<link rel="stylesheet" href="/css/article.css">
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"함께 탈출","alternateName":"Escape Together","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ────────────────────────────────────────────────────────
+     분류는 ★2인용(two-player)이다 — 사람 수 축으로 둘이고, 한 기기를 나눠 쓴다.
+     (겨루는 것이 아니라 함께 푸는 것이지만 인원축 분류는 2인용이 맞다.)
+     --sig 는 손으로 고르지 않는다. tools/check_palette.py 의 자로 골라 적었다:
+     기준색 #db2777 과 색상각 2도 이내 · 형제 2종과 ΔE2000 7.77 · 원형 여유 7.16 ·
+     다크는 기준색보다 밝고(L 82.0 > 50.6) 형제와 ΔE2000 13.21 · 여유 13.22 다.
+     ★말의 빨강·파랑은 분류 색과 별개다(역할 구분이라 색만으로 가르지 않고 모양도 함께 쓴다). */
+  :root{
+    --bg:#ffffff; --fg:#111827; --muted:#6b7280; --line:#e5e7eb; --card:#f9fafb;
+    --sig:#a30044; --sig-ink:#6b002d; --sig-soft:#fbe0ec; --on-sig:#ffffff;
+    --tile:#f1f5f9; --wallc:#cbd5e1; --doorc:#e9d5ff; --swc:#dbeafe;
+    --red:#c0362c; --blue:#1d4ed8;
+    --ad-bg:rgba(17,24,39,.03);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --fg:#f3f4f6; --muted:#9ca3af; --line:#26254a; --card:#141234;
+      --sig:#f3afce; --sig-ink:#f6c9dd; --sig-soft:#3d1028; --on-sig:#111827;
+      --tile:#181a3a; --wallc:#2b3350; --doorc:#3a2b55; --swc:#1e3358;
+      --red:#f08a80; --blue:#8fb2ff;
+      --ad-bg:rgba(255,255,255,.02);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif}
+  .wrap{max-width:560px;margin:0 auto;padding:12px 14px 40px}
+  header{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  h1{font-size:1.25rem;margin:.2em 0}
+  h1 small{display:block;font-size:.78rem;font-weight:400;color:var(--muted)}
+  .spacer{flex:1}
+  .ibtn{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;
+        padding:6px 10px;font-size:.85rem;cursor:pointer;text-decoration:none}
+  .ibtn:focus-visible,button:focus-visible{outline:3px solid var(--sig);outline-offset:3px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 8px}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.8rem;color:var(--muted)}
+  .chip b{color:var(--fg);font-variant-numeric:tabular-nums}
+  /* ---- 광고 슬롯 — 승인 전에는 css/ad-slots.css 가 통째로 감춘다(게이트가 렌더로 확인한다) ---- */
+  .ad-slot{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.7rem;border:1px dashed var(--line);border-radius:8px;margin:6px auto;background:var(--ad-bg)}
+  .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
+  .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 결과 화면 자리 */
+  .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
+  #board{display:grid;gap:2px;background:var(--line);border:2px solid var(--line);border-radius:10px;
+         width:100%;max-width:340px;margin:0 auto;aspect-ratio:1/1;touch-action:manipulation;user-select:none}
+  .cell{position:relative;background:var(--tile);display:flex;align-items:center;justify-content:center;
+        font-size:1.3rem;line-height:1;cursor:pointer;padding:0;border:0;color:var(--fg)}
+  .cell.wall{background:var(--wallc);cursor:default}
+  .cell.door{background:var(--doorc)}
+  .cell.door.open{box-shadow:inset 0 0 0 3px var(--sig-ink)}
+  .cell.sw{background:var(--swc)}
+  .cell.goal{box-shadow:inset 0 0 0 3px currentColor}
+  .cell.reach{outline:3px dashed var(--sig);outline-offset:-4px}
+  .cell .tag{position:absolute;left:3px;top:2px;font-size:.55rem;color:var(--muted);font-weight:700}
+  .cell .pc{font-size:1.45rem;font-weight:800}
+  .cell .pc.r{color:var(--red)}
+  .cell .pc.b{color:var(--blue)}
+  .turnbar{display:flex;gap:8px;justify-content:center;margin:10px 0 4px}
+  .turn{flex:1;max-width:170px;border:2px solid var(--line);background:var(--card);border-radius:12px;
+        padding:8px 6px;text-align:center;font-weight:800;font-size:.9rem;color:var(--muted)}
+  .turn.on{border-color:currentColor}
+  .turn.r{color:var(--red)} .turn.b{color:var(--blue)}
+  .turn small{display:block;font-size:.7rem;font-weight:600;color:var(--muted)}
+  .row{display:flex;gap:8px;justify-content:center;margin:10px 0;flex-wrap:wrap}
+  .btn{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:12px;
+       padding:10px 14px;font-size:.92rem;font-weight:700;cursor:pointer;min-height:44px}
+  .btn.primary{background:var(--sig);color:var(--on-sig);border-color:var(--sig)}
+  .hint{color:var(--muted);font-size:.8rem;text-align:center;margin:.4em 0}
+  .hp-stat{color:var(--muted);font-size:.78rem;text-align:center;margin:.2em 0}
+  .hp-stat[hidden]{display:none!important}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  #over{display:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:12px}
+  #over.show{display:block}
+  .nums{display:flex;gap:14px;flex-wrap:wrap;margin:.4em 0}
+  .nums b{font-size:1.15rem;font-variant-numeric:tabular-nums;display:block}
+  .nums span{font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1><span data-i18n="title">함께 탈출</span>
+    <small data-i18n="subtitle">둘이 한 기기로 — 내가 서 있어야 동료의 문이 열립니다</small></h1>
+  <span class="spacer"></span>
+  <a class="ibtn" href="/" data-i18n="home">🏠 다른 게임</a>
+  <button class="ibtn" id="btnLang" type="button">EN</button>
+</header>
+
+<div class="chips">
+  <span class="chip"><span data-i18n="dayLbl">오늘의 탈출</span> <b id="dayNo">–</b></span>
+  <span class="chip"><span data-i18n="minLbl">최소</span> <b id="best">–</b><span data-i18n="moveUnit">수</span></span>
+  <span class="chip"><span data-i18n="mineLbl">둘이</span> <b id="mine">0</b><span data-i18n="moveUnit2">수</span></span>
+  <span class="chip"><span data-i18n="undoLbl">되돌리기</span> <b id="undos">0</b></span>
+</div>
+
+<!-- ADSENSE (1/2) — 상단 배너 자리. 승인 후 아래 div 내부를 <ins class="adsbygoogle" ...> 코드로 교체 -->
+<div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
+
+<!-- 판 — 진행 중에 바뀌는 자리라 data-i18n 을 붙이지 않는다(언어 전환이 판을 덮으면 안 된다) -->
+<div id="board" role="application" data-i18n-aria="ariaBoard" aria-label="함께 탈출 판"></div>
+
+<div class="turnbar">
+  <div class="turn r on" id="turnR">● <span data-i18n="redName">빨강</span><small data-i18n="yourTurn">지금 차례</small></div>
+  <div class="turn b" id="turnB">▲ <span data-i18n="blueName">파랑</span><small data-i18n="waiting">기다리는 중</small></div>
+</div>
+
+<div class="row">
+  <button class="btn" id="btnPass" type="button" data-i18n="pass">차례 넘기기</button>
+  <button class="btn" id="btnUndo" type="button" data-i18n="undo">↩ 한 수 되돌리기</button>
+  <button class="btn" id="btnReset" type="button" data-i18n="reset">처음부터</button>
+</div>
+
+<p class="hint" id="hint" data-i18n="hint">차례인 말 옆 칸을 누르면 그 말이 한 칸 갑니다 · 보라색 문은 누군가 파란 스위치 칸에 서 있는 동안에만 들어갈 수 있습니다 · 둘이 동시에 각자의 출구에 서면 끝납니다</p>
+<p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.talchul.today">–</b>판 · 누적 <b data-hp="plays.talchul.total">–</b>판</p>
+<p class="sr-only" id="srLive" aria-live="polite"></p>
+
+<div id="over">
+  <h2 data-i18n="done">둘 다 나왔습니다</h2>
+  <div class="nums">
+    <div><b id="rBest">–</b><span data-i18n="rBestLbl">최소</span></div>
+    <div><b id="rMine">–</b><span data-i18n="rMineLbl">둘이</span></div>
+    <div><b id="rExtra">–</b><span data-i18n="rExtraLbl">추가</span></div>
+    <div><b id="rUndo">–</b><span data-i18n="rUndoLbl">되돌리기</span></div>
+  </div>
+  <p id="verdict" style="margin:.2em 0 .6em"></p>
+  <!-- ADSENSE (2/2) — 결과 화면 자리 -->
+  <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
+  <div class="row" style="justify-content:flex-start">
+    <button class="btn primary" id="btnShare" type="button" data-i18n="share">결과 공유</button>
+    <button class="btn" id="btnAgain" type="button" data-i18n="again">다시 하기</button>
+  </div>
+</div>
+</div>
+
+<script type="module">
+/* ══════════════════════════════════════════════════════════════════════
+   함께 탈출 — 두 사람이 한 기기로 서로의 길을 열어 주는 협동 퍼즐(기획 보고서 7절).
+   ★설계의 뼈대
+     · 문은 ★스위치에 누군가 서 있는 동안에만 ★들어갈 수 있다. 이미 문 칸에 선 말은
+       문이 닫혀도 쫓겨나지 않는다(보고서의 '닫힘 보류').
+     · ★보고서에서 한 군데 의도적으로 벗어났다: 보고서는 "출구에 들어간 말은 이동을
+       마친다"고 적었다. 그대로 두면 ★먼저 나간 쪽이 동료를 영구히 가두는 판이 생긴다.
+       그래서 출구를 ★되돌아 나올 수 있는 칸으로 두고 승리 조건만 ★둘이 동시에로 바꿨다.
+       그 대신 ★갇히는 자리 0 을 판 생성의 ★조건으로 걸었다(검증기가 다시 센다).
+     · 판은 ★날짜 문자열 하나로 정해진다. 만들 때 ①풀리는가 ②한쪽만으로는 안 되는가
+       ③갇히는 자리가 없는가 셋을 모두 통과한 것만 낸다.
+   ══════════════════════════════════════════════════════════════════════ */
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const GA_GAME = 'talchul';
+const SEED_NS = 'hanpango-talchul-';
+const DAILY_EPOCH = Date.UTC(2026, 7, 23);      /* 2026-08-23 = #1 (다른 게임과 같은 기준일) */
+const CFG = { W: 5, H: 5, MIN_BEST: 10, MAX_BEST: 26, WALLS: [3, 6], DOORS: [1, 2] };
+function ga(name, params){ if (typeof gtag === 'function') gtag('event', name, params); }
+
+/* ── 결정론 난수 ── */
+function hashStr(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ── 날짜(KST) ── */
+const pad2 = n => String(n).padStart(2, '0');
+function todayKey(now = new Date()){ const k = new Date(now.getTime() + 9 * 3600000);
+  return `${k.getUTCFullYear()}-${pad2(k.getUTCMonth() + 1)}-${pad2(k.getUTCDate())}`; }
+function dayNumber(key){ const [y, m, d] = String(key).split('-').map(Number);
+  return Math.floor((Date.UTC(y, m - 1, d) - DAILY_EPOCH) / 86400000) + 1; }
+
+/* ── 규칙 ───────────────────────────────────────────────────────────── */
+function neighborsOf(i, w, h){
+  const x = i % w, y = (i / w) | 0, out = [];
+  if (y > 0) out.push(i - w);
+  if (x < w - 1) out.push(i + 1);
+  if (y < h - 1) out.push(i + w);
+  if (x > 0) out.push(i - 1);
+  return out;
+}
+/* 한 수 — who 0=빨강 1=파랑. 규칙을 어기면 왜 안 되는지와 함께 거절한다. */
+function stepInto(b, st, who, to){
+  const from = who === 0 ? st.red : st.blue;
+  const other = who === 0 ? st.blue : st.red;
+  if (!neighborsOf(from, b.w, b.h).includes(to)) return { ok: false, why: 'far' };
+  if (b.walls.includes(to)) return { ok: false, why: 'wall' };
+  if (to === other) return { ok: false, why: 'mate' };
+  const d = b.doors.find(x => x.cell === to);
+  if (d){
+    /* ★들어가려면 그 문의 스위치에 누군가 서 있어야 한다. 이미 문 칸에 선 말은 건드리지 않는다. */
+    if (st.red !== d.sw && st.blue !== d.sw) return { ok: false, why: 'door' };
+  }
+  st.log.push({ who, from, to });
+  if (who === 0) st.red = to; else st.blue = to;
+  st.turn = 1 - who;
+  return { ok: true };
+}
+/* 차례 넘기기 — ★기록에 손대지 않는다. 이동 수는 기록의 길이라서 이것으로 오르지 않는다. */
+function passTurn(st){
+  st.turn = 1 - st.turn;
+  st.passes++;
+  return true;
+}
+function undoMove(st){
+  if (!st.log.length) return false;
+  const last = st.log[st.log.length - 1];
+  st.log.pop();
+  if (last.who === 0) st.red = last.from; else st.blue = last.from;
+  st.turn = last.who;
+  st.undos++;
+  return true;
+}
+function isWin(b, st){
+  return st.red === b.redExit && st.blue === b.blueExit;
+}
+const freshState = b => ({ red: b.red, blue: b.blue, turn: 0, passes: 0, undos: 0, log: [] });
+/* ★이동 수는 기록의 길이 하나로만 센다 — 따로 세는 변수를 두면 둘이 갈릴 자리가 생긴다 */
+const movesOf = st => st.log.length;
+
+/* 두 말의 자리를 ★함께 훑는 너비우선 탐색. 차례는 넘길 수 있어 최소 수를 가르지 않으므로 상태에서 뺀다. */
+function search(b){
+  const key = (r, bl) => r * 1000 + bl;
+  const dist = new Map([[key(b.red, b.blue), 0]]);
+  const prev = new Map();
+  const q = [[b.red, b.blue]];
+  let goal = null;
+  for (let qi = 0; qi < q.length; qi++){
+    const [r, bl] = q[qi];
+    if (r === b.redExit && bl === b.blueExit){ goal = [r, bl]; break; }
+    for (const who of [0, 1]){
+      const at = who === 0 ? r : bl;
+      for (const to of neighborsOf(at, b.w, b.h)){
+        const probe = { red: r, blue: bl, log: [], turn: who, passes: 0, undos: 0 };
+        if (!stepInto(b, probe, who, to).ok) continue;
+        const k = key(probe.red, probe.blue);
+        if (dist.has(k)) continue;
+        dist.set(k, dist.get(key(r, bl)) + 1);
+        prev.set(k, [r, bl, who, to]);
+        q.push([probe.red, probe.blue]);
+      }
+    }
+  }
+  return { goal, dist, prev, key, seen: q };
+}
+function shortest(b){
+  const { goal, dist, key } = search(b);
+  return goal ? dist.get(key(goal[0], goal[1])) : null;
+}
+function solveMoves(b){
+  const { goal, prev, key } = search(b);
+  if (!goal) return null;
+  const out = [];
+  let cur = goal;
+  while (prev.has(key(cur[0], cur[1]))){
+    const [pr, pb, who, to] = prev.get(key(cur[0], cur[1]));
+    out.push([who, to]);
+    cur = [pr, pb];
+  }
+  return out.reverse();
+}
+/* ★문을 닫아 둔 채로도 풀리면 그 판의 문은 ★장식이다 — 둘이 서로를 필요로 하지 않는다.
+   (처음에는 '한쪽 말만 움직여 풀리는가'로 재려 했는데 그것은 ★공허했다: 승리 조건이 두 말
+    모두 자기 출구에 서는 것이라, 한 말을 못 박으면 어떤 판이든 자동으로 안 풀린다.) */
+function shutSolvable(b){
+  const shut = { w: b.w, h: b.h, red: b.red, blue: b.blue, redExit: b.redExit, blueExit: b.blueExit,
+                 walls: b.walls.concat(b.doors.map(d => d.cell)), doors: [] };
+  return shortest(shut) !== null;
+}
+/* ★닿을 수 있는 자리 중 목표에 다시 못 닿는 곳의 수 — 0 이라야 낸다 */
+function deadCount(b){
+  const { dist } = search(b);
+  const all = [...dist.keys()];
+  const memo = new Map();
+  const can = (r0, bl0) => {
+    const k0 = r0 * 1000 + bl0;
+    if (memo.has(k0)) return memo.get(k0);
+    const seen = new Set([k0]);
+    const q = [[r0, bl0]];
+    let good = false;
+    for (let qi = 0; qi < q.length && !good; qi++){
+      const [r, bl] = q[qi];
+      if (r === b.redExit && bl === b.blueExit){ good = true; break; }
+      for (const who of [0, 1]){
+        const at = who === 0 ? r : bl;
+        for (const to of neighborsOf(at, b.w, b.h)){
+          const probe = { red: r, blue: bl, log: [], turn: who, passes: 0, undos: 0 };
+          if (!stepInto(b, probe, who, to).ok) continue;
+          const k = probe.red * 1000 + probe.blue;
+          if (seen.has(k)) continue;
+          seen.add(k); q.push([probe.red, probe.blue]);
+        }
+      }
+    }
+    memo.set(k0, good);
+    return good;
+  };
+  let dead = 0;
+  for (const k of all) if (!can(Math.floor(k / 1000), k % 1000)) dead++;
+  return dead;
+}
+
+/* ── 판 만들기 ──────────────────────────────────────────────────────────
+   무작위로 짜 놓고 ★세 조건을 모두 통과한 것만 낸다: 풀린다 · 한쪽만으로는 안 된다 ·
+   갇히는 자리가 없다. ★시계를 읽지 않는다. 난수는 오직 key 에서 온다. */
+function boardFor(key){
+  const rng = mulberry32(hashStr(SEED_NS + String(key)));
+  const { W, H, MIN_BEST, MAX_BEST, WALLS, DOORS } = CFG;
+  const n = W * H;
+  const pick = (pool) => pool.splice(Math.floor(rng() * pool.length), 1)[0];
+  for (let attempt = 0; attempt < 400; attempt++){
+    const pool = [];
+    for (let i = 0; i < n; i++) pool.push(i);
+    const walls = [];
+    const wallN = WALLS[0] + Math.floor(rng() * (WALLS[1] - WALLS[0] + 1));
+    for (let k = 0; k < wallN; k++) walls.push(pick(pool));
+    const red = pick(pool), blue = pick(pool);
+    const redExit = pick(pool), blueExit = pick(pool);
+    const doorN = DOORS[0] + Math.floor(rng() * (DOORS[1] - DOORS[0] + 1));
+    const doors = [];
+    for (let k = 0; k < doorN && pool.length >= 2; k++){
+      doors.push({ cell: pick(pool), sw: pick(pool) });
+    }
+    if (doors.length < DOORS[0]) continue;
+    const board = { w: W, h: H, walls: walls.sort((a, b2) => a - b2), red, blue, redExit, blueExit, doors };
+    const s = shortest(board);
+    if (s === null || s < MIN_BEST || s > MAX_BEST) continue;
+    if (shutSolvable(board)) continue;
+    if (deadCount(board) !== 0) continue;
+    return Object.assign(board, { key: String(key), best: shortest(board), attempts: attempt + 1 });
+  }
+  /* 여기 오면 규격을 못 맞춘 것이다 — 쉬운 판을 조용히 내지 않고 ★한 줄짜리 판을 준다. */
+  const fb = { w: W, h: H, walls: [], red: 0, blue: 4, redExit: 24, blueExit: 20, doors: [{ cell: 12, sw: 2 }] };
+  return Object.assign(fb, { key: String(key), best: shortest(fb), attempts: 400, usedFallback: true });
+}
+
+/* ── 문안 ── */
+const I18N = {
+  ko: { title:'함께 탈출', subtitle:'둘이 한 기기로 — 내가 서 있어야 동료의 문이 열립니다',
+        home:'🏠 다른 게임', dayLbl:'오늘의 탈출', minLbl:'최소', mineLbl:'둘이', undoLbl:'되돌리기',
+        moveUnit:'수', moveUnit2:'수', pass:'차례 넘기기', undo:'↩ 한 수 되돌리기', reset:'처음부터',
+        redName:'빨강', blueName:'파랑', yourTurn:'지금 차례', waiting:'기다리는 중',
+        hint:'차례인 말 옆 칸을 누르면 그 말이 한 칸 갑니다 · 보라색 문은 누군가 파란 스위치 칸에 서 있는 동안에만 들어갈 수 있습니다 · 둘이 동시에 각자의 출구에 서면 끝납니다',
+        statPlays:'오늘 <b data-hp="plays.talchul.today">–</b>판 · 누적 <b data-hp="plays.talchul.total">–</b>판',
+        done:'둘 다 나왔습니다', rBestLbl:'최소', rMineLbl:'둘이', rExtraLbl:'추가', rUndoLbl:'되돌리기',
+        share:'결과 공유', again:'다시 하기', copied:'결과가 복사됐어요',
+        adPlaceholder:'', adPlaceholder2:'',
+        perfect:'최소 수로 함께 나왔습니다', over:(n)=>`최소보다 ${n}수 더 썼습니다`,
+        ariaBoard:'함께 탈출 판', langBtn:'EN',
+        srBad:(why)=>({ wall:'벽입니다.', mate:'동료가 서 있는 칸입니다.', door:'문이 닫혀 있습니다 — 누군가 스위치에 서야 합니다.', far:'붙어 있지 않은 칸입니다.' })[why] || '둘 수 없습니다.',
+        srMove:(who,n)=>`${who === 0 ? '빨강' : '파랑'} 한 칸. 지금까지 ${n}수.`,
+        srPass:(who)=>`차례를 넘겼습니다. 이제 ${who === 0 ? '빨강' : '파랑'} 차례입니다.`,
+        srDone:(m,e)=>`함께 탈출. ${m}수, 최소보다 ${e}수 더.`,
+        shareText:(no,m,e,u)=>`🚪 함께 탈출 #${no} 둘이 ${m}수 · 최소 +${e} · 되돌리기 ${u}\n` },
+  en: { title:'Escape Together', subtitle:'Two players, one screen — your partner’s door only opens while you stand on the switch',
+        home:'🏠 More games', dayLbl:'Daily escape', minLbl:'fewest', mineLbl:'together', undoLbl:'undos',
+        moveUnit:' moves', moveUnit2:' moves', pass:'Pass the turn', undo:'↩ Undo one move', reset:'Restart',
+        redName:'Red', blueName:'Blue', yourTurn:'your turn', waiting:'waiting',
+        hint:'Tap a square next to the piece whose turn it is · a purple door can only be entered while somebody stands on the blue switch · you finish when both pieces stand on their own exits at the same time',
+        statPlays:'<b data-hp="plays.talchul.today">–</b> today · <b data-hp="plays.talchul.total">–</b> all-time',
+        done:'Both of you are out', rBestLbl:'fewest', rMineLbl:'together', rExtraLbl:'extra', rUndoLbl:'undos',
+        share:'Share result', again:'Play again', copied:'Result copied',
+        adPlaceholder:'', adPlaceholder2:'',
+        perfect:'You escaped in the fewest moves', over:(n)=>`${n} moves more than the fewest`,
+        ariaBoard:'Escape Together board', langBtn:'한국어',
+        srBad:(why)=>({ wall:'That is a wall.', mate:'Your partner is standing there.', door:'That door is shut — somebody has to stand on the switch.', far:'That square is not adjacent.' })[why] || 'Not allowed.',
+        srMove:(who,n)=>`${who === 0 ? 'Red' : 'Blue'} moved one square. ${n} moves so far.`,
+        srPass:(who)=>`Turn passed. It is ${who === 0 ? 'Red' : 'Blue'}’s turn.`,
+        srDone:(m,e)=>`Escaped together in ${m} moves, ${e} more than the fewest.`,
+        shareText:(no,m,e,u)=>`🚪 Escape Together #${no} ${m} moves together · fewest +${e} · undo ${u}\n` },
+};
+let lang = localStorage.getItem('bp.lang') || ((navigator.language || '').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (I18N[lang][k] !== undefined) el.innerHTML = T(k); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => { const k = el.getAttribute('data-i18n-aria'); if (I18N[lang][k] !== undefined) el.setAttribute('aria-label', T(k)); });
+  document.querySelectorAll('.read-ko').forEach(el => { el.hidden = lang !== 'ko'; });
+  document.querySelectorAll('.read-en').forEach(el => { el.hidden = lang !== 'en'; });
+  $('btnLang').textContent = T('langBtn');
+  localStorage.setItem('bp.lang', lang);
+  /* 문안을 갈아 끼우면 채운 숫자가 지워진다 — 다시 채운다. hp-stats.js 는 defer 라 없을 수도 있다. */
+  if (window.hpStats) window.hpStats();
+  draw();
+}
+
+/* ── 상태 ── */
+let board = null;
+let st = null;
+let started = false, over = false, lastResult = null;
+const say = t => { $('srLive').textContent = t; };
+
+function newRun(key){
+  board = boardFor(key);
+  st = freshState(board);
+  started = false; over = false;
+  $('over').classList.remove('show');
+  $('dayNo').textContent = '#' + dayNumber(board.key);
+  $('best').textContent = board.best === null ? '–' : board.best;
+  draw();
+}
+function draw(){
+  const bd = $('board');
+  if (!board) return;
+  bd.style.gridTemplateColumns = `repeat(${board.w}, 1fr)`;
+  bd.innerHTML = '';
+  const openSw = new Set(board.doors.filter(d => st.red === d.sw || st.blue === d.sw).map(d => d.cell));
+  const here = st.turn === 0 ? st.red : st.blue;
+  const reach = new Set(neighborsOf(here, board.w, board.h));
+  for (let i = 0; i < board.w * board.h; i++){
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'cell';
+    el.id = 'c' + i;
+    el.dataset.cell = String(i);
+    if (board.walls.includes(i)) el.classList.add('wall');
+    const door = board.doors.find(d => d.cell === i);
+    if (door){ el.classList.add('door'); if (openSw.has(i)) el.classList.add('open'); }
+    if (board.doors.some(d => d.sw === i)) el.classList.add('sw');
+    if (i === board.redExit || i === board.blueExit){
+      el.classList.add('goal');
+      el.style.color = i === board.redExit ? 'var(--red)' : 'var(--blue)';
+    }
+    if (reach.has(i) && !board.walls.includes(i)) el.classList.add('reach');
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    if (i === board.redExit) tag.textContent = '●';
+    else if (i === board.blueExit) tag.textContent = '▲';
+    else if (door) tag.textContent = openSw.has(i) ? '🔓' : '🔒';  /* ★열림·닫힘을 색 말고 ★기호로도 가른다 */
+    else if (board.doors.some(d => d.sw === i)) tag.textContent = '⊙';
+    if (tag.textContent) el.appendChild(tag);
+    if (st.red === i || st.blue === i){
+      const pc = document.createElement('span');
+      pc.className = 'pc ' + (st.red === i ? 'r' : 'b');
+      pc.textContent = st.red === i ? '●' : '▲';
+      el.appendChild(pc);
+    }
+    bd.appendChild(el);
+  }
+  $('mine').textContent = movesOf(st);
+  $('undos').textContent = st.undos;
+  $('turnR').classList.toggle('on', st.turn === 0);
+  $('turnB').classList.toggle('on', st.turn === 1);
+  /* 문안 조각은 언어 전환이 통째로 갈아 끼우므로 ★없을 수도 있다고 보고 만진다 */
+  const smR = $('turnR').querySelector('small');
+  const smB = $('turnB').querySelector('small');
+  if (smR) smR.textContent = st.turn === 0 ? T('yourTurn') : T('waiting');
+  if (smB) smB.textContent = st.turn === 1 ? T('yourTurn') : T('waiting');
+}
+function tapCell(i){
+  if (over || board === null) return;
+  const who = st.turn;
+  const r = stepInto(board, st, who, i);
+  if (!r.ok){ say(T('srBad', r.why)); return; }
+  if (!started){
+    started = true;
+    ga('game_start', { game: GA_GAME });
+    if (window.hpHit) window.hpHit('play', GA_GAME);
+  }
+  draw();
+  say(T('srMove', who, movesOf(st)));
+  if (isWin(board, st)) finish();
+}
+function finish(){
+  over = true;
+  const moves = movesOf(st);
+  const extra = Math.max(0, moves - board.best);
+  lastResult = { no: dayNumber(board.key), moves, extra, undos: st.undos, best: board.best };
+  $('rBest').textContent = board.best;
+  $('rMine').textContent = lastResult.moves;
+  $('rExtra').textContent = '+' + extra;
+  $('rUndo').textContent = st.undos;
+  $('verdict').textContent = extra === 0 ? T('perfect') : T('over', extra);
+  $('over').classList.add('show');
+  say(T('srDone', lastResult.moves, extra));
+  try { localStorage.setItem('tc.daily', JSON.stringify({ date: board.key, result: lastResult })); } catch (_) {}
+  ga('daily_complete', { game: GA_GAME });
+}
+
+/* ── 입력 ── */
+$('board').addEventListener('click', e => {
+  const el = e.target && e.target.closest ? e.target.closest('.cell') : null;
+  if (el) tapCell(Number(el.dataset.cell));
+});
+$('btnPass').addEventListener('click', () => { if (over) return; passTurn(st); draw(); say(T('srPass', st.turn)); });
+$('btnUndo').addEventListener('click', () => { if (undoMove(st)){ over = false; $('over').classList.remove('show'); draw(); } });
+const restart = () => { const keepUndos = st.undos; st = freshState(board); st.undos = keepUndos; over = false; $('over').classList.remove('show'); draw(); };
+$('btnReset').addEventListener('click', restart);
+$('btnAgain').addEventListener('click', restart);
+$('btnLang').addEventListener('click', () => { lang = lang === 'ko' ? 'en' : 'ko'; applyLang(); });
+$('btnShare').addEventListener('click', async () => {
+  if (!lastResult) return;
+  const text = T('shareText', lastResult.no, lastResult.moves, lastResult.extra, lastResult.undos) + 'https://hanpango.com/talchul/';
+  try { await navigator.clipboard.writeText(text); say(T('copied')); } catch (_) {}
+});
+document.addEventListener('keydown', e => {
+  if (!board || over) return;
+  const here = st.turn === 0 ? st.red : st.blue;
+  const d = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -board.w, ArrowDown: board.w }[e.key];
+  if (d === undefined) return;
+  const x = here % board.w;
+  if ((d === -1 && x === 0) || (d === 1 && x === board.w - 1)) return;
+  e.preventDefault();
+  tapCell(here + d);
+});
+
+/* ── 시작 ── */
+newRun(todayKey());
+applyLang();
+setTimeout(() => { try { if (window.hpHit) window.hpHit('visit', GA_GAME); if (window.hpStats) window.hpStats(); } catch (_) {} }, 0);
+
+/* ══════════════════ 검증 창구(관측 전용) ══════════════════
+   ★읽기만 하는 getter 와 순수 함수만 둔다. 검증기는 여기 값과 ★자기 탐색기를 대조한다. */
+const copy = o => JSON.parse(JSON.stringify(o));
+window.__talchul = {
+  consts: () => copy(CFG),
+  todayKey: iso => todayKey(iso ? new Date(iso) : new Date()),
+  dayNumber: k => dayNumber(String(k)),
+  boardFor: k => copy(boardFor(String(k))),
+  boardSrc: () => String(boardFor),
+  solveMoves: b => solveMoves(copy(b)),
+  /* ★한 말만 나와서는 끝이 아니다 */
+  winProbe: b => {
+    const bb = copy(b);
+    const mk = (r, bl) => ({ red: r, blue: bl, turn: 0, passes: 0, undos: 0, log: [] });
+    return {
+      redOnly: isWin(bb, mk(bb.redExit, bb.blue)),
+      blueOnly: isWin(bb, mk(bb.red, bb.blueExit)),
+      both: isWin(bb, mk(bb.redExit, bb.blueExit)),
+    };
+  },
+  /* ★문이 닫혀도 그 칸에 선 말은 쫓겨나지 않고, 나올 수도 있다 */
+  deferProbe: b => {
+    const bb = copy(b);
+    const d = bb.doors[0];
+    const s2 = { red: d.cell, blue: d.sw, turn: 0, passes: 0, undos: 0, log: [] };
+    /* 스위치에서 동료를 치워 문을 닫는다 — 빨강은 문 칸에 그대로 서 있어야 한다 */
+    const away = neighborsOf(d.sw, bb.w, bb.h).find(j => !bb.walls.includes(j) && j !== d.cell && !bb.doors.some(x => x.cell === j));
+    const moved = away === undefined ? false : stepInto(bb, s2, 1, away).ok;
+    const stayedOnDoor = s2.red === d.cell;
+    /* 이제 문은 닫혀 있다. 그래도 빨강은 밖으로 ★나올 수 있어야 한다. */
+    const out = neighborsOf(d.cell, bb.w, bb.h).find(j => !bb.walls.includes(j) && j !== s2.blue && !bb.doors.some(x => x.cell === j));
+    s2.turn = 0;
+    const couldLeave = out === undefined ? false : stepInto(bb, s2, 0, out).ok;
+    return { moved, stayedOnDoor, couldLeave };
+  },
+  passProbe: b => {
+    const bb = copy(b);
+    const s2 = freshState(bb);
+    const t0 = s2.turn, m0 = movesOf(s2);
+    passTurn(s2);
+    return { turnChanged: s2.turn !== t0, movesBefore: m0, movesAfter: movesOf(s2) };
+  },
+  invalidProbe: b => {
+    const bb = copy(b);
+    const s2 = freshState(bb);
+    const before = movesOf(s2);
+    const wallCell = bb.walls.length ? bb.walls.find(c => neighborsOf(bb.red, bb.w, bb.h).includes(c)) : undefined;
+    const wallRejected = wallCell === undefined ? true : !stepInto(bb, s2, 0, wallCell).ok;
+    const diag = bb.red + bb.w + 1;
+    const diagRejected = !stepInto(bb, s2, 0, diag).ok;
+    /* 닫힌 문 — 스위치에 아무도 없는 상태에서 문 칸 옆에 말을 놓고 들어가 본다 */
+    const d = bb.doors[0];
+    const near = neighborsOf(d.cell, bb.w, bb.h).find(j => !bb.walls.includes(j) && j !== d.sw && !bb.doors.some(x => x.cell === j));
+    const s3 = { red: near === undefined ? bb.red : near, blue: bb.blue, turn: 0, passes: 0, undos: 0, log: [] };
+    const closedDoorRejected = (near === undefined || s3.blue === d.sw) ? true : !stepInto(bb, s3, 0, d.cell).ok;
+    /* 동료가 선 칸 */
+    const s4 = freshState(bb);
+    const mateCell = neighborsOf(bb.red, bb.w, bb.h).includes(bb.blue) ? bb.blue : null;
+    let mateRejected = true;
+    if (mateCell === null){
+      /* 처음 자리가 붙어 있지 않으면 억지로 붙여 본다 */
+      const near2 = neighborsOf(bb.red, bb.w, bb.h).find(j => !bb.walls.includes(j) && !bb.doors.some(x => x.cell === j));
+      if (near2 !== undefined){ s4.blue = near2; mateRejected = !stepInto(bb, s4, 0, near2).ok; }
+    } else {
+      mateRejected = !stepInto(bb, s4, 0, mateCell).ok;
+    }
+    return { wallRejected, diagRejected, closedDoorRejected, mateRejected, movesUnchanged: movesOf(s2) === before };
+  },
+  undoProbe: b => {
+    const bb = copy(b);
+    const s2 = freshState(bb);
+    const plan = solveMoves(bb) || [];
+    for (const [who, to] of plan.slice(0, 3)){ s2.turn = who; stepInto(bb, s2, who, to); }
+    const before = movesOf(s2);
+    const last = s2.log[s2.log.length - 1];
+    undoMove(s2);
+    const posBack = last ? (last.who === 0 ? s2.red === last.from : s2.blue === last.from) : false;
+    return { before, after: movesOf(s2), posBack };
+  },
+  state: () => ({ key: board.key, red: st.red, blue: st.blue, turn: st.turn, moves: movesOf(st), undos: st.undos, over, started }),
+  result: () => copy(lastResult),
+  lang: () => lang,
+};
+})();
+</script>
+
+<section class="read" id="read">
+<div class="read-ko"><h2>서로의 길을 열어 주어야 나갈 수 있습니다</h2><p>한 기기를 둘이 나눠 씁니다. 한 사람은 동그라미를, 다른 한 사람은 세모를 맡습니다. 자기 차례에 자기 말만 한 칸 움직입니다. 여기까지는 흔한 규칙인데, 판 위에 놓인 문 하나가 이 게임을 협동으로 바꿉니다. 문은 누군가 스위치 칸에 서 있는 동안에만 들어갈 수 있습니다.</p><h3>내가 멈춰 서야 동료가 지나갑니다</h3><p>스위치는 밟아 두는 것이 아니라 서 있는 것입니다. 내가 그 칸을 떠나는 순간 문은 다시 닫힙니다. 그래서 먼저 가고 싶은 마음을 참고 자리를 지켜 주는 일이 생깁니다. 두 사람이 동시에 앞으로 나아갈 수 없는 구간이 반드시 생기고, 그 구간에서 순서를 정하는 대화가 이 게임의 알맹이입니다.</p><h3>문 위에 서 있는 말은 갇히지 않습니다</h3><p>동료가 스위치에서 내려와 문이 닫혔을 때, 마침 그 문 칸에 서 있었다면 어떻게 될까요. 아무 일도 일어나지 않습니다. 이미 그 칸에 있는 말은 쫓겨나지도 갇히지도 않고 다음 칸으로 걸어 나갈 수 있습니다. 들어갈 때만 문이 필요하고 나올 때는 필요하지 않다는 뜻입니다.</p><h3>먼저 나간 사람이 동료를 가두지 않도록</h3><p>협동 퍼즐에서 가장 허무한 순간은 한 사람이 먼저 도착해 버려서 남은 사람이 영영 못 나가는 상황입니다. 그래서 출구를 드나들 수 있는 보통 칸으로 두었고, 둘이 동시에 각자의 출구에 서는 순간에만 판이 끝나도록 했습니다. 그리고 오늘의 판을 만들 때 되돌릴 수 없는 자리가 하나라도 생기면 그 판은 버립니다.</p><h3>한 사람만 움직여서는 끝나지 않습니다</h3><p>오늘의 판은 날짜만으로 정해지고 하루 경계는 한국 시각을 따릅니다. 판을 낼 때 한쪽 말만 움직여서 풀리는지 먼저 확인하고, 그렇게 풀리는 판은 내보내지 않습니다. 둘이 함께여야 한다는 말이 문구가 아니라 조건이라는 뜻입니다. 결과에는 둘이 합쳐 몇 수를 썼는지와 최소보다 몇 수를 더 썼는지, 되돌리기를 몇 번 했는지가 담깁니다.</p></div>
+<!-- /read-ko -->
+<div class="read-en"><h2>Neither of you gets out without the other</h2><p>Two people share one screen. One takes the circle, the other takes the triangle, and on your turn you move only your own piece one square. That much is ordinary. What makes this a cooperative puzzle is the door: it can only be entered while somebody is standing on the switch square.</p><h3>You have to stop so your partner can pass</h3><p>A switch is not something you press and leave; it is something you stand on. The moment you step off, the door shuts again. So there will be a stretch where one of you has to resist moving forward and hold position instead. Every board contains a section the two of you cannot cross at the same time, and agreeing on the order in that section is the whole game.</p><h3>A piece standing on a door is never trapped</h3><p>What happens if your partner steps off the switch while you are standing in the doorway? Nothing at all. A piece already on that square is neither ejected nor locked in place, and it can walk onward normally. The door matters when you enter it, not when you leave.</p><h3>Nobody gets stranded by a partner who finished first</h3><p>The bleakest moment in a co-op puzzle is one player arriving early and leaving the other permanently stuck. So exits here are ordinary squares you can step into and out of, and the board only ends at the instant both pieces occupy their own exits together. On top of that, any daily board containing even one unrecoverable position is discarded before it is published.</p><h3>One player moving alone will never finish it</h3><p>The daily board is fixed by the date, with the day boundary following Korean time. Before a board is published it is tested to see whether moving just one piece could solve it, and any board that can is thrown away. So "you need each other" is a condition here, not a slogan. Your result records the moves the two of you spent together, how many more that is than the fewest, and how often you undid a move.</p></div>
+<!-- /read-en -->
+</section>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

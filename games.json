@@ -894,5 +894,34 @@
       "puzzle",
       "daily"
     ]
+  },
+  {
+    "id": "talchul",
+    "path": "/talchul/",
+    "title": {
+      "ko": "함께 탈출",
+      "en": "Escape Together"
+    },
+    "desc": {
+      "ko": "둘이 한 기기로 서로의 문을 열어 주며 나가는 협동 퍼즐 — 내가 스위치에 서 있어야 동료의 길이 열린다",
+      "en": "A two-player co-op puzzle on one screen: your partner’s door only opens while you stand on the switch"
+    },
+    "thumb": "/talchul/thumb.webp",
+    "playtime": {
+      "ko": "한 판 2~4분",
+      "en": "2-4 min a round"
+    },
+    "maxMinutes": 4,
+    "daily": true,
+    "solo": false,
+    "category": "two-player",
+    "released": "2026-09-16",
+    "tags": [
+      "2인용",
+      "협동",
+      "퍼즐",
+      "two-player",
+      "daily"
+    ]
   }
 ]
