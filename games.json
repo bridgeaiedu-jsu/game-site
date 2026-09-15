@@ -923,5 +923,33 @@
       "two-player",
       "daily"
     ]
+  },
+  {
+    "id": "gyuchik",
+    "path": "/gyuchik/",
+    "title": {
+      "ko": "규칙 찾기",
+      "en": "Find the Rule"
+    },
+    "desc": {
+      "ko": "예시 세 칸에서 숨은 규칙을 찾아 네 번째 칸을 고르는 추론 퀴즈 — 시간을 재지 않고 다섯 문제를 푼다",
+      "en": "Spot the hidden rule in three panels and pick the fourth — five questions, no timer"
+    },
+    "thumb": "/gyuchik/thumb.webp",
+    "playtime": {
+      "ko": "한 판 1~2분",
+      "en": "1-2 min a round"
+    },
+    "maxMinutes": 2,
+    "daily": true,
+    "category": "puzzle",
+    "released": "2026-09-16",
+    "tags": [
+      "추론",
+      "퀴즈",
+      "패턴",
+      "puzzle",
+      "daily"
+    ]
   }
 ]
