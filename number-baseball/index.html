@@ -270,7 +270,7 @@
   <details><summary data-i18n="faq2q">답에 같은 숫자가 들어갈 수 있나요?</summary><p data-i18n="faq2a">아니요. 답의 네 숫자는 모두 서로 다릅니다. 대신 첫 자리가 0 일 수는 있습니다. 제출하는 숫자도 네 개가 서로 달라야 하며, 겹치면 제출 전에 막고 이유를 알려 줍니다.</p></details>
   <details><summary data-i18n="faq3q">오늘의 도전은 모두 같은 답인가요?</summary><p data-i18n="faq3a">같습니다. 답은 날짜에서만 뽑고 시계는 섞지 않으므로, 같은 날(한국 시간 기준)에 열면 누구나 같은 답을 풉니다. 판을 시작할 때 답을 한 번 정하고 그 뒤에는 어떤 행동도 답을 바꾸지 않습니다.</p></details>
   <details><summary data-i18n="faq4q">오프라인에서도 되나요?</summary><p data-i18n="faq4a">한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.</p></details>
-  <details><summary data-i18n="faq5q">기록은 어디에 저장되나요?</summary><p data-i18n="faq5a">사용 중인 기기의 브라우저에만 저장됩니다. 최고 기록·오늘의 도전 결과·연속 기록·소리 설정 네 가지가 이 기기에 남고, 서버로는 판수를 세는 신호만 보냅니다(누가 했는지는 보내지 않습니다). 자세한 내용은 <a href="/privacy/">개인정보처리방침</a>에 적어 두었습니다.</p></details>
+  <details><summary data-i18n="faq5q">기록은 어디에 저장되나요?</summary><p data-i18n="faq5a">사용 중인 기기의 브라우저에만 저장됩니다. 최고 기록·오늘의 도전 결과·연속 기록·소리 설정 네 가지가 이 기기에 남고, 서버로는 판수를 세는 신호만 보냅니다(누가 했는지는 보내지 않습니다). 자세한 내용은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 적어 두었습니다.</p></details>
 </section>
 
 <section class="read" id="read">
@@ -281,7 +281,7 @@
 </section>
 <footer>
   <span data-i18n="footer">© 2026 숫자야구 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
-  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+  <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/terms/" data-i18n="navTerms">이용약관</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
 </footer>
 
 <script>
@@ -343,7 +343,7 @@ const I18N = {
     srLose:ans => `열 번을 다 썼습니다. 정답은 ${ans} 입니다.`,
     srGo:'판이 시작됐습니다. 네 자리를 넣고 제출하세요.',
     howTitle:'게임 방법', dailyTitle:'오늘의 도전', tipsTitle:'잘 맞히는 요령', faqTitle:'자주 묻는 질문',
-    navPrivacy:'개인정보처리방침', navAbout:'소개',
+    navPrivacy:'개인정보처리방침', navTerms:'이용약관', navAbout:'소개',
     footer:'© 2026 숫자야구 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
     how1:'숫자야구는 0부터 9까지 가운데 서로 다른 숫자 네 개로 이루어진 답 하나를 열 번 안에 알아맞히는 추리 놀이입니다. 답에 같은 숫자가 두 번 들어가는 일은 없고, 첫 자리가 0일 수도 있습니다. 예를 들어 0439 나 7102 는 답이 될 수 있지만 1123 처럼 같은 숫자가 겹친 것은 답이 되지 않습니다.',
     how2:'한 번 제출할 때마다 세 가지로 알려 줍니다. 자리와 숫자가 모두 맞은 개수는 스트라이크이고, 숫자는 답에 있지만 자리가 다른 개수는 볼이며, 네 숫자가 하나도 답에 없으면 아웃입니다. 예를 들어 답이 0123 이고 0132 를 넣으면 0 과 1 은 자리까지 맞아 2스트라이크, 3 과 2 는 자리만 달라 2볼이 되어 2스트라이크 2볼로 나옵니다.',
@@ -365,7 +365,7 @@ const I18N = {
     faq3a:'같습니다. 답은 날짜에서만 뽑고 시계는 섞지 않으므로, 같은 날(한국 시간 기준)에 열면 누구나 같은 답을 풉니다. 판을 시작할 때 답을 한 번 정하고 그 뒤에는 어떤 행동도 답을 바꾸지 않습니다.',
     faq4q:'오프라인에서도 되나요?', faq4a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
     faq5q:'기록은 어디에 저장되나요?',
-    faq5a:'사용 중인 기기의 브라우저에만 저장됩니다. 최고 기록·오늘의 도전 결과·연속 기록·소리 설정 네 가지가 이 기기에 남고, 서버로는 판수를 세는 신호만 보냅니다(누가 했는지는 보내지 않습니다). 자세한 내용은 <a href="/privacy/">개인정보처리방침</a>에 적어 두었습니다.'
+    faq5a:'사용 중인 기기의 브라우저에만 저장됩니다. 최고 기록·오늘의 도전 결과·연속 기록·소리 설정 네 가지가 이 기기에 남고, 서버로는 판수를 세는 신호만 보냅니다(누가 했는지는 보내지 않습니다). 자세한 내용은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 적어 두었습니다.'
   },
   en: {
     docTitle:'Number Baseball — guess four distinct digits in ten tries | 숫자야구',
@@ -408,7 +408,7 @@ const I18N = {
     srLose:ans => `All ten tries used. The answer was ${ans}.`,
     srGo:'Round started. Fill four digits and submit.',
     howTitle:'How to play', dailyTitle:'Daily challenge', tipsTitle:'Tips', faqTitle:'FAQ',
-    navPrivacy:'Privacy', navAbout:'About',
+    navPrivacy:'Privacy', navTerms:'Terms', navAbout:'About',
     footer:'© 2026 Number Baseball · Privacy: records stay on your device; Google and other third-party cookies may be used to serve ads.',
     how1:'Number Baseball asks you to find one hidden number made of four distinct digits from 0 to 9 within ten tries. No digit repeats in the answer, and the first digit may be 0 — so 0439 and 7102 are possible answers while 1123 is not.',
     how2:'Every guess comes back in three terms. A strike is a digit that is correct and in the correct slot, a ball is a digit that is in the answer but in another slot, and an out means none of your four digits appear at all. If the answer is 0123 and you guess 0132, then 0 and 1 are strikes and 3 and 2 are balls, so the row reads two strikes and two balls.',
@@ -430,7 +430,7 @@ const I18N = {
     faq3a:'Yes. The answer is drawn from the date alone with no clock mixed in, so opening it on the same day (Korean time) gives everyone the same answer. The answer is drawn once when the round starts and nothing you do afterwards changes it.',
     faq4q:'Does it work offline?', faq4a:'After the first load you can play without an internet connection.',
     faq5q:'Where are my records stored?',
-    faq5a:'Only in the browser on the device you are using. Four things stay on this device — your best score, the daily result, the streak and the sound setting — and the only thing sent to the server is a play count signal that does not say who played. Details are in the <a href="/privacy/">privacy policy</a>.'
+    faq5a:'Only in the browser on the device you are using. Four things stay on this device — your best score, the daily result, the streak and the sound setting — and the only thing sent to the server is a play count signal that does not say who played. Details are in the <a href="/privacy/">privacy policy</a> · <a href="/terms/">Terms of Service</a>.'
   }
 };
 let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');

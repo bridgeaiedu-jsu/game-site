@@ -264,7 +264,7 @@
 
 <footer>
   © 2026 초성 맞히기 · <span data-i18n="privacyNote">이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
-  <br><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/about/" data-i18n="navAbout">소개</a>
+  <br><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/terms/" data-i18n="navTerms">이용약관</a> · <a href="/about/" data-i18n="navAbout">소개</a>
 </footer>
 <script>
 /* ======================= 계약 상수 =======================
@@ -436,7 +436,7 @@ const I18N = {
         faq3q:'오프라인에서도 되나요?',
         faq3a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
         privacyNote:'이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
-        navPrivacy:'개인정보처리방침', navAbout:'소개' },
+        navPrivacy:'개인정보처리방침', navTerms:'이용약관', navAbout:'소개' },
   en: { title:'Korean Initials Quiz', slogan:'More than one answer', home:'🏠 More games',
         mDaily:'Daily 10', mSpeed:'60-second sprint', mFree:'Practice',
         qLbl:'Puzzle', scoreLbl:'Score', leftLbl:'Answers left', timeLbl:'Time',
@@ -455,7 +455,7 @@ const I18N = {
         faq3q:'Does it work offline?',
         faq3a:'Once the page has loaded, you can keep playing without an internet connection.',
         privacyNote:'This game stores your results on your device only. Third-party cookies, including those from Google, may be used to serve ads.',
-        navPrivacy:'Privacy policy', navAbout:'About' }
+        navPrivacy:'Privacy policy', navTerms:'Terms', navAbout:'About' }
 };
 let lang = localStorage.getItem('bp.lang') || ((navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en');
 if (lang !== 'ko' && lang !== 'en') lang = 'en';
