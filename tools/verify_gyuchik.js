@@ -23,13 +23,16 @@
  *   ★⑨ 힌트는 ★규칙군만 알려 주고 정답 보기를 가리키지 않는다
  *   ★⑩ 틀려도 판이 끝나지 않는다 · 한 문제에 제출은 ★한 번이다
  *   ★⑪ 해설이 모든 문제에 있고 ★정답 자체를 적지 않는다
+ *   ★⑫ 화면이 문제 데이터 그대로 그린다 — 칸 수 = SLOTS · 채운 칸 = count · 표식 자리 = pos,
+ *       이동 해설의 칸 수가 예시에서 따로 잰 이동 거리와 같다(2026-09-23: 5칸 문제를 4칸으로 그렸다)
  *
  * ★못 보는 것(정직 고지): "사람이 보기에 그럴듯한가", 검수자가 다른 합리적 답을 찾아내는가는
  *   재지 못한다. 그것은 보고서가 말한 사람 검수의 몫이다.
  *
  * 문제 표기(제품과 공유하는 약속)
- *   한 칸(panel)은 { count, pos, shape } 다 — count 는 왼쪽부터 채운 칸 수(1~4),
- *   pos 는 표식이 놓인 자리(0~3), shape 는 모양 번호(0~2).
+ *   한 칸(panel)은 { count, pos, shape } 다 — count 는 왼쪽부터 채운 칸 수(1~SLOTS),
+ *   pos 는 표식이 놓인 자리(0~SLOTS-1), shape 는 모양 번호(0~2). SLOTS=5.
+ *   (9/23 까지 이 주석은 1~4·0~3 이라 적혀 있었고, 제품도 화면을 4칸만 그렸다 — ⑫가 그 자리다)
  *   문제는 panels[0..2] 를 보여 주고 panels[3] 을 맞히는 것이다.
  *
  * 사용법: node tools/verify_gyuchik.js [--html <경로>] [--selftest] [--list-mutations]
@@ -418,10 +421,36 @@ function run(htmlPath){
     }
   }
   ok('모든 문제에 해설이 있고 정답 칸을 그대로 적지 않는다', exBad.length === 0, exBad.slice(0, 3).join(', '));
+
+  /* ⑫ 그림 = 데이터 */
+  if (typeof A.panelProbe !== 'function') { indet('관측 창구 window.__gyuchik.panelProbe 가 없다'); return; }
+  const drawBad = [];
+  let drawn = 0;
+  for (let i = 0; i < rounds.length; i++){
+    for (let k = 0; k < rounds[i].items.length; k++){
+      const q = rounds[i].items[k];
+      for (const p of q.examples.concat(q.options)){
+        drawn++;
+        const g = A.panelProbe(p);
+        if (g.slots !== SLOTS || g.filled !== p.count || g.mark !== p.pos)
+          drawBad.push(`${days[i]}#${k + 1} 데이터 ${p.count}/${p.pos} → 그림 ${g.slots}칸·채움 ${g.filled}·표식 ${g.mark}`);
+      }
+      if (q.fam === 'move'){
+        const d = (q.examples[1].pos - q.examples[0].pos + SLOTS) % SLOTS;
+        if (!A.explainOf(q, 'ko').includes(`${d}칸`)) drawBad.push(`${days[i]}#${k + 1} 이동 해설이 ${d}칸이 아니다`);
+      }
+    }
+  }
+  ok('화면이 문제 데이터 그대로 그린다(칸 수·채운 칸·표식 자리·이동 해설)', drawBad.length === 0,
+     drawBad.length ? drawBad.slice(0, 3).join(', ') : `패널 ${drawn}개`);
 }
 
 /* ───────── 자기시험 ───────── */
 const MUTATIONS = [
+  { name: 'draw-4-slots', why: '칸을 4개만 그린다(9/23 실제 결함)', catches: '화면이 문제 데이터 그대로 그린다(칸 수·채운 칸·표식 자리·이동 해설)',
+    apply: s => s.replace('for (let s = 0; s < SLOTS; s++){', 'for (let s = 0; s < 4; s++){') },
+  { name: 'explain-mod-4', why: '이동 해설을 4칸 기준으로 센다(9/23 실제 결함)', catches: '화면이 문제 데이터 그대로 그린다(칸 수·채운 칸·표식 자리·이동 해설)',
+    apply: s => s.replace('(q.examples[1].pos - q.examples[0].pos + SLOTS) % SLOTS', '(q.examples[1].pos - q.examples[0].pos + 4) % 4') },
   { name: 'answer-off', why: '정답을 한 칸 옆 보기로 돌린다', catches: '제품이 말하는 정답이 내가 따로 이어 본 다음 칸과 같다',
     apply: s => s.replace('answer: options.indexOf(right),', 'answer: (options.indexOf(right) + 1) % 4,') },
   { name: 'rng-in-round', why: '판을 짜는 자리에서 난수를 당긴다', catches: '판을 짜는 데 난수를 당기지 않는다',

@@ -80,12 +80,14 @@
   .ad-top{height:50px}          /* 320×50 모바일 배너 자리 (데스크톱은 728×90 반응형) */
   .ad-rect{width:300px;height:250px;margin:10px auto}  /* 300×250 결과 화면 자리 */
   .ad-slot.live{border:0;background:transparent;height:auto;min-height:50px}
-  /* 예시 줄 — 칸 셋과 물음표 칸 하나 */
+  /* 예시 줄 — 칸 셋과 물음표 칸 하나.
+     ★칸 5개 폭: 18×5 + 2×4 + 여백 14 = 112px — 360px 화면의 두 줄 보기(.opts) 안에 들어가는 폭이다.
+       20px·3px 로 두면 126px 이 되어 보기 칸을 넘친다. 물음표 칸(.ask)도 같은 폭으로 맞춘다. */
   .strip{display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap;margin:8px 0}
-  .panel{display:flex;gap:3px;padding:6px;background:var(--card);border:1px solid var(--line);border-radius:10px}
-  .panel.ask{border-style:dashed;border-color:var(--sig);min-width:104px;justify-content:center;align-items:center;
+  .panel{display:flex;gap:2px;padding:6px;background:var(--card);border:1px solid var(--line);border-radius:10px}
+  .panel.ask{border-style:dashed;border-color:var(--sig);min-width:112px;justify-content:center;align-items:center;
              font-weight:800;color:var(--sig-ink);font-size:1.3rem}
-  .slot{width:20px;height:24px;background:var(--slot);border:1px solid var(--slot-line);border-radius:5px;
+  .slot{width:18px;height:24px;background:var(--slot);border:1px solid var(--slot-line);border-radius:5px;
         display:flex;align-items:center;justify-content:center;font-size:.85rem;line-height:1}
   .slot.mark{border-width:3px;border-color:var(--sig)}
   .arrow{color:var(--muted);font-size:1.1rem}
@@ -355,7 +357,7 @@ function roundFor(key){
 
 /* ── 해설 ── */
 function explainOf(q, lg){
-  const d = q.fam === 'move' ? ((q.examples[1].pos - q.examples[0].pos + 4) % 4)
+  const d = q.fam === 'move' ? ((q.examples[1].pos - q.examples[0].pos + SLOTS) % SLOTS)
           : q.fam === 'grow' ? (q.examples[1].count - q.examples[0].count) : 0;
   /* ★이름을 EXPLAIN_ 으로 시작하게 둔다 — 'KO'/'EN' 으로 시작하면 i18n 게이트가
      이것을 언어 사전으로 잘못 집는다(먼저 나온 것을 사전으로 본다 · 실측). */
@@ -490,7 +492,9 @@ function newRound(key){
 function panelEl(p, showMark){
   const el = document.createElement('div');
   el.className = 'panel';
-  for (let s = 0; s < 4; s++){
+  /* ★칸 수는 SLOTS 하나에서 — 4 로 박혀 있어 다섯째 칸이 안 그려졌다(2026-09-23 발견:
+     730일 중 다섯째 칸에 표식이 있는 칸 5,155개 · 개수 5인 칸 4,491개가 화면에서 사라졌다). */
+  for (let s = 0; s < SLOTS; s++){
     const c = document.createElement('div');
     c.className = 'slot' + (showMark && s === p.pos ? ' mark' : '');
     c.textContent = s < p.count ? SHAPES[p.shape] : '';
@@ -637,6 +641,12 @@ window.__gyuchik = {
   roundFor: k => copy(roundFor(String(k))),
   roundSrc: () => String(roundFor) + String(itemFrom) + String(examplesOf),
   explainOf: (q, lg) => explainOf(copy(q), lg || 'ko'),
+  /* 화면에 ★실제로 그린 칸 — 문제 데이터와 그림이 어긋나는지(9/23: 5칸 문제를 4칸으로 그렸다) 재는 창구 */
+  panelProbe: p => {
+    const el = panelEl(copy(p), true), cs = [...el.children];
+    return { slots: cs.length, filled: cs.filter(c => c.textContent !== '').length,
+             mark: cs.findIndex(c => String(c.className).split(' ').includes('mark')) };
+  },
   /* 점수는 맞힌 개수뿐이다 — 감점도 시간 가산도 없다 */
   scoreProbe: r => {
     const rr = copy(r);
