@@ -114,6 +114,12 @@
   .nums{display:flex;gap:14px;flex-wrap:wrap;margin:.4em 0}
   .nums b{font-size:1.15rem;font-variant-numeric:tabular-nums;display:block}
   .nums span{font-size:.78rem;color:var(--muted)}
+  /* ---- 안내 본문(게임 방법·오늘의 판·요령·FAQ) — 다른 게임 페이지의 section.content 와 같은 꼴 ---- */
+  section.content{max-width:560px;margin:0 auto;padding:8px 14px 28px;box-sizing:border-box;color:var(--muted);font-size:.88rem;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
+  section.content h2{color:var(--fg);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--card)}
+  section.content summary{cursor:pointer;color:var(--fg);font-weight:600}
+  section.content a{color:var(--sig-ink)}
 </style>
 </head>
 <body>
@@ -371,7 +377,31 @@ function boardFor(key){
 
 /* ── 문안 ── */
 const I18N = {
-  ko: { title:'함께 탈출', subtitle:'둘이 한 기기로 — 내가 서 있어야 동료의 문이 열립니다',
+  ko: {
+        howTitle:'게임 방법',
+        how1:'두 사람이 한 기기를 나눠 씁니다. 한 사람은 빨강 동그라미(●)를, 다른 사람은 파랑 세모(▲)를 맡고, 판 위에는 각자의 출구가 같은 기호로 표시되어 있습니다. 빨강이 먼저 시작하고, 말을 한 칸 움직이면 차례가 자동으로 상대에게 넘어갑니다. 차례인 말 옆 칸을 누르거나 방향키를 누르면 그 말이 위·아래·왼쪽·오른쪽으로 한 칸 갑니다.',
+        how2:'벽 칸과 동료가 서 있는 칸에는 들어갈 수 없습니다. 자물쇠(🔒)가 붙은 보라색 문 칸은 누군가 그 문과 짝인 스위치(⊙) 칸에 서 있는 동안에만 열려(🔓) 들어갈 수 있습니다. 이미 문 칸에 서 있는 말은 문이 다시 닫혀도 쫓겨나지 않고 걸어 나올 수 있습니다. 출구도 드나들 수 있는 보통 칸이라, 두 말이 동시에 각자의 출구에 서는 순간에만 판이 끝납니다.',
+        how3:'움직일 필요가 없는 쪽은 「차례 넘기기」로 차례만 넘길 수 있고, 넘기기는 수에 들어가지 않습니다. 「↩ 한 수 되돌리기」는 마지막 한 수를 물리고 그 수를 둔 말에게 차례를 돌려줍니다. 「처음부터」는 두 말을 시작 자리로 돌리지만 되돌리기 횟수는 이어서 셉니다. 화면 위에는 최소 수와 둘이 쓴 수, 되돌리기 수가 나옵니다.',
+        dailyTitle:'오늘의 탈출',
+        dailyDesc:'판은 날짜 하나로 정해집니다. 같은 날에는 누가 언제 열어도 벽과 문, 스위치, 두 말과 출구의 자리가 모두 같고, 하루는 한국 시각 자정에 바뀝니다. 같은 판을 몇 번이든 다시 할 수 있고, 끝나면 최소·둘이 쓴 수·추가·되돌리기 네 숫자가 나옵니다. 결과 공유는 판 번호와 둘이 쓴 수, 최소 대비 추가 수, 되돌리기 수만 한 줄로 복사하므로 다른 두 사람과 같은 판을 두고 견줄 수 있습니다.',
+        makeTitle:'판은 어떻게 만들어지나요',
+        makeDesc:'5×5 판에 벽 3~6개와 문·스위치 짝 1~2개, 두 말과 두 출구를 무작위로 놓은 뒤 세 가지를 검사합니다. 첫째, 풀리는가. 두 말이 만들 수 있는 모든 배치를 너비우선으로 훑어 최소 수를 구하고, 그 값이 10수에서 26수 사이인 판만 남깁니다. 둘째, 문이 꼭 필요한가. 문을 모두 벽으로 막아도 풀리는 판은 버립니다. 셋째, 갇히는 자리가 없는가. 닿을 수 있는 어느 배치에서도 둘 다 나가는 길이 남아 있어야 합니다. 셋을 모두 통과한 판만 오늘의 탈출이 됩니다. 최소 수는 넘기기를 세지 않으므로 한 말이 연달아 움직여도 되는 것으로 계산합니다.',
+        tipsTitle:'요령',
+        tip1q:'누가 스위치를 지킬지 먼저 정하세요',
+        tip1a:'스위치에서 내려오는 순간 문은 닫힙니다. 한 사람이 스위치에 서 있는 동안 다른 사람이 문을 지나야 하므로, 시작하기 전에 누가 먼저 스위치로 가고 누가 문을 지날지 말로 정해 두면 헛걸음이 줄어듭니다.',
+        tip2q:'넘기기는 공짜입니다',
+        tip2a:'차례 넘기기는 수에 들어가지 않고, 최소 수도 넘기기를 세지 않고 계산합니다. 한 말이 여러 칸을 연달아 가야 할 때는 상대가 차례를 넘겨 주면 됩니다. 차례를 채우려고 말을 괜히 한 칸 움직이면 그만큼 수가 늘어납니다.',
+        tip3q:'문 칸에서 기다려도 됩니다',
+        tip3a:'문 칸에 들어선 말은 스위치가 풀려도 그 자리에 머물 수 있습니다. 문을 지나는 중이라면 스위치를 지키던 동료가 먼저 자리를 떠나 자기 길을 가도 괜찮습니다.',
+        faqTitle:'자주 묻는 질문',
+        faq1q:'혼자서도 할 수 있나요?',
+        faq1a:'한 사람이 두 말을 번갈아 움직여도 판은 똑같이 진행됩니다. 다만 이 게임은 누가 기다리고 누가 지나갈지를 둘이 정하는 데 재미가 있도록 만들었습니다.',
+        faq2q:'한 사람이 먼저 출구에 도착하면요?',
+        faq2a:'아무 일도 일어나지 않습니다. 출구는 드나들 수 있는 칸이라 필요하면 다시 나와 동료를 도울 수 있고, 두 말이 동시에 각자의 출구에 서야 끝납니다. 판을 만들 때 갇히는 자리가 없도록 걸렀으므로 어느 상태에서든 끝낼 길이 남아 있습니다.',
+        faq3q:'최소 수보다 적게 끝낼 수 있나요?',
+        faq3a:'아니요. 최소 수는 두 말이 만들 수 있는 모든 배치를 훑어 구한 값이라 그보다 적은 완주는 없습니다. 최소와 같은 수로 끝내면 「최소 수로 함께 나왔습니다」라는 말이 나옵니다.',
+        faq4q:'기록은 어디에 저장되나요?',
+        faq4a:'사용 중인 기기의 브라우저에 언어 설정과, 끝낸 판의 날짜·둘이 쓴 수·최소·되돌리기 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 판을 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.', title:'함께 탈출', subtitle:'둘이 한 기기로 — 내가 서 있어야 동료의 문이 열립니다',
         home:'🏠 다른 게임', dayLbl:'오늘의 탈출', minLbl:'최소', mineLbl:'둘이', undoLbl:'되돌리기',
         moveUnit:'수', moveUnit2:'수', pass:'차례 넘기기', undo:'↩ 한 수 되돌리기', reset:'처음부터',
         redName:'빨강', blueName:'파랑', yourTurn:'지금 차례', waiting:'기다리는 중',
@@ -387,7 +417,31 @@ const I18N = {
         srPass:(who)=>`차례를 넘겼습니다. 이제 ${who === 0 ? '빨강' : '파랑'} 차례입니다.`,
         srDone:(m,e)=>`함께 탈출. ${m}수, 최소보다 ${e}수 더.`,
         shareText:(no,m,e,u)=>`🚪 함께 탈출 #${no} 둘이 ${m}수 · 최소 +${e} · 되돌리기 ${u}\n` },
-  en: { title:'Escape Together', subtitle:'Two players, one screen — your partner’s door only opens while you stand on the switch',
+  en: {
+        howTitle:'How to play',
+        how1:'Two people share one device. One takes the red circle (●) and the other the blue triangle (▲), and each has an exit on the board marked with the same symbol. Red goes first, and moving a piece one square hands the turn to the other player automatically. Tap a square next to the piece whose turn it is, or press an arrow key, and that piece moves one square up, down, left or right.',
+        how2:'You cannot enter a wall or the square your partner is standing on. A purple door marked with a padlock (🔒) opens (🔓) only while someone stands on its paired switch (⊙), and only then can it be entered. A piece already standing in a doorway is not pushed out when the door closes again and can walk on. Exits are ordinary squares you can step on and off, so the board ends only at the moment both pieces stand on their own exits together.',
+        how3:'A player who has no need to move can press Pass the turn, and passing never counts as a move. ↩ Undo one move takes back the last move and returns the turn to the piece that made it. Restart sends both pieces back to their starting squares, but the undo count carries on. The top of the screen shows the fewest moves, the moves the two of you have used and your undos.',
+        dailyTitle:'The daily escape',
+        dailyDesc:'The board is set by the date alone. On the same day the walls, doors, switches, both pieces and both exits sit in the same places for everyone, whenever they open it, and the day turns over at midnight Korea time. You can replay the same board as often as you like, and at the end you see four numbers: fewest, moves together, extra and undos. Share copies only the board number, your combined moves, the extra over the fewest and your undos as one line, so another pair can compare on the very same board.',
+        makeTitle:'How the board is built',
+        makeDesc:'Three to six walls, one or two door-and-switch pairs, both pieces and both exits are placed at random on a 5×5 board, and then three checks are made. First, can it be solved? Every position the two pieces can reach is explored breadth-first to find the fewest moves, and only boards needing between 10 and 26 moves are kept. Second, are the doors really needed? A board that can still be solved with every door walled up is thrown away. Third, can anyone get trapped? From every reachable position, a way out for both pieces must still exist. Only a board that passes all three becomes the daily escape. Because passing is not counted, the fewest-moves figure allows one piece to move several times in a row.',
+        tipsTitle:'Tips',
+        tip1q:'Decide who holds the switch',
+        tip1a:'The door closes the instant someone steps off the switch. One person has to stand on it while the other goes through, so agreeing out loud before you start on who heads for the switch and who crosses the door saves wasted moves.',
+        tip2q:'Passing is free',
+        tip2a:'Passing never counts as a move, and the fewest-moves figure is calculated without counting passes either. When one piece needs to travel several squares in a row, the other player can simply pass. Nudging your own piece just to use up a turn adds to your total.',
+        tip3q:'It is fine to wait in a doorway',
+        tip3a:'A piece that has stepped into a doorway can stay there even after the switch is released. So while one of you is passing through, the partner guarding the switch is free to leave and get on with their own route.',
+        faqTitle:'FAQ',
+        faq1q:'Can I play alone?',
+        faq1a:'One person can move both pieces in turn and the board plays exactly the same. The game is designed, though, so that the fun lies in two people deciding who waits and who goes through.',
+        faq2q:'What if one of us reaches an exit first?',
+        faq2a:'Nothing happens. An exit is a square you can step off again, so that piece can come back out to help, and the board ends only when both pieces stand on their own exits at once. Boards are filtered so that no position is a trap, which means a way to finish always remains.',
+        faq3q:'Can we finish in fewer than the fewest moves?',
+        faq3a:'No. The fewest-moves figure comes from exploring every position the two pieces can reach, so no finish can use fewer. Match it exactly and the result tells you that you escaped in the fewest moves.',
+        faq4q:'Where is my record stored?',
+        faq4a:'Your browser on this device keeps your language setting and, for a finished board, its date, your combined moves, the fewest moves and your undos. The server receives visit and games-played tallies, plus which game was started and whether the daily escape was finished, without information that directly identifies you. The items we store and send are kept as an up-to-date list in the <a href="/privacy/">privacy policy</a> · <a href="/terms/">Terms of Service</a>.', title:'Escape Together', subtitle:'Two players, one screen — your partner’s door only opens while you stand on the switch',
         home:'🏠 More games', dayLbl:'Daily escape', minLbl:'fewest', mineLbl:'together', undoLbl:'undos',
         moveUnit:' moves', moveUnit2:' moves', pass:'Pass the turn', undo:'↩ Undo one move', reset:'Restart',
         redName:'Red', blueName:'Blue', yourTurn:'your turn', waiting:'waiting',
@@ -630,10 +684,30 @@ window.__talchul = {
 })();
 </script>
 
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">두 사람이 한 기기를 나눠 씁니다. 한 사람은 빨강 동그라미(●)를, 다른 사람은 파랑 세모(▲)를 맡고, 판 위에는 각자의 출구가 같은 기호로 표시되어 있습니다. 빨강이 먼저 시작하고, 말을 한 칸 움직이면 차례가 자동으로 상대에게 넘어갑니다. 차례인 말 옆 칸을 누르거나 방향키를 누르면 그 말이 위·아래·왼쪽·오른쪽으로 한 칸 갑니다.</p>
+  <p data-i18n="how2">벽 칸과 동료가 서 있는 칸에는 들어갈 수 없습니다. 자물쇠(🔒)가 붙은 보라색 문 칸은 누군가 그 문과 짝인 스위치(⊙) 칸에 서 있는 동안에만 열려(🔓) 들어갈 수 있습니다. 이미 문 칸에 서 있는 말은 문이 다시 닫혀도 쫓겨나지 않고 걸어 나올 수 있습니다. 출구도 드나들 수 있는 보통 칸이라, 두 말이 동시에 각자의 출구에 서는 순간에만 판이 끝납니다.</p>
+  <p data-i18n="how3">움직일 필요가 없는 쪽은 「차례 넘기기」로 차례만 넘길 수 있고, 넘기기는 수에 들어가지 않습니다. 「↩ 한 수 되돌리기」는 마지막 한 수를 물리고 그 수를 둔 말에게 차례를 돌려줍니다. 「처음부터」는 두 말을 시작 자리로 돌리지만 되돌리기 횟수는 이어서 셉니다. 화면 위에는 최소 수와 둘이 쓴 수, 되돌리기 수가 나옵니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 탈출</h2>
+  <p data-i18n="dailyDesc">판은 날짜 하나로 정해집니다. 같은 날에는 누가 언제 열어도 벽과 문, 스위치, 두 말과 출구의 자리가 모두 같고, 하루는 한국 시각 자정에 바뀝니다. 같은 판을 몇 번이든 다시 할 수 있고, 끝나면 최소·둘이 쓴 수·추가·되돌리기 네 숫자가 나옵니다. 결과 공유는 판 번호와 둘이 쓴 수, 최소 대비 추가 수, 되돌리기 수만 한 줄로 복사하므로 다른 두 사람과 같은 판을 두고 견줄 수 있습니다.</p>
+  <h2 data-i18n="makeTitle">판은 어떻게 만들어지나요</h2>
+  <p data-i18n="makeDesc">5×5 판에 벽 3~6개와 문·스위치 짝 1~2개, 두 말과 두 출구를 무작위로 놓은 뒤 세 가지를 검사합니다. 첫째, 풀리는가. 두 말이 만들 수 있는 모든 배치를 너비우선으로 훑어 최소 수를 구하고, 그 값이 10수에서 26수 사이인 판만 남깁니다. 둘째, 문이 꼭 필요한가. 문을 모두 벽으로 막아도 풀리는 판은 버립니다. 셋째, 갇히는 자리가 없는가. 닿을 수 있는 어느 배치에서도 둘 다 나가는 길이 남아 있어야 합니다. 셋을 모두 통과한 판만 오늘의 탈출이 됩니다. 최소 수는 넘기기를 세지 않으므로 한 말이 연달아 움직여도 되는 것으로 계산합니다.</p>
+  <h2 data-i18n="tipsTitle">요령</h2>
+  <details><summary data-i18n="tip1q">누가 스위치를 지킬지 먼저 정하세요</summary><p data-i18n="tip1a">스위치에서 내려오는 순간 문은 닫힙니다. 한 사람이 스위치에 서 있는 동안 다른 사람이 문을 지나야 하므로, 시작하기 전에 누가 먼저 스위치로 가고 누가 문을 지날지 말로 정해 두면 헛걸음이 줄어듭니다.</p></details>
+  <details><summary data-i18n="tip2q">넘기기는 공짜입니다</summary><p data-i18n="tip2a">차례 넘기기는 수에 들어가지 않고, 최소 수도 넘기기를 세지 않고 계산합니다. 한 말이 여러 칸을 연달아 가야 할 때는 상대가 차례를 넘겨 주면 됩니다. 차례를 채우려고 말을 괜히 한 칸 움직이면 그만큼 수가 늘어납니다.</p></details>
+  <details><summary data-i18n="tip3q">문 칸에서 기다려도 됩니다</summary><p data-i18n="tip3a">문 칸에 들어선 말은 스위치가 풀려도 그 자리에 머물 수 있습니다. 문을 지나는 중이라면 스위치를 지키던 동료가 먼저 자리를 떠나 자기 길을 가도 괜찮습니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">혼자서도 할 수 있나요?</summary><p data-i18n="faq1a">한 사람이 두 말을 번갈아 움직여도 판은 똑같이 진행됩니다. 다만 이 게임은 누가 기다리고 누가 지나갈지를 둘이 정하는 데 재미가 있도록 만들었습니다.</p></details>
+  <details><summary data-i18n="faq2q">한 사람이 먼저 출구에 도착하면요?</summary><p data-i18n="faq2a">아무 일도 일어나지 않습니다. 출구는 드나들 수 있는 칸이라 필요하면 다시 나와 동료를 도울 수 있고, 두 말이 동시에 각자의 출구에 서야 끝납니다. 판을 만들 때 갇히는 자리가 없도록 걸렀으므로 어느 상태에서든 끝낼 길이 남아 있습니다.</p></details>
+  <details><summary data-i18n="faq3q">최소 수보다 적게 끝낼 수 있나요?</summary><p data-i18n="faq3a">아니요. 최소 수는 두 말이 만들 수 있는 모든 배치를 훑어 구한 값이라 그보다 적은 완주는 없습니다. 최소와 같은 수로 끝내면 「최소 수로 함께 나왔습니다」라는 말이 나옵니다.</p></details>
+  <details><summary data-i18n="faq4q">기록은 어디에 저장되나요?</summary><p data-i18n="faq4a">사용 중인 기기의 브라우저에 언어 설정과, 끝낸 판의 날짜·둘이 쓴 수·최소·되돌리기 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 판을 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.</p></details>
+</section>
+
 <section class="read" id="read">
-<div class="read-ko"><h2>서로의 길을 열어 주어야 나갈 수 있습니다</h2><p>한 기기를 둘이 나눠 씁니다. 한 사람은 동그라미를, 다른 한 사람은 세모를 맡습니다. 자기 차례에 자기 말만 한 칸 움직입니다. 여기까지는 흔한 규칙인데, 판 위에 놓인 문 하나가 이 게임을 협동으로 바꿉니다. 문은 누군가 스위치 칸에 서 있는 동안에만 들어갈 수 있습니다.</p><h3>내가 멈춰 서야 동료가 지나갑니다</h3><p>스위치는 밟아 두는 것이 아니라 서 있는 것입니다. 내가 그 칸을 떠나는 순간 문은 다시 닫힙니다. 그래서 먼저 가고 싶은 마음을 참고 자리를 지켜 주는 일이 생깁니다. 두 사람이 동시에 앞으로 나아갈 수 없는 구간이 반드시 생기고, 그 구간에서 순서를 정하는 대화가 이 게임의 알맹이입니다.</p><h3>문 위에 서 있는 말은 갇히지 않습니다</h3><p>동료가 스위치에서 내려와 문이 닫혔을 때, 마침 그 문 칸에 서 있었다면 어떻게 될까요. 아무 일도 일어나지 않습니다. 이미 그 칸에 있는 말은 쫓겨나지도 갇히지도 않고 다음 칸으로 걸어 나갈 수 있습니다. 들어갈 때만 문이 필요하고 나올 때는 필요하지 않다는 뜻입니다.</p><h3>먼저 나간 사람이 동료를 가두지 않도록</h3><p>협동 퍼즐에서 가장 허무한 순간은 한 사람이 먼저 도착해 버려서 남은 사람이 영영 못 나가는 상황입니다. 그래서 출구를 드나들 수 있는 보통 칸으로 두었고, 둘이 동시에 각자의 출구에 서는 순간에만 판이 끝나도록 했습니다. 그리고 오늘의 판을 만들 때 되돌릴 수 없는 자리가 하나라도 생기면 그 판은 버립니다.</p><h3>한 사람만 움직여서는 끝나지 않습니다</h3><p>오늘의 판은 날짜만으로 정해지고 하루 경계는 한국 시각을 따릅니다. 판을 낼 때 한쪽 말만 움직여서 풀리는지 먼저 확인하고, 그렇게 풀리는 판은 내보내지 않습니다. 둘이 함께여야 한다는 말이 문구가 아니라 조건이라는 뜻입니다. 결과에는 둘이 합쳐 몇 수를 썼는지와 최소보다 몇 수를 더 썼는지, 되돌리기를 몇 번 했는지가 담깁니다.</p></div>
+<div class="read-ko"><h2>서로의 길을 열어 주어야 나갈 수 있습니다</h2><p>한 기기를 둘이 나눠 씁니다. 한 사람은 동그라미를, 다른 한 사람은 세모를 맡습니다. 자기 차례에 자기 말만 한 칸 움직입니다. 여기까지는 흔한 규칙인데, 판 위에 놓인 문 하나가 이 게임을 협동으로 바꿉니다. 문은 누군가 스위치 칸에 서 있는 동안에만 들어갈 수 있습니다.</p><h3>내가 멈춰 서야 동료가 지나갑니다</h3><p>스위치는 밟아 두는 것이 아니라 서 있는 것입니다. 내가 그 칸을 떠나는 순간 문은 다시 닫힙니다. 그래서 먼저 가고 싶은 마음을 참고 자리를 지켜 주는 일이 생깁니다. 두 사람이 동시에 앞으로 나아갈 수 없는 구간이 반드시 생기고, 그 구간에서 순서를 정하는 대화가 이 게임의 알맹이입니다.</p><h3>문 위에 서 있는 말은 갇히지 않습니다</h3><p>동료가 스위치에서 내려와 문이 닫혔을 때, 마침 그 문 칸에 서 있었다면 어떻게 될까요. 아무 일도 일어나지 않습니다. 이미 그 칸에 있는 말은 쫓겨나지도 갇히지도 않고 다음 칸으로 걸어 나갈 수 있습니다. 들어갈 때만 문이 필요하고 나올 때는 필요하지 않다는 뜻입니다.</p><h3>먼저 나간 사람이 동료를 가두지 않도록</h3><p>협동 퍼즐에서 가장 허무한 순간은 한 사람이 먼저 도착해 버려서 남은 사람이 영영 못 나가는 상황입니다. 그래서 출구를 드나들 수 있는 보통 칸으로 두었고, 둘이 동시에 각자의 출구에 서는 순간에만 판이 끝나도록 했습니다. 그리고 오늘의 판을 만들 때 되돌릴 수 없는 자리가 하나라도 생기면 그 판은 버립니다.</p><h3>한 사람만 움직여서는 끝나지 않습니다</h3><p>오늘의 판은 날짜만으로 정해지고 하루 경계는 한국 시각을 따릅니다. 판을 낼 때 문을 모두 벽으로 막아도 풀리는지 먼저 확인하고, 그렇게 풀리는 판은 내보내지 않습니다. 둘이 함께여야 한다는 말이 문구가 아니라 조건이라는 뜻입니다. 결과에는 둘이 합쳐 몇 수를 썼는지와 최소보다 몇 수를 더 썼는지, 되돌리기를 몇 번 했는지가 담깁니다.</p></div>
 <!-- /read-ko -->
-<div class="read-en"><h2>Neither of you gets out without the other</h2><p>Two people share one screen. One takes the circle, the other takes the triangle, and on your turn you move only your own piece one square. That much is ordinary. What makes this a cooperative puzzle is the door: it can only be entered while somebody is standing on the switch square.</p><h3>You have to stop so your partner can pass</h3><p>A switch is not something you press and leave; it is something you stand on. The moment you step off, the door shuts again. So there will be a stretch where one of you has to resist moving forward and hold position instead. Every board contains a section the two of you cannot cross at the same time, and agreeing on the order in that section is the whole game.</p><h3>A piece standing on a door is never trapped</h3><p>What happens if your partner steps off the switch while you are standing in the doorway? Nothing at all. A piece already on that square is neither ejected nor locked in place, and it can walk onward normally. The door matters when you enter it, not when you leave.</p><h3>Nobody gets stranded by a partner who finished first</h3><p>The bleakest moment in a co-op puzzle is one player arriving early and leaving the other permanently stuck. So exits here are ordinary squares you can step into and out of, and the board only ends at the instant both pieces occupy their own exits together. On top of that, any daily board containing even one unrecoverable position is discarded before it is published.</p><h3>One player moving alone will never finish it</h3><p>The daily board is fixed by the date, with the day boundary following Korean time. Before a board is published it is tested to see whether moving just one piece could solve it, and any board that can is thrown away. So "you need each other" is a condition here, not a slogan. Your result records the moves the two of you spent together, how many more that is than the fewest, and how often you undid a move.</p></div>
+<div class="read-en"><h2>Neither of you gets out without the other</h2><p>Two people share one screen. One takes the circle, the other takes the triangle, and on your turn you move only your own piece one square. That much is ordinary. What makes this a cooperative puzzle is the door: it can only be entered while somebody is standing on the switch square.</p><h3>You have to stop so your partner can pass</h3><p>A switch is not something you press and leave; it is something you stand on. The moment you step off, the door shuts again. So there will be a stretch where one of you has to resist moving forward and hold position instead. Every board contains a section the two of you cannot cross at the same time, and agreeing on the order in that section is the whole game.</p><h3>A piece standing on a door is never trapped</h3><p>What happens if your partner steps off the switch while you are standing in the doorway? Nothing at all. A piece already on that square is neither ejected nor locked in place, and it can walk onward normally. The door matters when you enter it, not when you leave.</p><h3>Nobody gets stranded by a partner who finished first</h3><p>The bleakest moment in a co-op puzzle is one player arriving early and leaving the other permanently stuck. So exits here are ordinary squares you can step into and out of, and the board only ends at the instant both pieces occupy their own exits together. On top of that, any daily board containing even one unrecoverable position is discarded before it is published.</p><h3>One player moving alone will never finish it</h3><p>The daily board is fixed by the date, with the day boundary following Korean time. Before a board is published it is tested with every door walled up, and any board that can still be solved that way is thrown away. So "you need each other" is a condition here, not a slogan. Your result records the moves the two of you spent together, how many more that is than the fewest, and how often you undid a move.</p></div>
 <!-- /read-en -->
 </section>
 

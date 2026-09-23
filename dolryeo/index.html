@@ -105,6 +105,12 @@
   .nums b{font-size:1.15rem;font-variant-numeric:tabular-nums;display:block}
   .nums span{font-size:.78rem;color:var(--muted)}
   .tile svg{transition:none}
+  /* ---- 안내 본문(게임 방법·오늘의 판·요령·FAQ) — 다른 게임 페이지의 section.content 와 같은 꼴 ---- */
+  section.content{max-width:560px;margin:0 auto;padding:8px 14px 28px;box-sizing:border-box;color:var(--muted);font-size:.88rem;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
+  section.content h2{color:var(--fg);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--card)}
+  section.content summary{cursor:pointer;color:var(--fg);font-weight:600}
+  section.content a{color:var(--sig-ink)}
 </style>
 </head>
 <body>
@@ -384,7 +390,31 @@ const turnsOf = st => st.log.length;
 
 /* ── 문안 ── */
 const I18N = {
-  ko: { title:'돌려 맞춰', subtitle:'끊긴 길을 돌려서 잇습니다 — 적게 돌린 사람이 잘한 것입니다',
+  ko: {
+        howTitle:'게임 방법',
+        how1:'판에는 관 조각들이 놓여 있고, 왼쪽 가장자리의 입구로 들어온 길을 오른쪽 가장자리의 출구까지 잇는 것이 목표입니다. 조각을 누를 때마다 시계 방향으로 90도 돌아가고, 그때마다 회전 수가 하나 늘어납니다. 입구에서 실제로 이어진 구간은 굵은 선으로 표시됩니다. 길이 출구까지 닿고, 이어진 조각 어느 것도 판 밖이나 빈 칸, 마주 열리지 않은 이웃 쪽으로 입을 열고 있지 않으면 완성입니다.',
+        how2:'조각은 두 종류입니다. 곧은 조각은 두 번 돌리면 처음 모양으로 돌아와 서로 다른 방향이 둘뿐이고, 굽은 조각은 네 방향이 모두 다릅니다. 오른쪽 위 모서리에 점이 찍힌 조각은 자물쇠 조각으로, 처음부터 맞는 방향으로 고정되어 있어 눌러도 돌지 않고 회전 수도 늘지 않습니다. 빈 칸은 눌러도 아무 일도 일어나지 않습니다.',
+        how3:'「↩ 한 번 되돌리기」는 마지막 회전 하나를 거꾸로 돌려 놓고, 회전 수에서도 그 한 번을 뺍니다. 되돌린 횟수는 따로 세어 결과에 남습니다. 「처음부터」는 판을 처음 배치로 돌리고 회전 수를 0으로 되돌리지만 되돌리기 횟수는 이어서 셉니다. 키보드로는 방향키로 칸을 옮기고 Enter 나 Space 로 돌립니다.',
+        dailyTitle:'오늘의 판',
+        dailyDesc:'판은 날짜 하나로 정해집니다. 같은 날에는 누가 언제 열어도 판 크기와 조각 배치, 자물쇠 조각의 자리까지 같고, 하루는 한국 시각 자정에 바뀝니다. 판 크기는 날마다 3×3 이나 4×4 가운데 하나로 정해져 화면 위에 적힙니다. 같은 판을 몇 번이든 다시 맞출 수 있고, 끝나면 최소·내 회전·추가·되돌리기 네 숫자가 나옵니다. 결과 공유는 판 번호와 크기, 회전 수, 최소 대비 추가 수, 되돌리기 수만 한 줄로 복사하므로 답을 보여 주지 않고도 친구와 견줄 수 있습니다.',
+        makeTitle:'판은 어떻게 만들어지나요',
+        makeDesc:'먼저 왼쪽 가장자리의 한 칸에서 오른쪽 가장자리의 한 칸까지, 같은 칸을 두 번 지나지 않는 길을 깝니다. 길은 네 칸 이상이고 갈림길이 없어서 길 위의 조각은 모두 입이 정확히 둘입니다. 길에 들지 않은 칸은 빈 칸이 됩니다. 돌릴 수 있는 조각이 넷 이상이면 적어도 하나를 맞은 방향으로 잠그고, 자유롭게 도는 조각이 아홉 개를 넘으면 그만큼 더 잠급니다. 나머지 조각을 무작위로 돌려 흩으면 판이 되는데, 이미 맞춰진 채로 나온 판은 버립니다. 최소 회전 수는 자유 조각이 가질 수 있는 방향 조합을 모두 따져 구하므로, 답이 여럿이면 그중 가장 적게 도는 것이 기준입니다.',
+        tipsTitle:'요령',
+        tip1q:'곧은 조각은 한 번이면 됩니다',
+        tip1a:'곧은 조각은 방향이 둘뿐이라 많아야 한 번만 돌리면 되고, 굽은 조각은 원하는 방향까지 최대 세 번이 걸립니다. 그래서 굽은 조각의 방향을 먼저 정하고, 그 방향이 요구하는 대로 곧은 조각을 맞추면 회전 수를 아끼기 쉽습니다.',
+        tip2q:'한 번 더 돌렸다면 되돌리세요',
+        tip2a:'조각은 시계 방향으로만 돕니다. 굽은 조각을 한 번 지나쳐 돌렸다면 세 번을 더 눌러 한 바퀴를 채우는 대신 「↩ 한 번 되돌리기」를 누르세요. 되돌리면 회전 수에서 그 한 번이 빠지니 세 번을 더 쓰는 것보다 결과가 좋습니다. 대신 되돌린 횟수가 결과에 따로 적힙니다.',
+        tip3q:'입구와 출구, 자물쇠 조각에서 시작하세요',
+        tip3a:'입구 칸의 조각은 왼쪽 바깥으로, 출구 칸의 조각은 오른쪽 바깥으로 입을 열어야 합니다. 자물쇠 조각은 판을 만들 때 깔아 둔 길 위에 맞는 방향으로 고정된 조각입니다. 이렇게 방향이 정해진 조각에서 출발해 이웃이 어느 쪽으로 입을 열어야 하는지 하나씩 정해 가면, 가운데의 애매한 조각이 빨리 줄어듭니다.',
+        faqTitle:'자주 묻는 질문',
+        faq1q:'제가 맞춘 모양이 다른데도 완성으로 나왔어요',
+        faq1a:'이 게임은 미리 정해 둔 배치와 비교하지 않고, 입구에서 출구까지 새는 곳 없이 실제로 이어졌는지만 봅니다. 그래서 다른 모양으로 이어도 완성입니다. 최소 회전 수도 가능한 모든 답 가운데 가장 적게 도는 것을 기준으로 합니다.',
+        faq2q:'굵은 선이 출구까지 갔는데 끝나지 않아요',
+        faq2a:'출구 칸의 조각이 오른쪽 바깥을 향하고 있는지 확인해 보세요. 출구에 닿았더라도 그 조각의 입이 위나 아래를 향하면 판 밖이나 이웃 쪽으로 새는 것이라 완성으로 세지 않습니다. 굵게 표시된 조각 가운데 입이 빈 칸이나 판 밖을 향하는 것이 있는지도 함께 보세요.',
+        faq3q:'하루에 한 번만 할 수 있나요?',
+        faq3a:'아니요. 「다시 맞추기」나 「처음부터」로 같은 판을 몇 번이든 다시 풀 수 있습니다. 새 판은 다음 날 한국 시각 자정에 열립니다. 다시 풀 때 회전 수는 0부터 새로 세지만 되돌리기 횟수는 이어집니다.',
+        faq4q:'기록은 어디에 저장되나요?',
+        faq4a:'사용 중인 기기의 브라우저에 언어 설정과, 끝낸 판의 날짜·판 크기·회전 수·최소·되돌리기 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 판을 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.', title:'돌려 맞춰', subtitle:'끊긴 길을 돌려서 잇습니다 — 적게 돌린 사람이 잘한 것입니다',
         home:'🏠 다른 게임', dayLbl:'오늘의 판', sizeLbl:'판 크기', minLbl:'최소', mineLbl:'내 회전',
         turnUnit:'번', turnUnit2:'번', undo:'↩ 한 번 되돌리기', reset:'처음부터',
         hint:'조각을 누르면 시계 방향으로 90도 돌아갑니다 · 굵은 선은 들어오는 입구에서 이어진 길입니다 · 자물쇠 조각은 돌지 않습니다',
@@ -397,7 +427,31 @@ const I18N = {
         srLocked:'자물쇠 조각이라 돌지 않습니다.', srTurn:(n,l)=>`${n}번째 회전. 이어진 칸 ${l}개.`,
         srDone:(m,e)=>`완성. ${m}번, 최소보다 ${e}번 더.`,
         shareText:(no,sz,m,e,u)=>`🔧 돌려 맞춰 #${no} ${sz} ${m}번 · 최소 +${e} · 되돌리기 ${u}\n` },
-  en: { title:'Turn to Connect', subtitle:'Rotate the broken pipes into one line — fewer turns is the better score',
+  en: {
+        howTitle:'How to play',
+        how1:'The board holds pipe pieces, and the goal is to carry the line entering at the inlet on the left edge all the way to the outlet on the right edge. Each tap turns a piece 90 degrees clockwise and adds one to your turn count. The stretch actually connected to the inlet is drawn with a thick line. The board is solved when the line reaches the outlet and no connected piece has an opening pointing off the board, into an empty square, or at a neighbour that is not open towards it.',
+        how2:'There are two kinds of piece. A straight piece looks the same after two turns, so it has only two distinct directions, while a bent piece has four. A piece with a dot in its top-right corner is locked: it is fixed in the right direction from the start, so tapping it neither turns it nor adds to your count. Tapping an empty square does nothing.',
+        how3:'↩ Undo one turn reverses your last rotation and also takes that turn off your count. The number of undos is counted separately and shown in the result. Restart puts the board back to its opening layout and resets the turn count to 0, but the undo count carries on. On a keyboard, the arrow keys move between squares and Enter or Space turns the piece.',
+        dailyTitle:'The daily board',
+        dailyDesc:'The board is set by the date alone. On the same day everyone gets the same board size, the same layout and even the same locked pieces, whenever they open it, and the day turns over at midnight Korea time. Each day the board is either 3×3 or 4×4, and the size is shown at the top. You can solve the same board as many times as you like, and at the end you see four numbers: fewest, your turns, extra and undos. Share copies only the board number and size, your turns, the extra turns over the fewest and your undos, so you can compare with friends without giving the answer away.',
+        makeTitle:'How the board is built',
+        makeDesc:'First a route is laid from a square on the left edge to a square on the right edge without visiting any square twice. The route is at least four squares long and never branches, so every piece on it has exactly two openings. Squares off the route are left empty. If four or more pieces can turn, at least one is locked in its correct direction, and if more than nine would still turn freely, extra pieces are locked until nine remain. The rest are rotated at random to scatter them, and a board that comes out already solved is thrown away. The fewest-turns figure comes from checking every combination of directions for the free pieces, so when several solutions exist, the one needing the fewest turns sets the mark.',
+        tipsTitle:'Tips',
+        tip1q:'A straight piece never needs more than one turn',
+        tip1a:'A straight piece has only two directions, so it never needs more than one turn, while a bent piece can take up to three. Settle the bent pieces first and then set the straight ones to match; that is the easiest way to keep your count down.',
+        tip2q:'Overshot by one? Undo it',
+        tip2a:'Pieces only turn clockwise. If you turn a bent piece one step too far, press ↩ Undo one turn instead of tapping three more times to come round again. Undoing takes that turn off your count, which beats spending three more. The undo itself is recorded separately in the result.',
+        tip3q:'Start from the inlet, the outlet and the locked pieces',
+        tip3a:'The piece on the inlet square must open towards the left edge, and the piece on the outlet square towards the right edge. Locked pieces are fixed in the right direction on the route that was laid when the board was built. Starting from these settled pieces and deciding, one at a time, which way each neighbour must open quickly shrinks the uncertain middle of the board.',
+        faqTitle:'FAQ',
+        faq1q:'My solution looks different. Why did it count?',
+        faq1a:'The game never compares your board with a stored layout. It only checks that the line really runs from the inlet to the outlet without leaking, so a different shape still counts. The fewest-turns figure is likewise taken from whichever valid solution needs the fewest turns.',
+        faq2q:'The thick line reaches the outlet, but nothing happens',
+        faq2a:'Check that the piece on the outlet square points out through the right edge. Even when the line reaches that square, an opening that faces up or down leaks off the board or into a neighbour, so it does not count as solved. Also look along the thick line for any piece whose opening faces an empty square or the edge of the board.',
+        faq3q:'Can I only play once a day?',
+        faq3a:'No. Play again or Restart lets you solve the same board as many times as you like. A new board opens at the next midnight Korea time. When you replay, the turn count starts again from 0 but the undo count carries on.',
+        faq4q:'Where is my record stored?',
+        faq4a:'Your browser on this device keeps your language setting and, for a finished board, its date, board size, turns, fewest turns and undos. The server receives visit and games-played tallies, plus which game was started and whether the daily board was finished, without information that directly identifies you. The items we store and send are kept as an up-to-date list in the <a href="/privacy/">privacy policy</a> · <a href="/terms/">Terms of Service</a>.', title:'Turn to Connect', subtitle:'Rotate the broken pipes into one line — fewer turns is the better score',
         home:'🏠 More games', dayLbl:'Daily board', sizeLbl:'board', minLbl:'fewest', mineLbl:'your turns',
         turnUnit:' turns', turnUnit2:' turns', undo:'↩ Undo one turn', reset:'Restart',
         hint:'Tap a piece to rotate it 90° clockwise · the thick line is what the inlet already reaches · locked pieces do not turn',
@@ -632,10 +686,30 @@ window.__dolryeo = {
 })();
 </script>
 
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">판에는 관 조각들이 놓여 있고, 왼쪽 가장자리의 입구로 들어온 길을 오른쪽 가장자리의 출구까지 잇는 것이 목표입니다. 조각을 누를 때마다 시계 방향으로 90도 돌아가고, 그때마다 회전 수가 하나 늘어납니다. 입구에서 실제로 이어진 구간은 굵은 선으로 표시됩니다. 길이 출구까지 닿고, 이어진 조각 어느 것도 판 밖이나 빈 칸, 마주 열리지 않은 이웃 쪽으로 입을 열고 있지 않으면 완성입니다.</p>
+  <p data-i18n="how2">조각은 두 종류입니다. 곧은 조각은 두 번 돌리면 처음 모양으로 돌아와 서로 다른 방향이 둘뿐이고, 굽은 조각은 네 방향이 모두 다릅니다. 오른쪽 위 모서리에 점이 찍힌 조각은 자물쇠 조각으로, 처음부터 맞는 방향으로 고정되어 있어 눌러도 돌지 않고 회전 수도 늘지 않습니다. 빈 칸은 눌러도 아무 일도 일어나지 않습니다.</p>
+  <p data-i18n="how3">「↩ 한 번 되돌리기」는 마지막 회전 하나를 거꾸로 돌려 놓고, 회전 수에서도 그 한 번을 뺍니다. 되돌린 횟수는 따로 세어 결과에 남습니다. 「처음부터」는 판을 처음 배치로 돌리고 회전 수를 0으로 되돌리지만 되돌리기 횟수는 이어서 셉니다. 키보드로는 방향키로 칸을 옮기고 Enter 나 Space 로 돌립니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 판</h2>
+  <p data-i18n="dailyDesc">판은 날짜 하나로 정해집니다. 같은 날에는 누가 언제 열어도 판 크기와 조각 배치, 자물쇠 조각의 자리까지 같고, 하루는 한국 시각 자정에 바뀝니다. 판 크기는 날마다 3×3 이나 4×4 가운데 하나로 정해져 화면 위에 적힙니다. 같은 판을 몇 번이든 다시 맞출 수 있고, 끝나면 최소·내 회전·추가·되돌리기 네 숫자가 나옵니다. 결과 공유는 판 번호와 크기, 회전 수, 최소 대비 추가 수, 되돌리기 수만 한 줄로 복사하므로 답을 보여 주지 않고도 친구와 견줄 수 있습니다.</p>
+  <h2 data-i18n="makeTitle">판은 어떻게 만들어지나요</h2>
+  <p data-i18n="makeDesc">먼저 왼쪽 가장자리의 한 칸에서 오른쪽 가장자리의 한 칸까지, 같은 칸을 두 번 지나지 않는 길을 깝니다. 길은 네 칸 이상이고 갈림길이 없어서 길 위의 조각은 모두 입이 정확히 둘입니다. 길에 들지 않은 칸은 빈 칸이 됩니다. 돌릴 수 있는 조각이 넷 이상이면 적어도 하나를 맞은 방향으로 잠그고, 자유롭게 도는 조각이 아홉 개를 넘으면 그만큼 더 잠급니다. 나머지 조각을 무작위로 돌려 흩으면 판이 되는데, 이미 맞춰진 채로 나온 판은 버립니다. 최소 회전 수는 자유 조각이 가질 수 있는 방향 조합을 모두 따져 구하므로, 답이 여럿이면 그중 가장 적게 도는 것이 기준입니다.</p>
+  <h2 data-i18n="tipsTitle">요령</h2>
+  <details><summary data-i18n="tip1q">곧은 조각은 한 번이면 됩니다</summary><p data-i18n="tip1a">곧은 조각은 방향이 둘뿐이라 많아야 한 번만 돌리면 되고, 굽은 조각은 원하는 방향까지 최대 세 번이 걸립니다. 그래서 굽은 조각의 방향을 먼저 정하고, 그 방향이 요구하는 대로 곧은 조각을 맞추면 회전 수를 아끼기 쉽습니다.</p></details>
+  <details><summary data-i18n="tip2q">한 번 더 돌렸다면 되돌리세요</summary><p data-i18n="tip2a">조각은 시계 방향으로만 돕니다. 굽은 조각을 한 번 지나쳐 돌렸다면 세 번을 더 눌러 한 바퀴를 채우는 대신 「↩ 한 번 되돌리기」를 누르세요. 되돌리면 회전 수에서 그 한 번이 빠지니 세 번을 더 쓰는 것보다 결과가 좋습니다. 대신 되돌린 횟수가 결과에 따로 적힙니다.</p></details>
+  <details><summary data-i18n="tip3q">입구와 출구, 자물쇠 조각에서 시작하세요</summary><p data-i18n="tip3a">입구 칸의 조각은 왼쪽 바깥으로, 출구 칸의 조각은 오른쪽 바깥으로 입을 열어야 합니다. 자물쇠 조각은 판을 만들 때 깔아 둔 길 위에 맞는 방향으로 고정된 조각입니다. 이렇게 방향이 정해진 조각에서 출발해 이웃이 어느 쪽으로 입을 열어야 하는지 하나씩 정해 가면, 가운데의 애매한 조각이 빨리 줄어듭니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">제가 맞춘 모양이 다른데도 완성으로 나왔어요</summary><p data-i18n="faq1a">이 게임은 미리 정해 둔 배치와 비교하지 않고, 입구에서 출구까지 새는 곳 없이 실제로 이어졌는지만 봅니다. 그래서 다른 모양으로 이어도 완성입니다. 최소 회전 수도 가능한 모든 답 가운데 가장 적게 도는 것을 기준으로 합니다.</p></details>
+  <details><summary data-i18n="faq2q">굵은 선이 출구까지 갔는데 끝나지 않아요</summary><p data-i18n="faq2a">출구 칸의 조각이 오른쪽 바깥을 향하고 있는지 확인해 보세요. 출구에 닿았더라도 그 조각의 입이 위나 아래를 향하면 판 밖이나 이웃 쪽으로 새는 것이라 완성으로 세지 않습니다. 굵게 표시된 조각 가운데 입이 빈 칸이나 판 밖을 향하는 것이 있는지도 함께 보세요.</p></details>
+  <details><summary data-i18n="faq3q">하루에 한 번만 할 수 있나요?</summary><p data-i18n="faq3a">아니요. 「다시 맞추기」나 「처음부터」로 같은 판을 몇 번이든 다시 풀 수 있습니다. 새 판은 다음 날 한국 시각 자정에 열립니다. 다시 풀 때 회전 수는 0부터 새로 세지만 되돌리기 횟수는 이어집니다.</p></details>
+  <details><summary data-i18n="faq4q">기록은 어디에 저장되나요?</summary><p data-i18n="faq4a">사용 중인 기기의 브라우저에 언어 설정과, 끝낸 판의 날짜·판 크기·회전 수·최소·되돌리기 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 판을 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.</p></details>
+</section>
+
 <section class="read" id="read">
-<div class="read-ko"><h2>돌리는 손이 아니라 세는 머리를 쓰는 퍼즐</h2><p>화면에는 끊어진 관 조각들이 아무렇게나 놓여 있습니다. 조각을 누르면 시계 방향으로 한 번 돌아갑니다. 왼쪽으로 들어온 길이 오른쪽 출구까지 하나로 이어지면 끝입니다. 규칙은 이것뿐인데, 잘하는 방법은 빨리 누르는 것이 아니라 누르기 전에 세어 보는 것입니다.</p><h3>시계 방향으로만 돌기 때문에 생기는 셈</h3><p>조각은 한쪽으로만 돕니다. 지금 왼쪽을 보고 있는 굽은 조각을 위로 보내려면 세 번을 눌러야 할 수도 있고 한 번이면 될 수도 있습니다. 그래서 어느 방향으로 맞출지 정하는 순간 이미 비용이 정해집니다. 화면 위쪽의 최소 회전 수는 그 비용을 가장 적게 쓰는 길이 몇 번인지 미리 계산해 둔 값입니다.</p><h3>정답 하나를 맞히는 것이 아닙니다</h3><p>이 게임은 미리 정해 둔 배치와 똑같아지는지를 보지 않습니다. 실제로 길이 이어졌는지만 봅니다. 그래서 만드는 사람이 생각한 것과 다른 모양으로 이어도 완성입니다. 대신 조건이 둘 붙습니다. 길이 들어오는 입구에서 출발해 출구까지 닿아야 하고, 도중에 어느 조각의 입도 허공이나 빈 칸을 향하면 안 됩니다.</p><h3>닫힌 고리는 완성이 아닙니다</h3><p>조각들을 돌리다 보면 네 조각이 동그랗게 물려 닫힌 네모가 생기기도 합니다. 새는 곳이 하나도 없어 보여서 다 된 것처럼 보이지만, 그 고리는 입구와 닿아 있지 않습니다. 그래서 완성으로 세지 않습니다. 굵은 선으로 표시되는 구간이 입구에서 실제로 이어진 길이니, 그 선이 출구까지 닿았는지를 보시면 됩니다.</p><h3>자물쇠 조각과 하루 한 판</h3><p>가운데 점이 찍힌 조각은 잠겨 있어 눌러도 돌지 않습니다. 잘못 눌러도 회전 수가 늘지 않으니 마음 놓고 확인하셔도 됩니다. 오늘의 판은 날짜만으로 정해져 누가 언제 열어도 같고, 하루 경계는 한국 시각을 따릅니다. 결과에는 몇 번 돌렸는지와 최소보다 몇 번 더 썼는지만 담기고 완성된 배치는 담기지 않습니다.</p></div>
+<div class="read-ko"><h2>돌리는 손이 아니라 세는 머리를 쓰는 퍼즐</h2><p>화면에는 끊어진 관 조각들이 아무렇게나 놓여 있습니다. 조각을 누르면 시계 방향으로 한 번 돌아갑니다. 왼쪽으로 들어온 길이 오른쪽 출구까지 하나로 이어지면 끝입니다. 규칙은 이것뿐인데, 잘하는 방법은 빨리 누르는 것이 아니라 누르기 전에 세어 보는 것입니다.</p><h3>시계 방향으로만 돌기 때문에 생기는 셈</h3><p>조각은 한쪽으로만 돕니다. 지금 왼쪽을 보고 있는 굽은 조각을 위로 보내려면 세 번을 눌러야 할 수도 있고 한 번이면 될 수도 있습니다. 그래서 어느 방향으로 맞출지 정하는 순간 이미 비용이 정해집니다. 화면 위쪽의 최소 회전 수는 그 비용을 가장 적게 쓰는 길이 몇 번인지 미리 계산해 둔 값입니다.</p><h3>정답 하나를 맞히는 것이 아닙니다</h3><p>이 게임은 미리 정해 둔 배치와 똑같아지는지를 보지 않습니다. 실제로 길이 이어졌는지만 봅니다. 그래서 만드는 사람이 생각한 것과 다른 모양으로 이어도 완성입니다. 대신 조건이 둘 붙습니다. 길이 들어오는 입구에서 출발해 출구까지 닿아야 하고, 도중에 어느 조각의 입도 허공이나 빈 칸을 향하면 안 됩니다.</p><h3>닫힌 고리는 완성이 아닙니다</h3><p>조각들을 돌리다 보면 네 조각이 동그랗게 물려 닫힌 네모가 생기기도 합니다. 새는 곳이 하나도 없어 보여서 다 된 것처럼 보이지만, 그 고리는 입구와 닿아 있지 않습니다. 그래서 완성으로 세지 않습니다. 굵은 선으로 표시되는 구간이 입구에서 실제로 이어진 길이니, 그 선이 출구까지 닿았는지를 보시면 됩니다.</p><h3>자물쇠 조각과 하루 한 판</h3><p>오른쪽 위 모서리에 점이 찍힌 조각은 잠겨 있어 눌러도 돌지 않습니다. 잘못 눌러도 회전 수가 늘지 않으니 마음 놓고 확인하셔도 됩니다. 오늘의 판은 날짜만으로 정해져 누가 언제 열어도 같고, 하루 경계는 한국 시각을 따릅니다. 결과에는 몇 번 돌렸는지와 최소보다 몇 번 더 썼는지만 담기고 완성된 배치는 담기지 않습니다.</p></div>
 <!-- /read-ko -->
-<div class="read-en"><h2>A puzzle for counting, not for fast fingers</h2><p>The screen shows broken pipe segments scattered at random angles. Tap one and it turns ninety degrees clockwise. When the line entering from the left runs unbroken to the outlet on the right, the board is done. That is the whole rule, and yet the way to do well is not to tap quickly but to count before tapping at all.</p><h3>Turning one way only is what creates the arithmetic</h3><p>Pieces rotate in a single direction. A bent piece currently facing left may need three taps to face up, or one, depending on which way you want it. So the moment you decide on an orientation you have also decided its cost. The fewest-turns figure at the top of the screen is that cost solved in advance for the cheapest possible arrangement.</p><h3>There is no single correct arrangement</h3><p>The game never checks whether your board matches some stored answer. It checks whether the line is actually connected. Arrange the pipes differently from whatever the designer had in mind and it still counts. Two conditions come attached: the line has to start at the inlet and reach the outlet, and no piece along the way may leave an opening pointing into a wall or an empty square.</p><h3>A closed loop is not a solution</h3><p>Rotate long enough and four pieces will lock into a neat closed square. Nothing leaks, so it looks finished, but that loop never touches the inlet. It does not count. The thicker line marks the run that the inlet genuinely reaches, so the question to ask is simply whether that thick line has arrived at the outlet.</p><h3>Locked pieces and one board a day</h3><p>A piece with a dot in the middle is locked and will not turn. Tapping it costs you nothing, so you can probe freely. The daily board is decided by the date alone and is identical for everyone whenever they open it, with the day boundary following Korean time. Your result carries the number of turns you used and how many more that is than the fewest, never the finished layout.</p></div>
+<div class="read-en"><h2>A puzzle for counting, not for fast fingers</h2><p>The screen shows broken pipe segments scattered at random angles. Tap one and it turns ninety degrees clockwise. When the line entering from the left runs unbroken to the outlet on the right, the board is done. That is the whole rule, and yet the way to do well is not to tap quickly but to count before tapping at all.</p><h3>Turning one way only is what creates the arithmetic</h3><p>Pieces rotate in a single direction. A bent piece currently facing left may need three taps to face up, or one, depending on which way you want it. So the moment you decide on an orientation you have also decided its cost. The fewest-turns figure at the top of the screen is that cost solved in advance for the cheapest possible arrangement.</p><h3>There is no single correct arrangement</h3><p>The game never checks whether your board matches some stored answer. It checks whether the line is actually connected. Arrange the pipes differently from whatever the designer had in mind and it still counts. Two conditions come attached: the line has to start at the inlet and reach the outlet, and no piece along the way may leave an opening pointing into a wall or an empty square.</p><h3>A closed loop is not a solution</h3><p>Rotate long enough and four pieces will lock into a neat closed square. Nothing leaks, so it looks finished, but that loop never touches the inlet. It does not count. The thicker line marks the run that the inlet genuinely reaches, so the question to ask is simply whether that thick line has arrived at the outlet.</p><h3>Locked pieces and one board a day</h3><p>A piece with a dot in its top-right corner is locked and will not turn. Tapping it costs you nothing, so you can probe freely. The daily board is decided by the date alone and is identical for everyone whenever they open it, with the day boundary following Korean time. Your result carries the number of turns you used and how many more that is than the fewest, never the finished layout.</p></div>
 <!-- /read-en -->
 </section>
 

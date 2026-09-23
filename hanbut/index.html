@@ -101,6 +101,12 @@
   .nums span{font-size:.78rem;color:var(--muted)}
   .cell{transition:background .12s ease}
   @media (prefers-reduced-motion: reduce){ .cell{transition:none} }
+  /* ---- 안내 본문(게임 방법·오늘의 판·요령·FAQ) — 다른 게임 페이지의 section.content 와 같은 꼴 ---- */
+  section.content{max-width:560px;margin:0 auto;padding:8px 14px 28px;box-sizing:border-box;color:var(--muted);font-size:.88rem;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
+  section.content h2{color:var(--fg);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--card)}
+  section.content summary{cursor:pointer;color:var(--fg);font-weight:600}
+  section.content a{color:var(--sig-ink)}
 </style>
 </head>
 <body>
@@ -309,7 +315,31 @@ function solvePath(b){
 
 /* ── 문안 ── */
 const I18N = {
-  ko: { title:'한붓 배달', subtitle:'지난 칸은 다시 밟을 수 없습니다 — 오늘의 판은 모두에게 같습니다',
+  ko: {
+        howTitle:'게임 방법',
+        how1:'5×5 판에 「출발」 칸과 「출구」 칸, 배달 지점(●)이 있습니다. 출발 칸에서 이웃한 칸을 하나씩 이어 선을 긋고, 배달 지점을 모두 지난 뒤 출구에 닿으면 끝납니다. 선은 위·아래·왼쪽·오른쪽으로만 이어지고 대각선으로는 갈 수 없습니다. 지난 배달 지점은 ✓로 바뀌고, 지난 칸마다 몇 번째로 밟았는지 숫자가 적힙니다.',
+        how2:'벽 칸과 이미 지난 칸에는 들어갈 수 없고, 선의 끝과 붙어 있지 않은 칸을 눌러도 아무 일도 일어나지 않습니다. 이런 시도는 이동 수에 들어가지 않습니다. 칸을 하나씩 눌러도 되고, 손가락이나 마우스를 누른 채 끌어 여러 칸을 한 번에 이어도 됩니다. 키보드로는 방향키로 선을 한 칸씩 늘립니다.',
+        how3:'「↩ 한 칸 되돌리기」는 선의 마지막 칸 하나를 지우고, 「처음부터」는 출발 칸만 남기고 선을 모두 지웁니다. 되돌린 횟수는 따로 세어 결과에 남고, 처음부터 다시 해도 그 수는 이어집니다. 화면 위에는 최단 이동 칸수와 지금까지의 이동 칸수, 남은 배달 수가 나옵니다.',
+        dailyTitle:'오늘의 배달',
+        dailyDesc:'판은 날짜 하나로 정해집니다. 같은 날에는 누가 언제 열어도 출발·배달·출구·벽의 자리가 모두 같고, 하루는 한국 시각 자정에 바뀝니다. 같은 판을 몇 번이든 다시 풀 수 있고, 끝나면 최단·내 이동·추가·되돌리기 네 숫자가 나옵니다. 최단과 같은 칸수로 끝내면 「최단으로 끝냈습니다」라는 말이 붙습니다. 결과 공유는 판 번호와 이동 칸수, 최단 대비 추가 칸수, 되돌리기 수만 한 줄로 복사합니다.',
+        makeTitle:'판은 어떻게 만들어지나요',
+        makeDesc:'먼저 5×5 판 위에 같은 칸을 두 번 지나지 않는 한 줄의 길을 무작위로 깝니다. 그 길의 처음이 출발, 끝이 출구가 되고, 길 중간에서 두세 곳을 골라 배달 지점으로 삼습니다. 그다음 길에 들지 않은 칸 가운데 다섯 곳을 벽으로 세웁니다. 깔아 둔 길은 그대로 남아 있으므로 풀 수 없는 판은 나오지 않습니다. 마지막으로 가능한 모든 길을 끝까지 따져 최단 이동 수를 구하고, 최단이 8칸보다 짧은 판은 너무 쉬워서 버립니다.',
+        tipsTitle:'요령',
+        tip1q:'출구는 마지막에만 밟으세요',
+        tip1a:'출구 칸은 지나갈 수 있는 칸이지만, 배달을 다 마치기 전에 밟으면 판이 끝나지 않습니다. 그 칸은 이미 지난 칸이 되어 다시 돌아올 수도 없으니, 실수로 밟았다면 되돌리기로 물러나세요.',
+        tip2q:'드나들 곳이 둘뿐인 배달 지점을 찾으세요',
+        tip2a:'벽이나 판 가장자리에 막혀 이웃이 둘뿐인 배달 지점은 들어오는 칸과 나가는 칸이 이미 정해져 있습니다. 선은 반드시 그 두 이웃을 거쳐야 하므로, 이런 지점을 먼저 찾으면 배달 순서를 훨씬 빨리 좁힐 수 있습니다.',
+        tip3q:'판을 둘로 가르지 마세요',
+        tip3a:'선이 판을 가로지르면 남은 빈 칸이 두 덩어리로 나뉩니다. 그때 아직 가지 않은 배달 지점이나 출구가 선의 끝과 다른 덩어리에 남으면 그 판은 더 나아갈 수 없습니다. 선을 늘리기 전에 남은 배달과 출구가 선의 끝에서 한 덩어리로 이어져 있는지 확인하세요.',
+        faqTitle:'자주 묻는 질문',
+        faq1q:'최단보다 적게 걸을 수도 있나요?',
+        faq1a:'아니요. 최단 이동 수는 가능한 모든 길을 끝까지 따져 구한 값이라 그보다 짧은 완주는 없습니다. 판을 만들 때 깔아 둔 길이 최단이라는 보장도 없어서, 최단은 그 길과 따로 다시 계산합니다.',
+        faq2q:'되돌리기를 쓰면 점수가 깎이나요?',
+        faq2a:'되돌린 칸은 이동 칸수에서 빠지고, 최단 대비 추가 칸수는 남은 이동 칸수로만 계산합니다. 되돌린 횟수는 결과 화면과 공유 글에 따로 적혀 얼마나 헤맸는지만 보여 줍니다.',
+        faq3q:'하루에 한 번만 할 수 있나요?',
+        faq3a:'아니요. 「다시 풀기」나 「처음부터」로 같은 판을 몇 번이든 다시 풀 수 있습니다. 새 판은 다음 날 한국 시각 자정에 열립니다. 같은 화면에서 다시 풀면 되돌리기 횟수는 이어서 셉니다.',
+        faq4q:'기록은 어디에 저장되나요?',
+        faq4a:'사용 중인 기기의 브라우저에 언어 설정과, 끝낸 판의 날짜·이동 칸수·최단·되돌리기 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 판을 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.', title:'한붓 배달', subtitle:'지난 칸은 다시 밟을 수 없습니다 — 오늘의 판은 모두에게 같습니다',
         home:'🏠 다른 게임', dayLbl:'오늘의 배달', minLbl:'최단', yourLbl:'내 이동', leftLbl:'남은 배달',
         cellUnit:'칸', cellUnit2:'칸', undo:'↩ 한 칸 되돌리기', reset:'처음부터',
         hint:'시작 칸에서 이어 붙여 배달을 모두 지나고 출구에 닿으면 끝납니다 · 칸을 누르거나 손가락으로 끌어 이으세요',
@@ -323,7 +353,31 @@ const I18N = {
         srBad:(why)=>({ wall:'벽입니다.', revisit:'이미 지난 칸입니다.', far:'붙어 있지 않은 칸입니다.' })[why] || '둘 수 없습니다.',
         srDone:(m,e)=>`완료. ${m}칸, 최단보다 ${e}칸 더.`,
         shareText:(no,m,e,u)=>`🚚 한붓 배달 #${no} ${m}칸 · 최단 +${e} · 되돌리기 ${u}\n` },
-  en: { title:'One-Stroke Delivery', subtitle:'A cell you have crossed is closed for good — everyone gets the same board today',
+  en: {
+        howTitle:'How to play',
+        how1:'The 5×5 board has a Start square, an Exit square and delivery points (●). Draw a line from the start one neighbouring square at a time, pass every delivery point, and the run ends when you reach the exit. The line only moves up, down, left or right, never diagonally. A delivery point you have passed turns into ✓, and every square you cross shows the order in which you stepped on it.',
+        how2:'You cannot enter a wall or a square you have already crossed, and tapping a square that does not touch the end of your line does nothing. None of these attempts count as moves. You can tap squares one by one, or hold a finger or the mouse down and drag across several at once. On a keyboard, each arrow key extends the line by one square.',
+        how3:'↩ Undo one cell removes the last square of your line, and Restart clears everything except the start square. Undos are counted separately and shown in the result, and the count carries on even after a restart. The top of the screen shows the shortest possible move count, your moves so far and the deliveries still to make.',
+        dailyTitle:'The daily run',
+        dailyDesc:'The board is set by the date alone. On the same day the start, deliveries, exit and walls are all in the same places for everyone, whenever they open it, and the day turns over at midnight Korea time. You can replay the same board as often as you like, and at the end you see four numbers: shortest, your moves, extra and undos. Finish in the shortest number of moves and the result says so. Share copies only the board number, your move count, the extra moves over the shortest and your undos, as one line.',
+        makeTitle:'How the board is built',
+        makeDesc:'First a single route that never visits a square twice is laid at random across the 5×5 board. Its first square becomes the start, its last square the exit, and two or three squares along the way become delivery points. Then five squares off the route are turned into walls. The route itself stays open, so an unsolvable board cannot appear. Finally every possible path is searched to the end to find the shortest move count, and any board whose shortest run is under 8 moves is discarded as too easy.',
+        tipsTitle:'Tips',
+        tip1q:'Step on the exit only at the very end',
+        tip1a:'The exit square can be crossed like any other, but stepping on it before every delivery is made does not end the run. It then counts as a crossed square you can never return to, so if you land on it by mistake, back out with undo.',
+        tip2q:'Find deliveries with only two ways in or out',
+        tip2a:'A delivery point hemmed in by walls or the board edge so that it has only two open neighbours already has its way in and its way out fixed. Your line has to pass through both of those neighbours, so spotting such points first narrows down the delivery order much faster.',
+        tip3q:'Do not cut the board in two',
+        tip3a:'When your line runs across the board, the remaining open squares can split into two pieces. If an unvisited delivery or the exit ends up in a different piece from the end of your line, the run cannot go on. Before extending the line, check that the remaining deliveries and the exit are still reachable from its end as one connected area.',
+        faqTitle:'FAQ',
+        faq1q:'Can I beat the shortest count?',
+        faq1a:'No. The shortest count comes from searching every possible path to the end, so no finish can be shorter. The route laid when the board was built is not assumed to be the shortest either; the shortest count is calculated separately.',
+        faq2q:'Does undoing cost me anything?',
+        faq2a:'An undone square is taken off your move count, and the extra over the shortest is worked out from the moves that remain. The number of undos is listed separately in the result and in the shared text, showing only how much you wandered.',
+        faq3q:'Can I only play once a day?',
+        faq3a:'No. Play again or Restart lets you solve the same board as many times as you like. A new board opens at the next midnight Korea time. If you replay on the same screen, your undo count keeps running.',
+        faq4q:'Where is my record stored?',
+        faq4a:'Your browser on this device keeps your language setting and, for a finished board, its date, move count, shortest count and undos. The server receives visit and games-played tallies, plus which game was started and whether the daily board was finished, without information that directly identifies you. The items we store and send are kept as an up-to-date list in the <a href="/privacy/">privacy policy</a> · <a href="/terms/">Terms of Service</a>.', title:'One-Stroke Delivery', subtitle:'A cell you have crossed is closed for good — everyone gets the same board today',
         home:'🏠 More games', dayLbl:'Daily run', minLbl:'shortest', yourLbl:'your moves', leftLbl:'left to deliver',
         cellUnit:' cells', cellUnit2:' cells', undo:'↩ Undo one cell', reset:'Restart',
         hint:'Extend the line from the start, pass every delivery, then reach the exit · tap cells or drag across them',
@@ -511,6 +565,26 @@ window.__hanbut = {
 };
 })();
 </script>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">5×5 판에 「출발」 칸과 「출구」 칸, 배달 지점(●)이 있습니다. 출발 칸에서 이웃한 칸을 하나씩 이어 선을 긋고, 배달 지점을 모두 지난 뒤 출구에 닿으면 끝납니다. 선은 위·아래·왼쪽·오른쪽으로만 이어지고 대각선으로는 갈 수 없습니다. 지난 배달 지점은 ✓로 바뀌고, 지난 칸마다 몇 번째로 밟았는지 숫자가 적힙니다.</p>
+  <p data-i18n="how2">벽 칸과 이미 지난 칸에는 들어갈 수 없고, 선의 끝과 붙어 있지 않은 칸을 눌러도 아무 일도 일어나지 않습니다. 이런 시도는 이동 수에 들어가지 않습니다. 칸을 하나씩 눌러도 되고, 손가락이나 마우스를 누른 채 끌어 여러 칸을 한 번에 이어도 됩니다. 키보드로는 방향키로 선을 한 칸씩 늘립니다.</p>
+  <p data-i18n="how3">「↩ 한 칸 되돌리기」는 선의 마지막 칸 하나를 지우고, 「처음부터」는 출발 칸만 남기고 선을 모두 지웁니다. 되돌린 횟수는 따로 세어 결과에 남고, 처음부터 다시 해도 그 수는 이어집니다. 화면 위에는 최단 이동 칸수와 지금까지의 이동 칸수, 남은 배달 수가 나옵니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 배달</h2>
+  <p data-i18n="dailyDesc">판은 날짜 하나로 정해집니다. 같은 날에는 누가 언제 열어도 출발·배달·출구·벽의 자리가 모두 같고, 하루는 한국 시각 자정에 바뀝니다. 같은 판을 몇 번이든 다시 풀 수 있고, 끝나면 최단·내 이동·추가·되돌리기 네 숫자가 나옵니다. 최단과 같은 칸수로 끝내면 「최단으로 끝냈습니다」라는 말이 붙습니다. 결과 공유는 판 번호와 이동 칸수, 최단 대비 추가 칸수, 되돌리기 수만 한 줄로 복사합니다.</p>
+  <h2 data-i18n="makeTitle">판은 어떻게 만들어지나요</h2>
+  <p data-i18n="makeDesc">먼저 5×5 판 위에 같은 칸을 두 번 지나지 않는 한 줄의 길을 무작위로 깝니다. 그 길의 처음이 출발, 끝이 출구가 되고, 길 중간에서 두세 곳을 골라 배달 지점으로 삼습니다. 그다음 길에 들지 않은 칸 가운데 다섯 곳을 벽으로 세웁니다. 깔아 둔 길은 그대로 남아 있으므로 풀 수 없는 판은 나오지 않습니다. 마지막으로 가능한 모든 길을 끝까지 따져 최단 이동 수를 구하고, 최단이 8칸보다 짧은 판은 너무 쉬워서 버립니다.</p>
+  <h2 data-i18n="tipsTitle">요령</h2>
+  <details><summary data-i18n="tip1q">출구는 마지막에만 밟으세요</summary><p data-i18n="tip1a">출구 칸은 지나갈 수 있는 칸이지만, 배달을 다 마치기 전에 밟으면 판이 끝나지 않습니다. 그 칸은 이미 지난 칸이 되어 다시 돌아올 수도 없으니, 실수로 밟았다면 되돌리기로 물러나세요.</p></details>
+  <details><summary data-i18n="tip2q">드나들 곳이 둘뿐인 배달 지점을 찾으세요</summary><p data-i18n="tip2a">벽이나 판 가장자리에 막혀 이웃이 둘뿐인 배달 지점은 들어오는 칸과 나가는 칸이 이미 정해져 있습니다. 선은 반드시 그 두 이웃을 거쳐야 하므로, 이런 지점을 먼저 찾으면 배달 순서를 훨씬 빨리 좁힐 수 있습니다.</p></details>
+  <details><summary data-i18n="tip3q">판을 둘로 가르지 마세요</summary><p data-i18n="tip3a">선이 판을 가로지르면 남은 빈 칸이 두 덩어리로 나뉩니다. 그때 아직 가지 않은 배달 지점이나 출구가 선의 끝과 다른 덩어리에 남으면 그 판은 더 나아갈 수 없습니다. 선을 늘리기 전에 남은 배달과 출구가 선의 끝에서 한 덩어리로 이어져 있는지 확인하세요.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">최단보다 적게 걸을 수도 있나요?</summary><p data-i18n="faq1a">아니요. 최단 이동 수는 가능한 모든 길을 끝까지 따져 구한 값이라 그보다 짧은 완주는 없습니다. 판을 만들 때 깔아 둔 길이 최단이라는 보장도 없어서, 최단은 그 길과 따로 다시 계산합니다.</p></details>
+  <details><summary data-i18n="faq2q">되돌리기를 쓰면 점수가 깎이나요?</summary><p data-i18n="faq2a">되돌린 칸은 이동 칸수에서 빠지고, 최단 대비 추가 칸수는 남은 이동 칸수로만 계산합니다. 되돌린 횟수는 결과 화면과 공유 글에 따로 적혀 얼마나 헤맸는지만 보여 줍니다.</p></details>
+  <details><summary data-i18n="faq3q">하루에 한 번만 할 수 있나요?</summary><p data-i18n="faq3a">아니요. 「다시 풀기」나 「처음부터」로 같은 판을 몇 번이든 다시 풀 수 있습니다. 새 판은 다음 날 한국 시각 자정에 열립니다. 같은 화면에서 다시 풀면 되돌리기 횟수는 이어서 셉니다.</p></details>
+  <details><summary data-i18n="faq4q">기록은 어디에 저장되나요?</summary><p data-i18n="faq4a">사용 중인 기기의 브라우저에 언어 설정과, 끝낸 판의 날짜·이동 칸수·최단·되돌리기 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 판을 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.</p></details>
+</section>
 
 <section class="read" id="read">
 <div class="read-ko"><h2>한 번 지난 칸이 닫힌다는 규칙 하나</h2><p>이 퍼즐의 규칙은 짧다. 시작 칸에서 선을 이어 배달 지점을 모두 지나고 출구에 닿으면 끝난다. 여기에 조건이 하나 붙는다. 한 번 지난 칸은 다시 밟을 수 없다. 그 한 줄이 게임을 통째로 바꾼다. 길이 막히는 이유가 벽이 아니라 조금 전의 내 선택이 되기 때문이다.</p><h3>움직이기 전에 순서를 정하는 놀이</h3><p>배달 지점이 둘이면 어느 쪽을 먼저 들를지 두 가지 순서가 있고, 셋이면 여섯 가지가 된다. 그중 출구까지 끊기지 않고 이어지는 순서는 대개 하나둘뿐이다. 그래서 이 게임은 손이 빠른 사람이 아니라 먼저 그려 보는 사람이 잘한다. 선을 긋기 전에 눈으로 한 바퀴 돌려 보는 시간이 곧 실력이다.</p><h3>최단이 몇 칸인지 우리가 알고 있다</h3><p>판을 만들 때 정답이 될 길을 먼저 깔고 그 위에 시작과 배달과 출구를 얹는다. 그래서 풀 수 없는 판은 원리적으로 나오지 않는다. 그리고 판마다 최단 이동 수를 따로 계산해 둔다. 화면 위쪽의 최단 칸수가 그것이고, 끝나면 내가 몇 칸 더 걸었는지가 함께 나온다. 완주만으로 끝이 아니라 몇 칸에 끝냈는지가 기록이다.</p><h3>되돌리기는 벌점이 아니다</h3><p>막히면 한 칸씩 되돌릴 수 있다. 되돌린 횟수는 기록에 남지만 점수를 깎지는 않는다. 벽이나 이미 지난 칸을 눌러도 아무 일이 일어나지 않고 이동 수도 늘지 않는다. 잘못 누른 것이 손해가 되면 사람은 판을 살피는 대신 조심만 하게 되고, 그러면 이 게임에서 제일 재미있는 부분인 탐색이 사라진다.</p><h3>같은 날에는 모두가 같은 판을 받는다</h3><p>오늘의 배달은 날짜만으로 정해진다. 언제 열든 몇 번을 다시 열든 같은 판이고, 하루 경계는 한국 시각을 따른다. 결과는 걸린 칸 수와 최단 대비 몇 칸을 더 걸었는지, 되돌리기를 몇 번 썼는지로 공유된다. 경로는 공유에 담기지 않으므로 친구의 답을 먼저 보게 되는 일은 없다.</p></div>

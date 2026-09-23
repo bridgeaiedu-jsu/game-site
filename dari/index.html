@@ -105,6 +105,12 @@
   .nums{display:flex;gap:14px;flex-wrap:wrap;margin:.4em 0}
   .nums b{font-size:1.15rem;font-variant-numeric:tabular-nums;display:block}
   .nums span{font-size:.78rem;color:var(--muted)}
+  /* ---- 안내 본문(게임 방법·오늘의 판·요령·FAQ) — 다른 게임 페이지의 section.content 와 같은 꼴 ---- */
+  section.content{max-width:560px;margin:0 auto;padding:8px 14px 28px;box-sizing:border-box;color:var(--muted);font-size:.88rem;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
+  section.content h2{color:var(--fg);font-size:1rem;margin:18px 0 6px}
+  section.content details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:var(--card)}
+  section.content summary{cursor:pointer;color:var(--fg);font-weight:600}
+  section.content a{color:var(--sig-ink)}
 </style>
 </head>
 <body>
@@ -325,7 +331,31 @@ function hintFor(p, st, level){
 
 /* ── 문안 ── */
 const I18N = {
-  ko: { title:'단어 다리', subtitle:'한 번에 한 글자만 바꿔 목표 낱말까지 건너갑니다',
+  ko: {
+        howTitle:'게임 방법',
+        how1:'화면 위쪽에 목표 낱말이, 그 아래에 출발 낱말이 놓입니다. 입력 칸에 다음 낱말을 넣고 확인을 누르면 한 단계가 됩니다. 새 낱말은 바로 앞 낱말과 한 글자만 달라야 하고, 이 게임의 사전에 있어야 하며, 이미 지나온 낱말은 다시 쓸 수 없습니다. 바뀐 글자에는 밑줄이 그어져 어느 자리를 바꿨는지 한눈에 보입니다. 목표 낱말에 닿는 순간 다리를 건넌 것으로 끝납니다.',
+        how2:'규칙에 맞지 않는 입력은 막히고, 입력 칸 아래에 이유가 한 줄로 나옵니다. 두 글자 한글이 아닐 때, 앞 낱말과 똑같을 때, 두 글자를 한꺼번에 바꿨을 때, 사전에 없을 때, 이미 쓴 낱말일 때입니다. 막힌 입력은 단계 수에 들어가지 않습니다. 한글은 조합이 끝난 뒤에만 받으므로 글자를 다 친 다음 확인이나 Enter 를 누르세요.',
+        how3:'막히면 「💡 힌트」를 누르세요. 처음 누르면 몇 번째 글자를 바꾸면 되는지만, 한 번 더 누르면 다음 낱말을 알려 줍니다. 힌트는 지금 서 있는 낱말에서 목표까지 가장 짧은 길을 기준으로 계산되고, 누른 횟수는 모두 셉니다. 「↩ 한 단계 되돌리기」는 마지막 낱말 하나를 지우고, 「처음부터」는 출발 낱말로 돌아갑니다. 처음부터 다시 해도 이미 쓴 힌트 수는 그대로 남습니다.',
+        dailyTitle:'오늘의 다리',
+        dailyDesc:'이 게임에는 오늘의 다리 하나만 있습니다. 출발과 목표 낱말의 짝은 미리 골라 둔 179개의 목록에서 날짜 번호로 정해지므로, 같은 날에는 누가 언제 열어도 같은 문제를 받습니다. 하루는 한국 시각 자정에 바뀌고, 2026년 8월 23일이 1번입니다. 짝은 모두 검수한 상용어 가운데에서 골랐고, 최단 경로는 2단계에서 5단계 사이입니다. 같은 문제는 몇 번이든 다시 건널 수 있습니다. 끝나면 최단·내 단계·추가 단계·힌트 수가 나오고, 결과 공유 버튼이 그 숫자를 한 줄로 복사해 줍니다. 공유 글에는 낱말이 들어가지 않아 친구의 답을 미리 보게 되는 일은 없습니다.',
+        makeTitle:'사전은 어디서 왔나요',
+        makeDesc:'낱말 판정에는 이 사이트의 끝말잇기가 쓰는 사전에서 두 글자 낱말 11,484개를 그대로 옮겨 씁니다. 그중 앞쪽 1,068개가 검수한 상용어이고, 오늘의 출발·목표 낱말은 이 안에서만 나옵니다. 중간 단계로는 사전 전체를 쓸 수 있어서, 낯선 낱말 하나가 지름길을 열어 주기도 합니다. 반대로 흔히 쓰는 말이라도 이 목록에 없으면 받지 않습니다. 최단 단계 수는 문제표에 적어 두지 않고, 판을 열 때마다 사전 전체에서 한 글자씩 다른 낱말끼리 이어 너비우선 탐색으로 다시 구합니다.',
+        tipsTitle:'요령',
+        tip1q:'가운데 낱말을 먼저 찾으세요',
+        tip1a:'오늘의 짝은 같은 자리에 같은 글자가 없어서 늘 두 걸음 이상 걸립니다. 출발 낱말의 한 글자와 목표 낱말의 한 글자를 합친 낱말이 사전에 있으면 곧바로 두 걸음 길이 열립니다. 앞 글자는 출발에서, 뒤 글자는 목표에서 가져와 보고, 안 되면 반대로 짝지어 보세요.',
+        tip2q:'막히면 다른 자리를 바꿔 보세요',
+        tip2a:'최단이 아니어도 규칙만 지키면 완주로 인정됩니다. 한 자리에 넣을 글자가 떠오르지 않으면 다른 자리를 바꿔 방향을 틀어 보세요. 되돌리기 횟수는 결과에도 공유 글에도 나오지 않으니 부담 없이 시험해 봐도 됩니다.',
+        tip3q:'힌트는 한 번만 눌러 보세요',
+        tip3a:'첫 힌트는 바꿀 자리만 알려 줍니다. 자리를 알면 그 자리에 들어갈 글자를 더듬기가 훨씬 쉬워지니, 다음 낱말을 알려 주는 두 번째 힌트는 그래도 막힐 때 쓰세요. 결과에는 누른 횟수가 그대로 남습니다.',
+        faqTitle:'자주 묻는 질문',
+        faq1q:'맞는 낱말인데 사전에 없다고 나와요',
+        faq1a:'이 게임은 국어사전 전체가 아니라 두 글자 낱말 11,484개로 된 목록 하나만 기준으로 삼습니다. 그래서 흔히 쓰는 말이라도 목록에 없으면 받지 않습니다. 반대로 목록에 있는 낱말이면 뜻이 낯설어도 한 단계로 인정됩니다.',
+        faq2q:'하루에 한 번만 할 수 있나요?',
+        faq2a:'아니요. 「다시 건너기」나 「처음부터」로 같은 문제를 몇 번이든 다시 풀 수 있습니다. 새 문제는 다음 날 한국 시각 자정에 열립니다. 같은 화면에서 다시 풀면 앞서 쓴 힌트 수는 이어서 셉니다.',
+        faq3q:'시간 제한이 있나요?',
+        faq3a:'없습니다. 타이머가 없고 결과에도 시간이 들어가지 않습니다. 결과는 단계 수와 최단 대비 추가 단계, 힌트 수로만 나옵니다.',
+        faq4q:'기록은 어디에 저장되나요?',
+        faq4a:'사용 중인 기기의 브라우저에 언어 설정과, 끝낸 판의 날짜·단계 수·최단·힌트 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 판을 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.', title:'단어 다리', subtitle:'한 번에 한 글자만 바꿔 목표 낱말까지 건너갑니다',
         home:'🏠 다른 게임', dayLbl:'오늘의 다리', minLbl:'최단', mineLbl:'내 단계', hintLbl:'힌트',
         goalLbl:'목표', stepUnit:'단계', stepUnit2:'단계', submit:'확인',
         hintBtn:'💡 힌트', undo:'↩ 한 단계 되돌리기', reset:'처음부터',
@@ -343,7 +373,31 @@ const I18N = {
         perfect:'최단으로 건넜습니다', over:(n)=>`최단보다 ${n}단계 더 건넜습니다`,
         srStep:(w,n)=>`${w}. ${n}단계째.`,
         shareText:(no,m,e,h)=>`🌉 오늘의 단어 다리 #${no} ${m}단계 · 최단 +${e} · 힌트 ${h}\n` },
-  en: { title:'Word Bridge', subtitle:'Change one syllable at a time until you reach the target word',
+  en: {
+        howTitle:'How to play',
+        how1:'The target word sits near the top and your starting word below it. Type the next word into the box and press Submit to take one step. The new word must differ from the word just before it in exactly one syllable, it has to be in this game\'s dictionary, and a word you have already passed through cannot be used again. The syllable you changed is underlined, so you can see at a glance which position moved. The moment you land on the target word, the bridge is crossed.',
+        how2:'An entry that breaks a rule is refused, and the reason appears on one line under the box: it is not two Hangul syllables, it is identical to the previous word, both syllables changed at once, it is not in the dictionary, or it has already been used. Refused entries never count as steps. Hangul is accepted only after composition has finished, so type the whole word before pressing Submit or Enter.',
+        how3:'If you get stuck, press 💡 Hint. The first press tells you only which syllable to change; a second press gives you the next word. Hints are worked out from the shortest route between the word you are standing on and the target, and every press is counted. ↩ Undo one step removes your last word, and Restart takes you back to the starting word. Restarting does not erase the hints you have already used.',
+        dailyTitle:'The daily bridge',
+        dailyDesc:'This game has a single puzzle, the daily bridge. The start and target pair is picked by date number from a prepared list of 179 pairs, so on any given day everyone gets the same puzzle, whenever they open it. The day turns over at midnight Korea time, and 23 August 2026 is number 1. Every pair is drawn from reviewed everyday words, and the shortest route is between 2 and 5 steps. You may cross the same bridge as many times as you like. At the end you see the shortest route, your steps, the extra steps and your hints, and the Share button copies those numbers as one line. The shared text contains no words, so nobody sees a friend\'s answer in advance.',
+        makeTitle:'Where the dictionary comes from',
+        makeDesc:'Words are judged against 11,484 two-syllable words copied as they are from the dictionary used by this site\'s word-chain game. The first 1,068 of them are reviewed everyday words, and the daily start and target words come only from that group. Intermediate steps may use the whole dictionary, so an unfamiliar word can sometimes open a shortcut. On the other hand, a common word that is missing from the list is not accepted. The shortest step count is not written into the puzzle list; each time the page opens it is found again by a breadth-first search over words that differ by one syllable.',
+        tipsTitle:'Tips',
+        tip1q:'Look for the middle word first',
+        tip1a:'Today\'s pair never shares a syllable in the same position, so it always takes at least two steps. If a word made of one syllable from the start and one from the target exists in the dictionary, a two-step route opens straight away. Try the first syllable of the start with the second of the target, and if that fails, pair them the other way round.',
+        tip2q:'Stuck? Change the other position',
+        tip2a:'Any route that follows the rules counts as a finish, even if it is not the shortest. When nothing comes to mind for one position, change the other one and head off in a new direction. The number of undos appears neither in the result nor in the shared text, so feel free to experiment.',
+        tip3q:'Press Hint just once',
+        tip3a:'The first hint only tells you which position to change. Knowing the position makes it much easier to search for a syllable that fits, so keep the second hint, which names the next word, for when you are still stuck. Every press shows up in your result.',
+        faqTitle:'FAQ',
+        faq1q:'A real word is rejected as not in the dictionary',
+        faq1a:'The game does not use a complete Korean dictionary. It checks against one list of 11,484 two-syllable words, so a common word that is missing from the list is refused. Conversely, any word on the list counts as a step even if its meaning is unfamiliar.',
+        faq2q:'Can I only play once a day?',
+        faq2a:'No. Play again or Restart lets you solve the same puzzle as many times as you like. A new puzzle opens at the next midnight Korea time. If you replay on the same screen, the hints you already used keep counting.',
+        faq3q:'Is there a time limit?',
+        faq3a:'No. There is no timer and time never enters the result. The result is made up only of your step count, the extra steps over the shortest route and the number of hints.',
+        faq4q:'Where is my record stored?',
+        faq4a:'Your browser on this device keeps your language setting and, for a finished puzzle, its date, step count, shortest route and hints. The server receives visit and games-played tallies, plus which game was started and whether the daily puzzle was finished, without information that directly identifies you. The items we store and send are kept as an up-to-date list in the <a href="/privacy/">privacy policy</a> · <a href="/terms/">Terms of Service</a>.', title:'Word Bridge', subtitle:'Change one syllable at a time until you reach the target word',
         home:'🏠 More games', dayLbl:'Daily bridge', minLbl:'shortest', mineLbl:'your steps', hintLbl:'hints',
         goalLbl:'target', stepUnit:' steps', stepUnit2:' steps', submit:'Submit',
         hintBtn:'💡 Hint', undo:'↩ Undo one step', reset:'Restart',
@@ -571,6 +625,26 @@ window.__dari = {
 };
 })();
 </script>
+
+<section class="content">
+  <h2 data-i18n="howTitle">게임 방법</h2>
+  <p data-i18n="how1">화면 위쪽에 목표 낱말이, 그 아래에 출발 낱말이 놓입니다. 입력 칸에 다음 낱말을 넣고 확인을 누르면 한 단계가 됩니다. 새 낱말은 바로 앞 낱말과 한 글자만 달라야 하고, 이 게임의 사전에 있어야 하며, 이미 지나온 낱말은 다시 쓸 수 없습니다. 바뀐 글자에는 밑줄이 그어져 어느 자리를 바꿨는지 한눈에 보입니다. 목표 낱말에 닿는 순간 다리를 건넌 것으로 끝납니다.</p>
+  <p data-i18n="how2">규칙에 맞지 않는 입력은 막히고, 입력 칸 아래에 이유가 한 줄로 나옵니다. 두 글자 한글이 아닐 때, 앞 낱말과 똑같을 때, 두 글자를 한꺼번에 바꿨을 때, 사전에 없을 때, 이미 쓴 낱말일 때입니다. 막힌 입력은 단계 수에 들어가지 않습니다. 한글은 조합이 끝난 뒤에만 받으므로 글자를 다 친 다음 확인이나 Enter 를 누르세요.</p>
+  <p data-i18n="how3">막히면 「💡 힌트」를 누르세요. 처음 누르면 몇 번째 글자를 바꾸면 되는지만, 한 번 더 누르면 다음 낱말을 알려 줍니다. 힌트는 지금 서 있는 낱말에서 목표까지 가장 짧은 길을 기준으로 계산되고, 누른 횟수는 모두 셉니다. 「↩ 한 단계 되돌리기」는 마지막 낱말 하나를 지우고, 「처음부터」는 출발 낱말로 돌아갑니다. 처음부터 다시 해도 이미 쓴 힌트 수는 그대로 남습니다.</p>
+  <h2 data-i18n="dailyTitle">오늘의 다리</h2>
+  <p data-i18n="dailyDesc">이 게임에는 오늘의 다리 하나만 있습니다. 출발과 목표 낱말의 짝은 미리 골라 둔 179개의 목록에서 날짜 번호로 정해지므로, 같은 날에는 누가 언제 열어도 같은 문제를 받습니다. 하루는 한국 시각 자정에 바뀌고, 2026년 8월 23일이 1번입니다. 짝은 모두 검수한 상용어 가운데에서 골랐고, 최단 경로는 2단계에서 5단계 사이입니다. 같은 문제는 몇 번이든 다시 건널 수 있습니다. 끝나면 최단·내 단계·추가 단계·힌트 수가 나오고, 결과 공유 버튼이 그 숫자를 한 줄로 복사해 줍니다. 공유 글에는 낱말이 들어가지 않아 친구의 답을 미리 보게 되는 일은 없습니다.</p>
+  <h2 data-i18n="makeTitle">사전은 어디서 왔나요</h2>
+  <p data-i18n="makeDesc">낱말 판정에는 이 사이트의 끝말잇기가 쓰는 사전에서 두 글자 낱말 11,484개를 그대로 옮겨 씁니다. 그중 앞쪽 1,068개가 검수한 상용어이고, 오늘의 출발·목표 낱말은 이 안에서만 나옵니다. 중간 단계로는 사전 전체를 쓸 수 있어서, 낯선 낱말 하나가 지름길을 열어 주기도 합니다. 반대로 흔히 쓰는 말이라도 이 목록에 없으면 받지 않습니다. 최단 단계 수는 문제표에 적어 두지 않고, 판을 열 때마다 사전 전체에서 한 글자씩 다른 낱말끼리 이어 너비우선 탐색으로 다시 구합니다.</p>
+  <h2 data-i18n="tipsTitle">요령</h2>
+  <details><summary data-i18n="tip1q">가운데 낱말을 먼저 찾으세요</summary><p data-i18n="tip1a">오늘의 짝은 같은 자리에 같은 글자가 없어서 늘 두 걸음 이상 걸립니다. 출발 낱말의 한 글자와 목표 낱말의 한 글자를 합친 낱말이 사전에 있으면 곧바로 두 걸음 길이 열립니다. 앞 글자는 출발에서, 뒤 글자는 목표에서 가져와 보고, 안 되면 반대로 짝지어 보세요.</p></details>
+  <details><summary data-i18n="tip2q">막히면 다른 자리를 바꿔 보세요</summary><p data-i18n="tip2a">최단이 아니어도 규칙만 지키면 완주로 인정됩니다. 한 자리에 넣을 글자가 떠오르지 않으면 다른 자리를 바꿔 방향을 틀어 보세요. 되돌리기 횟수는 결과에도 공유 글에도 나오지 않으니 부담 없이 시험해 봐도 됩니다.</p></details>
+  <details><summary data-i18n="tip3q">힌트는 한 번만 눌러 보세요</summary><p data-i18n="tip3a">첫 힌트는 바꿀 자리만 알려 줍니다. 자리를 알면 그 자리에 들어갈 글자를 더듬기가 훨씬 쉬워지니, 다음 낱말을 알려 주는 두 번째 힌트는 그래도 막힐 때 쓰세요. 결과에는 누른 횟수가 그대로 남습니다.</p></details>
+  <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+  <details><summary data-i18n="faq1q">맞는 낱말인데 사전에 없다고 나와요</summary><p data-i18n="faq1a">이 게임은 국어사전 전체가 아니라 두 글자 낱말 11,484개로 된 목록 하나만 기준으로 삼습니다. 그래서 흔히 쓰는 말이라도 목록에 없으면 받지 않습니다. 반대로 목록에 있는 낱말이면 뜻이 낯설어도 한 단계로 인정됩니다.</p></details>
+  <details><summary data-i18n="faq2q">하루에 한 번만 할 수 있나요?</summary><p data-i18n="faq2a">아니요. 「다시 건너기」나 「처음부터」로 같은 문제를 몇 번이든 다시 풀 수 있습니다. 새 문제는 다음 날 한국 시각 자정에 열립니다. 같은 화면에서 다시 풀면 앞서 쓴 힌트 수는 이어서 셉니다.</p></details>
+  <details><summary data-i18n="faq3q">시간 제한이 있나요?</summary><p data-i18n="faq3a">없습니다. 타이머가 없고 결과에도 시간이 들어가지 않습니다. 결과는 단계 수와 최단 대비 추가 단계, 힌트 수로만 나옵니다.</p></details>
+  <details><summary data-i18n="faq4q">기록은 어디에 저장되나요?</summary><p data-i18n="faq4a">사용 중인 기기의 브라우저에 언어 설정과, 끝낸 판의 날짜·단계 수·최단·힌트 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 판을 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.</p></details>
+</section>
 
 <section class="read" id="read">
 <div class="read-ko"><h2>한 글자만 바꿀 수 있다는 규칙</h2><p>두 글자 낱말 하나에서 출발해 목표 낱말까지 갑니다. 한 번에 바꿀 수 있는 것은 한 글자뿐이고, 바꾼 결과도 사전에 있는 낱말이어야 합니다. 「사과」에서 「모자」로 가려면 「사자」를 거칩니다. 규칙은 이것뿐인데, 막상 해 보면 머릿속 낱말 창고가 생각보다 좁다는 것을 알게 됩니다.</p><h3>끝말잇기와 다른 점</h3><p>끝말잇기는 마지막 글자가 정해져 있고 그 뒤를 잇습니다. 이 게임은 두 자리 중 어느 자리를 바꿀지 내가 고릅니다. 그래서 같은 낱말에서도 갈 수 있는 방향이 둘이고, 한 걸음이 늘 때마다 갈래가 넓어집니다. 목표가 눈앞에 보이는데 마지막 한 걸음이 사전에 없어 돌아가는 일이 자주 생깁니다.</p><h3>정답은 하나가 아닙니다</h3><p>최단 경로가 몇 단계인지는 화면 위에 적혀 있지만, 그 길만 정답인 것은 아닙니다. 규칙만 지키면 몇 걸음을 돌아가도 완주입니다. 끝나면 최단과 내 단계 수가 나란히 나오고 몇 단계를 더 걸었는지가 함께 표시됩니다. 돌아간 길에도 이름이 붙는 셈입니다.</p><h3>막힌 입력은 손해가 아닙니다</h3><p>두 글자를 한꺼번에 바꿨거나 사전에 없는 낱말을 넣으면 왜 안 되는지 한 줄로 알려 주고, 그 시도는 단계 수에 들어가지 않습니다. 떠오르는 대로 넣어 보는 것이 이 게임의 재미이기 때문입니다. 시간도 재지 않습니다. 사전을 더듬는 시간이 곧 이 놀이입니다.</p><h3>힌트는 두 단계로 나뉩니다</h3><p>처음 힌트를 누르면 몇 번째 글자를 바꿔야 하는지만 알려 줍니다. 한 번 더 누르면 그때 낱말을 알려 줍니다. 답을 곧장 주지 않는 이유는 한 걸음만 밀어 주면 나머지는 대개 스스로 풀리기 때문입니다. 오늘의 다리는 날짜만으로 정해져 누가 언제 열어도 같고, 하루 경계는 한국 시각을 따릅니다.</p></div>
