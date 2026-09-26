@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스도쿠가 막힐 때 꺼내는 다섯 가지 기법 | Five Sudoku Techniques — 한판고</title>
+<meta name="description" content="스도쿠의 쉬운 판과 어려운 판을 가르는 것은 단서의 수보다 필요한 기법입니다. 단일 후보부터 숨은 단일, 짝 후보, 상자와 줄의 교차, X-윙까지 쓰는 순서대로 정리했습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="스도쿠가 막힐 때 꺼내는 다섯 가지 기법 | Five Sudoku Techniques — 한판고">
+<meta property="og:description" content="스도쿠의 쉬운 판과 어려운 판을 가르는 것은 단서의 수보다 필요한 기법입니다. 단일 후보부터 숨은 단일, 짝 후보, 상자와 줄의 교차, X-윙까지 쓰는 순서대로 정리했습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/sudoku-techniques/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/sudoku-techniques/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head><body>
+
+<header>
+  <h1>스도쿠가 막힐 때 꺼내는 다섯 가지 기법</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/sudoku/">스도쿠 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 9월 26일 · 한판고</p>
+
+  <section>
+    <h2>어려운 판은 단서가 적은 판이 아니다</h2>
+    <p>스도쿠의 난이도를 흔히 처음 적힌 숫자의 개수로 말합니다. 한판고의 <a href="/sudoku/">스도쿠</a>도 9×9 판에서 쉬움은 단서 40~45개, 보통은 32~36개, 어려움은 26~30개를 남깁니다. 그런데 단서 개수만으로는 어려움이 정해지지 않습니다. 단서가 스무 개 남짓인데도 술술 풀리는 판이 있고, 서른 개가 넘는데도 한참 막히는 판이 있습니다.</p>
+    <p>판을 어렵게 만드는 것은 <strong>풀기 위해 필요한 기법</strong>입니다. 그래서 한판고의 어려움 판에는 조건이 하나 더 붙습니다. 가장 쉬운 두 기법만으로 끝까지 풀리는 판은 어려움으로 내보내지 않습니다. 이 글은 그 두 기법에서 출발해, 막혔을 때 차례로 꺼내 쓸 기법 다섯 가지를 쓰는 순서대로 정리합니다.</p>
+  </section>
+
+  <section>
+    <h2>먼저, 숫자로 본 스도쿠</h2>
+    <p>규칙에 맞게 다 채워진 9×9 스도쿠 판은 모두 6,670,903,752,021,072,936,960가지라는 것이 2005년에 계산으로 확인되었습니다. 답이 하나뿐인 퍼즐을 만들 때 남겨야 하는 단서의 최소 개수는 17개라는 것도 2012년에 전수 탐색으로 증명되었습니다. 16개로는 답이 하나뿐인 판을 만들 수 없다는 뜻입니다.</p>
+    <p>한판고의 6×6 미니 판은 훨씬 작습니다. 가로 3칸 세로 2칸 상자로 이루어진 6×6 판을 직접 세어 보면 규칙에 맞게 다 채워진 판은 <strong>28,200,960가지</strong>입니다. 첫 줄을 123456으로 고정하면 나머지를 채우는 방법이 39,168가지이고, 첫 줄을 늘어놓는 방법 720가지를 곱한 값입니다. 작아 보여도 한 사람이 평생 풀어도 다 볼 수 없는 수입니다.</p>
+  </section>
+
+  <section>
+    <h2>1. 단일 후보 — 이 칸에는 이 숫자뿐</h2>
+    <p>한 칸을 골라, 그 칸의 가로줄과 세로줄과 상자에 이미 나온 숫자를 모두 지워 봅니다. 남는 숫자가 하나뿐이면 그 칸의 답입니다. 가장 기본적인 기법이지만 판이 채워질수록 이런 칸이 계속 새로 생기므로 한 번 훑고 끝내지 말고 숫자를 하나 넣을 때마다 그 주변을 다시 보는 것이 요령입니다. 숫자가 많이 몰린 줄과 상자가 겹치는 칸부터 보면 빨리 찾습니다.</p>
+  </section>
+
+  <section>
+    <h2>2. 숨은 단일 — 이 숫자는 이 칸뿐</h2>
+    <p>방향을 거꾸로 바꿉니다. 한 상자(또는 한 줄)를 정하고, 아직 그 안에 없는 숫자 하나를 고른 뒤 「이 숫자가 이 상자 안에서 갈 수 있는 칸이 어디인가」를 따집니다. 다른 상자에서 같은 숫자가 지나가는 줄은 모두 막히므로, 남는 칸이 하나뿐이면 그 칸이 답입니다. 그 칸에 다른 후보가 여러 개 있어도 상관없습니다. 그래서 「숨은」 단일이라고 부릅니다. 쉬운 판과 보통 판은 대부분 1번과 2번만 번갈아 써도 끝납니다.</p>
+  </section>
+
+  <section>
+    <h2>3. 짝 후보 — 두 칸이 두 숫자를 나눠 가진다</h2>
+    <p>1번과 2번으로 더 이상 칸이 정해지지 않으면, 이제 칸마다 후보를 작게 적어 둘 때입니다. 후보를 적어 두면 같은 줄(또는 상자) 안에서 <strong>두 칸이 똑같이 두 숫자, 예를 들어 4와 7만 후보로 가진</strong> 모습이 보입니다. 이 두 칸은 어느 쪽이 4이고 어느 쪽이 7인지는 몰라도 4와 7을 둘이 나눠 가질 수밖에 없습니다. 그러니 같은 줄의 다른 칸에서는 4와 7을 후보에서 지워도 됩니다. 이 지우기로 다른 칸의 후보가 하나로 줄면 다시 1번으로 돌아갑니다. 같은 원리가 세 칸과 세 숫자에도 통합니다.</p>
+  </section>
+
+  <section>
+    <h2>4. 상자와 줄의 교차 — 숫자가 한 줄에 몰릴 때</h2>
+    <p>어떤 상자 안에서 숫자 5가 갈 수 있는 칸이 모두 같은 가로줄에 몰려 있다고 해 봅시다. 그러면 그 상자의 5는 반드시 그 가로줄에 들어갑니다. 한 줄에 5는 하나뿐이므로, 같은 가로줄에서 <strong>그 상자 바깥에 있는 칸들</strong>에는 5가 올 수 없습니다. 거꾸로도 됩니다. 어떤 가로줄에서 5가 갈 수 있는 칸이 한 상자 안에만 있으면, 그 상자의 나머지 칸에서 5를 지울 수 있습니다. 적힌 후보를 한 숫자씩 따라가며 보면 잘 보입니다.</p>
+  </section>
+
+  <section>
+    <h2>5. X-윙 — 두 줄이 만드는 사각형</h2>
+    <p>숫자 하나만 놓고 봅니다. 서로 다른 두 가로줄에서 그 숫자가 갈 수 있는 칸이 각각 딱 두 곳뿐인데, 그 두 곳이 <strong>같은 두 세로줄</strong>에 놓여 있다면 네 칸이 사각형의 꼭짓점을 이룹니다. 이때 그 숫자는 사각형의 대각선 두 꼭짓점 중 어느 한 쌍에 들어갑니다. 어느 쪽이든 두 세로줄에는 그 숫자가 이미 하나씩 들어가므로, 두 세로줄의 나머지 칸에서는 그 숫자를 지울 수 있습니다. 가로와 세로를 바꿔도 똑같습니다. 이 단계까지 오면 대부분의 신문 스도쿠 어려움 판도 풀립니다.</p>
+  </section>
+
+  <section>
+    <h2>막혔을 때 확인하는 순서</h2>
+    <ul>
+      <li>숫자를 넣을 때마다 그 줄·세로줄·상자에서 1번과 2번을 다시 본다.</li>
+      <li>둘 다 안 보이면 후보를 모두 적는다. 한판고에서는 ✏️ 메모를 켜면 되고, 숫자가 확정되면 관련된 메모는 저절로 지워진다.</li>
+      <li>후보가 두 개인 칸끼리 짝을 찾는다(3번).</li>
+      <li>숫자 하나를 정해 상자 안에서 한 줄로 몰렸는지 본다(4번).</li>
+      <li>그래도 막히면 숫자 하나씩 두 줄짜리 사각형을 찾는다(5번).</li>
+    </ul>
+    <p>한판고의 판은 어느 난이도든 답이 하나뿐이고, 판을 만들 때 단서를 하나 지울 때마다 답이 여전히 하나인지 확인합니다. 막혔다는 것은 운이 나쁜 것이 아니라 아직 적용하지 않은 논리가 어딘가 남아 있다는 뜻입니다. 매일 자정에 열리는 9×9 보통 판으로 연습하면 3번까지는 자연스럽게 손에 붙습니다.</p>
+    <p><a class="cta" href="/sudoku/">▶ 스도쿠 한판</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Five techniques for when a sudoku stalls</h2>
+  <p class="updated">26 September 2026 · Hanpango</p>
+
+  <section>
+    <h2>Hard boards are not boards with fewer clues</h2>
+    <p>Difficulty is usually described by the number of given digits. Hanpango's <a href="/sudoku/">Sudoku</a> leaves 40–45 clues on Easy 9×9 boards, 32–36 on Normal and 26–30 on Hard. Yet clue count alone does not decide difficulty: some boards with barely twenty clues fall quickly, while some with more than thirty hold you up for a long time.</p>
+    <p>What makes a board hard is <strong>the technique it requires</strong>. That is why Hanpango's Hard boards carry one more condition: any board the two easiest techniques can finish is never shipped as Hard. This page starts from those two and lists five techniques in the order you reach for them.</p>
+  </section>
+
+  <section>
+    <h2>Sudoku in numbers</h2>
+    <p>The number of completed valid 9×9 grids was computed in 2005 to be 6,670,903,752,021,072,936,960. In 2012 an exhaustive search proved that a puzzle with a unique solution needs at least 17 clues; no 16-clue puzzle has only one answer.</p>
+    <p>Hanpango's 6×6 mini board, with boxes three wide and two tall, is far smaller. Counting it directly gives <strong>28,200,960</strong> completed grids: with the first row fixed as 123456 there are 39,168 ways to fill the rest, multiplied by the 720 orders of the first row.</p>
+  </section>
+
+  <section>
+    <h2>1. Naked single — only one digit fits this cell</h2>
+    <p>Pick a cell and strike out every digit already present in its row, column and box. If one digit remains, that is the answer. New singles keep appearing as the grid fills, so re-check the neighbourhood after every entry instead of sweeping once. Cells where crowded rows and boxes meet are the fastest place to look.</p>
+  </section>
+
+  <section>
+    <h2>2. Hidden single — this digit fits only one cell</h2>
+    <p>Turn the question around. Choose a box (or a line) and a digit it still lacks, and ask where in that box the digit can go. Rows and columns that already hold the digit elsewhere are blocked; if one cell is left, it is the answer even if that cell has several other candidates. Easy and Normal boards mostly finish with techniques 1 and 2 alone.</p>
+  </section>
+
+  <section>
+    <h2>3. Naked pair — two cells share two digits</h2>
+    <p>When 1 and 2 dry up, it is time to pencil in candidates. You will then see <strong>two cells in one unit whose only candidates are the same two digits</strong>, say 4 and 7. You do not know which is which, but those two cells must take 4 and 7 between them, so 4 and 7 can be removed from every other cell in that unit. When a removal leaves a cell with one candidate, go back to technique 1. The same idea works for three cells sharing three digits.</p>
+  </section>
+
+  <section>
+    <h2>4. Box–line interaction — when a digit is confined to one line</h2>
+    <p>Suppose that inside a box every possible place for 5 lies on the same row. The box's 5 must then be on that row, and since a row holds one 5, no cell of that row <strong>outside the box</strong> can be 5. It also works in reverse: if within a row the 5 can only go inside one box, remove 5 from the rest of that box. Following one digit at a time through your pencil marks makes these easy to spot.</p>
+  </section>
+
+  <section>
+    <h2>5. X-Wing — a rectangle made by two lines</h2>
+    <p>Focus on a single digit. If in two different rows that digit has exactly two possible cells each, and those cells sit in <strong>the same two columns</strong>, the four cells form the corners of a rectangle. The digit must occupy one of the two diagonal pairs; either way each of the two columns already gets it once, so it can be removed from every other cell in those two columns. Swapping rows and columns works identically. Most newspaper "hard" puzzles give way at this stage.</p>
+  </section>
+
+  <section>
+    <h2>A checking order for when you are stuck</h2>
+    <ul>
+      <li>After each entry, re-run techniques 1 and 2 on that row, column and box.</li>
+      <li>If neither helps, fill in all candidates. On Hanpango, switch on ✏️ notes; notes clear themselves as digits are confirmed.</li>
+      <li>Look for pairs among two-candidate cells (3).</li>
+      <li>Take one digit and see whether it is confined to a line within a box (4).</li>
+      <li>Still stuck? Search digit by digit for two-line rectangles (5).</li>
+    </ul>
+    <p>Every Hanpango board has exactly one answer, checked each time a clue is removed during generation. Being stuck means some logic has not been applied yet, not that luck ran out. The daily 9×9 Normal board that opens at midnight is good practice for getting technique 3 into your hands.</p>
+    <p><a class="cta" href="/sudoku/">▶ Play Sudoku</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>

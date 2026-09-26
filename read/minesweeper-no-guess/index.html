@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>찍지 않아도 되는 지뢰찾기는 어떻게 만드나 | Minesweeper Without Guessing — 한판고</title>
+<meta name="description" content="무작위로 뿌린 지뢰찾기 판 가운데 찍지 않고 풀리는 판은 얼마나 될까요. 난이도별로 4,000판씩 직접 풀어 본 결과와, 막혔을 때 쓰는 1-2-1 · 1-2-2-1 패턴을 정리했습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="찍지 않아도 되는 지뢰찾기는 어떻게 만드나 | Minesweeper Without Guessing — 한판고">
+<meta property="og:description" content="무작위로 뿌린 지뢰찾기 판 가운데 찍지 않고 풀리는 판은 얼마나 될까요. 난이도별로 4,000판씩 직접 풀어 본 결과와, 막혔을 때 쓰는 1-2-1 · 1-2-2-1 패턴을 정리했습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/minesweeper-no-guess/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/minesweeper-no-guess/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head><body>
+
+<header>
+  <h1>찍지 않아도 되는 지뢰찾기는 어떻게 만드나</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/minesweeper/">지뢰찾기 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 9월 26일 · 한판고 · 비율은 난이도마다 무작위 판 4,000개를 게임과 같은 검사기로 풀어 본 값입니다</p>
+
+  <section>
+    <h2>마지막 두 칸에서 찍는 일</h2>
+    <p>지뢰찾기를 오래 해 본 사람이라면 누구나 겪습니다. 판을 거의 다 열었는데 마지막에 닫힌 칸 두 개가 남고, 둘 중 하나에 지뢰가 있다는 것밖에 알 수 없는 순간입니다. 숫자를 아무리 들여다봐도 답은 나오지 않습니다. 정보가 원래 거기까지만 있기 때문입니다. 이때는 반반의 확률로 찍는 수밖에 없고, 틀리면 20분을 들인 판이 그대로 끝납니다.</p>
+    <p>한판고의 <a href="/minesweeper/">지뢰찾기</a>는 이런 판을 내보내지 않습니다. 판을 만들 때마다 컴퓨터가 먼저 그 판을 풀어 보고, 찍지 않고 끝까지 풀린 판만 화면에 냅니다. 이 글은 그 검사가 실제로 얼마나 많은 판을 걸러 내는지, 그리고 검사에 쓰는 규칙이 무엇인지를 숫자로 보여 드립니다.</p>
+  </section>
+
+  <section>
+    <h2>검사에 쓰는 규칙은 두 개뿐이다</h2>
+    <p>검사기는 사람이 손으로 쓰는 가장 기본적인 규칙 두 가지만 씁니다.</p>
+    <ul>
+      <li><strong>숫자 = 이미 꽂은 깃발 수</strong>라면, 그 숫자에 맞닿은 나머지 닫힌 칸은 모두 안전하다.</li>
+      <li><strong>숫자 = 이미 꽂은 깃발 수 + 남은 닫힌 칸 수</strong>라면, 남은 닫힌 칸은 모두 지뢰다.</li>
+    </ul>
+    <p>이 두 규칙을 판 전체에 되풀이해 적용하다가, 더 이상 아무 칸도 정해지지 않는데 아직 닫힌 안전한 칸이 남아 있으면 그 판은 떨어뜨립니다. 반대로 모든 안전한 칸이 열리면 합격입니다. 규칙을 일부러 이렇게 단순하게 둔 이유가 있습니다. 컴퓨터만 풀 수 있는 복잡한 추론으로 합격시킨 판은, 사람에게는 여전히 찍어야 하는 판처럼 느껴지기 때문입니다.</p>
+  </section>
+
+  <section>
+    <h2>무작위 판은 대부분 떨어진다</h2>
+    <p>그러면 지뢰를 그냥 무작위로 뿌린 판 가운데 이 두 규칙만으로 풀리는 판은 얼마나 될까요. 게임과 같은 코드로 난이도마다 4,000판을 만들어 첫 칸을 연 뒤 끝까지 풀어 보았습니다.</p>
+    <table>
+      <thead><tr><th>난이도</th><th>판 크기 · 지뢰</th><th>지뢰 밀도</th><th>두 규칙으로 풀린 판</th></tr></thead>
+      <tbody>
+        <tr><td>쉬움</td><td>9×9 · 10개</td><td>12.3%</td><td>65.7%</td></tr>
+        <tr><td>보통</td><td>12×16 · 30개</td><td>15.6%</td><td>26.6%</td></tr>
+        <tr><td>어려움</td><td>14×20 · 55개</td><td>19.6%</td><td>1.6%</td></tr>
+      </tbody>
+    </table>
+    <p>쉬움에서도 세 판 가운데 한 판은 어딘가에서 찍어야 합니다. 어려움은 더 극적입니다. 무작위 판 60개 가운데 59개가 떨어지고 한 개 정도만 살아남습니다. 지뢰 밀도가 12%에서 20%로 오르는 동안 합격률은 40분의 1로 줄어듭니다. 지뢰가 빽빽해지면 숫자끼리 서로 가려서, 한 숫자만 봐서는 아무것도 정해지지 않는 자리가 판 곳곳에 생기기 때문입니다.</p>
+    <p>그래서 검사기는 한 판을 내기 위해 여러 번 다시 뿌립니다. 한 번에 최대 1,000번까지 시도하는데, 어려움의 합격률 1.6%로 계산하면 1,000번을 모두 떨어질 확률은 1,000만분의 1 수준입니다. 그래도 만약 그런 날이 오면 화면 위에 「오늘은 일부 추측 필요」라고 먼저 알려 드립니다. 찍어야 한다는 사실을 숨기지 않는 쪽을 택했습니다.</p>
+  </section>
+
+  <section>
+    <h2>다른 지뢰찾기에서 막힐 때: 두 숫자를 겹쳐 보기</h2>
+    <p>한판고 밖의 지뢰찾기, 예를 들어 무작위로 뿌리는 전통적인 지뢰찾기에서는 두 규칙만으로 막히는 자리가 자주 나옵니다. 그중 상당수는 찍지 않아도 되는 자리입니다. 숫자 하나가 아니라 <strong>이웃한 두 숫자를 겹쳐서</strong> 보면 풀립니다. 원리는 뺄셈입니다. 한 숫자가 덮는 칸이 다른 숫자가 덮는 칸에 모두 들어 있으면, 두 숫자의 차이만큼의 지뢰가 나머지 칸에 있어야 합니다.</p>
+    <p>아래 그림에서 위 줄 ?는 아직 열지 않은 칸이고, 아래 줄은 열린 숫자입니다. 숫자 줄 아래쪽은 모두 열려 있다고 봅니다.</p>
+    <p><strong>1-2 패턴</strong></p>
+<pre class="board">? ? ? ?
+  1 2</pre>
+    <p>1은 왼쪽 세 칸에 지뢰 하나, 2는 오른쪽 세 칸에 지뢰 둘입니다. 가운데 두 칸은 둘이 함께 덮으므로, 2가 1보다 하나 많은 지뢰는 2만 덮는 맨 오른쪽 칸에 있어야 합니다. <strong>맨 오른쪽 칸은 지뢰, 맨 왼쪽 칸은 안전</strong>입니다.</p>
+    <p><strong>1-2-1 패턴</strong></p>
+<pre class="board">? ? ? ? ?
+  1 2 1</pre>
+    <p>가운데 2 위가 지뢰라고 가정해 보면, 양쪽 1은 그 지뢰 하나로 이미 채워지므로 2가 필요한 두 번째 지뢰가 들어갈 자리가 없습니다. 따라서 <strong>2 바로 위는 안전하고, 두 1 바로 위가 지뢰</strong>이며, 양 끝 칸은 안전합니다.</p>
+    <p><strong>1-2-2-1 패턴</strong></p>
+<pre class="board">? ? ? ? ? ?
+  1 2 2 1</pre>
+    <p>왼쪽 1과 그 옆 2를 겹쳐 보면 1-2 패턴과 같은 뺄셈으로 오른쪽 2 위가 지뢰로 정해지고, 반대쪽에서도 같은 방법으로 왼쪽 2 위가 지뢰로 정해집니다. <strong>두 2 바로 위가 지뢰, 나머지 네 칸은 모두 안전</strong>합니다.</p>
+    <p><strong>벽에서 시작하는 1-1</strong></p>
+<pre class="board">│? ? ?
+│1 1</pre>
+    <p>왼쪽이 판의 가장자리일 때, 첫 번째 1은 두 칸만 덮고 두 번째 1은 그 두 칸과 오른쪽 한 칸을 덮습니다. 둘 다 지뢰가 하나이니 늘어난 한 칸에는 지뢰가 없습니다. <strong>세 번째 칸은 안전</strong>합니다.</p>
+    <p>네 패턴은 모두 같은 뺄셈을 모양별로 외워 둔 것입니다. 모양을 외우기보다 「두 숫자가 겹치는 칸과 겹치지 않는 칸」을 나눠 세는 습관을 들이면, 처음 보는 모양에서도 같은 답에 닿습니다.</p>
+  </section>
+
+  <section>
+    <h2>빠르게 푸는 쪽으로 옮겨 가기</h2>
+    <p>찍을 일이 없다는 것을 알고 나면 풀이의 성격이 바뀝니다. 막혔을 때 확률을 따지는 대신 「내가 아직 못 본 칸이 어디인가」를 찾게 됩니다. 한판고의 판에서는 그 답이 언제나 열린 영역의 가장자리 어딘가에 있습니다. 가장자리를 한 바퀴 돌며 숫자마다 두 규칙을 대 보고, 그래도 안 보이면 이웃한 두 숫자를 겹쳐 보세요.</p>
+    <p>점수는 걸린 시간이라, 깃발을 정확히 꽂은 뒤 숫자를 두 번 탭해 주변을 한꺼번에 여는 방법이 가장 큰 단축이 됩니다. 다만 깃발이 하나라도 틀리면 그 자리에서 지뢰를 밟으니, 위의 패턴으로 확정한 칸에만 쓰는 것이 안전합니다. 오늘의 도전은 모든 사람이 같은 판을 같은 시작 칸에서 풀기 때문에 기록을 견주기에 공정합니다.</p>
+    <p><a class="cta" href="/minesweeper/">▶ 지뢰찾기 한판</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">How a minesweeper that never needs a guess is made</h2>
+  <p class="updated">26 September 2026 · Hanpango · rates come from solving 4,000 random boards per level with the same checker the game uses</p>
+
+  <section>
+    <h2>The coin flip at the end</h2>
+    <p>Anyone who has played minesweeper for long knows the moment: the board is nearly clear, two closed squares remain, and all you can tell is that one of them hides a mine. No amount of staring helps, because the information simply is not there. You flip a coin, and a wrong call ends twenty minutes of work.</p>
+    <p>Hanpango's <a href="/minesweeper/">Minesweeper</a> never ships such a board. Each time a board is generated the computer plays it first, and only boards it clears without guessing reach your screen. This article shows how many boards that check actually throws away, and which rules it uses.</p>
+  </section>
+
+  <section>
+    <h2>The checker uses only two rules</h2>
+    <ul>
+      <li>If a number <strong>equals the flags already around it</strong>, every other closed neighbour is safe.</li>
+      <li>If a number <strong>equals its flags plus its remaining closed neighbours</strong>, all of those closed neighbours are mines.</li>
+    </ul>
+    <p>The checker applies these two rules across the board until nothing more can be decided. If safe squares are still closed at that point, the board is rejected; if every safe square opened, it passes. The rules are kept this simple on purpose: a board that only a computer's elaborate deduction can clear still feels like a guessing board to a person.</p>
+  </section>
+
+  <section>
+    <h2>Most random boards fail</h2>
+    <p>We generated 4,000 boards per level with the game's own code, opened the first square and ran the checker. Easy (9×9, 10 mines, 12.3% density): 65.7% passed. Normal (12×16, 30 mines, 15.6%): 26.6%. Hard (14×20, 55 mines, 19.6%): <strong>1.6%</strong>.</p>
+    <p>Even on Easy, one board in three needs a guess somewhere. On Hard, 59 of every 60 random boards fail. As density rises from 12% to 20%, the pass rate drops by a factor of forty, because packed mines make numbers overlap until single numbers decide nothing in many places.</p>
+    <p>So the generator re-deals, up to 1,000 times per board. At a 1.6% pass rate the chance that all 1,000 attempts fail is on the order of one in ten million. If that day ever comes, the game says "Today needs some guessing" at the top of the screen before you start rather than hiding it.</p>
+  </section>
+
+  <section>
+    <h2>When you are stuck elsewhere: read two numbers together</h2>
+    <p>In traditional randomly dealt minesweeper you will often be stuck where the two rules stop. Many of those spots still need no guess; they yield when you read <strong>two neighbouring numbers together</strong>. The principle is subtraction: if the squares one number covers all lie inside the squares another covers, the difference in their counts must sit in the squares only the larger one covers. In the sketches below the top row is closed and the bottom row shows opened numbers, with everything below them already open.</p>
+<pre class="board">? ? ? ?
+  1 2</pre>
+    <p><strong>1-2:</strong> the extra mine the 2 needs must be in the square only the 2 touches. The rightmost square is a mine and the leftmost is safe.</p>
+<pre class="board">? ? ? ? ?
+  1 2 1</pre>
+    <p><strong>1-2-1:</strong> if the square above the 2 were a mine, both 1s would be satisfied by it and the 2 could not get its second mine. So the square above the 2 is safe, the squares above both 1s are mines, and the two ends are safe.</p>
+<pre class="board">? ? ? ? ? ?
+  1 2 2 1</pre>
+    <p><strong>1-2-2-1:</strong> the 1-2 subtraction from each side marks the squares above both 2s as mines; the other four squares are safe.</p>
+<pre class="board">│? ? ?
+│1 1</pre>
+    <p><strong>1-1 from a wall:</strong> against the edge, the first 1 covers two squares and the second covers those two plus one more. Both hold exactly one mine, so the extra square is safe.</p>
+    <p>All four are the same subtraction memorised by shape. Counting "squares the two numbers share and squares they do not" reaches the same answers on shapes you have never seen.</p>
+  </section>
+
+  <section>
+    <h2>From careful to fast</h2>
+    <p>Once you know no guess is ever needed, being stuck means there is a square you have not read yet, and on Hanpango boards it is always somewhere on the edge of the opened area. Walk that edge applying the two rules, then try pairing neighbouring numbers.</p>
+    <p>The score is your time, so the biggest saving is to flag correctly and then double-tap a number to open all its neighbours at once. A single wrong flag makes that tap hit a mine, so keep it for squares you have settled by the patterns above. The daily board gives everyone the same layout and the same opening square, which makes times fair to compare.</p>
+    <p><a class="cta" href="/minesweeper/">▶ Play Minesweeper</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
