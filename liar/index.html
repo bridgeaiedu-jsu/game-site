@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>라이어 게임 — 폰 하나로 하는 제시어 추리 파티 게임 | Liar Game</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 라이어 게임. 3~8명이 폰 하나를 돌려 가며 제시어를 확인하고, 한 명뿐인 라이어를 찾아냅니다. 음식·동물·직업·장소 등 8개 주제 400개 제시어, 바보 모드, 라이어의 역전 기회까지. One phone, one hidden liar, three to eight players.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="라이어 게임 — 폰 하나로 하는 제시어 추리 파티 게임 | Liar Game">
+<meta property="og:description" content="폰을 돌려 제시어를 확인하세요. 단 한 명, 제시어를 모르는 사람이 섞여 있습니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/liar/">
+<meta property="og:image" content="https://hanpango.com/liar/thumb.webp">
+<meta property="og:image:width" content="640">
+<meta property="og:image:height" content="640">
+<link rel="canonical" href="https://hanpango.com/liar/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="hp-ga-disclosure" content="game_start:game; game_end:result,players,mode,topic; lang_switch:lang">
+<meta name="hp-ga-labels" content="game=어느 게임인지|which game; result=판이 끝난 방식|how the game ended; players=인원|player count; mode=모드(기본·바보)|mode (basic or fool); topic=주제|topic; lang=언어|language">
+<!-- ADSENSE (1/3) — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보는 보내지 않고, 광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<!-- 공개 카운터 — 판수를 보내고 시작 화면의 숫자를 채운다(실패해도 게임은 그대로 동작한다) -->
+<link rel="stylesheet" href="/css/ad-slots.css">
+<link rel="stylesheet" href="/css/article.css">
+<script src="/js/hp-stats.js" defer></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"라이어 게임","alternateName":"Liar Game","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":["ko","en"]}
+</script>
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     ★분류가 색을 정한다 — 이 게임의 분류는 ★여럿이(group), 기준색은 올리브골드 #8f8500.
+       같은 분류에 사다리타기(기준색 그대로)·폭탄 돌리기(#7a7200)·넷이 한판(#665f00)이 이미 있어
+       ★기준색보다 어두운 쪽은 다 찼다 — 채도 하한 0.101(넷이 한판 선례)을 지키며 색상각 2도 안에서
+       ΔE2000 5.0 을 넘는 자리는 ★밝은 쪽 띠에만 남았다(tools 의 palette_color · check_rainbow 로 전수 계산, 2026-09-26).
+       라이트 --sig #a69600 : 기준색과 색상각 2도 이내 · 가장 가까운 형제(사다리) ΔE2000 6.55 · 원형 여유 18.7 · OKLab C 0.139
+       다크   --sig #fffc66 : 가장 가까운 형제 다크(사다리 #ebda00) ΔE2000 8.5 · 원형 여유 26 · OKLab C 0.168
+     ★밝은 띠라 흰 글자를 얹을 수 없다(흰 바탕 대비 3.01 — sig-on-bg 하한 3.0 은 넘지만 글자 하한 4.5 는 못 넘는다).
+       그래서 ★--on-sig 는 어두운 글자 #111827 이다(대비 5.89) — 사다리타기와 같은 처지다.
+     ★--sig 바탕 위의 글자는 --on-sig 하나뿐이다. 검사는 이 숫자를 베끼지 않고 tools/check_palette.py 가 소스에서 다시 잰다. */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#a69600; --sig-ink:#5a5100; --sig-soft:#f8f2c6; --on-sig:#111827;
+    --good:#15803d; --good-ink:#166534; --good-soft:#dcfce7;
+    --warn:#a16207; --bad:#b91c1c; --bad-ink:#991b1b; --bad-soft:#fee2e2;
+    --scrim:rgba(17,24,39,.55); --shadow:rgba(17,24,39,.18); --ad-bg:rgba(17,24,39,.03);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#191540; --panel2:#241f5c; --line:#332c78;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#fffc66; --sig-ink:#fffbb0; --sig-soft:#403d10; --on-sig:#111827;
+      --good:#4ade80; --good-ink:#86efac; --good-soft:#14532d;
+      --warn:#fbbf24; --bad:#f87171; --bad-ink:#fca5a5; --bad-soft:#4c1d1d;
+      --scrim:rgba(0,0,0,.62); --shadow:rgba(0,0,0,.5); --ad-bg:rgba(255,255,255,.04);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:12px 14px calc(20px + var(--safe-b))}
+  header{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
+  h1{font-size:1.15rem;line-height:1.35;margin:0;flex:1 1 auto;min-width:0}
+  h1 small{display:block;font-size:.8rem;font-weight:400;color:var(--muted);margin-top:2px}
+  .tools{display:flex;gap:6px;flex:0 0 auto}
+  .ibtn{
+    display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 10px;
+    border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--text);
+    font-size:.8rem;cursor:pointer;
+  }
+  .ibtn .lbl{white-space:nowrap}
+  @media (max-width:400px){ .ibtn .lbl{display:none} }
+  .ad-slot{
+    display:flex;align-items:center;justify-content:center;background:var(--ad-bg);
+    border:1px dashed var(--line);border-radius:8px;color:var(--muted);font-size:.72rem;margin:8px 0;
+  }
+  .ad-top{min-height:52px}
+  .ad-rect{min-height:110px;margin:10px 0}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    min-height:48px;padding:10px 16px;border-radius:12px;border:1px solid transparent;
+    font-size:1rem;font-weight:700;cursor:pointer;
+  }
+  .btn.primary{background:var(--sig);color:var(--on-sig)}
+  .btn.ghost{background:var(--panel);color:var(--text);border-color:var(--line)}
+  .btn[disabled]{opacity:.45;cursor:not-allowed}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .sub{color:var(--muted-2);font-size:.92rem}
+  .lbl2{color:var(--muted-2);font-size:.88rem;font-weight:700;margin:14px 0 4px;text-align:center}
+  .hp-stat{color:var(--muted);font-size:.8rem;margin:8px 0 0}
+  .hp-stat[hidden]{display:none!important}
+  footer{margin-top:20px;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:.78rem}
+  footer a{color:var(--muted-2)}
+  .seo{margin-top:22px}
+  .seo h2{font-size:1rem;margin:18px 0 6px}
+  .seo p,.seo li{font-size:.9rem;color:var(--muted-2);margin:6px 0}
+  .seo ul{padding-left:1.2em;margin:6px 0}
+  .seo details{border-top:1px solid var(--line);padding:8px 0}
+  .seo summary{cursor:pointer;font-size:.9rem;font-weight:600}
+  .seo details p{margin:6px 0 2px}
+
+  /* ── 고르기 단추(인원·주제·모드·타이머) ─────────────────────────────────── */
+  .pick{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:4px 0}
+  .pick button{
+    min-width:52px;min-height:48px;padding:0 12px;border-radius:12px;border:2px solid var(--line);
+    background:var(--panel2);color:var(--text);font-size:.98rem;font-weight:700;cursor:pointer;
+  }
+  /* ★선택 상태를 색만으로 알리지 않는다 — 테두리 굵기와 체크 글자를 함께 쓴다. */
+  .pick button[aria-pressed="true"]{border-color:var(--sig-ink);border-width:3px;background:var(--sig-soft);color:var(--sig-ink)}
+  .pick button[aria-pressed="true"]::after{content:" \2713"}
+
+  /* ── 돌려 보기 ─────────────────────────────────────────────────────────── */
+  .stage{display:flex;flex-direction:column;gap:10px;min-height:min(70vh,540px)}
+  .turnbar{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.85rem;color:var(--muted-2)}
+  .hand{font-size:1.3rem;font-weight:800;text-align:center;margin:4px 0 0}
+  /* ★누르고 있는 동안만 보인다 — 길게 누를 때 뜨는 선택·확대·메뉴를 모두 끈다. */
+  #revealBox{
+    flex:1 1 auto;min-height:220px;border-radius:18px;border:3px dashed var(--line);background:var(--panel2);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px;
+    user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;cursor:pointer;
+  }
+  #revealBox.on{border-style:solid;border-color:var(--sig-ink);background:var(--sig-soft)}
+  #revealBox .hint{color:var(--muted);font-size:.95rem}
+  #revealBox.on .hint{display:none}
+  #revealWord{font-size:2rem;font-weight:800;line-height:1.3;color:var(--sig-ink);word-break:keep-all}
+  #revealTopic{font-size:1rem;color:var(--muted-2);margin-top:6px}
+  #btnSeen{width:100%;min-height:64px;font-size:1.1rem;border-radius:16px}
+
+  /* ── 설명·지목·역전 ───────────────────────────────────────────────────── */
+  .big{font-size:1.25rem;font-weight:800;text-align:center;margin:6px 0}
+  .timer{font-size:3rem;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;color:var(--sig-ink)}
+  .timer[data-up="1"]{color:var(--bad)}
+  #guessPick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  #guessPick button{min-height:52px;border-radius:12px;border:2px solid var(--line);background:var(--panel2);color:var(--text);font-size:1rem;font-weight:700;cursor:pointer;word-break:keep-all}
+  .over{text-align:center}
+  .over .res{font-size:1.5rem;font-weight:800;margin:6px 0 2px}
+  .facts{background:var(--panel2);border-radius:12px;padding:10px 12px;margin:10px 0;text-align:left;font-size:.95rem}
+  .facts b{color:var(--sig-ink)}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span data-i18n="title">라이어 게임</span> <small id="subtitle" data-i18n="subtitle">셋에서 여덟이 폰 하나로 라이어를 찾습니다</small></h1>
+    <div class="tools">
+      <a class="ibtn" href="/" data-i18n="home" style="text-decoration:none">🏠 <span class="lbl">다른 게임</span></a>
+      <button class="ibtn" id="btnLang" type="button">🌐 <span class="lbl">EN</span></button>
+    </div>
+  </header>
+
+  <div class="ad-slot ad-top" id="adTop"><span data-i18n="adPlaceholder"></span></div>
+
+  <!-- 설정 --------------------------------------------------------------- -->
+  <section id="start" class="card">
+    <h2 data-i18n="title2">라이어 게임</h2>
+    <p class="sub" data-i18n="startSub">폰 하나를 돌려 가며 <strong>한 사람씩 제시어를 확인</strong>합니다. 그런데 <strong>딱 한 명</strong>은 제시어를 모릅니다 — 그 사람이 라이어입니다. 돌아가며 한 마디씩 설명하고, 라이어를 찾아내세요.</p>
+    <p class="lbl2" data-i18n="whoLabel">몇 명이 하나요?</p>
+    <div class="pick" id="whoPick" role="group" aria-label="인원"></div>
+    <p class="lbl2" data-i18n="topicLabel">주제</p>
+    <div class="pick" id="topicPick" role="group" aria-label="주제"></div>
+    <p class="lbl2" data-i18n="modeLabel">모드</p>
+    <div class="pick" id="modePick" role="group" aria-label="모드"></div>
+    <p class="sub" id="modeNote" style="text-align:center;font-size:.84rem;margin:4px 0 0">–</p>
+    <p class="lbl2" data-i18n="timerLabel">발언 타이머</p>
+    <div class="pick" id="timerPick" role="group" aria-label="타이머"></div>
+    <p style="margin:16px 0 0"><button class="btn primary" id="btnStart" style="width:100%" data-i18n="startBtn">🕵️ 시작</button></p>
+    <p class="hp-stat" data-hp-line hidden data-i18n="statPlays">오늘 <b data-hp="plays.liar.today">–</b>판 · 누적 <b data-hp="plays.liar.total">–</b>판</p>
+  </section>
+
+  <!-- 돌려 보기 ------------------------------------------------------------ -->
+  <!-- ★이 화면의 글자는 판 진행 중에 바뀐다 — data-i18n 을 붙이지 않는다(언어 전환이 진행 중 내용을 덮는다). -->
+  <section id="pass" class="stage" hidden>
+    <div class="turnbar"><span id="passCount">–</span><button class="ibtn" id="btnQuit" type="button">✕</button></div>
+    <p class="hand" id="handTitle">–</p>
+    <div id="revealBox" role="button" tabindex="0" aria-describedby="revealHint">
+      <span class="hint" id="revealHint">–</span>
+      <span id="revealWord"></span>
+      <span id="revealTopic"></span>
+    </div>
+    <button class="btn primary" id="btnSeen" type="button" disabled>–</button>
+  </section>
+
+  <!-- 설명 ---------------------------------------------------------------- -->
+  <section id="talk" class="card" hidden>
+    <p class="big" id="talkTopic">–</p>
+    <p class="sub" id="talkFirst" style="text-align:center">–</p>
+    <div id="timerBox" hidden>
+      <p class="big" id="speakerNow">–</p>
+      <div class="timer" id="timerView">20</div>
+      <p style="margin:8px 0"><button class="btn ghost" id="btnNextSpeaker" type="button" style="width:100%">–</button></p>
+    </div>
+    <p class="sub" id="talkHow" style="text-align:center">–</p>
+    <p style="margin:12px 0 0"><button class="btn primary" id="btnAccuse" type="button" style="width:100%">–</button></p>
+    <p style="margin:8px 0 0"><button class="btn ghost" id="btnQuit2" type="button" style="width:100%">–</button></p>
+  </section>
+
+  <!-- 지목 ---------------------------------------------------------------- -->
+  <section id="accuse" class="card" hidden>
+    <p class="big" id="accuseTitle">–</p>
+    <p class="sub" id="accuseSub" style="text-align:center">–</p>
+    <div class="pick" id="accusePick" role="group" aria-label="지목"></div>
+    <p style="margin:14px 0 0"><button class="btn primary" id="btnAccuseGo" type="button" style="width:100%" disabled>–</button></p>
+  </section>
+
+  <!-- 라이어의 역전 기회 ---------------------------------------------------- -->
+  <section id="guess" class="card" hidden>
+    <p class="big" id="guessTitle">–</p>
+    <p class="sub" id="guessSub" style="text-align:center">–</p>
+    <div id="guessPick" role="group" aria-label="제시어 고르기"></div>
+  </section>
+
+  <!-- 결과 ---------------------------------------------------------------- -->
+  <section id="over" class="card over" hidden>
+    <h2 data-i18n="result">결과</h2>
+    <div class="res" id="resTitle">–</div>
+    <p class="sub" id="resSub">–</p>
+    <div class="facts" id="resFacts">–</div>
+    <div class="ad-slot ad-rect" id="adOver"><span data-i18n="adPlaceholder2"></span></div>
+    <p><button class="btn primary" id="btnAgain" style="width:100%" data-i18n="again">같은 설정으로 한 판 더</button></p>
+    <p><button class="btn ghost" id="btnSetup" style="width:100%" data-i18n="setupBtn">설정 바꾸기</button></p>
+    <p><a class="btn ghost" href="/" data-i18n="home" style="text-decoration:none;width:100%">🏠 다른 게임</a></p>
+  </section>
+
+  <!-- 읽을거리(SEO) --------------------------------------------------------- -->
+  <div class="seo">
+    <h2 data-i18n="howTitle">게임 방법</h2>
+    <p data-i18n="how1">폰 한 대를 준비하고 <strong>3명에서 8명</strong>이 둥글게 앉습니다. 인원과 주제를 고르고 시작을 누르면 화면이 &ldquo;1번에게 폰을 건네세요&rdquo;라고 말합니다. 폰을 받은 사람은 가운데 칸을 <strong>누르고 있는 동안만</strong> 자기 제시어를 볼 수 있습니다. 손을 떼면 글자가 사라지니, 확인했으면 &ldquo;확인했어요&rdquo;를 누르고 다음 사람에게 넘깁니다.</p>
+    <p data-i18n="how2">모두 확인하고 나면 화면이 <strong>첫 발언자</strong>를 무작위로 알려 줍니다. 그 사람부터 시계 방향으로 돌아가며 제시어를 <strong>한 마디씩</strong> 설명합니다. 제시어를 그대로 말하면 안 되고, 너무 자세히 말하면 라이어에게 답을 알려 주게 됩니다. 라이어는 제시어를 모르는 채로 남들의 말을 듣고 그럴듯하게 섞여야 합니다.</p>
+    <p data-i18n="how3">한 바퀴(또는 두 바퀴)가 돌면 다 같이 의논해 <strong>라이어로 보이는 한 사람</strong>을 정하고, 폰에서 그 번호를 누릅니다. 틀린 사람을 지목하면 라이어가 이깁니다. 라이어를 맞혔다면 끝이 아닙니다 — 라이어에게 <strong>역전 기회</strong>가 한 번 주어집니다. 같은 주제의 낱말 여덟 개 가운데 제시어를 고르면 라이어의 역전승입니다.</p>
+    <h2 data-i18n="modeTitle">기본 모드와 바보 모드</h2>
+    <p data-i18n="modeDesc"><strong>기본 모드</strong>에서 라이어의 화면에는 &ldquo;당신은 라이어입니다&rdquo;와 주제만 뜹니다. 라이어는 자기가 라이어라는 것을 알고 시작합니다. <strong>바보 모드</strong>에서는 라이어에게도 <strong>같은 주제의 다른 낱말</strong>이 주어집니다. 예를 들어 모두가 &ldquo;떡볶이&rdquo;를 받을 때 한 사람만 &ldquo;라면&rdquo;을 받습니다. 라이어 자신도 자기가 라이어인지 모르기 때문에, 설명을 듣다가 &ldquo;어, 뭔가 다른데?&rdquo; 하는 순간이 이 모드의 재미입니다.</p>
+    <h2 data-i18n="fairTitle">누가 라이어가 되는지는 어떻게 정해지나</h2>
+    <p data-i18n="fairDesc">라이어의 자리, 제시어, 첫 발언자, 역전 기회의 보기 여덟 개는 <strong>판이 시작되는 순간 한꺼번에</strong> 정해지고, 그 뒤에 무엇을 눌러도 바뀌지 않습니다. 추첨에는 브라우저의 보안 난수를 씁니다. 여러 판을 하다 보면 같은 제시어가 반복되기 쉬운데, 이 게임은 <strong>최근에 나온 30개의 낱말을 기기에 기억해 두고 다시 뽑지 않습니다</strong>. 이름을 받지 않고 번호로만 진행하며, 제시어와 라이어가 누구였는지는 기기 밖으로 나가지 않습니다.</p>
+    <h2 data-i18n="tipsTitle">요령</h2>
+    <details><summary data-i18n="tip1q">시민이라면 — 넓게, 그러나 정확하게</summary><p data-i18n="tip1a">제시어의 <strong>한 면만</strong> 짚는 설명이 좋습니다. &ldquo;떡볶이&rdquo;라면 &ldquo;빨갛다&rdquo;보다 &ldquo;학교 앞에서 먹었다&rdquo;가 낫습니다. 라이어는 뭉뚱그린 말을 흉내 내기는 쉬워도, 구체적인 경험은 흉내 내기 어렵습니다. 다만 너무 콕 집으면 라이어가 역전 기회에서 답을 맞힙니다.</p></details>
+    <details><summary data-i18n="tip2q">라이어라면 — 먼저 말하지 않기를 빌며</summary><p data-i18n="tip2a">첫 발언자가 되면 불리합니다. 주제만 보고 <strong>그 주제의 대부분에 들어맞는 말</strong>을 고르세요. 음식이라면 &ldquo;저는 좋아해요&rdquo;, 장소라면 &ldquo;가 본 적 있어요&rdquo; 같은 말입니다. 차례가 뒤라면 앞사람들의 설명을 모아 제시어를 좁혀 두세요. 지목당해도 역전 기회가 남아 있습니다.</p></details>
+    <details><summary data-i18n="tip3q">의논이 길어지면 타이머를 켜세요</summary><p data-i18n="tip3a">발언 타이머를 켜면 한 사람에게 20초씩 주어집니다. 시간이 짧으면 라이어가 핑계를 만들 틈이 줄고, 판이 빨리 돌아 여러 판을 하기 좋습니다. 처음 하는 사람이 많다면 끄고 천천히 해 보세요.</p></details>
+    <h2 data-i18n="exTitle">주제별 제시어 예시</h2>
+    <div data-i18n="exList"><ul>
+      <li><strong>음식</strong> — 떡볶이 · 김밥 · 짜장면 · 삼계탕 · 붕어빵 · 팥빙수 …</li>
+      <li><strong>동물</strong> — 호랑이 · 기린 · 펭귄 · 돌고래 · 다람쥐 · 캥거루 …</li>
+      <li><strong>직업</strong> — 소방관 · 요리사 · 수의사 · 사서 · 마술사 · 우주비행사 …</li>
+      <li><strong>장소</strong> — 찜질방 · 수족관 · 편의점 · 노래방 · 놀이터 · 결혼식장 …</li>
+      <li><strong>스포츠</strong> — 축구 · 양궁 · 컬링 · 씨름 · 줄다리기 · 피구 …</li>
+      <li><strong>물건</strong> — 우산 · 리모컨 · 전자레인지 · 베개 · 손전등 · 풍선 …</li>
+      <li><strong>탈것</strong> — 지하철 · 열기구 · 잠수함 · 유모차 · 케이블카 · 경운기 …</li>
+      <li><strong>나라·도시</strong> — 이탈리아 · 이집트 · 부산 · 제주도 · 뉴욕 · 하와이 …</li>
+    </ul><p>주제마다 50개 안팎, 모두 약 400개의 낱말이 들어 있습니다. 누구나 아는 일반 명사로만 골랐고, 상표·실존 인물·작품 제목은 넣지 않았습니다.</p></div>
+    <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
+    <details><summary data-i18n="faq1q">몇 명이 해야 재미있나요?</summary><p data-i18n="faq1a">3명부터 할 수 있지만 <strong>5~6명</strong>일 때 가장 팽팽합니다. 사람이 적으면 라이어가 금방 드러나고, 많으면 한 바퀴가 길어져 라이어가 숨기 쉬워집니다. 7~8명이라면 한 바퀴만 돌고 바로 지목해 보세요.</p></details>
+    <details><summary data-i18n="faq2q">라이어가 두 명일 수는 없나요?</summary><p data-i18n="faq2a">지금은 한 판에 라이어가 <strong>한 명</strong>입니다. 폰 한 대를 돌리는 방식에서는 라이어 둘이 서로를 모르는 채로 설명하게 되어, 판이 금방 무너지기 쉽기 때문입니다. 많이 찾으시면 여러 명 판의 두 라이어 모드를 따로 검토하겠습니다.</p></details>
+    <details><summary data-i18n="faq3q">지목은 왜 폰에서 비밀투표로 하지 않나요?</summary><p data-i18n="faq3a">비밀투표를 하려면 폰을 한 바퀴 더 돌려야 해서 판이 느려집니다. 라이어 게임의 재미는 <strong>다 같이 떠들며 몰아가는 순간</strong>에 있다고 보고, 지목은 말로 정한 뒤 결과만 누르도록 했습니다. 표가 갈리면 손을 들어 다수결로 정하세요.</p></details>
+    <details><summary data-i18n="faq4q">기록은 어디에 저장되나요?</summary><p data-i18n="faq4a">이 게임은 판을 저장하지 않습니다. 기기의 브라우저에 남는 것은 <strong>마지막 설정(인원·주제·모드·타이머)</strong>, <strong>최근에 나온 낱말 30개</strong>(같은 낱말이 반복되지 않게), 그리고 <strong>언어 설정</strong>뿐입니다. 서버로는 판수 집계와 함께 어느 게임인지·판이 끝난 방식·인원·모드·주제 같은 플레이 통계가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.</p></details>
+  </div>
+
+  <section class="read" id="read">
+<div class="read-ko"><h2>모르는 한 사람을 찾는 놀이</h2><p>라이어 게임은 규칙이 한 줄이다. 모두가 같은 낱말을 받는데 한 사람만 받지 못한다. 그 한 사람을 찾으면 된다. 준비물은 없고, 모임 자리에서 누군가 &ldquo;라이어 게임 하자&rdquo;고 말하면 그걸로 시작된다. 그런데 막상 해 보면 제시어를 누가 정할지, 라이어를 어떻게 몰래 정할지부터 걸린다. 누군가 한 명이 진행을 맡으면 그 사람은 판에서 빠지게 된다. 이 페이지는 그 진행자 자리를 폰 한 대가 맡도록 만든 것이다.</p><h3>누르는 동안만 보이는 이유</h3><p>폰이 손에서 손으로 건너가는 게임에서 가장 흔한 사고는 엿보기다. 앞사람이 화면을 끄지 않고 넘기면 다음 사람이 앞사람의 제시어를 본다. 그래서 이 게임의 제시어는 가운데 칸을 누르고 있는 동안에만 나타나고, 손을 떼는 순간 화면에서 지워진다. 가리는 것이 아니라 비우는 것이다. 폰을 넘겨받은 사람이 볼 수 있는 것은 &ldquo;몇 번에게 건네세요&rdquo;라는 안내뿐이다. 한 번도 누르지 않고 넘기는 실수도 막아 두었다. 제시어를 한 번이라도 확인해야 &ldquo;확인했어요&rdquo;가 눌린다.</p><h3>설명은 넓게, 그러나 흉내 낼 수 없게</h3><p>시민 쪽의 요령은 한 면만 짚는 것이다. 떡볶이라면 &ldquo;맵다&rdquo;는 라이어도 따라 할 수 있다. 음식의 절반은 맵다. 하지만 &ldquo;학교 앞 분식집&rdquo;은 떡볶이를 아는 사람만 꺼낼 수 있는 말이다. 반대로 너무 콕 집으면 라이어에게 답을 넘겨주게 된다. 이 게임에서는 라이어가 지목당해도 끝이 아니기 때문이다. 같은 주제 여덟 개 가운데 제시어를 고르는 역전 기회가 남아 있다. 시민은 서로에게는 통하고 라이어에게는 막연한 말을 찾아야 한다. 그 줄타기가 이 놀이의 전부다.</p><h3>라이어는 주제 하나로 버틴다</h3><p>기본 모드의 라이어는 자기가 라이어라는 것과 주제만 안다. 첫 발언자가 되면 가장 불리하다. 그때는 주제의 대부분에 들어맞는 말을 고른다. 차례가 뒤라면 앞사람들의 설명을 모아 후보를 좁혀 둔다. 지목을 피하지 못해도 좁혀 둔 후보가 역전 기회에서 빛을 본다. 바보 모드에서는 사정이 다르다. 라이어도 같은 주제의 다른 낱말을 받아서 자기가 라이어인지 모른다. 모두 &ldquo;떡볶이&rdquo;를 말하는데 혼자 &ldquo;라면&rdquo;을 떠올리며 설명하다가, 어딘가 어긋난다는 것을 늦게 깨닫는 순간이 이 모드의 웃음이다.</p><h3>공정함은 시작하는 순간에 정해진다</h3><p>누가 라이어가 될지, 제시어가 무엇일지, 누가 먼저 말할지는 판이 시작되는 순간 한꺼번에 정해지고 그 뒤로는 바뀌지 않는다. 추첨에는 브라우저의 보안 난수를 쓴다. 여러 판을 하다 보면 같은 낱말이 되풀이되기 쉬워서, 최근에 나온 서른 개는 기기에 기억해 두었다가 다시 뽑지 않는다. 이름은 받지 않는다. 번호만으로 진행하고, 제시어와 라이어가 누구였는지는 기기 밖으로 나가지 않는다. 진 사람에게 무엇을 시킬지는 모인 사람들의 몫이다. 이 게임은 누가 라이어였는지까지만 밝혀 준다.</p></div>
+<!-- /read-ko -->
+<div class="read-en"><h2>A game about finding the one who does not know</h2><p>The Liar Game has a one-line rule. Everyone receives the same word except one person, and the group has to find that person. It needs no equipment, and at a gathering it usually starts with someone saying &ldquo;let's play Liar.&rdquo; In practice the first snag is who picks the word and how the liar is chosen in secret. Whoever runs the game ends up sitting out. This page hands that job to a single phone.</p><h3>Why the word shows only while you press</h3><p>In a game where the phone travels from hand to hand, the most common accident is peeking. If one player passes the phone without clearing the screen, the next player sees their word. So here the word appears only while you hold the central panel, and it is removed from the screen the instant you let go. It is not covered; it is erased. What the next player sees is only &ldquo;hand the phone to player three.&rdquo; Skipping by mistake is blocked too: &ldquo;I've seen it&rdquo; unlocks only after the word has been shown at least once.</p><h3>Describe broadly, but in a way that cannot be copied</h3><p>For citizens the trick is to touch one side of the word. For tteokbokki, &ldquo;spicy&rdquo; is easy for the liar to echo; half of all food is spicy. &ldquo;The snack bar outside school&rdquo; is something only a person who knows the word would say. Go too specific, though, and you hand the answer over, because being caught is not the end for the liar here. They still get a comeback chance: picking the word from eight in the same topic. Citizens have to find words that land with each other and stay vague to the liar. That balancing act is the whole game.</p><h3>The liar survives on a topic alone</h3><p>In basic mode the liar knows only that they are the liar and what the topic is. Speaking first is the worst position; the answer is to choose something that fits most of the topic. Speaking later, the liar can narrow the candidates from what others have said, and even if accused, that shortlist pays off in the comeback. Fool mode changes everything. The liar also receives a word, a different one from the same topic, and does not know they are the liar. Describing ramen while everyone else describes tteokbokki, and slowly realising something is off, is where this mode gets its laughs.</p><h3>Fairness is settled at the start</h3><p>Who the liar is, what the word is and who speaks first are all decided the moment the round begins, and nothing changes them afterwards. The draw uses the browser's secure random source. Words tend to repeat over many rounds, so the last thirty are remembered on the device and not drawn again. No names are taken: play runs on seat numbers, and neither the word nor the liar's identity leaves the device. What the loser has to do is up to the room. This game only reveals who the liar was.</p></div>
+<!-- /read-en -->
+</section>
+<footer>
+    <span data-i18n="footer">© 2026 라이어 게임 · 개인정보: 이 게임은 설정과 최근 낱말만 기기에 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.</span>
+    <nav style="margin-top:6px"><a href="/privacy/" data-i18n="navPrivacy">개인정보처리방침</a> · <a href="/terms/" data-i18n="navTerms">이용약관</a> · <a href="/about/" data-i18n="navAbout">소개</a></nav>
+  </footer>
+</div>
+
+<script>
+/* 라이어 게임 — 「여럿이」 분류의 넷째 게임(2026-09-26).
+ *
+ * ★이 게임의 뼈는 셋이다.
+ *   ① 판은 ★시작하는 순간 전부 정해진다(plan 은 순수 함수) — 라이어 자리·제시어·첫 발언자·역전 보기.
+ *      누르기·넘기기는 난수를 한 톨도 쓰지 않는다. 같은 씨앗이면 같은 판이라 검사가 재현할 수 있다.
+ *   ② 제시어는 ★누르는 동안만 DOM 에 있다. 손을 떼면 글자를 ★지운다(가리는 것이 아니다) —
+ *      폰이 손에서 손으로 건너가므로 남은 글자는 곧 다음 사람의 엿보기다.
+ *   ③ 기본 모드의 라이어 카드에는 ★제시어가 들어가지 않는다 — 화면에서 숨기는 것이 아니라 애초에 없다.
+ *
+ * 관측 창구 window.__liar 는 ★읽기 전용이다. 판을 바꾸는 입구는 두지 않는다.
+ * 검증기: tools/verify_liar.js (제품보다 먼저 쓰였다).
+ */
+'use strict';
+
+/* ── 상수 ─────────────────────────────────────────────────────────────── */
+var PLAYERS_MIN = 3;
+var PLAYERS_MAX = 8;
+var PLAYERS_DEFAULT = 5;
+var CHOICES = 8;          /* 역전 기회의 보기 수 */
+var RECENT_MAX = 30;      /* 기기에 기억해 두는 최근 낱말 수 — 가장 작은 주제(40개 이상)보다 작아야 한다 */
+var TIMER_SEC = 20;       /* 발언 타이머(한 사람) */
+
+/* ── 제시어 ────────────────────────────────────────────────────────────────
+   ★한국어·영어를 ★한 줄에 짝으로 둔다 — 두 목록을 따로 두면 언젠가 짝이 어긋난다.
+   기준: 누구나 아는 일반 명사 · 상표·실존 인물·작품 제목 제외 · 주제 안·사이 겹침 0(검증기 ①). */
+var TOPICS = [
+  { id: 'food', ko: '음식', en: 'Food', words: [
+    ['떡볶이','Tteokbokki'],['김밥','Gimbap'],['라면','Ramen'],['비빔밥','Bibimbap'],['불고기','Bulgogi'],
+    ['삼겹살','Pork belly'],['치킨','Fried chicken'],['피자','Pizza'],['햄버거','Hamburger'],['짜장면','Black bean noodles'],
+    ['짬뽕','Spicy seafood noodles'],['탕수육','Sweet and sour pork'],['김치찌개','Kimchi stew'],['된장찌개','Soybean paste stew'],['순두부찌개','Soft tofu stew'],
+    ['냉면','Cold noodles'],['칼국수','Knife-cut noodles'],['만두','Dumplings'],['떡국','Rice cake soup'],['삼계탕','Ginseng chicken soup'],
+    ['갈비','Short ribs'],['족발','Braised pork trotters'],['보쌈','Boiled pork wraps'],['순대','Korean sausage'],['어묵','Fish cake'],
+    ['호떡','Sweet pancake'],['붕어빵','Fish-shaped bun'],['김치전','Kimchi pancake'],['잡채','Glass noodles'],['제육볶음','Spicy stir-fried pork'],
+    ['돈가스','Pork cutlet'],['카레','Curry'],['오므라이스','Omelette rice'],['초밥','Sushi'],['우동','Udon'],
+    ['스파게티','Spaghetti'],['샌드위치','Sandwich'],['샐러드','Salad'],['스테이크','Steak'],['핫도그','Hot dog'],
+    ['감자튀김','French fries'],['팥빙수','Red bean shaved ice'],['아이스크림','Ice cream'],['케이크','Cake'],['도넛','Doughnut'],
+    ['팝콘','Popcorn'],['호빵','Steamed bun'],['누룽지','Scorched rice'],['곱창','Grilled tripe'],['떡갈비','Short rib patties']
+  ]},
+  { id: 'animal', ko: '동물', en: 'Animals', words: [
+    ['호랑이','Tiger'],['사자','Lion'],['코끼리','Elephant'],['기린','Giraffe'],['얼룩말','Zebra'],
+    ['하마','Hippo'],['코뿔소','Rhino'],['원숭이','Monkey'],['고릴라','Gorilla'],['곰','Bear'],
+    ['판다','Panda'],['늑대','Wolf'],['여우','Fox'],['토끼','Rabbit'],['다람쥐','Squirrel'],
+    ['고양이','Cat'],['강아지','Puppy'],['말','Horse'],['소','Cow'],['돼지','Pig'],
+    ['양','Sheep'],['염소','Goat'],['닭','Chicken'],['오리','Duck'],['거위','Goose'],
+    ['독수리','Eagle'],['부엉이','Owl'],['앵무새','Parrot'],['펭귄','Penguin'],['타조','Ostrich'],
+    ['공작','Peacock'],['비둘기','Pigeon'],['참새','Sparrow'],['거북이','Turtle'],['악어','Crocodile'],
+    ['뱀','Snake'],['개구리','Frog'],['도마뱀','Lizard'],['고래','Whale'],['돌고래','Dolphin'],
+    ['상어','Shark'],['문어','Octopus'],['오징어','Squid'],['게','Crab'],['해파리','Jellyfish'],
+    ['나비','Butterfly'],['꿀벌','Honeybee'],['개미','Ant'],['캥거루','Kangaroo'],['낙타','Camel']
+  ]},
+  { id: 'job', ko: '직업', en: 'Jobs', words: [
+    ['의사','Doctor'],['간호사','Nurse'],['약사','Pharmacist'],['선생님','Teacher'],['교수','Professor'],
+    ['경찰관','Police officer'],['소방관','Firefighter'],['군인','Soldier'],['변호사','Lawyer'],['판사','Judge'],
+    ['요리사','Chef'],['제빵사','Baker'],['미용사','Hairdresser'],['가수','Singer'],['배우','Actor'],
+    ['화가','Painter'],['작가','Writer'],['기자','Reporter'],['사진작가','Photographer'],['운동선수','Athlete'],
+    ['조종사','Pilot'],['승무원','Flight attendant'],['택시 기사','Taxi driver'],['버스 기사','Bus driver'],['집배원','Mail carrier'],
+    ['농부','Farmer'],['어부','Fisherman'],['목수','Carpenter'],['건축가','Architect'],['과학자','Scientist'],
+    ['프로그래머','Programmer'],['디자이너','Designer'],['수의사','Veterinarian'],['치과의사','Dentist'],['은행원','Bank teller'],
+    ['회계사','Accountant'],['사서','Librarian'],['마술사','Magician'],['개그맨','Comedian'],['아나운서','News anchor'],
+    ['택배 기사','Delivery driver'],['정원사','Gardener'],['통역사','Interpreter'],['상담사','Counselor'],['코치','Coach'],
+    ['심판','Referee'],['경비원','Security guard'],['환경미화원','Street cleaner'],['우주비행사','Astronaut'],['발레리나','Ballerina']
+  ]},
+  { id: 'place', ko: '장소', en: 'Places', words: [
+    ['학교','School'],['병원','Hospital'],['도서관','Library'],['공원','Park'],['놀이공원','Amusement park'],
+    ['동물원','Zoo'],['수족관','Aquarium'],['박물관','Museum'],['미술관','Art gallery'],['영화관','Movie theater'],
+    ['공항','Airport'],['기차역','Train station'],['버스 정류장','Bus stop'],['지하철역','Subway station'],['항구','Harbor'],
+    ['해수욕장','Beach'],['산','Mountain'],['캠핑장','Campsite'],['찜질방','Korean spa'],['목욕탕','Public bath'],
+    ['수영장','Swimming pool'],['헬스장','Gym'],['경기장','Stadium'],['편의점','Convenience store'],['마트','Supermarket'],
+    ['시장','Market'],['백화점','Department store'],['카페','Cafe'],['식당','Restaurant'],['빵집','Bakery'],
+    ['은행','Bank'],['우체국','Post office'],['경찰서','Police station'],['소방서','Fire station'],['호텔','Hotel'],
+    ['교실','Classroom'],['놀이터','Playground'],['노래방','Karaoke room'],['볼링장','Bowling alley'],['미용실','Hair salon'],
+    ['세탁소','Dry cleaner'],['주차장','Parking lot'],['주유소','Gas station'],['사무실','Office'],['공장','Factory'],
+    ['농장','Farm'],['사막','Desert'],['섬','Island'],['동굴','Cave'],['결혼식장','Wedding hall']
+  ]},
+  { id: 'sport', ko: '스포츠', en: 'Sports', words: [
+    ['축구','Soccer'],['야구','Baseball'],['농구','Basketball'],['배구','Volleyball'],['테니스','Tennis'],
+    ['배드민턴','Badminton'],['탁구','Table tennis'],['골프','Golf'],['볼링','Bowling'],['수영','Swimming'],
+    ['마라톤','Marathon'],['태권도','Taekwondo'],['유도','Judo'],['씨름','Korean wrestling'],['복싱','Boxing'],
+    ['레슬링','Wrestling'],['펜싱','Fencing'],['양궁','Archery'],['사격','Shooting'],['스키','Skiing'],
+    ['스노보드','Snowboarding'],['피겨스케이팅','Figure skating'],['쇼트트랙','Short track'],['컬링','Curling'],['아이스하키','Ice hockey'],
+    ['럭비','Rugby'],['핸드볼','Handball'],['필드하키','Field hockey'],['체조','Gymnastics'],['역도','Weightlifting'],
+    ['사이클','Cycling'],['승마','Horse riding'],['서핑','Surfing'],['등산','Hiking'],['암벽등반','Rock climbing'],
+    ['줄넘기','Jump rope'],['요가','Yoga'],['필라테스','Pilates'],['스쿼시','Squash'],['당구','Billiards'],
+    ['족구','Foot volleyball'],['피구','Dodgeball'],['달리기','Running'],['줄다리기','Tug of war'],['스케이트보드','Skateboarding'],
+    ['카누','Canoeing'],['다이빙','Diving'],['발야구','Kickball'],['수상스키','Water skiing'],['스피드스케이팅','Speed skating']
+  ]},
+  { id: 'thing', ko: '물건', en: 'Things', words: [
+    ['우산','Umbrella'],['가방','Bag'],['지갑','Wallet'],['손목시계','Watch'],['안경','Glasses'],
+    ['모자','Hat'],['운동화','Sneakers'],['양말','Socks'],['장갑','Gloves'],['목도리','Scarf'],
+    ['휴대폰','Mobile phone'],['노트북','Laptop'],['이어폰','Earphones'],['충전기','Charger'],['리모컨','Remote control'],
+    ['텔레비전','Television'],['냉장고','Refrigerator'],['세탁기','Washing machine'],['선풍기','Electric fan'],['에어컨','Air conditioner'],
+    ['전자레인지','Microwave'],['밥솥','Rice cooker'],['청소기','Vacuum cleaner'],['드라이기','Hair dryer'],['거울','Mirror'],
+    ['칫솔','Toothbrush'],['수건','Towel'],['베개','Pillow'],['이불','Blanket'],['의자','Chair'],
+    ['책상','Desk'],['침대','Bed'],['소파','Sofa'],['연필','Pencil'],['지우개','Eraser'],
+    ['가위','Scissors'],['공책','Notebook'],['달력','Calendar'],['액자','Picture frame'],['열쇠','Key'],
+    ['자물쇠','Padlock'],['손전등','Flashlight'],['컵','Cup'],['숟가락','Spoon'],['젓가락','Chopsticks'],
+    ['냄비','Pot'],['프라이팬','Frying pan'],['양초','Candle'],['화분','Flower pot'],['인형','Doll'],
+    ['풍선','Balloon']
+  ]},
+  { id: 'ride', ko: '탈것', en: 'Vehicles', words: [
+    ['자동차','Car'],['버스','Bus'],['택시','Taxi'],['트럭','Truck'],['기차','Train'],
+    ['지하철','Subway'],['고속열차','High-speed train'],['비행기','Airplane'],['헬리콥터','Helicopter'],['배','Ship'],
+    ['요트','Yacht'],['보트','Boat'],['잠수함','Submarine'],['자전거','Bicycle'],['오토바이','Motorcycle'],
+    ['킥보드','Kick scooter'],['로켓','Rocket'],['우주선','Spaceship'],['열기구','Hot air balloon'],['구급차','Ambulance'],
+    ['소방차','Fire truck'],['경찰차','Police car'],['캠핑카','Camper van'],['굴착기','Excavator'],['지게차','Forklift'],
+    ['크레인','Crane'],['트랙터','Tractor'],['경운기','Power tiller'],['손수레','Hand cart'],['유모차','Stroller'],
+    ['휠체어','Wheelchair'],['케이블카','Cable car'],['모노레일','Monorail'],['스쿠터','Scooter'],['마차','Carriage'],
+    ['썰매','Sled'],['뗏목','Raft'],['여객선','Ferry'],['유람선','Cruise ship'],['화물선','Cargo ship'],
+    ['전투기','Fighter jet'],['탱크','Tank'],['트램','Tram'],['관광버스','Tour bus'],['경주용 자동차','Race car'],
+    ['견인차','Tow truck'],['쓰레기 수거차','Garbage truck'],['택배 트럭','Delivery truck'],['레미콘','Cement mixer'],['수륙양용차','Amphibious vehicle']
+  ]},
+  { id: 'world', ko: '나라·도시', en: 'Countries & cities', words: [
+    ['일본','Japan'],['중국','China'],['미국','United States'],['영국','United Kingdom'],['프랑스','France'],
+    ['독일','Germany'],['이탈리아','Italy'],['스페인','Spain'],['러시아','Russia'],['캐나다','Canada'],
+    ['브라질','Brazil'],['멕시코','Mexico'],['호주','Australia'],['인도','India'],['태국','Thailand'],
+    ['베트남','Vietnam'],['필리핀','Philippines'],['이집트','Egypt'],['그리스','Greece'],['스위스','Switzerland'],
+    ['네덜란드','Netherlands'],['튀르키예','Turkey'],['뉴질랜드','New Zealand'],['아르헨티나','Argentina'],['몽골','Mongolia'],
+    ['서울','Seoul'],['부산','Busan'],['제주도','Jeju Island'],['경주','Gyeongju'],['강릉','Gangneung'],
+    ['전주','Jeonju'],['인천','Incheon'],['대구','Daegu'],['대전','Daejeon'],['여수','Yeosu'],
+    ['도쿄','Tokyo'],['오사카','Osaka'],['베이징','Beijing'],['뉴욕','New York'],['파리','Paris'],
+    ['런던','London'],['로마','Rome'],['방콕','Bangkok'],['하와이','Hawaii'],['싱가포르','Singapore'],
+    ['홍콩','Hong Kong'],['시드니','Sydney'],['라스베이거스','Las Vegas'],['두바이','Dubai'],['광주','Gwangju']
+  ]}
+];
+
+var I18N = {
+  ko: {
+    title: '라이어 게임', title2: '라이어 게임',
+    subtitle: '셋에서 여덟이 폰 하나로 라이어를 찾습니다',
+    home: '🏠 <span class="lbl">다른 게임</span>',
+    adPlaceholder: '', adPlaceholder2: '',
+    startSub: '폰 하나를 돌려 가며 <strong>한 사람씩 제시어를 확인</strong>합니다. 그런데 <strong>딱 한 명</strong>은 제시어를 모릅니다 — 그 사람이 라이어입니다. 돌아가며 한 마디씩 설명하고, 라이어를 찾아내세요.',
+    whoLabel: '몇 명이 하나요?', topicLabel: '주제', modeLabel: '모드', timerLabel: '발언 타이머',
+    modeBasic: '기본', modeFool: '바보 모드', timerOff: '끄기', timerOn: '한 사람 20초',
+    noteBasic: '라이어는 자기가 라이어인 것을 알고, 주제만 봅니다.',
+    noteFool: '라이어도 같은 주제의 다른 낱말을 받습니다. 자기가 라이어인지 모릅니다.',
+    topicMix: '섞어서',
+    startBtn: '🕵️ 시작',
+    statPlays:'오늘 <b data-hp="plays.liar.today">–</b>판 · 누적 <b data-hp="plays.liar.total">–</b>판',
+    result: '결과', again: '같은 설정으로 한 판 더', setupBtn: '설정 바꾸기',
+    howTitle: '게임 방법',
+    how1: '폰 한 대를 준비하고 <strong>3명에서 8명</strong>이 둥글게 앉습니다. 인원과 주제를 고르고 시작을 누르면 화면이 &ldquo;1번에게 폰을 건네세요&rdquo;라고 말합니다. 폰을 받은 사람은 가운데 칸을 <strong>누르고 있는 동안만</strong> 자기 제시어를 볼 수 있습니다. 손을 떼면 글자가 사라지니, 확인했으면 &ldquo;확인했어요&rdquo;를 누르고 다음 사람에게 넘깁니다.',
+    how2: '모두 확인하고 나면 화면이 <strong>첫 발언자</strong>를 무작위로 알려 줍니다. 그 사람부터 시계 방향으로 돌아가며 제시어를 <strong>한 마디씩</strong> 설명합니다. 제시어를 그대로 말하면 안 되고, 너무 자세히 말하면 라이어에게 답을 알려 주게 됩니다. 라이어는 제시어를 모르는 채로 남들의 말을 듣고 그럴듯하게 섞여야 합니다.',
+    how3: '한 바퀴(또는 두 바퀴)가 돌면 다 같이 의논해 <strong>라이어로 보이는 한 사람</strong>을 정하고, 폰에서 그 번호를 누릅니다. 틀린 사람을 지목하면 라이어가 이깁니다. 라이어를 맞혔다면 끝이 아닙니다 — 라이어에게 <strong>역전 기회</strong>가 한 번 주어집니다. 같은 주제의 낱말 여덟 개 가운데 제시어를 고르면 라이어의 역전승입니다.',
+    modeTitle: '기본 모드와 바보 모드',
+    modeDesc: '<strong>기본 모드</strong>에서 라이어의 화면에는 &ldquo;당신은 라이어입니다&rdquo;와 주제만 뜹니다. 라이어는 자기가 라이어라는 것을 알고 시작합니다. <strong>바보 모드</strong>에서는 라이어에게도 <strong>같은 주제의 다른 낱말</strong>이 주어집니다. 예를 들어 모두가 &ldquo;떡볶이&rdquo;를 받을 때 한 사람만 &ldquo;라면&rdquo;을 받습니다. 라이어 자신도 자기가 라이어인지 모르기 때문에, 설명을 듣다가 &ldquo;어, 뭔가 다른데?&rdquo; 하는 순간이 이 모드의 재미입니다.',
+    fairTitle: '누가 라이어가 되는지는 어떻게 정해지나',
+    fairDesc: '라이어의 자리, 제시어, 첫 발언자, 역전 기회의 보기 여덟 개는 <strong>판이 시작되는 순간 한꺼번에</strong> 정해지고, 그 뒤에 무엇을 눌러도 바뀌지 않습니다. 추첨에는 브라우저의 보안 난수를 씁니다. 여러 판을 하다 보면 같은 제시어가 반복되기 쉬운데, 이 게임은 <strong>최근에 나온 30개의 낱말을 기기에 기억해 두고 다시 뽑지 않습니다</strong>. 이름을 받지 않고 번호로만 진행하며, 제시어와 라이어가 누구였는지는 기기 밖으로 나가지 않습니다.',
+    tipsTitle: '요령',
+    tip1q: '시민이라면 — 넓게, 그러나 정확하게',
+    tip1a: '제시어의 <strong>한 면만</strong> 짚는 설명이 좋습니다. &ldquo;떡볶이&rdquo;라면 &ldquo;빨갛다&rdquo;보다 &ldquo;학교 앞에서 먹었다&rdquo;가 낫습니다. 라이어는 뭉뚱그린 말을 흉내 내기는 쉬워도, 구체적인 경험은 흉내 내기 어렵습니다. 다만 너무 콕 집으면 라이어가 역전 기회에서 답을 맞힙니다.',
+    tip2q: '라이어라면 — 먼저 말하지 않기를 빌며',
+    tip2a: '첫 발언자가 되면 불리합니다. 주제만 보고 <strong>그 주제의 대부분에 들어맞는 말</strong>을 고르세요. 음식이라면 &ldquo;저는 좋아해요&rdquo;, 장소라면 &ldquo;가 본 적 있어요&rdquo; 같은 말입니다. 차례가 뒤라면 앞사람들의 설명을 모아 제시어를 좁혀 두세요. 지목당해도 역전 기회가 남아 있습니다.',
+    tip3q: '의논이 길어지면 타이머를 켜세요',
+    tip3a: '발언 타이머를 켜면 한 사람에게 20초씩 주어집니다. 시간이 짧으면 라이어가 핑계를 만들 틈이 줄고, 판이 빨리 돌아 여러 판을 하기 좋습니다. 처음 하는 사람이 많다면 끄고 천천히 해 보세요.',
+    exTitle: '주제별 제시어 예시',
+    exList: '<ul><li><strong>음식</strong> — 떡볶이 · 김밥 · 짜장면 · 삼계탕 · 붕어빵 · 팥빙수 …</li><li><strong>동물</strong> — 호랑이 · 기린 · 펭귄 · 돌고래 · 다람쥐 · 캥거루 …</li><li><strong>직업</strong> — 소방관 · 요리사 · 수의사 · 사서 · 마술사 · 우주비행사 …</li><li><strong>장소</strong> — 찜질방 · 수족관 · 편의점 · 노래방 · 놀이터 · 결혼식장 …</li><li><strong>스포츠</strong> — 축구 · 양궁 · 컬링 · 씨름 · 줄다리기 · 피구 …</li><li><strong>물건</strong> — 우산 · 리모컨 · 전자레인지 · 베개 · 손전등 · 풍선 …</li><li><strong>탈것</strong> — 지하철 · 열기구 · 잠수함 · 유모차 · 케이블카 · 경운기 …</li><li><strong>나라·도시</strong> — 이탈리아 · 이집트 · 부산 · 제주도 · 뉴욕 · 하와이 …</li></ul><p>주제마다 50개 안팎, 모두 약 400개의 낱말이 들어 있습니다. 누구나 아는 일반 명사로만 골랐고, 상표·실존 인물·작품 제목은 넣지 않았습니다.</p>',
+    faqTitle: '자주 묻는 질문',
+    faq1q: '몇 명이 해야 재미있나요?',
+    faq1a: '3명부터 할 수 있지만 <strong>5~6명</strong>일 때 가장 팽팽합니다. 사람이 적으면 라이어가 금방 드러나고, 많으면 한 바퀴가 길어져 라이어가 숨기 쉬워집니다. 7~8명이라면 한 바퀴만 돌고 바로 지목해 보세요.',
+    faq2q: '라이어가 두 명일 수는 없나요?',
+    faq2a: '지금은 한 판에 라이어가 <strong>한 명</strong>입니다. 폰 한 대를 돌리는 방식에서는 라이어 둘이 서로를 모르는 채로 설명하게 되어, 판이 금방 무너지기 쉽기 때문입니다. 많이 찾으시면 여러 명 판의 두 라이어 모드를 따로 검토하겠습니다.',
+    faq3q: '지목은 왜 폰에서 비밀투표로 하지 않나요?',
+    faq3a: '비밀투표를 하려면 폰을 한 바퀴 더 돌려야 해서 판이 느려집니다. 라이어 게임의 재미는 <strong>다 같이 떠들며 몰아가는 순간</strong>에 있다고 보고, 지목은 말로 정한 뒤 결과만 누르도록 했습니다. 표가 갈리면 손을 들어 다수결로 정하세요.',
+    faq4q: '기록은 어디에 저장되나요?',
+    faq4a: '이 게임은 판을 저장하지 않습니다. 기기의 브라우저에 남는 것은 <strong>마지막 설정(인원·주제·모드·타이머)</strong>, <strong>최근에 나온 낱말 30개</strong>(같은 낱말이 반복되지 않게), 그리고 <strong>언어 설정</strong>뿐입니다. 서버로는 판수 집계와 함께 어느 게임인지·판이 끝난 방식·인원·모드·주제 같은 플레이 통계가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.',
+    footer: '© 2026 라이어 게임 · 개인정보: 이 게임은 설정과 최근 낱말만 기기에 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
+    navPrivacy: '개인정보처리방침', navTerms: '이용약관', navAbout: '소개',
+    /* 판 진행 중 문안 — 코드가 그때그때 그린다 */
+    passCount: function(i, n){ return i + ' / ' + n; },
+    handTo: function(n){ return n + '번에게 폰을 건네세요'; },
+    revealHint: '👆 누르고 있는 동안만 보입니다',
+    seenNext: '확인했어요 — 다음 사람에게',
+    seenLast: '확인했어요 — 설명 시작',
+    youAreLiar: '당신은 라이어입니다',
+    topicIs: function(t){ return '주제: ' + t; },
+    talkFirst: function(n){ return n + '번부터 시계 방향으로 한 마디씩 설명하세요.'; },
+    talkHow: '제시어를 그대로 말하면 안 됩니다. 다 돌면 의논해서 라이어를 지목하세요.',
+    speakerNow: function(n){ return '지금: ' + n + '번'; },
+    nextSpeaker: '다음 사람 ▶',
+    timeUp: '시간!',
+    accuseBtn: '🕵️ 라이어 지목하러 가기',
+    quitBtn: '처음으로',
+    accuseTitle: '누가 라이어인가요?',
+    accuseSub: '말로 의논해 한 사람을 정한 뒤, 그 번호를 누르세요.',
+    accuseGo: function(n){ return n ? n + '번을 라이어로 지목' : '번호를 고르세요'; },
+    guessTitle: function(n){ return '맞았습니다 — ' + n + '번이 라이어!'; },
+    guessSub: '라이어의 역전 기회: 제시어를 고르면 라이어가 이깁니다. 라이어만 고르세요.',
+    resCaught: '🎉 시민 승리',
+    resCaughtSub: '라이어를 찾아냈고, 라이어는 제시어를 맞히지 못했습니다.',
+    resGuessed: '🕵️ 라이어 역전승',
+    resGuessedSub: '라이어는 들켰지만 제시어를 맞혔습니다.',
+    resEscaped: '🕵️ 라이어 승리',
+    resEscapedSub: function(n){ return n + '번은 라이어가 아니었습니다.'; },
+    factWord: function(w){ return '제시어: <b>' + w + '</b>'; },
+    factLiar: function(n){ return '라이어: <b>' + n + '번</b>'; },
+    factFool: function(w){ return '라이어가 받은 낱말: <b>' + w + '</b>'; },
+    factTopic: function(t){ return '주제: ' + t; }
+  },
+  en: {
+    title: 'Liar Game', title2: 'Liar Game',
+    subtitle: 'Three to eight players, one phone, one liar',
+    home: '🏠 <span class="lbl">More games</span>',
+    adPlaceholder: '', adPlaceholder2: '',
+    startSub: 'Pass one phone around so <strong>each player checks the secret word</strong>. But <strong>exactly one</strong> of you does not get it — that person is the liar. Take turns describing the word in one line, then find the liar.',
+    whoLabel: 'How many players?', topicLabel: 'Topic', modeLabel: 'Mode', timerLabel: 'Speaking timer',
+    modeBasic: 'Basic', modeFool: 'Fool mode', timerOff: 'Off', timerOn: '20 s each',
+    noteBasic: 'The liar knows they are the liar and sees only the topic.',
+    noteFool: 'The liar also gets a word — a different one from the same topic — and does not know they are the liar.',
+    topicMix: 'Mixed',
+    startBtn: '🕵️ Start',
+    statPlays:'<b data-hp="plays.liar.today">–</b> today · <b data-hp="plays.liar.total">–</b> all-time',
+    result: 'Result', again: 'Another round, same settings', setupBtn: 'Change settings',
+    howTitle: 'How to play',
+    how1: 'Take one phone and sit <strong>three to eight people</strong> in a circle. Pick the player count and topic, press start, and the screen says &ldquo;hand the phone to player 1&rdquo;. That player sees their word <strong>only while holding</strong> the central panel. Letting go erases it, so once you have seen it press &ldquo;I’ve seen it&rdquo; and pass the phone on.',
+    how2: 'When everyone has looked, the screen names a random <strong>first speaker</strong>. From there, going clockwise, each player describes the word in <strong>one line</strong>. You may not say the word itself, and describing it too precisely hands the answer to the liar. The liar, without knowing the word, has to listen and blend in.',
+    how3: 'After one lap (or two), talk it over, agree on <strong>the one player who seems to be the liar</strong>, and press that seat number on the phone. Accuse the wrong person and the liar wins. Accuse the liar and it is not over yet — the liar gets <strong>one comeback chance</strong>: pick the word from eight in the same topic and the liar wins after all.',
+    modeTitle: 'Basic mode and fool mode',
+    modeDesc: 'In <strong>basic mode</strong> the liar’s screen shows only &ldquo;You are the liar&rdquo; and the topic, so the liar knows from the start. In <strong>fool mode</strong> the liar also receives <strong>a different word from the same topic</strong>. When everyone else gets &ldquo;tteokbokki&rdquo;, one person gets &ldquo;ramen&rdquo;. The liar does not know they are the liar, and the moment they start to think &ldquo;wait, something is off&rdquo; is what this mode is for.',
+    fairTitle: 'How the liar is chosen',
+    fairDesc: 'The liar’s seat, the word, the first speaker and the eight comeback choices are all decided <strong>the moment the round starts</strong>, and nothing you press afterwards changes them. The draw uses the browser’s secure random source. Words tend to repeat across many rounds, so this game <strong>remembers the last 30 words on the device and does not draw them again</strong>. No names are taken — play runs on seat numbers — and neither the word nor the liar’s identity leaves the device.',
+    tipsTitle: 'Tips',
+    tip1q: 'As a citizen — broad, but true',
+    tip1a: 'Touch <strong>one side</strong> of the word. For tteokbokki, &ldquo;eaten outside school&rdquo; beats &ldquo;it’s red&rdquo;. A liar can echo vague words but not a specific memory. Go too precise, though, and the liar will get it right in the comeback.',
+    tip2q: 'As the liar — hope you are not first',
+    tip2a: 'Speaking first is the worst spot. Pick something that <strong>fits most of the topic</strong>: for food, &ldquo;I like it&rdquo;; for places, &ldquo;I have been there&rdquo;. Speaking later, collect the others’ clues and narrow the word down. Even if you are caught, the comeback is still yours.',
+    tip3q: 'Turn on the timer if talk drags',
+    tip3a: 'With the speaking timer on, each player gets 20 seconds. Less time means fewer excuses for the liar and faster rounds, which is good for playing several in a row. With many first-timers, leave it off and go slowly.',
+    exTitle: 'Example words by topic',
+    exList: '<ul><li><strong>Food</strong> — Tteokbokki · Gimbap · Black bean noodles · Ginseng chicken soup · Fish-shaped bun …</li><li><strong>Animals</strong> — Tiger · Giraffe · Penguin · Dolphin · Squirrel · Kangaroo …</li><li><strong>Jobs</strong> — Firefighter · Chef · Veterinarian · Librarian · Magician · Astronaut …</li><li><strong>Places</strong> — Korean spa · Aquarium · Convenience store · Karaoke room · Playground …</li><li><strong>Sports</strong> — Soccer · Archery · Curling · Korean wrestling · Tug of war · Dodgeball …</li><li><strong>Things</strong> — Umbrella · Remote control · Microwave · Pillow · Flashlight · Balloon …</li><li><strong>Vehicles</strong> — Subway · Hot air balloon · Submarine · Stroller · Cable car …</li><li><strong>Countries &amp; cities</strong> — Italy · Egypt · Busan · Jeju Island · New York · Hawaii …</li></ul><p>Each topic holds about fifty words, some four hundred in all. They are everyday nouns only — no brands, real people or titles of works.</p>',
+    faqTitle: 'Questions',
+    faq1q: 'How many players is best?',
+    faq1a: 'Three can play, but it is tightest with <strong>five or six</strong>. With few players the liar is exposed quickly; with many, a lap takes long and the liar hides more easily. With seven or eight, try accusing after a single lap.',
+    faq2q: 'Can there be two liars?',
+    faq2a: 'For now each round has <strong>one</strong> liar. When a single phone is passed around, two liars describe without knowing about each other and the round tends to collapse. If many people ask, we will look at a two-liar mode for larger groups.',
+    faq3q: 'Why is the accusation not a secret vote on the phone?',
+    faq3a: 'A secret vote would mean passing the phone round once more, which slows everything down. The fun of this game is <strong>everyone arguing out loud and closing in</strong>, so you decide by talking and only press the result. If opinions split, raise hands and go with the majority.',
+    faq4q: 'What is stored?',
+    faq4a: 'This game stores no rounds. All that stays in your browser is <strong>your last settings (players, topic, mode, timer)</strong>, <strong>the last 30 words drawn</strong> (so they do not repeat) and your <strong>language</strong>. The server receives play counts along with which game it was, how the round ended, the player count, mode and topic, none of it directly identifying you. The stored and transmitted items are kept current in the <a href="/privacy/">privacy policy</a> · <a href="/terms/">Terms of Service</a>.',
+    footer: '© 2026 Liar Game · Privacy: this game stores only your settings and recent words on your device, and third-party cookies (Google and others) may be used to serve ads.',
+    navPrivacy: 'Privacy policy', navTerms: 'Terms', navAbout: 'About',
+    passCount: function(i, n){ return i + ' / ' + n; },
+    handTo: function(n){ return 'Hand the phone to player ' + n; },
+    revealHint: '👆 Hold to see — it hides when you let go',
+    seenNext: 'I’ve seen it — pass it on',
+    seenLast: 'I’ve seen it — start describing',
+    youAreLiar: 'You are the liar',
+    topicIs: function(t){ return 'Topic: ' + t; },
+    talkFirst: function(n){ return 'Player ' + n + ' starts. Go clockwise, one line each.'; },
+    talkHow: 'Do not say the word itself. After the lap, talk it over and accuse the liar.',
+    speakerNow: function(n){ return 'Now: player ' + n; },
+    nextSpeaker: 'Next player ▶',
+    timeUp: 'Time!',
+    accuseBtn: '🕵️ Accuse the liar',
+    quitBtn: 'Back to start',
+    accuseTitle: 'Who is the liar?',
+    accuseSub: 'Agree on one player by talking, then press their number.',
+    accuseGo: function(n){ return n ? 'Accuse player ' + n : 'Pick a number'; },
+    guessTitle: function(n){ return 'Correct — player ' + n + ' is the liar!'; },
+    guessSub: 'The liar’s comeback: pick the word and the liar wins. Only the liar chooses.',
+    resCaught: '🎉 Citizens win',
+    resCaughtSub: 'You found the liar, and the liar missed the word.',
+    resGuessed: '🕵️ Liar’s comeback',
+    resGuessedSub: 'The liar was caught but named the word.',
+    resEscaped: '🕵️ The liar wins',
+    resEscapedSub: function(n){ return 'Player ' + n + ' was not the liar.'; },
+    factWord: function(w){ return 'Word: <b>' + w + '</b>'; },
+    factLiar: function(n){ return 'Liar: <b>player ' + n + '</b>'; },
+    factFool: function(w){ return 'The liar’s word: <b>' + w + '</b>'; },
+    factTopic: function(t){ return 'Topic: ' + t; }
+  }
+};
+
+var GA_GAME = 'liar';
+
+var lang = (function(){
+  try { return localStorage.getItem('bp.lang') || null; } catch (e) { return null; }
+})() || ((navigator.language || '').toLowerCase().indexOf('ko') === 0 ? 'ko' : 'en');
+var T = function(k){
+  var v = I18N[lang][k];
+  return typeof v === 'function' ? v.apply(null, Array.prototype.slice.call(arguments, 1)) : v;
+};
+
+/* ── 난수 — 씨앗을 받는 결정론 발생기 ─────────────────────────────────────── */
+function makeRng(seed){
+  var s = seed >>> 0;
+  return function(){
+    s |= 0; s = (s + 0x6D2B79F5) | 0;
+    var t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function freshSeed(){
+  try {
+    if (window.crypto && window.crypto.getRandomValues){
+      var a = new Uint32Array(1); window.crypto.getRandomValues(a); return a[0] >>> 0;
+    }
+  } catch (e) { /* 아래로 떨어진다 */ }
+  return (Math.random() * 4294967296) >>> 0;
+}
+
+function topicByKey(k){
+  for (var i = 0; i < TOPICS.length; i++) if (TOPICS[i].id === k) return TOPICS[i];
+  return null;
+}
+
+/* ── 판 짜기 — ★여기서 전부 정한다 ─────────────────────────────────────────
+   plan() 은 ★순수 함수다: (씨앗, 인원, 주제, 모드, 최근 낱말) 만으로 판이 정해진다. */
+function plan(seed, players, topicKey, mode, recent){
+  var rnd = makeRng(seed);
+  var T = topicKey === 'mix' || !topicByKey(topicKey) ? TOPICS[Math.floor(rnd() * TOPICS.length)] : topicByKey(topicKey);
+  var n = T.words.length;
+
+  /* 제시어 — 최근에 나온 낱말은 ★뽑는 자리에서 뺀다. RECENT_MAX 가 가장 작은 주제보다 작으므로
+     후보는 언제나 남는다(검증기 ① 이 주제마다 40개 이상을 잰다). */
+  var recentSet = {};
+  var rs = (recent || []).slice(-RECENT_MAX);
+  for (var r = 0; r < rs.length; r++) recentSet[rs[r]] = true;
+  recentSet.has = function(k){ return recentSet[k] === true; };
+  var pool = [];
+  for (var i = 0; i < n; i++){
+    if (recentSet.has(T.id + ':' + i)) continue;
+    pool.push(i);
+  }
+  if (!pool.length) for (var z = 0; z < n; z++) pool.push(z);
+  var wordIdx = pool[Math.floor(rnd() * pool.length)];
+
+  var liar = Math.floor(rnd() * players);
+  var first = Math.floor(rnd() * players);
+
+  var others = [];
+  for (var j = 0; j < n; j++) if (j !== wordIdx) others.push(j);
+  var liarWordIdx = mode === 'fool' ? others[Math.floor(rnd() * others.length)] : -1;
+
+  /* 역전 보기 — 제시어 + 같은 주제의 다른 낱말 7개를 부분 셔플로 뽑고 한 번 더 섞는다 */
+  var bag = others.slice();
+  for (var k = 0; k < CHOICES - 1; k++){
+    var p = k + Math.floor(rnd() * (bag.length - k));
+    var tmp = bag[k]; bag[k] = bag[p]; bag[p] = tmp;
+  }
+  var choices = [wordIdx];
+  for (var q = 0; q < CHOICES - 1; q++) choices.push(bag[q]);
+  for (var m = choices.length - 1; m > 0; m--){
+    var x = Math.floor(rnd() * (m + 1));
+    var t2 = choices[m]; choices[m] = choices[x]; choices[x] = t2;
+  }
+
+  return { seed: seed >>> 0, players: players, mode: mode === 'fool' ? 'fool' : 'basic', topic: T.id,
+           wordIdx: wordIdx, liar: liar, first: first, liarWordIdx: liarWordIdx, choices: choices };
+}
+
+/* 한 사람의 카드. ★기본 모드 라이어 카드에는 제시어가 ★없다 — 숨기는 것이 아니라 넣지 않는다. */
+function cardFor(p, i, lg){
+  var T = function(k){ return I18N[lg || lang][k]; };
+  var TT = topicByKey(p.topic);
+  var col = (lg || lang) === 'en' ? 1 : 0;
+  var tName = (lg || lang) === 'en' ? TT.en : TT.ko;
+  var w = TT.words[p.wordIdx][col];
+  if (i === p.liar){
+    if (p.mode === 'fool') return { role: 'fool', word: TT.words[p.liarWordIdx][col], topic: tName };
+    return { role: 'liar', word: '', topic: tName, note: T('youAreLiar') };
+  }
+  return { role: 'citizen', word: w, topic: tName };
+}
+
+/* ── 상태 — ★난수는 여기 없다 ────────────────────────────────────────── */
+var state = {
+  phase: 'idle',        /* idle | pass | talk | accuse | guess | over */
+  players: PLAYERS_DEFAULT, topic: 'mix', mode: 'basic', timer: 'off',
+  planned: null, viewer: 0, viewed: false,
+  speaker: 0, timerEnd: 0, accused: null, result: null
+};
+
+var $ = function(id){ return document.getElementById(id); };
+var elStart, elPass, elTalk, elAccuse, elGuess, elOver, elWho, elTopicPick, elModePick, elTimerPick,
+    elRevealBox, elRevealWord, elRevealTopic, elRevealHint, elSeen, elHand, elPassCount,
+    elAccusePick, elAccuseGo, elGuessPick;
+
+function ga(name, params){ try { if (typeof gtag === 'function') gtag('event', name, params || {}); } catch (e) {} }
+function buzz(pattern){ try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {} }
+
+/* ── 기기 저장 ─────────────────────────────────────────────────────────── */
+function loadRecent(){
+  try { var a = JSON.parse(localStorage.getItem('lr.recent') || '[]'); return Array.isArray(a) ? a : []; }
+  catch (e) { return []; }
+}
+function saveRecent(list){ try { localStorage.setItem('lr.recent', JSON.stringify(list.slice(-RECENT_MAX))); } catch (e) {} }
+function saveSetup(){
+  try { localStorage.setItem('lr.setup', JSON.stringify({ players: state.players, topic: state.topic, mode: state.mode, timer: state.timer })); } catch (e) {}
+}
+function loadSetup(){
+  try {
+    var s = JSON.parse(localStorage.getItem('lr.setup') || 'null');
+    if (!s) return;
+    if (s.players >= PLAYERS_MIN && s.players <= PLAYERS_MAX) state.players = s.players;
+    if (s.topic === 'mix' || topicByKey(s.topic)) state.topic = s.topic;
+    if (s.mode === 'basic' || s.mode === 'fool') state.mode = s.mode;
+    if (s.timer === 'on' || s.timer === 'off') state.timer = s.timer;
+  } catch (e) {}
+}
+
+function show(which){
+  var map = { start: elStart, pass: elPass, talk: elTalk, accuse: elAccuse, guess: elGuess, over: elOver };
+  for (var k in map) if (map[k]) map[k].hidden = k !== which;
+}
+
+/* ── 고르기 단추 ───────────────────────────────────────────────────────── */
+function mark(box, attr, val){
+  var bs = box ? box.querySelectorAll('button') : [];
+  for (var i = 0; i < bs.length; i++) bs[i].setAttribute('aria-pressed', bs[i].getAttribute(attr) === String(val) ? 'true' : 'false');
+}
+function buildPickers(){
+  elWho.innerHTML = '';
+  for (var n = PLAYERS_MIN; n <= PLAYERS_MAX; n++){
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = String(n); b.setAttribute('data-n', String(n));
+    elWho.appendChild(b);
+  }
+  paintTopics();
+  paintOptions();
+  mark(elWho, 'data-n', state.players);
+  paintModeNote();
+}
+/* 모드·타이머 단추 — ★코드가 만든다(문안이 언어를 따라가야 하고, 검사 하네스도 같은 단추를 누른다) */
+function paintOptions(){
+  var groups = [[elModePick, 'data-m', [['basic', 'modeBasic'], ['fool', 'modeFool']], state.mode],
+                [elTimerPick, 'data-timer', [['off', 'timerOff'], ['on', 'timerOn']], state.timer]];
+  for (var g = 0; g < groups.length; g++){
+    var box = groups[g][0], attr = groups[g][1], opts = groups[g][2];
+    box.innerHTML = '';
+    for (var i = 0; i < opts.length; i++){
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = T(opts[i][1]); b.setAttribute(attr, opts[i][0]);
+      box.appendChild(b);
+    }
+    mark(box, attr, groups[g][3]);
+  }
+}
+function paintTopics(){
+  elTopicPick.innerHTML = '';
+  var list = [{ id: 'mix', name: T('topicMix') }];
+  for (var i = 0; i < TOPICS.length; i++) list.push({ id: TOPICS[i].id, name: lang === 'en' ? TOPICS[i].en : TOPICS[i].ko });
+  for (var j = 0; j < list.length; j++){
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = list[j].name; b.setAttribute('data-t', list[j].id);
+    elTopicPick.appendChild(b);
+  }
+  mark(elTopicPick, 'data-t', state.topic);
+}
+function paintModeNote(){ var el = $('modeNote'); if (el) el.textContent = T(state.mode === 'fool' ? 'noteFool' : 'noteBasic'); }
+function delegate(box, attr, fn){
+  box.addEventListener('click', function(e){
+    var t = e.target;
+    while (t && t !== box && t.tagName !== 'BUTTON') t = t.parentNode;
+    if (!t || t === box) return;
+    fn(t.getAttribute(attr), t);
+  });
+}
+
+/* ── 돌려 보기 ─────────────────────────────────────────────────────────── */
+function paintPass(){
+  hide();
+  state.viewed = false;
+  elSeen.disabled = true;
+  elHand.textContent = T('handTo', state.viewer + 1);
+  elPassCount.textContent = T('passCount', state.viewer + 1, state.players);
+  elRevealHint.textContent = T('revealHint');
+  elSeen.textContent = T(state.viewer === state.players - 1 ? 'seenLast' : 'seenNext');
+}
+function reveal(){
+  if (state.phase !== 'pass' || !state.planned) return;
+  var c = cardFor(state.planned, state.viewer, lang);
+  elRevealWord.textContent = c.role === 'liar' ? c.note : c.word;
+  elRevealTopic.textContent = T('topicIs', c.topic);
+  elRevealBox.classList.add('on');
+  state.viewed = true;
+  elSeen.disabled = false;
+}
+/* ★지운다 — 가리지 않는다. 다음 사람이 받는 화면에 남는 글자가 없어야 한다. */
+function hide(){
+  if (!elRevealWord) return;
+  elRevealWord.textContent = ''; elRevealTopic.textContent = '';
+  elRevealBox.classList.remove('on');
+}
+function seen(){
+  if (state.phase !== 'pass') return;
+  if (!state.viewed) return;
+  hide();
+  if (state.viewer < state.players - 1){
+    state.viewer += 1;
+    paintPass();
+  } else startTalk();
+}
+
+/* ── 설명 ─────────────────────────────────────────────────────────────── */
+var ticker = null;
+function stopTimer(){ if (ticker){ clearInterval(ticker); ticker = null; } }
+function paintTalk(){
+  var TT = topicByKey(state.planned.topic);
+  $('talkTopic').textContent = T('topicIs', lang === 'en' ? TT.en : TT.ko);
+  $('talkFirst').textContent = T('talkFirst', state.planned.first + 1);
+  $('talkHow').textContent = T('talkHow');
+  $('btnAccuse').textContent = T('accuseBtn');
+  $('btnQuit2').textContent = T('quitBtn');
+  $('btnNextSpeaker').textContent = T('nextSpeaker');
+  $('speakerNow').textContent = T('speakerNow', state.speaker + 1);
+  $('timerBox').hidden = state.timer !== 'on';
+  paintTimer();
+}
+function paintTimer(){
+  var tv = $('timerView');
+  if (!tv || state.timer !== 'on') return;
+  var left = Math.max(0, Math.ceil((state.timerEnd - Date.now()) / 1000));
+  if (left > TIMER_SEC) left = TIMER_SEC;
+  tv.textContent = left > 0 ? String(left) : T('timeUp');
+  tv.setAttribute('data-up', left > 0 ? '0' : '1');
+}
+function tick(){
+  if (state.phase !== 'talk') { stopTimer(); return; }
+  var was = $('timerView').getAttribute('data-up');
+  paintTimer();
+  if (was !== '1' && $('timerView').getAttribute('data-up') === '1') buzz([80, 60, 80]);
+}
+function startSpeaker(){
+  state.timerEnd = Date.now() + TIMER_SEC * 1000;
+  $('speakerNow').textContent = T('speakerNow', state.speaker + 1);
+  paintTimer();
+}
+function startTalk(){
+  state.phase = 'talk';
+  state.speaker = state.planned.first;
+  paintTalk();
+  show('talk');
+  stopTimer();
+  if (state.timer === 'on'){ startSpeaker(); ticker = setInterval(tick, 250); }
+}
+
+/* ── 지목 ─────────────────────────────────────────────────────────────── */
+function startAccuse(){
+  stopTimer();
+  state.phase = 'accuse';
+  state.accused = null;
+  $('accuseTitle').textContent = T('accuseTitle');
+  $('accuseSub').textContent = T('accuseSub');
+  elAccusePick.innerHTML = '';
+  for (var n = 1; n <= state.players; n++){
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = String(n); b.setAttribute('data-n', String(n));
+    b.setAttribute('aria-pressed', 'false');
+    elAccusePick.appendChild(b);
+  }
+  elAccuseGo.disabled = true;
+  elAccuseGo.textContent = T('accuseGo', 0);
+  show('accuse');
+}
+function accuseGo(){
+  if (state.phase !== 'accuse' || state.accused === null) return;
+  if (state.accused === state.planned.liar){
+    startGuess();
+  } else finish('escaped');
+}
+
+/* ── 라이어의 역전 기회 ─────────────────────────────────────────────────── */
+function startGuess(){
+  state.phase = 'guess';
+  var TT = topicByKey(state.planned.topic);
+  var col = lang === 'en' ? 1 : 0;
+  $('guessTitle').textContent = T('guessTitle', state.planned.liar + 1);
+  $('guessSub').textContent = T('guessSub');
+  elGuessPick.innerHTML = '';
+  for (var i = 0; i < state.planned.choices.length; i++){
+    var idx = state.planned.choices[i];
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = TT.words[idx][col]; b.setAttribute('data-i', String(idx));
+    elGuessPick.appendChild(b);
+  }
+  show('guess');
+}
+function guess(idx){
+  if (state.phase !== 'guess') return;
+  finish(idx === state.planned.wordIdx ? 'guessed' : 'caught');
+}
+
+/* ── 결과 ─────────────────────────────────────────────────────────────── */
+function paintOver(){
+  var p = state.planned, TT = topicByKey(p.topic), col = lang === 'en' ? 1 : 0;
+  var r = state.result;
+  $('resTitle').textContent = T(r === 'caught' ? 'resCaught' : r === 'guessed' ? 'resGuessed' : 'resEscaped');
+  $('resSub').textContent = r === 'escaped' ? T('resEscapedSub', state.accused + 1) : T(r === 'caught' ? 'resCaughtSub' : 'resGuessedSub');
+  var facts = [T('factTopic', lang === 'en' ? TT.en : TT.ko), T('factWord', TT.words[p.wordIdx][col]), T('factLiar', p.liar + 1)];
+  if (p.mode === 'fool') facts.push(T('factFool', TT.words[p.liarWordIdx][col]));
+  $('resFacts').innerHTML = facts.join('<br>');
+}
+function finish(result){
+  stopTimer();
+  state.phase = 'over';
+  state.result = result;
+  paintOver();
+  show('over');
+  ga('game_end', { game: GA_GAME, result: result, players: state.players, mode: state.planned.mode, topic: state.planned.topic });
+}
+
+/* ── 판 시작 ───────────────────────────────────────────────────────────── */
+function startRound(){
+  var recent = loadRecent();
+  state.planned = plan(freshSeed(), state.players, state.topic, state.mode, recent);
+  recent.push(state.planned.topic + ':' + state.planned.wordIdx);
+  saveRecent(recent);
+  saveSetup();
+  state.phase = 'pass';
+  state.viewer = 0;
+  state.accused = null;
+  state.result = null;
+  paintPass();
+  show('pass');
+  ga('game_start', { game: GA_GAME });
+  if (window.hpHit) window.hpHit('play', GA_GAME);
+}
+function quit(){
+  stopTimer(); hide();
+  state.phase = 'idle';
+  show('start');
+}
+
+/* ── 언어 ─────────────────────────────────────────────────────────────── */
+function applyLang(){
+  document.documentElement.lang = lang;
+  var els = document.querySelectorAll('[data-i18n]');
+  for (var i = 0; i < els.length; i++){
+    var k = els[i].getAttribute('data-i18n');
+    if (I18N[lang][k] !== undefined && typeof I18N[lang][k] !== 'function') els[i].innerHTML = T(k);
+  }
+  var bl = $('btnLang');
+  if (bl) bl.innerHTML = '🌐 <span class="lbl">' + (lang === 'ko' ? 'EN' : '한국어') + '</span>';
+  $('btnQuit').textContent = '✕';
+  if (elTopicPick){ paintTopics(); paintOptions(); }
+  paintModeNote();
+  /* ★진행 중인 판은 ★다시 그리기만 한다 — 판의 내용(라이어·제시어)은 그대로다.
+     돌려 보기 도중이면 보이던 제시어를 먼저 지운다(언어를 바꾸느라 누르던 손을 뗐을 것이다). */
+  if (state.phase === 'pass'){ var v = state.viewed; paintPass(); state.viewed = v; elSeen.disabled = !v; }
+  if (state.phase === 'talk') paintTalk();
+  if (state.phase === 'accuse'){ $('accuseTitle').textContent = T('accuseTitle'); $('accuseSub').textContent = T('accuseSub'); elAccuseGo.textContent = T('accuseGo', state.accused === null ? 0 : state.accused + 1); }
+  if (state.phase === 'guess') startGuess();
+  if (state.phase === 'over') paintOver();
+  try { localStorage.setItem('bp.lang', lang); } catch (e) {}
+  if (window.hpStats) window.hpStats();
+}
+
+/* ── 배선 ─────────────────────────────────────────────────────────────── */
+function boot(){
+  elStart = $('start'); elPass = $('pass'); elTalk = $('talk'); elAccuse = $('accuse'); elGuess = $('guess'); elOver = $('over');
+  elWho = $('whoPick'); elTopicPick = $('topicPick'); elModePick = $('modePick'); elTimerPick = $('timerPick');
+  elRevealBox = $('revealBox'); elRevealWord = $('revealWord'); elRevealTopic = $('revealTopic'); elRevealHint = $('revealHint');
+  elSeen = $('btnSeen'); elHand = $('handTitle'); elPassCount = $('passCount');
+  elAccusePick = $('accusePick'); elAccuseGo = $('btnAccuseGo'); elGuessPick = $('guessPick');
+
+  loadSetup();
+  buildPickers();
+  applyLang();
+
+  delegate(elWho, 'data-n', function(v){ state.players = Number(v); mark(elWho, 'data-n', v); saveSetup(); });
+  delegate(elTopicPick, 'data-t', function(v){ state.topic = v; mark(elTopicPick, 'data-t', v); saveSetup(); });
+  delegate(elModePick, 'data-m', function(v){ state.mode = v === 'fool' ? 'fool' : 'basic'; mark(elModePick, 'data-m', state.mode); paintModeNote(); saveSetup(); });
+  delegate(elTimerPick, 'data-timer', function(v){ state.timer = v === 'on' ? 'on' : 'off'; mark(elTimerPick, 'data-timer', state.timer); saveSetup(); });
+  delegate(elAccusePick, 'data-n', function(v){
+    if (state.phase !== 'accuse') return;
+    state.accused = Number(v) - 1;
+    mark(elAccusePick, 'data-n', v);
+    elAccuseGo.disabled = false;
+    elAccuseGo.textContent = T('accuseGo', Number(v));
+  });
+  delegate(elGuessPick, 'data-i', function(v){ guess(Number(v)); });
+
+  /* 누르는 동안만 — 포인터(마우스·터치·펜)와 키보드 둘 다 */
+  elRevealBox.addEventListener('pointerdown', function(e){ if (e && e.preventDefault) e.preventDefault(); reveal(); });
+  elRevealBox.addEventListener('pointerup', hide);
+  elRevealBox.addEventListener('pointerleave', hide);
+  elRevealBox.addEventListener('pointercancel', hide);
+  elRevealBox.addEventListener('contextmenu', function(e){ if (e && e.preventDefault) e.preventDefault(); });
+  elRevealBox.addEventListener('keydown', function(e){ if (e && (e.key === ' ' || e.key === 'Enter')){ if (e.preventDefault) e.preventDefault(); reveal(); } });
+  elRevealBox.addEventListener('keyup', function(e){ if (e && (e.key === ' ' || e.key === 'Enter')) hide(); });
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) hide(); });
+  window.addEventListener('blur', hide);
+
+  $('btnStart').addEventListener('click', startRound);
+  elSeen.addEventListener('click', seen);
+  $('btnQuit').addEventListener('click', quit);
+  $('btnQuit2').addEventListener('click', quit);
+  $('btnNextSpeaker').addEventListener('click', function(){
+    if (state.phase !== 'talk') return;
+    state.speaker = (state.speaker + 1) % state.players;
+    startSpeaker();
+  });
+  $('btnAccuse').addEventListener('click', startAccuse);
+  elAccuseGo.addEventListener('click', accuseGo);
+  $('btnAgain').addEventListener('click', startRound);
+  $('btnSetup').addEventListener('click', quit);
+  $('btnLang').addEventListener('click', function(){
+    lang = lang === 'ko' ? 'en' : 'ko';
+    applyLang();
+    ga('lang_switch', { lang: lang });
+  });
+  show('start');
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
+
+/* ── 관측 창구 — ★읽기 전용이다 ─────────────────────────────────────────
+   검사기가 판을 재현·대조할 수 있게 순수 함수와 데이터를 내보낸다. 판을 바꾸는 입구는 두지 않는다. */
+window.__liar = {
+  plan: plan,
+  cardFor: cardFor,
+  makeRng: makeRng,
+  topics: TOPICS,
+  planSrc: function(){ return String(plan); },
+  i18nKeys: function(){ return { ko: Object.keys(I18N.ko), en: Object.keys(I18N.en) }; },
+  consts: function(){
+    return { PLAYERS_MIN: PLAYERS_MIN, PLAYERS_MAX: PLAYERS_MAX, PLAYERS_DEFAULT: PLAYERS_DEFAULT,
+             CHOICES: CHOICES, RECENT_MAX: RECENT_MAX, TIMER_SEC: TIMER_SEC };
+  },
+  currentPlan: function(){ return state.planned ? JSON.parse(JSON.stringify(state.planned)) : null; },
+  snapshot: function(){
+    return { phase: state.phase === 'idle' ? 'idle' : state.phase, players: state.players, viewer: state.viewer,
+             viewed: state.viewed, mode: state.mode, topic: state.topic, result: state.result };
+  }
+};
+</script>
+</body>
+</html>

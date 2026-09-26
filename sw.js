@@ -89,6 +89,8 @@ const PRECACHE = [
   '/gyuchik/thumb.webp',
   '/dari/',
   '/dari/thumb.webp',
+  '/liar/',
+  '/liar/thumb.webp',
   '/today/',
   '/privacy/',
   '/about/',

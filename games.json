@@ -979,5 +979,32 @@
       "word",
       "daily"
     ]
+  },
+  {
+    "id": "liar",
+    "path": "/liar/",
+    "title": {
+      "ko": "라이어 게임",
+      "en": "Liar Game"
+    },
+    "desc": {
+      "ko": "3~8명이 폰 하나를 돌려 제시어를 확인하고, 제시어를 모르는 한 사람을 찾아내는 추리 파티 게임 — 누르는 동안만 보이는 제시어, 바보 모드, 라이어의 역전 기회",
+      "en": "A deduction party game for three to eight people on one phone — everyone checks a secret word except one liar, and the group has to find them"
+    },
+    "thumb": "/liar/thumb.webp",
+    "playtime": {
+      "ko": "한 판 3~5분",
+      "en": "3-5 min a round"
+    },
+    "maxMinutes": 5,
+    "daily": false,
+    "category": "group",
+    "released": "2026-09-26",
+    "tags": [
+      "party",
+      "group",
+      "deduction",
+      "word"
+    ]
   }
 ]

@@ -394,6 +394,11 @@
       "file": "tools/verify_dari.js",
       "game": "dari",
       "kind": "검증기(문제 결정론·경로 존재·최단 대조·한 음절 규칙·사전 계약·힌트 단계)"
+    },
+    {
+      "file": "tools/verify_liar.js",
+      "game": "liar",
+      "kind": "검증기(판 결정론·라이어 1명·기본 모드 제시어 부재·누르는 동안만 표시·역전 보기·최근 낱말·흐름)"
     }
   ],
   "non_gate_tools": [
