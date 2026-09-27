@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2048 모서리 전략은 어디까지 통할까 | How Far the 2048 Corner Strategy Goes — 한판고</title>
+<meta name="description" content="2048에서 큰 수를 모서리에 모으라는 요령은 얼마나 효과가 있을까요. 전략 다섯 가지로 8,100판을 직접 돌려 보니 모서리만으로는 2048에 한 번도 닿지 못했고, 한 수를 내다보자 절반이 닿았습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="2048 모서리 전략은 어디까지 통할까 | How Far the 2048 Corner Strategy Goes — 한판고">
+<meta property="og:description" content="2048에서 큰 수를 모서리에 모으라는 요령은 얼마나 효과가 있을까요. 전략 다섯 가지로 8,100판을 직접 돌려 보니 모서리만으로는 2048에 한 번도 닿지 못했고, 한 수를 내다보자 절반이 닿았습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/2048-corner/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/2048-corner/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head><body>
+
+<header>
+  <h1>2048 모서리 전략은 어디까지 통할까</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/2048/">2048 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 9월 27일 · 한판고 · 수치는 게임과 같은 규칙(4×4 판, 새 타일은 2가 90%·4가 10%, 합쳐진 값이 점수)으로 직접 돌린 결과입니다</p>
+
+  <section>
+    <h2>누구나 한 번은 듣는 요령</h2>
+    <p><a href="/2048/">2048</a>을 처음 하면 누군가 꼭 알려 줍니다. 「가장 큰 수를 한쪽 모서리에 몰아 두고, 그 모서리 쪽으로만 밀어라.」 실제로 이 요령을 알고 나면 점수가 눈에 띄게 오릅니다. 그런데 이 요령만 지키면 2048 타일까지 갈 수 있을까요. 어디까지가 모서리의 힘이고, 어디서부터는 다른 무엇이 필요할까요.</p>
+    <p>감으로 답하지 않으려고 전략 다섯 가지를 정해 컴퓨터에게 끝까지 두게 했습니다. 앞의 네 가지는 판마다 2,000번씩, 가장 느린 마지막 하나는 100번 돌렸습니다. 모두 8,100판입니다.</p>
+  </section>
+
+  <section>
+    <h2>다섯 가지 전략의 성적</h2>
+    <table>
+      <thead><tr><th>전략</th><th>평균 점수</th><th>512 도달</th><th>1024 도달</th><th>2048 도달</th></tr></thead>
+      <tbody>
+        <tr><td>① 아무 방향이나</td><td>1,112</td><td>0%</td><td>0%</td><td>0%</td></tr>
+        <tr><td>② 모서리 고정</td><td>2,514</td><td>4.2%</td><td>0%</td><td>0%</td></tr>
+        <tr><td>③ 모서리 + 많이 합치기</td><td>2,958</td><td>11.5%</td><td>0.1%</td><td>0%</td></tr>
+        <tr><td>④ 모서리 + 판 모양 점수</td><td>3,294</td><td>17.2%</td><td>0.1%</td><td>0%</td></tr>
+        <tr><td>⑤ 새 타일까지 내다보기</td><td>23,190</td><td>100%</td><td>91%</td><td>55%</td></tr>
+      </tbody>
+    </table>
+    <p>②는 「아래 → 왼쪽 → 오른쪽 → 위」 순서로, 움직일 수 있는 첫 방향을 고릅니다. 위로는 정말 다른 수가 없을 때만 밉니다. ③은 그중에서 이번에 가장 많이 합쳐지는 방향을 먼저 고르고, ④는 큰 수가 왼쪽 아래 한 줄에 크기 순서로 늘어설수록 점수를 더 주는 식으로 판 모양을 따집니다. ⑤는 여기에 한 가지를 더합니다. 밀고 난 뒤 <strong>빈칸 어디에 2나 4가 떨어질 수 있는지를 모두 따져 보고</strong>, 그 가운데 가장 곤란한 경우까지 감안해 방향을 고릅니다.</p>
+  </section>
+
+  <section>
+    <h2>모서리는 점수를 두 배로 만든다</h2>
+    <p>①에서 ②로 가는 것만으로 평균 점수가 1,112에서 2,514로 두 배가 넘게 오르고, 256 타일을 만드는 판이 9.3%에서 49.6%로 늘어납니다. 모서리 요령이 널리 퍼진 데는 이유가 있는 셈입니다. 큰 수가 한곳에 머물러 있으니, 그다음 크기의 수가 그 옆에서 자라 합쳐질 기회가 생깁니다.</p>
+    <p>그런데 표의 오른쪽 칸을 보면 이야기가 달라집니다. ②·③·④는 합쳐서 6,000판을 두었는데 <strong>2048에 닿은 판이 하나도 없습니다</strong>. 1024도 6,000판 가운데 세 판뿐입니다. 모서리 요령은 초반을 크게 도와주지만 그것만으로는 중반의 벽을 넘지 못합니다.</p>
+  </section>
+
+  <section>
+    <h2>벽은 모서리가 무너지는 한 번이다</h2>
+    <p>②가 무너지는 판을 들여다보면 자주 보이는 장면이 있습니다. 아래 줄이 가득 차지 않은 상태에서 왼쪽으로 밀었는데, 아래 줄의 빈 자리에 새 2가 떨어집니다. 그 뒤로 큰 수를 모서리에 되돌릴 방법이 없어지고, 작은 수가 큰 수 사이에 끼어 판이 굳어 갑니다. 또는 다른 방향이 다 막혀 어쩔 수 없이 위로 밀었는데, 모서리가 비는 순간 그 자리에 2가 들어옵니다.</p>
+    <p>①~④는 「지금 이 판」만 봅니다. 밀고 난 뒤 어디에 새 타일이 생길지는 따지지 않습니다. ⑤가 다른 점은 그것 하나뿐인데, 평균 점수가 일곱 배로 오르고 절반이 넘는 판이 2048에 닿으며 4096까지 간 판도 나왔습니다. 2048을 가르는 것은 모서리를 지키겠다는 결심이 아니라, <strong>새 타일이 떨어질 빈칸을 미리 보는 눈</strong>이라는 뜻입니다.</p>
+  </section>
+
+  <section>
+    <h2>사람이 쓸 수 있는 내다보기</h2>
+    <p>⑤는 매 수마다 수십 가지 경우를 계산하지만, 사람이 머리로 따라 할 수 있는 핵심은 몇 가지로 추려집니다.</p>
+    <ul>
+      <li><strong>아래 줄을 먼저 꽉 채운다.</strong> 아래 줄에 빈칸이 없으면 왼쪽·오른쪽으로 밀어도 아래 줄은 흐트러지지 않고, 새 타일은 위쪽에만 떨어집니다.</li>
+      <li><strong>밀기 전에 「어디가 비는가」를 본다.</strong> 이번 수로 모서리 옆이 비게 된다면, 거기에 2가 떨어졌을 때 되돌릴 수 있는지 먼저 생각합니다.</li>
+      <li><strong>빈칸을 아낀다.</strong> 당장 크게 합치는 수보다 빈칸이 많이 남는 수가 나중에 살아남습니다. 빈칸이 두세 칸으로 줄면 곧 위로 밀어야 하는 순간이 옵니다.</li>
+      <li><strong>큰 수는 크기 순서로 한 줄에 세운다.</strong> 모서리에서부터 1024, 512, 256처럼 이어져 있으면 한 번 합쳐질 때 줄줄이 합쳐집니다.</li>
+    </ul>
+    <p>요약하면 모서리는 출발점이고, 그 모서리를 지키는 것은 다음 한 수를 내다보는 습관입니다. 한판고의 2048에는 매일 자정에 열리는 오늘의 도전이 있어, 모두가 같은 순서로 같은 자리에 타일을 받으며 겨룹니다. 같은 판에서 누가 더 멀리 내다봤는지가 그대로 점수 차이로 드러납니다.</p>
+    <p><a class="cta" href="/2048/">▶ 2048 한판</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">How far the 2048 corner strategy goes</h2>
+  <p class="updated">27 September 2026 · Hanpango · figures come from games played under the same rules as ours (4×4 board, new tiles are 2 with 90% and 4 with 10% probability, merges score their value)</p>
+
+  <section>
+    <h2>The tip everyone hears</h2>
+    <p>Everyone new to <a href="/2048/">2048</a> gets the same advice: keep the biggest tile in one corner and only push toward it. It works; scores jump once you learn it. But does it take you to the 2048 tile on its own? Rather than guess, we had the computer play five strategies to the end: the first four 2,000 games each and the slowest one 100 games, 8,100 games in all.</p>
+  </section>
+
+  <section>
+    <h2>Five strategies, side by side</h2>
+    <p>① random direction: average 1,112, never reached 512. ② fixed corner (down, then left, then right, up only when forced): average 2,514, reached 512 in 4.2% of games. ③ corner plus biggest merge first: 2,958, 512 in 11.5%, 1024 in 0.1%. ④ corner plus a board-shape score that rewards big tiles lined up along the bottom-left row: 3,294, 512 in 17.2%, 1024 in 0.1%. ⑤ look ahead at every empty square where a 2 or 4 could land and weigh even the awkward cases: average <strong>23,190</strong>, 512 in every game, 1024 in 91%, <strong>2048 in 55%</strong>, with one game reaching 4096.</p>
+  </section>
+
+  <section>
+    <h2>The corner doubles your score, then stops</h2>
+    <p>Going from ① to ② more than doubles the average and lifts games that build a 256 tile from 9.3% to 49.6%. The tip is popular for good reason: with the big tile parked, the next-largest can grow beside it and merge. Yet strategies ②, ③ and ④ together played 6,000 games and <strong>none reached 2048</strong>; only three reached 1024. The corner carries the opening but not the middle game.</p>
+  </section>
+
+  <section>
+    <h2>The wall is the one move that breaks the corner</h2>
+    <p>Watching strategy ② fail, one scene keeps coming up. You push left while the bottom row still has a gap, and a new 2 lands in it; now the big tile cannot get back and small tiles wedge between large ones. Or every other direction is blocked, you push up, the corner empties and a 2 drops straight into it. Strategies ① to ④ only look at the board in front of them. ⑤ differs in one thing, where the next tile might land, and that alone multiplies the average by seven and gets more than half of its games to 2048. What separates players is not the resolve to guard the corner but <strong>seeing the empty square before the tile arrives</strong>.</p>
+  </section>
+
+  <section>
+    <h2>Lookahead a person can use</h2>
+    <ul>
+      <li><strong>Fill the bottom row first.</strong> With no gap there, left and right pushes cannot disturb it and new tiles can only land above.</li>
+      <li><strong>Before each push, ask what becomes empty.</strong> If the square beside the corner opens, ask whether you could recover if a 2 landed there.</li>
+      <li><strong>Protect empty squares.</strong> A move that leaves more space tends to outlive a move that merges more right now. Down to two or three empty squares, a forced push up is close.</li>
+      <li><strong>Line big tiles up in size order.</strong> 1024, 512, 256 running from the corner merge in a chain when the time comes.</li>
+    </ul>
+    <p>The corner is where you start; looking one tile ahead is what keeps it. Hanpango's 2048 has a daily challenge that opens at midnight with every tile arriving in the same order and square for everyone, so who looked further ahead shows directly in the score.</p>
+    <p><a class="cta" href="/2048/">▶ Play 2048</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
