@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사다리 타기는 공정할까 — 손으로 그린 사다리는 첫 사람이 제자리로 갈 확률 45% | Is a Ladder Draw Fair? — 한판고</title>
+<meta name="description" content="사다리 타기는 공정할까요? 가로줄을 무작위로 그은 사다리를 10만 번씩 따라가 보니, 다섯 명에 가로줄 다섯 개면 맨 왼쪽 사람이 제자리로 내려갈 확률이 44.8%였습니다. 공평하게 섞으려면 가로줄이 몇 개 필요한지, 종이 사다리를 공평하게 쓰는 요령까지 정리했습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="사다리 타기는 공정할까 — 손으로 그린 사다리는 첫 사람이 제자리로 갈 확률 45% | Is a Ladder Draw Fair? — 한판고">
+<meta property="og:description" content="사다리 타기는 공정할까요? 가로줄을 무작위로 그은 사다리를 10만 번씩 따라가 보니, 다섯 명에 가로줄 다섯 개면 맨 왼쪽 사람이 제자리로 내려갈 확률이 44.8%였습니다. 공평하게 섞으려면 가로줄이 몇 개 필요한지, 종이 사다리를 공평하게 쓰는 요령까지 정리했습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/ladder-fairness/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/ladder-fairness/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+  /* 이 글의 표는 낱말 열이 있어 숫자용 오른쪽 정렬을 풀고 왼쪽으로 모은다 */
+  td:nth-child(n+2),th:nth-child(n+2){text-align:left}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>사다리 타기는 공정할까</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/ladder/">사다리 타기 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 7일 · 한판고 · 손으로 그린 사다리는 가로줄을 무작위로 그어 판마다 10만 번씩 따라가 본 값이고, 한판고 사다리는 게임이 판을 만드는 코드를 그대로 10만 번 돌려 센 값입니다</p>
+
+  <section>
+    <h2>결론부터 — 가로줄이 적으면 공정하지 않다</h2>
+    <p>사다리 타기는 누구나 공평하다고 믿는 추첨입니다. 그런데 종이에 세로줄을 긋고 가로줄을 몇 개 대충 그은 사다리는 <strong>생각보다 많이 치우칩니다</strong>. 처음 고른 자리 근처로 내려갈 확률이 높고, 멀리 떨어진 칸으로 갈 확률은 아주 낮습니다. 다섯 명이 가로줄 다섯 개로 사다리를 그리면, 맨 왼쪽 사람이 맨 왼쪽 결과로 그대로 내려갈 확률이 <strong>44.8%</strong>나 됩니다. 공평하다면 20%여야 하는 자리입니다.</p>
+  </section>
+
+  <section>
+    <h2>손으로 그린 사다리를 10만 번 따라가 보면</h2>
+    <p>다섯 명 사다리에 가로줄을 아무 칸, 아무 높이에나 그어 판을 만들고(같은 높이에 붙은 가로줄은 피함), 판마다 다섯 사람을 모두 따라 내려가 보았습니다. 가로줄 개수를 바꿔 가며 각각 10만 판씩 세었습니다.</p>
+    <table>
+      <thead><tr><th>가로줄 개수</th><th>맨 왼쪽 → 맨 왼쪽</th><th>맨 왼쪽 → 맨 오른쪽</th><th>가운데 → 가운데</th></tr></thead>
+      <tbody>
+        <tr><td>5개</td><td>44.8%</td><td>1.1%</td><td>24.7%</td></tr>
+        <tr><td>10개</td><td>33.5%</td><td>7.2%</td><td>20.7%</td></tr>
+        <tr><td>20개</td><td>25.1%</td><td>15.2%</td><td>20.2%</td></tr>
+        <tr><td>40개</td><td>20.6%</td><td>19.2%</td><td>19.9%</td></tr>
+        <tr><td><strong>공평하다면</strong></td><td>20%</td><td>20%</td><td>20%</td></tr>
+      </tbody>
+    </table>
+    <p>가로줄이 다섯 개뿐이면 맨 왼쪽 사람이 맨 오른쪽 결과를 받을 확률은 100판에 한 번꼴입니다. 사실상 그 결과는 왼쪽 끝 사람에게 가지 않는다는 뜻입니다. 가운데 사람은 비교적 고르게 흩어지지만, 양 끝에 선 사람일수록 자기 자리 근처에 묶입니다.</p>
+  </section>
+
+  <section>
+    <h2>왜 이렇게 치우칠까</h2>
+    <p>가로줄 하나는 <strong>이웃한 두 줄의 자리만 바꿉니다</strong>. 맨 왼쪽에서 맨 오른쪽까지 가려면 다섯 명 사다리에서 적어도 네 번, 그것도 오른쪽으로만 건너야 합니다. 가로줄이 적으면 그런 길이 생길 일이 거의 없습니다. 반대로 한 번도 건너지 않거나, 오른쪽으로 갔다가 다시 왼쪽으로 돌아오면 제자리입니다. 그래서 가로줄이 적은 사다리는 사람들을 조금씩만 섞는 셈이 됩니다.</p>
+    <p>표에서 보듯 다섯 명 기준으로 가로줄이 40개, 곧 <strong>칸마다 열 개쯤</strong> 되어야 겨우 고르게 섞입니다. 종이에 손으로 그리기에는 꽤 많은 양입니다.</p>
+  </section>
+
+  <section>
+    <h2>종이 사다리를 공평하게 쓰는 요령</h2>
+    <ul>
+      <li><strong>가로줄을 넉넉히.</strong> 사람 수가 다섯이면 마흔 개, 적어도 칸마다 열 개쯤을 목표로 그으세요.</li>
+      <li><strong>결과를 가린 뒤 여럿이 나눠 긋기.</strong> 한 사람이 다 그으면 무의식중에 결과를 알게 됩니다. 결과 칸을 접어 가리고, 돌아가며 한두 줄씩 보태면 아무도 길을 미리 알 수 없습니다.</li>
+      <li><strong>자리는 줄을 다 그은 뒤에 고르기.</strong> 자리를 먼저 정하고 줄을 그으면, 줄을 긋는 사람이 결과를 조종할 수 있습니다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한판고 사다리는 결과부터 고르게 뽑는다</h2>
+    <p><a href="/ladder/">한판고 사다리 타기</a>는 가로줄을 무작위로 긋지 않습니다. 순서가 반대입니다. 먼저 <strong>누가 어느 결과로 갈지를 카드 섞듯 고르게 뽑고</strong>, 그 결과가 나오도록 가로줄을 그립니다. 그래서 가로줄 개수와 상관없이 모든 자리가 모든 결과로 같은 확률로 갑니다.</p>
+    <p>게임이 판을 만드는 코드를 그대로 다섯 명 판으로 10만 번 돌려 보니, 25개 칸이 모두 <strong>19.8%에서 20.3% 사이</strong>였습니다. 다섯 명이 모두 제자리로 내려가는 판도 0.83% 나왔는데, 이는 정확히 120가지 순서 중 하나가 나올 확률(120분의 1)입니다. 「제자리는 안 나오게」 같은 손질을 하지 않았다는 뜻이기도 합니다. 세 명 판에서는 같은 값이 16.6%로, 여섯 가지 중 하나(6분의 1)와 맞습니다.</p>
+    <p>몇 가지 규칙을 더 지킵니다. 판은 처음 만들 때 가로줄까지 <strong>전부 정해지고</strong>, 이름을 누르거나 전체 공개를 할 때는 난수를 한 번도 쓰지 않습니다. 모든 세로줄은 적어도 한 번은 가로줄에 닿도록, 필요하면 서로 상쇄되는 가로줄 한 쌍을 끼워 넣습니다. 그리고 판은 링크 하나에 담겨서, 그 링크를 연 사람은 누구나 똑같은 사다리를 봅니다.</p>
+    <p><a class="cta" href="/ladder/">사다리 타기 하러 가기 →</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Is a ladder draw (amidakuji) fair?</h2>
+  <p class="updated">7 October 2026 · Hanpango · hand-drawn ladders were simulated with random rungs, 100,000 boards per setting; our ladder figures come from running the game's own board code 100,000 times</p>
+
+  <section>
+    <h2>Few rungs, big bias</h2>
+    <p>With five players and only five random rungs, the leftmost player lands on the leftmost result 44.8% of the time and on the rightmost result only 1.1% of the time, against a fair 20%. With 10 rungs the figures are 33.5% and 7.2%, with 20 rungs 25.1% and 15.2%, and only at about 40 rungs (ten per gap) do they approach 20%. Each rung only swaps two neighbouring lines, so a sparse ladder barely mixes the players.</p>
+  </section>
+
+  <section>
+    <h2>How our ladder avoids it</h2>
+    <p>Hanpango draws the outcome first, as a uniformly shuffled order, and then builds rungs that produce it. In 100,000 five-player boards every start–result pair fell between 19.8% and 20.3%, and the all-stay-in-place board appeared 0.83% of the time, exactly one in 120. The board is fixed when created, no randomness is used while revealing, and the whole board travels in one shareable link.</p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
