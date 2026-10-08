@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오목 필승법 — 흑은 정말 유리할까, 컴퓨터 3만 판으로 센 값 | Gomoku First-Move Advantage — 한판고</title>
+<meta name="description" content="오목은 먼저 두는 흑이 유리할까요? 자유 오목은 흑 필승이 증명되어 있지만, 컴퓨터끼리 3만 판을 두어 보니 수읽기가 얕은 사이에서는 흑의 우세가 1~2%p였습니다. 승부를 가른 모양은 4-3이 53%였고, 흑 승리의 45%는 렌주라면 금지된 3-3·4-4였습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="오목 필승법 — 흑은 정말 유리할까, 컴퓨터 3만 판으로 센 값 | Gomoku First-Move Advantage — 한판고">
+<meta property="og:description" content="오목은 먼저 두는 흑이 유리할까요? 자유 오목은 흑 필승이 증명되어 있지만, 컴퓨터끼리 3만 판을 두어 보니 수읽기가 얕은 사이에서는 흑의 우세가 1~2%p였습니다. 승부를 가른 모양은 4-3이 53%였고, 흑 승리의 45%는 렌주라면 금지된 3-3·4-4였습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/gomoku-first-move/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/gomoku-first-move/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>오목 필승법 — 흑은 정말 유리할까</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/gomoku/">오목 두러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 8일 · 한판고 · 컴퓨터끼리 둔 오목 3만 판을 센 값입니다. 다섯 알을 이었는지는 한판고 오목이 쓰는 승리 판정 함수를 그대로 가져다 판단했습니다</p>
+
+  <section>
+    <h2>결론부터 — 완벽하게 두면 흑이 이기지만, 사람 사이에서는 차이가 작다</h2>
+    <p>금지 수가 없는 자유 오목은 먼저 두는 흑이 <strong>끝까지 정확히 두면 반드시 이기는 게임</strong>이라는 것이 이미 증명되어 있습니다. 그런데 그 필승법은 수만 갈래의 수읽기를 다 외워야 쓸 수 있는 길입니다. 한판고가 컴퓨터끼리 3만 판을 두게 해 보니, 수읽기가 얕은 사이에서는 흑의 유리함이 <strong>1~2%p 남짓</strong>에 그쳤습니다. 무작위로 둔 2만 판에서 흑 50.9%, 백 49.1%였고, 같은 실력의 컴퓨터끼리 둔 2,000판에서는 흑 43.6%, 백 42.4%였습니다.</p>
+    <p>그러면 사람이 실제로 이기는 길은 어디 있을까요. 승부가 난 판을 거꾸로 짚어 보니 답이 또렷했습니다. <strong>두 줄을 한꺼번에 위협하는 수</strong>, 그중에서도 넷과 열린 셋을 동시에 만드는 「4-3」이 절반을 넘었습니다.</p>
+  </section>
+
+  <section>
+    <h2>이미 증명된 사실 — 흑 필승</h2>
+    <p>1993년 네덜란드의 빅터 알리스(Victor Allis) 연구진은 15×15 판의 자유 오목이 <strong>흑의 필승</strong>임을 컴퓨터로 증명했습니다. 상대가 막을 수밖에 없는 위협 수만 골라 따라가는 탐색(위협 공간 탐색)으로 경우의 수를 크게 줄였고, 이 내용은 이듬해 알리스의 박사 논문에 정리되었습니다. 흑의 유리함을 줄이려고 흑에게만 삼삼·사사·장목(여섯 알)을 금지한 <strong>렌주</strong> 규칙도 2001년 바그너(János Wágner)와 비라그(István Virág)가 흑 필승임을 보였습니다. 그래서 공식 렌주 대회는 첫 몇 수의 자리를 따로 정하는 개시 규칙까지 더해 균형을 맞춥니다.</p>
+    <p>출처: <a href="https://www.ics.uci.edu/~eppstein/cgt/gomoku.html" rel="nofollow">Go-Moku Solved (UC Irvine, Eppstein)</a> · <a href="https://research.tilburguniversity.edu/en/publications/go-moku-and-threat-space-search/" rel="nofollow">Allis 외, Go-Moku and Threat-Space Search</a> · <a href="https://en.wikipedia.org/wiki/Renju" rel="nofollow">Renju (Wikipedia)</a> · <a href="https://doi.org/10.3233/ICG-2001-24104" rel="nofollow">Wágner·Virág, ICGA Journal 2001</a></p>
+  </section>
+
+  <section>
+    <h2>컴퓨터 3만 판으로 센 흑과 백</h2>
+    <p>판은 한판고 오목과 같은 15×15, 다섯 알 이상이면 승리(장목 인정), 금지 수 없음입니다. 무작위는 빈자리 아무 데나 두는 선수이고, 나머지는 같은 프로그램이 흑과 백을 모두 맡았습니다. 「수읽기」는 넷을 연달아 만들어 상대가 한 자리만 막을 수 있게 몰아가는 길을 몇 수 앞까지 찾느냐입니다. 흑의 첫 수는 판 가운데(천원)입니다.</p>
+    <table>
+      <thead><tr><th>두는 선수</th><th>판 수</th><th>흑 승</th><th>백 승</th><th>무승부</th><th>평균 수</th></tr></thead>
+      <tbody>
+        <tr><td>무작위끼리</td><td>20,000</td><td>50.9%</td><td>49.1%</td><td>0.0%</td><td>109.0</td></tr>
+        <tr><td>컴퓨터, 수읽기 없음</td><td>2,000</td><td>40.3%</td><td>39.0%</td><td>20.8%</td><td>89.9</td></tr>
+        <tr><td>컴퓨터, 2수 앞</td><td>2,000</td><td>41.9%</td><td>41.0%</td><td>17.1%</td><td>83.6</td></tr>
+        <tr><td>컴퓨터, 4수 앞</td><td>2,000</td><td>43.6%</td><td>42.4%</td><td>14.0%</td><td>77.5</td></tr>
+      </tbody>
+    </table>
+    <p>무작위 2만 판의 흑 우세 1.8%p는 이 판 수의 오차(±0.7%p)를 넘는, 실제로 있는 차이입니다. 아무 생각 없이 두어도 한 수 먼저 놓는 것만으로 조금 앞선다는 뜻입니다. 컴퓨터끼리 둔 판에서는 흑이 매번 1%p 남짓 앞섰지만 2,000판의 오차(±2.2%p) 안이라 단정할 수는 없습니다. 오히려 눈에 띄는 것은 다른 줄입니다. <strong>수읽기가 깊어질수록 무승부가 20.8%에서 14.0%로 줄고 판이 짧아졌습니다.</strong> 공격 길을 읽는 쪽이 생기면 막기만 하다 판이 꽉 차는 일이 줄어듭니다.</p>
+    <p>흑의 첫 수 자리도 바꿔 보았습니다(4수 앞, 자리마다 1,000판). 천원에서는 흑 46.2%·백 41.6%였고 화점·변·귀는 흑 39.7~45.4%로 들쭉날쭉했습니다. 1,000판의 오차가 ±3%p라 자리 사이의 우열은 이 판 수로는 가려지지 않았습니다. 첫 수는 관례대로 가운데에 두는 편이 무난합니다.</p>
+  </section>
+
+  <section>
+    <h2>판을 끝낸 것은 「두 줄 동시 위협」이었다</h2>
+    <p>승부가 난 판에서 이긴 쪽이 마지막으로 만든 양쪽 공격의 모양을 셌습니다(4수 앞 컴퓨터, 승부가 난 1,720판). 「넷」은 한 수만 더 두면 다섯이 되는 줄, 「열린 셋」은 양 끝이 비어 있어 다음 수에 열린 넷이 되는 줄입니다.</p>
+    <table>
+      <thead><tr><th>마지막 양쪽 공격</th><th>전체 승부 1,720판</th><th>흑이 이긴 872판</th></tr></thead>
+      <tbody>
+        <tr><td>4-3 (넷 + 열린 셋)</td><td>53.5%</td><td>53.3%</td></tr>
+        <tr><td>3-3 (열린 셋 둘)</td><td>40.5%</td><td>40.8%</td></tr>
+        <tr><td>4-4 (넷 둘)</td><td>4.2%</td><td>4.5%</td></tr>
+        <tr><td>양쪽 공격 없이 끝남</td><td>1.8%</td><td>1.4%</td></tr>
+      </tbody>
+    </table>
+    <p>흑이 이긴 판의 <strong>45%</strong>는 3-3이나 4-4로 끝났습니다. 렌주 규칙이라면 흑에게 금지된 모양입니다. 렌주가 왜 바로 이 두 모양을 막았는지가 숫자로 보입니다. 다만 <strong>4-3은 렌주에서도 흑에게 허용</strong>됩니다. 규칙이 무엇이든 오목 필승법의 중심은 4-3입니다. (모양은 한판고가 정한 기준으로 판정했습니다. 렌주의 정식 금수 판정은 거짓 셋까지 가려야 해서 이보다 복잡합니다.)</p>
+  </section>
+
+  <section>
+    <h2>사람이 쓰는 오목 필승법 네 가지</h2>
+    <ul>
+      <li><strong>4-3을 노리세요.</strong> 넷을 막는 순간 다른 줄의 열린 셋이 열린 넷이 됩니다. 상대는 한 수에 두 곳을 막을 수 없습니다.</li>
+      <li><strong>넷은 몰아가는 도구입니다.</strong> 넷을 만들면 상대는 그 자리를 막을 수밖에 없습니다. 상대가 둘 자리를 내가 정하는 셈이라, 넷을 연달아 놓으며 원하는 모양을 짜는 것이 수읽기의 시작입니다.</li>
+      <li><strong>상대의 열린 셋은 바로 한쪽 끝을 막으세요.</strong> 열린 넷이 되면 이미 늦습니다. 막을 때는 내 줄에도 보탬이 되는 쪽 끝을 고르면 한 수로 두 일을 합니다.</li>
+      <li><strong>막기만 하면 비깁니다.</strong> 표에서 보듯 공격을 읽지 않는 판은 다섯에 한 판꼴로 꽉 차서 끝납니다. 막는 수 사이사이 내 셋을 만드는 수를 섞으세요.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한판고 오목은 선공을 번갈아 갖는다</h2>
+    <p><a href="/gomoku/">한판고 오목</a>은 금지 수 대신 <strong>다시 하기를 누를 때마다 흑과 백을 바꿉니다</strong>. 규칙을 모르는 사람이 자기 수가 왜 거부되는지 몰라 당황하는 대신, 두 판을 한 벌로 두어 한 수 먼저의 이득을 서로 한 번씩 나눕니다. 위 숫자대로라면 사람 사이의 흑 우세는 크지 않으니, 두 판이면 충분히 갚아집니다. 다섯 알 이상이면 이기고, 무르기는 한 판에 한 번입니다.</p>
+    <p><a class="cta" href="/gomoku/">오목 두러 가기 →</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Gomoku: how big is the first-move advantage?</h2>
+  <p class="updated">8 October 2026 · Hanpango · 30,000 computer self-play games on a 15×15 free-style board, judged with the win-check function our gomoku uses</p>
+
+  <section>
+    <h2>Proven win, small practical edge</h2>
+    <p>Free-style gomoku on 15×15 was proven a first-player win by Allis and colleagues in 1993, and Renju, which forbids black double-threes, double-fours and overlines, was shown to be a first-player win by Wágner and Virág in 2001. In our runs the edge was small at shallow depth: 50.9% to 49.1% over 20,000 random games (beyond the ±0.7-point margin), and 43.6% to 42.4% with 14.0% draws between equal engines reading four moves ahead, within the ±2.2-point margin of 2,000 games. Deeper reading cut draws from 20.8% to 14.0%.</p>
+  </section>
+
+  <section>
+    <h2>What decides games</h2>
+    <p>Of 1,720 decisive games, the winner's last double threat was a four-three in 53.5%, a double open three in 40.5% and a double four in 4.2%. In 45% of black's wins the decisive shape was one that Renju forbids for black, while the four-three, the heart of every winning plan, stays legal under any rule. Our gomoku balances the first move by swapping colours each game instead of banning shapes.</p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
