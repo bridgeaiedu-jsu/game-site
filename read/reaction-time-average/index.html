@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>반응속도 평균은 몇 ms일까 — 테스트 기록 읽는 법과 두더지잡기에 필요한 속도 | Average Reaction Time — 한판고</title>
+<meta name="description" content="반응속도 평균은 테스트 사이트 기준 가운데값 273ms, 평균 284ms 입니다(8,100만 번 클릭). 실험실 값 190ms 와 왜 다른지, 휴대폰이 느리게 나오는 까닭, 그리고 한판고 두더지잡기 49일치 판을 돌려 한 마리에 몇 ms 안에 눌러야 하는지 셌습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="반응속도 평균은 몇 ms일까 — 테스트 기록 읽는 법과 두더지잡기에 필요한 속도 | Average Reaction Time — 한판고">
+<meta property="og:description" content="반응속도 평균은 테스트 사이트 기준 가운데값 273ms, 평균 284ms 입니다(8,100만 번 클릭). 실험실 값 190ms 와 왜 다른지, 휴대폰이 느리게 나오는 까닭, 그리고 한판고 두더지잡기 49일치 판을 돌려 한 마리에 몇 ms 안에 눌러야 하는지 셌습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/reaction-time-average/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/reaction-time-average/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>반응속도 평균은 몇 ms일까</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/mole/">두더지잡기 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 10일 · 한판고 · 바깥 수치는 출처를 밝혔고, 두더지잡기 수치는 게임의 판 생성기를 2026년 8월 23일부터 10월 10일까지 49일치 그대로 돌려 센 값입니다</p>
+
+  <section>
+    <h2>결론부터 — 테스트 사이트의 보통은 273ms 안팎</h2>
+    <p>반응속도 테스트는 화면 색이 바뀌는 순간 누르는 시간을 잽니다. 이런 테스트로 가장 많은 기록을 모은 곳 가운데 하나인 Human Benchmark 는 지금까지 <strong>8,100만 번 넘는 클릭</strong>을 모았고, 그 <strong>가운데값이 273ms, 평균이 284ms</strong>라고 밝히고 있습니다(<a href="https://humanbenchmark.com/tests/reactiontime/statistics" rel="noopener">통계 페이지</a>, 2026년 10월 10일 확인). 가운데값은 줄을 세웠을 때 한가운데 사람의 기록이니, <strong>273ms 보다 빠르면 기록을 남긴 사람의 절반보다 빠른 쪽</strong>이라고 읽으면 됩니다.</p>
+    <p>평균이 가운데값보다 11ms 느린 까닭은 기록이 한쪽으로 길게 늘어져 있기 때문입니다. 딴생각을 하다 늦게 누른 기록은 수백 ms 씩 느려질 수 있지만, 아무리 빨라도 0ms 밑으로는 갈 수 없습니다. 그래서 느린 쪽 몇 번이 평균만 끌어올립니다. 내 기록을 볼 때도 평균보다 <strong>가운데값이나 다섯 번 중 가운데 세 번</strong>을 보는 편이 실력을 더 잘 보여 줍니다.</p>
+  </section>
+
+  <section>
+    <h2>실험실 숫자는 왜 더 빠를까</h2>
+    <p>실험실에서 잰 단순 반응시간은 이보다 빠릅니다. 대학생 나이대의 단순 반응시간으로 널리 받아들여진 값은 <strong>빛 자극에 약 190ms, 소리 자극에 약 160ms</strong>입니다(Jain 외, 2015, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4456887/" rel="noopener">International Journal of Applied and Basic Medical Research 5(2)</a> 서론에서 인용한 값). 소리가 빛보다 빠른 것은 같은 논문의 측정에서도 그대로 나왔습니다.</p>
+    <p>웹 테스트가 80ms 가량 느린 것은 사람이 느려서만이 아닙니다. 웹 테스트의 기록에는 <strong>기기가 늦는 시간</strong>이 함께 들어갑니다.</p>
+    <table>
+      <thead><tr><th>어디서 늦나</th><th>대략</th></tr></thead>
+      <tbody>
+        <tr><td>화면이 한 번 다시 그려지는 간격(60Hz)</td><td>최대 16.7ms</td></tr>
+        <tr><td>데스크톱·노트북의 입력·화면 지연(Human Benchmark 추정)</td><td>약 30ms</td></tr>
+        <tr><td>휴대폰 터치</td><td>클릭보다 느린 편</td></tr>
+      </tbody>
+    </table>
+    <p>60Hz 화면은 1초에 60번, 곧 16.7ms 마다 다시 그려지므로 색이 바뀌는 순간이 화면에 나타나기까지 그만큼 기다릴 수 있습니다. Human Benchmark 는 데스크톱의 흔한 지연을 30ms 로 보고, 휴대폰 터치는 클릭보다 느린 편이며 기록이 해마다 조금씩 느려진 것도 기기 변화 탓으로 봅니다. 그러니 <strong>휴대폰에서 300ms 가 나왔다고 손이 느린 것은 아닙니다.</strong> 기록을 견줄 때는 같은 기기끼리 견주는 것이 공정합니다.</p>
+  </section>
+
+  <section>
+    <h2>두더지잡기에는 몇 ms가 필요할까</h2>
+    <p>한판고 <a href="/mole/">두더지잡기</a>는 60초 동안 구멍 아홉 개에서 두더지와 폭탄이 올라왔다 내려갑니다. 판은 시작하는 순간 통째로 정해지므로, 그 생성기를 49일치 그대로 돌려 두더지가 몇 ms 동안 올라와 있는지 셌습니다.</p>
+    <table>
+      <thead><tr><th>시간대</th><th>평균</th><th>가장 짧게</th><th>가장 길게</th></tr></thead>
+      <tbody>
+        <tr><td>0~15초</td><td>1,179ms</td><td>995ms</td><td>1,350ms</td></tr>
+        <tr><td>15~30초</td><td>1,057ms</td><td>881ms</td><td>1,240ms</td></tr>
+        <tr><td>30~45초</td><td>946ms</td><td>770ms</td><td>1,118ms</td></tr>
+        <tr><td>45~60초</td><td>839ms</td><td>660ms</td><td>1,013ms</td></tr>
+      </tbody>
+    </table>
+    <p>한 판에 등장은 73~77번(평균 75.4번)이고 그중 17.5%가 폭탄이라 두더지는 한 판에 60개 남짓입니다. 다음 등장까지의 간격은 가운데값 777ms, 짧을 때는 464ms 이고, 화면에 동시에 올라와 있는 것은 많아야 둘이었습니다.</p>
+    <p>올라와 있는 시간이 가장 짧아도 660ms 이니 273ms 에 비하면 넉넉해 보입니다. 그런데 두더지잡기는 화면이 바뀌면 그냥 누르는 테스트가 아닙니다. <strong>어느 구멍인지 찾고, 두더지인지 폭탄인지 가리고, 손가락을 그 구멍까지 옮겨야</strong> 합니다. 고를 것이 있는 반응은 단순 반응보다 느리고, 손을 옮기는 시간도 더해집니다. 그래서 「보고 나서 누르기까지」 한 마리에 쓰는 시간이 얼마일 때 몇 마리를 잡을 수 있는지로 다시 셌습니다.</p>
+    <table>
+      <thead><tr><th>한 마리에 걸리는 시간</th><th>잡을 수 있는 두더지</th></tr></thead>
+      <tbody>
+        <tr><td>600ms 이하</td><td>100%</td></tr>
+        <tr><td>700ms</td><td>98.9%</td></tr>
+        <tr><td>800ms</td><td>89.4%</td></tr>
+        <tr><td>900ms</td><td>70.2%</td></tr>
+      </tbody>
+    </table>
+    <p>600ms 안에 찾아서 누를 수 있으면 놓칠 두더지가 하나도 없고, 900ms 가 걸리면 열 마리 중 세 마리가 먼저 내려갑니다. 놓치는 두더지는 뒤로 갈수록 몰립니다. 800ms 라면 놓친 것의 93%가, 900ms 라면 70%가 마지막 15초에서 나옵니다. 두 마리가 겹쳐 올라오는 순간도 있으니, 실제로는 한 마리를 누른 뒤 다음 구멍으로 옮기는 시간까지 이 예산 안에 들어가야 합니다.</p>
+  </section>
+
+  <section>
+    <h2>멈춰! 는 반응이 아니라 예측이다</h2>
+    <p>같은 「빨리 누르기」처럼 보여도 <a href="/stop/">멈춰!</a> 는 성격이 다릅니다. 점이 목표에 겹치는 순간은 미리 보이므로, 겹친 것을 보고 누르면 이미 늦습니다. 반응시간만큼 앞서서, 움직임을 내다보고 눌러야 맞습니다. 그래서 반응속도 테스트 기록이 좋다고 멈춰! 점수가 꼭 좋은 것은 아닙니다. 하나는 「보고 나서 얼마나 빨리」, 다른 하나는 「보기 전에 얼마나 정확히」를 잽니다.</p>
+  </section>
+
+  <section>
+    <h2>내 기록을 제대로 재는 법</h2>
+    <ul>
+      <li><strong>다섯 번 이상 재고 가운데값을 본다.</strong> 한 번의 좋은 기록이나 나쁜 기록은 운입니다.</li>
+      <li><strong>같은 기기, 같은 자세로 잰다.</strong> 휴대폰과 컴퓨터, 무선 마우스와 유선 마우스는 기기 지연이 달라 기록끼리 견줄 수 없습니다.</li>
+      <li><strong>미리 누르지 않는다.</strong> 색이 바뀔 때를 짐작해 누르면 가끔 아주 빠른 기록이 나오지만, 그것은 반응이 아니라 운입니다.</li>
+      <li><strong>몸을 먼저 깨운다.</strong> 처음 몇 번은 대개 느립니다. 두세 번 연습한 뒤부터 세는 편이 공정합니다.</li>
+    </ul>
+    <p>두더지잡기의 오늘의 도전은 자정에 열리고 모두가 같은 순서를 받으니, 마지막 15초에 몇 마리를 지켰는지 친구와 견주어 보셔도 좋습니다.</p>
+    <p><a class="cta" href="/mole/">두더지잡기 하러 가기 →</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">What is an average reaction time?</h2>
+  <p class="updated">10 October 2026 · Hanpango · outside figures are cited; Whack a Mole figures come from running the game's own board generator for 49 days (23 August to 10 October 2026)</p>
+
+  <section>
+    <h2>About 273 ms on a web test</h2>
+    <p>Human Benchmark reports more than 81 million recorded clicks with a median of 273 ms and a mean of 284 ms (<a href="https://humanbenchmark.com/tests/reactiontime/statistics" rel="noopener">statistics page</a>, checked 10 October 2026). Laboratory figures are faster: about 190 ms for light and 160 ms for sound in college-age adults, as quoted by Jain et al. (2015, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4456887/" rel="noopener">IJABMR 5(2)</a>). Much of the gap is the device: a 60 Hz screen redraws every 16.7 ms, typical desktop lag is about 30 ms, and phone taps tend to be slower than clicks. Compare scores only on the same device, and use the median of five or more tries.</p>
+  </section>
+
+  <section>
+    <h2>What Whack a Mole asks of you</h2>
+    <p>Each 60-second round has 73 to 77 appearances, 17.5% of them bombs. A mole stays up for 1,179 ms on average in the first fifteen seconds and 839 ms in the last fifteen, never less than 660 ms. Because you must find the hole, tell mole from bomb and move your finger, a simple reaction time is not the budget. If finding and tapping takes 600 ms you can catch every mole; at 800 ms, 89.4%; at 900 ms, 70.2%. The misses gather at the end: at 800 ms, 93% of them fall in the final fifteen seconds. Stop! is different again: the overlap is visible in advance, so it rewards prediction, not reaction.</p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
