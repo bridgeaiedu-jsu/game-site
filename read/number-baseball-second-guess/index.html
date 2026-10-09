@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>숫자야구 필승법 — 첫 대답 열세 가지마다 둘째 수 표 | Number Baseball: the Second Guess — 한판고</title>
+<meta name="description" content="숫자야구 필승법을 표 하나로 정리했습니다. 첫 수 0123 의 대답 열세 가지마다 5,040가지 답을 모두 대입해, 둘째 수로 무엇을 넣어야 가장 운이 없을 때도 후보가 가장 적게 남는지 셌습니다. 대답을 보고 고르면 평균 5.30번, 늘 4567 을 넣으면 5.44번에 맞힙니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="숫자야구 필승법 — 첫 대답 열세 가지마다 둘째 수 표 | Number Baseball: the Second Guess — 한판고">
+<meta property="og:description" content="숫자야구 필승법을 표 하나로 정리했습니다. 첫 수 0123 의 대답 열세 가지마다 5,040가지 답을 모두 대입해, 둘째 수로 무엇을 넣어야 가장 운이 없을 때도 후보가 가장 적게 남는지 셌습니다. 대답을 보고 고르면 평균 5.30번, 늘 4567 을 넣으면 5.44번에 맞힙니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/number-baseball-second-guess/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/number-baseball-second-guess/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>숫자야구 필승법 — 둘째 수 표</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/number-baseball/">숫자야구 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 9일 · 한판고 · 모든 수치는 5,040가지 답과 5,040가지 둘째 수를 하나도 빠짐없이 맞대어 직접 센 값입니다</p>
+
+  <section>
+    <h2>결론부터 — 둘째 수는 첫 대답을 보고 고른다</h2>
+    <p>숫자야구에서 가장 많이 듣는 조언은 「0123 다음에 4567」입니다. 틀린 말은 아니지만, 첫 대답이 무엇이든 둘째 수를 미리 정해 두는 방법이라 첫 대답이 준 정보를 버립니다. 한판고 숫자야구와 같은 규칙(0~9 가운데 서로 다른 숫자 넷, 첫 자리 0 허용)으로 계산해 보니, <strong>첫 대답에 맞춰 둘째 수를 고르면 가장 운이 없는 경우에 남는 후보가 많게는 절반으로 줄었습니다</strong>. 2볼이 나왔을 때 4567 을 넣으면 최악의 경우 후보가 504개 남지만, 1204 를 넣으면 300개입니다.</p>
+    <p>끝까지 두었을 때의 차이는 평균 <strong>5.30번 대 5.44번</strong>입니다. 아래 표가 그 둘째 수이고, 표를 외울 필요가 없도록 사람이 기억할 수 있는 규칙 네 줄로 다시 묶었습니다. 첫 수가 갈라놓는 열네 가지 대답 자체는 <a href="/read/number-baseball-odds/">숫자야구 첫 수가 남기는 경우의 수</a>에 따로 정리해 두었습니다.</p>
+  </section>
+
+  <section>
+    <h2>첫 대답별 둘째 수 표</h2>
+    <p>첫 수는 0123 입니다. 「최악」은 둘째 수를 넣은 뒤 가장 운이 없는 대답이 나왔을 때 남는 후보 수입니다. 둘째 수는 5,040가지를 모두 시험해 이 값이 가장 작은 것을 골랐고, 같으면 평균이 작은 것을 골랐습니다.</p>
+    <table>
+      <thead><tr><th>첫 대답</th><th>후보</th><th>둘째 수</th><th>최악</th><th>4567</th></tr></thead>
+      <tbody>
+        <tr><td>1볼</td><td>1,440</td><td>1456</td><td>378</td><td>504</td></tr>
+        <tr><td>2볼</td><td>1,260</td><td>1204</td><td>300</td><td>504</td></tr>
+        <tr><td>1S 1볼</td><td>720</td><td>0145</td><td>148</td><td>288</td></tr>
+        <tr><td>1S</td><td>480</td><td>0145</td><td>120</td><td>168</td></tr>
+        <tr><td>아웃</td><td>360</td><td>4567</td><td>88</td><td>88</td></tr>
+        <tr><td>3볼</td><td>264</td><td>1245</td><td>64</td><td>132</td></tr>
+        <tr><td>1S 2볼</td><td>216</td><td>0145</td><td>60</td><td>108</td></tr>
+        <tr><td>2S</td><td>180</td><td>0245</td><td>37</td><td>72</td></tr>
+        <tr><td>2S 1볼</td><td>72</td><td>0245</td><td>17</td><td>36</td></tr>
+        <tr><td>3S</td><td>24</td><td>0145</td><td>8</td><td>12</td></tr>
+        <tr><td>4볼</td><td>9</td><td>0231</td><td>3</td><td>9</td></tr>
+        <tr><td>1S 3볼</td><td>8</td><td>0134</td><td>4</td><td>8</td></tr>
+        <tr><td>2S 2볼</td><td>6</td><td>0214</td><td>3</td><td>6</td></tr>
+      </tbody>
+    </table>
+    <p>S는 스트라이크입니다. 아웃일 때만 4567 이 그대로 최선이고, 나머지 열두 가지에서는 모두 첫 대답에 맞춘 수가 앞섭니다. 특히 1스트라이크 1볼에서는 최악 288개가 148개로, 3볼에서는 132개가 64개로 거의 반이 됩니다.</p>
+    <p>눈여겨볼 점이 하나 더 있습니다. 표의 둘째 수 열세 개 가운데 <strong>열한 개는 정답일 수 없는 수</strong>입니다. 예를 들어 1스트라이크가 나왔다면 답에는 0·1·2·3 가운데 하나만 들어 있는데, 0145 에는 0과 1이 함께 들어 있습니다. 맞힐 가능성을 버리는 대신 후보를 고르게 가르는 쪽이 결국 더 빨리 끝납니다.</p>
+  </section>
+
+  <section>
+    <h2>표를 외우지 않아도 되는 규칙 네 줄</h2>
+    <ul>
+      <li><strong>아웃이면 새 숫자 넷.</strong> 0·1·2·3 이 모두 빠졌으니 4567 을 넣습니다. 이때만은 흔한 조언이 그대로 최선입니다.</li>
+      <li><strong>스트라이크가 있으면 앞 두 자리는 그대로 두고 뒤에 새 숫자 둘.</strong> 1스트라이크·1스트라이크 1볼·1스트라이크 2볼·3스트라이크에서는 모두 0145 입니다. 2스트라이크가 나왔다면 첫 자리 0만 두고 셋째 숫자 2를 둘째 자리로 옮긴 0245 입니다.</li>
+      <li><strong>볼만 나왔으면 옛 숫자를 다른 자리로 옮기고 나머지를 새 숫자로.</strong> 1볼이면 옛 숫자 하나(1456), 3볼이면 둘(1245), 2볼이면 셋(1204)을 자리를 바꿔 넣습니다. 볼은 「숫자는 있는데 자리가 아니다」라는 뜻이라, 같은 자리에 다시 놓으면 얻는 것이 없습니다.</li>
+      <li><strong>네 숫자를 다 찾았으면 자리만 가른다.</strong> 4볼·1스트라이크 3볼·2스트라이크 2볼이면 후보가 아홉 개 이하입니다. 둘째 수로 0231·0134·0214 를 넣으면 많아야 서너 개가 남습니다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>끝까지 두면 몇 번 만에 끝나나</h2>
+    <p>둘째 수를 위 표대로 고르고, 셋째 수부터는 넣었을 때 남는 후보가 평균적으로 가장 적어지는 수(정답일 수 있는 수를 우선)를 고르는 방식으로 5,040가지 답을 전부 끝까지 풀었습니다. 비교를 위해 둘째 수를 늘 4567 로 고정한 방식도 같은 조건으로 풀었습니다.</p>
+    <table>
+      <thead><tr><th>둘째 수</th><th>평균</th><th>최대</th><th>6번 안</th></tr></thead>
+      <tbody>
+        <tr><td>대답 보고 고름</td><td>5.30번</td><td>8번</td><td>97.9%</td></tr>
+        <tr><td>늘 4567</td><td>5.44번</td><td>7번</td><td>96.2%</td></tr>
+      </tbody>
+    </table>
+    <p>평균은 대답을 보고 고르는 쪽이 빠르지만, <strong>8번까지 간 답이 딱 하나</strong>(9835) 있었습니다. 평균을 당기는 대신 아주 드물게 한 번 더 걸리는 답이 생긴 셈입니다. 4567 고정은 평균이 0.14번 느린 대신 어떤 답도 7번을 넘지 않았습니다. 어느 쪽이든 열 번 제한에는 여유가 넉넉합니다.</p>
+    <p>(<a href="/read/number-baseball-odds/">앞선 글</a>의 4567 고정 계산은 셋째 수부터 정답일 수 있는 수만 넣게 해서 최대 8번이었습니다. 이번 계산은 셋째 수부터 정답일 수 없는 수도 허용했고, 그 조건에서는 최대 7번이었습니다. 셈의 조건이 달라 두 숫자가 다르게 나옵니다.)</p>
+  </section>
+
+  <section>
+    <h2>실제 판에서는 이렇게</h2>
+    <p>첫 수는 0123 을 넣고, 대답이 나오면 위 규칙 네 줄 가운데 하나를 고릅니다. 셋째 수부터는 지금까지의 대답과 어긋나지 않는 후보를 종이에 적어 두고, 그중 하나를 넣는 것이 사람에게는 가장 실수가 적습니다. 아웃이 나오면 <a href="/number-baseball/">한판고 숫자야구</a> 화면 자판에서 그 네 숫자가 꺼지니 남은 숫자만 보면 됩니다. 오늘의 문제는 자정에 새로 열리고 모두가 같은 답을 풀기 때문에, 이 표대로 몇 번 만에 맞혔는지 친구와 견주어 보셔도 좋습니다.</p>
+    <p><a class="cta" href="/number-baseball/">숫자야구 하러 가기 →</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Number Baseball: choosing the second guess</h2>
+  <p class="updated">9 October 2026 · Hanpango · every figure below comes from testing all 5,040 answers against all 5,040 possible second guesses</p>
+
+  <section>
+    <h2>Read the first reply, then choose</h2>
+    <p>The usual advice is to open with 0123 and follow with 4567. That second guess ignores the first reply. Choosing it after reading the reply cuts the worst-case number of remaining candidates by up to half: after two balls, 4567 can leave 504 candidates while 1204 leaves at most 300. After one strike and one ball the worst case falls from 288 to 148; after three balls, from 132 to 64. Only after an out is 4567 already the best choice. Eleven of the thirteen best second guesses cannot themselves be the answer, because splitting the candidates evenly matters more than a small chance of winning at once.</p>
+  </section>
+
+  <section>
+    <h2>Four rules and the final count</h2>
+    <p>After an out, play four new digits (4567). With any strike, keep the first two digits in place and add two new ones (0145); with two strikes, play 0245. With balls only, move old digits to new slots and fill the rest with new digits: 1456 after one ball, 1245 after three, 1204 after two. When all four digits are found, sort out the order with 0231, 0134 or 0214. Played to the end, the adaptive second guess averages 5.30 guesses with one answer (9835) needing eight; always playing 4567 averages 5.44 and never needs more than seven.</p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
