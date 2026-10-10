@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10초 맞추기 잘하는 법 — 오차를 줄이는 세기 방식과 정확도 계산 | How to Win the 10-Second Game — 한판고</title>
+<meta name="description" content="10초 맞추기는 손이 아니라 속으로 세는 박자가 오차를 만듭니다. 목표별 정확도 99%·95% 구간, 세면 왜 더 고르게 맞는지(Hinton·Rao 2004), 박자를 고정하는 법, 오늘의 도전 목표 50일치 분포까지 한판고 10초 감각 코드로 계산했습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="10초 맞추기 잘하는 법 — 오차를 줄이는 세기 방식과 정확도 계산 | How to Win the 10-Second Game — 한판고">
+<meta property="og:description" content="10초 맞추기는 손이 아니라 속으로 세는 박자가 오차를 만듭니다. 목표별 정확도 99%·95% 구간, 세면 왜 더 고르게 맞는지(Hinton·Rao 2004), 박자를 고정하는 법, 오늘의 도전 목표 50일치 분포까지 한판고 10초 감각 코드로 계산했습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/ten-second-timing/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/ten-second-timing/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>10초 맞추기 잘하는 법</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/tensec/">10초 감각 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 11일 · 한판고 · 바깥 연구는 출처를 밝혔고, 정확도 구간과 오늘의 도전 목표는 10초 감각 게임의 판정·출제 코드를 그대로 돌려 센 값입니다(2026년 8월 23일~10월 11일, 50일)</p>
+
+  <section>
+    <h2>결론부터 — 오차는 「얼마나 빨리 세나」에서 나온다</h2>
+    <p>10초 맞추기는 시작을 누르고, 시계를 보지 않은 채 속으로 세다가 10초라고 느껴질 때 다시 누르는 놀이입니다. 한판고 <a href="/tensec/">10초 감각</a>은 누르는 순간 화면에서 시간 단서를 모두 지우고, 목표와 실제 시간의 차이를 <strong>오차</strong>로 냅니다.</p>
+    <p>이 놀이에서 손이 빠른지는 거의 상관이 없습니다. 시작도 끝도 내가 정한 순간에 누르기 때문에, 반응속도 테스트처럼 「보고 나서 누르기까지」의 시간이 끼어들 자리가 없습니다. 오차를 만드는 것은 <strong>속으로 세는 1초가 진짜 1초보다 얼마나 짧거나 긴가</strong>입니다. 세는 1초가 5% 짧으면 10초 목표에서 약 0.5초 일찍 누르게 됩니다. 그래서 잘하는 법도 결국 「세는 박자를 고정하는 법」입니다.</p>
+  </section>
+
+  <section>
+    <h2>같은 0.1초라도 목표마다 정확도가 다르다</h2>
+    <p>게임의 정확도는 <code>100% − 오차 ÷ 목표</code>로 계산합니다. 목표 10초에 9.87초에 누르면 오차 0.13초, 정확도 98.7%입니다. 나눗셈이 목표로 하기 때문에 같은 오차라도 짧은 목표에서 더 크게 깎입니다. 판정 코드로 계산한 구간은 이렇습니다.</p>
+    <table>
+      <thead><tr><th>목표</th><th>정확도 99% 안</th><th>95% 안</th><th>90% 안</th><th>0.1초 빗나가면</th></tr></thead>
+      <tbody>
+        <tr><td>3초</td><td>±0.03초</td><td>±0.15초</td><td>±0.30초</td><td>96.7%</td></tr>
+        <tr><td>7초</td><td>±0.07초</td><td>±0.35초</td><td>±0.70초</td><td>98.6%</td></tr>
+        <tr><td>10초</td><td>±0.10초</td><td>±0.50초</td><td>±1.00초</td><td>99.0%</td></tr>
+        <tr><td>15초</td><td>±0.15초</td><td>±0.75초</td><td>±1.50초</td><td>99.3%</td></tr>
+      </tbody>
+    </table>
+    <p>결과 화면에서 평균 정확도가 95% 이상이면 좋은 소리가, 그보다 낮으면 아쉬운 소리가 납니다. 목표의 두 배 넘게 지나서 누르면 정확도는 0%에서 멈춥니다. 오차는 소수 둘째 자리까지 보여 주므로, 0.005초보다 작게 빗나가면 화면에는 0.00초로 나옵니다.</p>
+    <p>표를 거꾸로 읽으면 연습 순서가 보입니다. 세는 박자가 일정하게 5% 어긋난 사람은 3초에서도 15초에서도 정확도가 똑같이 95%입니다. 박자 자체가 틀렸다면 목표를 바꿔도 정확도는 그대로라는 뜻입니다. 반대로 짧은 목표에서만 정확도가 유난히 낮다면 박자보다 <strong>시작과 끝을 누르는 손의 흔들림</strong>을 의심해 볼 만합니다. 3초에서는 그 0.1초가 3.3%p나 되기 때문입니다.</p>
+  </section>
+
+  <section>
+    <h2>세면 왜 더 고르게 맞나</h2>
+    <p>사람이 시간을 어림할 때의 흔들림은 대개 재는 시간에 비례해 커집니다. 연구자들은 이것을 시간 판단의 <strong>스칼라 성질</strong>이라 부르는데, 응답이 흩어진 정도(표준편차)가 재는 시간에 비례한다는 뜻입니다. 8초를 잴 때보다 24초를 잴 때 흔들림이 세 배쯤 크다는 이야기입니다.</p>
+    <p>그런데 「천일, 천이…」처럼 박자를 세면 사정이 달라집니다. Hinton과 Rao(2004)는 참가자에게 8·16·24초를 그냥 느낌으로 재게 하고, 같은 시간을 세어서 재게 한 뒤 비교했습니다. 평균적으로 얼마나 맞혔는지는 두 방식이 비슷했지만, 느낌으로 잰 쪽만 흔들림이 시간에 비례해 커졌고 <strong>센 쪽은 그 성질을 따르지 않았습니다</strong>. 센 쪽의 흔들림은 「한 번 셀 때마다 생기는 작은 오차를 차례로 더한 것」으로 잘 설명됐습니다(<a href="https://pubmed.ncbi.nlm.nih.gov/15116982/" rel="noopener">Psychonomic Bulletin &amp; Review 11(1), 24–30</a>).</p>
+    <p>한 번씩 셀 때의 오차가 서로 독립이라면, 더해진 오차는 센 횟수가 늘어나는 것보다 천천히 커집니다. 열 번을 세도 흔들림은 열 배가 아니라 세 배 남짓입니다(√10 ≈ 3.2). 다만 이 계산이 성립하려면 <strong>한 박자의 길이가 매번 같아야</strong> 합니다. 박자가 처음부터 짧으면 그 짧음이 열 번 그대로 쌓여, 고르게 틀리는 사람이 됩니다.</p>
+  </section>
+
+  <section>
+    <h2>박자를 고정하는 세 가지 방법</h2>
+    <ul>
+      <li><strong>음절 수가 일정한 말로 센다.</strong> 「하나, 둘, 셋」은 글자 수가 들쭉날쭉해 박자가 흔들립니다. 「천일, 천이, 천삼」이나 「일 초, 이 초」처럼 매번 같은 길이의 말을 쓰면 한 박자가 고정됩니다.</li>
+      <li><strong>긴 목표일수록 의식적으로 천천히.</strong> 긴장하면 세는 속도가 빨라져 목표보다 일찍 누르기 쉽습니다. 결과에 「빨랐습니다」가 이어지면 다음 판은 한 박자 느리게 시작하세요. 15초에서는 5%만 빨라도 0.75초가 됩니다.</li>
+      <li><strong>자유 모드에서 한 목표만 되풀이한다.</strong> 같은 목표를 연달아 하면 「빨랐다·늦었다」가 어느 쪽으로 기우는지 보입니다. 늘 한쪽으로만 기운다면 박자 길이를, 양쪽을 오간다면 누르는 손을 고치면 됩니다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>오늘의 도전 — 어떤 목표가 나오나</h2>
+    <p>오늘의 도전은 날짜 하나로 목표 세 개를 정하고, 모두가 같은 순서로 받습니다. 목표는 3·7·10·15초 가운데 서로 다른 셋이라, 나올 수 있는 순서는 24가지입니다. 출제 코드를 2026년 8월 23일부터 10월 11일까지 50일치 그대로 돌려 보니 24가지 순서가 모두 한 번 이상 나왔고, 결과는 다음과 같았습니다.</p>
+    <table>
+      <thead><tr><th>목표</th><th>나온 날</th><th>첫 판에 나온 날</th></tr></thead>
+      <tbody>
+        <tr><td>3초</td><td>36일</td><td>11일</td></tr>
+        <tr><td>7초</td><td>39일</td><td>11일</td></tr>
+        <tr><td>10초</td><td>39일</td><td>16일</td></tr>
+        <tr><td>15초</td><td>36일</td><td>12일</td></tr>
+      </tbody>
+    </table>
+    <p>하루 세 판에 재는 시간은 합쳐서 평균 26.2초입니다. 기록은 세 판의 <strong>평균 오차(초)</strong>라는 점을 알아 두면 좋습니다. 박자가 5% 어긋난 사람이라도 3·7·10초가 나온 날은 평균 오차가 0.33초, 7·10·15초가 나온 날은 0.53초입니다. 실력이 같아도 목표가 긴 날은 오차 숫자가 커지니, 날짜가 다른 기록끼리 견줄 때는 <strong>정확도(%)</strong>를 보는 편이 공정합니다. 같은 날 친구와 견줄 때는 목표가 같으니 오차를 그대로 비교하면 됩니다.</p>
+    <p><a class="cta" href="/tensec/">10초 감각 하러 가기 →</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">How to get better at the 10-second game</h2>
+  <p class="updated">11 October 2026 · Hanpango · the outside study is cited; accuracy bands and daily targets come from running Ten-Second Sense's own judging and daily-picker code (23 August to 11 October 2026, 50 days)</p>
+
+  <section>
+    <h2>Your miss comes from your counting pace</h2>
+    <p>You choose both presses, so reaction speed hardly matters. What matters is how long your internal "one second" really is: count 5% fast and you stop about half a second early on a 10-second target. Accuracy is 100% minus miss ÷ target, so a 0.1 s miss scores 96.7% at 3 s but 99.3% at 15 s. A steady 5% pace error gives 95% at every target, so if only your short targets suffer, look at how cleanly you press rather than at your pace.</p>
+  </section>
+
+  <section>
+    <h2>Why counting helps</h2>
+    <p>Hinton and Rao (2004, <a href="https://pubmed.ncbi.nlm.nih.gov/15116982/" rel="noopener">Psychonomic Bulletin &amp; Review 11(1)</a>) compared plain timing with counting at 8, 16 and 24 seconds. Accuracy was similar, but only plain timing showed variability growing in proportion to duration; counting did not, and its variability was well modelled as a sum of per-count errors. Use a count with even syllables ("one-thousand-one") so each beat has the same length. The daily challenge draws three different targets from 3, 7, 10 and 15 s; over the first 50 days all 24 orders appeared, and the record is the average miss in seconds, so compare across days by accuracy rather than by miss.</p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
