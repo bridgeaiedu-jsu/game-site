@@ -48,7 +48,7 @@ console.log('== 포털 (index.html) ==');
   ok('영어 문안 (visits today · all-time)', /visits today/.test(all[1]) && /all-time/.test(all[1]), all[1]);
 
   /* tile()·playLine() 을 실제로 돌려 본다 */
-  const fnSrc = [/function playLine\(g\)\{[\s\S]*?\n\}/, /function tile\(g\)\{[\s\S]*?\n\}/]
+  const fnSrc = [/function playLine\(g\)\{[\s\S]*?\n\}/, /function tile\(g(?:, hot)?\)\{[\s\S]*?\n\}/]
     .map(re => (html.match(re) || [''])[0]).join('\n');
   ok('playLine·tile 을 꺼냈다', fnSrc.includes('playLine') && fnSrc.includes('function tile'));
   const ctx = vm.createContext({ esc: s => String(s), T: () => 'daily', lang: 'ko' });
@@ -67,7 +67,22 @@ console.log('== 포털 (index.html) ==');
   ok('게임 이름을 주소에서 뽑는다 (/block-drop/ → block-drop)', out.includes('data-hp="plays.block-drop.today"'));
 
   ok('다시 그린 뒤 숫자를 다시 채운다(render 끝에서 hpStats)',
-     /innerHTML = games\.map\(tile\)[\s\S]{0,220}window\.hpStats\(\)/.test(html));
+     /innerHTML = (?:games\.map\(tile\)|hot\.map\([^)]*\)\)[^\n]*rest\.map\()[\s\S]{0,320}window\.hpStats\(\)/.test(html));
+
+  /* 목록 순서 — 인기 상위 HOT_N 개가 위, 나머지는 가나다. ordered() 를 실제로 돌려 본다. */
+  const ordSrc = [/const HOT_N = \d+;/, /const keyOf = [^\n]*/, /const nameOf = [^\n]*/, /function ordered\(\)\{[\s\S]*?\n\}/]
+    .map(re => (html.match(re) || [''])[0]).join('\n');
+  ok('ordered() 를 꺼냈다', ordSrc.includes('function ordered') && ordSrc.includes('HOT_N'));
+  const mk = (id, ko) => ({ path: '/' + id + '/', title: { ko, en: id } });
+  const octx = vm.createContext({ lang: 'ko', plays: null,
+    games: [mk('a', '하'), mk('b', '가'), mk('c', '다'), mk('d', '나'), mk('e', '마'), mk('f', '바'), mk('g', '사'), mk('h', '아')] });
+  vm.runInContext(ordSrc + '\nvar __o = () => { const r = ordered(); return JSON.stringify([r.hot.map(g=>g.title.ko), r.rest.map(g=>g.title.ko)]); };', octx);
+  ok('판수를 못 받으면 전부 가나다순', vm.runInContext('__o()', octx) === JSON.stringify([[], ['가','나','다','마','바','사','아','하']]));
+  octx.plays = { a:{today:0,total:5}, b:{today:1,total:0}, c:{today:0,total:0}, d:{today:0,total:20},
+                 e:{today:0,total:1}, f:{today:0,total:2}, g:{today:0,total:3}, h:{today:0,total:4} };
+  ok('오늘×10+누적 상위 6개가 위, 0점은 인기에서 빠지고 나머지는 가나다',
+     vm.runInContext('__o()', octx) === JSON.stringify([['나','가','하','아','사','바'], ['다','마']]),
+     vm.runInContext('__o()', octx));
   ok('방문은 화면이 준비된 뒤 한 번 부른다', /hpVisit[\s\S]{0,160}DOMContentLoaded', hpVisit\)/.test(html));
   ok('hpHit·hpStats 는 있는지 보고 부른다',
      /if \(window\.hpStats\) window\.hpStats\(\)/.test(html) && /if \(window\.hpHit\) window\.hpHit\('visit'\)/.test(html));

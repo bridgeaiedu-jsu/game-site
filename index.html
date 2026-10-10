@@ -189,6 +189,7 @@
   .badges{position:absolute;left:8px;top:8px;display:flex;gap:6px;flex-wrap:wrap}
   .badge{background:var(--badge-bg);border:1px solid var(--line);color:var(--text);font-size:.68rem;border-radius:999px;padding:3px 8px;line-height:1.4}
   .badge.daily{border-color:var(--sig);color:var(--sig-ink)}
+  .badge.hot{border-color:var(--sig);background:var(--sig);color:var(--bg)}
   .body{padding:11px 13px 13px}
   .body h2{margin:0 0 4px;font-size:1rem}
   .body p{margin:0;color:var(--muted);font-size:.8rem;line-height:1.5}
@@ -544,7 +545,7 @@ const I18N = {
     note:'게임은 하나씩 늘려갑니다.',
     navAbout:'소개', navPrivacy:'개인정보 처리방침', navTerms:'이용약관', navContact:'문의',
     navGuide:'게임 고르는 법', navDaily:'오늘의 도전이란', navRead:'읽을거리',
-    daily:'오늘의 도전',
+    daily:'오늘의 도전', hot:'👍 인기',
     install:'📲 홈 화면에 추가',
     donate:'☕ 후원', donateTitle:'☕ 커피 한 잔', close:'닫기',
     donateHelp:'카카오톡 또는 카카오페이 앱 카메라로 스캔하세요 · 금액은 자유입니다.', donateLink:'💛 카카오페이로 후원하기', donateHint:'위 버튼을 누르면 카카오페이가 열립니다.',
@@ -558,7 +559,7 @@ const I18N = {
     note:'More games are added one at a time.',
     navAbout:'About', navPrivacy:'Privacy Policy', navTerms:'Terms', navContact:'Contact',
     navGuide:'How to choose', navDaily:'Daily challenge, explained', navRead:'Reading',
-    daily:'Daily challenge',
+    daily:'Daily challenge', hot:'👍 Popular',
     install:'📲 Add to Home Screen',
     donate:'☕ Support', donateTitle:'☕ Buy me a coffee', close:'Close',
     donateHelp:'Scan with the KakaoTalk or KakaoPay app · any amount is welcome.', donateLink:'💛 Donate via KakaoPay', donateHint:'Tap the button above to open KakaoPay.',
@@ -835,8 +836,9 @@ let games = FALLBACK;
 
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-function tile(g){
+function tile(g, hot){
   const badges = [
+    hot ? `<span class="badge hot">${esc(T('hot'))}</span>` : '',
     g.playtime ? `<span class="badge">${esc(g.playtime[lang] || g.playtime.ko)}</span>` : '',
     g.daily ? `<span class="badge daily">🔥 ${esc(T('daily'))}</span>` : ''
   ].join('');
@@ -859,8 +861,27 @@ function playLine(g){
   return `<span class="hp-stat" data-hp-line hidden>${text}</span>`;
 }
 
+/* 목록 순서 — 많이 하는 게임 몇 개를 위로, 나머지는 가나다(영어 화면은 ABC)순.
+   인기 점수 = 오늘 판수 × 10 + 누적 판수. 오늘 붐비는 게임이 바로 올라오고, 조용한 날에도
+   누적 상위는 자리를 지킨다. 점수가 0 인 게임은 인기 칸에 들지 않는다.
+   판수를 못 받으면(차단·오프라인·서버 오류) plays 가 null 로 남아 전부 가나다순이다. */
+const HOT_N = 6;
+let plays = null;
+const keyOf = g => String(g.path || '').replace(/^\/|\/$/g, '');
+const nameOf = g => g.title[lang] || g.title.ko;
+function ordered(){
+  const byName = (a, b) => nameOf(a).localeCompare(nameOf(b), lang === 'ko' ? 'ko' : 'en');
+  const score = g => { const p = plays && plays[keyOf(g)]; return p ? (p.today * 10 + p.total) : 0; };
+  const hot = plays ? games.filter(g => score(g) > 0)
+                           .sort((a, b) => score(b) - score(a) || byName(a, b))
+                           .slice(0, HOT_N) : [];
+  const rest = games.filter(g => !hot.includes(g)).sort(byName);
+  return { hot, rest };
+}
+
 function render(){
-  document.getElementById('grid').innerHTML = games.map(tile).join('');
+  const { hot, rest } = ordered();
+  document.getElementById('grid').innerHTML = hot.map(g => tile(g, true)).join('') + rest.map(g => tile(g, false)).join('');
   /* 다시 그리면 숫자가 지워진다 — 언어 전환·목록 갱신 뒤에 다시 채운다.
      hp-stats.js 는 defer 라 첫 렌더보다 늦을 수 있으므로 있는지 보고 부른다. */
   if (window.hpStats) window.hpStats();
@@ -918,6 +939,12 @@ fetch('/games.json', { cache:'no-cache' })
   .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
   .then(list => { if (Array.isArray(list) && list.length) { games = list; render(); } })
   .catch(() => { /* 폴백 배열로 이미 렌더돼 있음 — 화면은 그대로 동작한다 */ });
+
+/* 인기 순서용 판수 — hp-stats.js 가 받는 것과 같은 주소라 1분 캐시를 함께 쓴다. */
+fetch('/api/stats', { headers: { Accept: 'application/json' } })
+  .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+  .then(data => { if (data && data.plays && typeof data.plays === 'object') { plays = data.plays; render(); } })
+  .catch(() => { /* 가나다순 그대로 */ });
 
 /* 타일 클릭 — 목록은 games.json 으로 다시 그려지므로 타일마다 붙이지 않고 문서 한 곳에서
    위임해 받는다. 게임 이름은 링크 주소에서 그대로 읽는다. */
