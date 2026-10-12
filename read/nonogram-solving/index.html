@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>노노그램 푸는 법 — 겹치기 공식과 막힐 때 쓰는 네 가지 기법 | How to Solve a Nonogram — 한판고</title>
+<meta name="description" content="노노그램(네모로직)은 찍지 않고 겹치는 칸부터 칠하면 풀립니다. 10칸 줄 단서별로 바로 칠할 수 있는 칸 수, 끝 붙이기·빈칸 표시·직각 이동, 난이도별 첫 훑기 확정 비율(쉬움 62%·어려움 19%)까지 한판고 노노그램 코드로 계산했습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="노노그램 푸는 법 — 겹치기 공식과 막힐 때 쓰는 네 가지 기법 | How to Solve a Nonogram — 한판고">
+<meta property="og:description" content="노노그램(네모로직)은 찍지 않고 겹치는 칸부터 칠하면 풀립니다. 10칸 줄 단서별로 바로 칠할 수 있는 칸 수, 끝 붙이기·빈칸 표시·직각 이동, 난이도별 첫 훑기 확정 비율(쉬움 62%·어려움 19%)까지 한판고 노노그램 코드로 계산했습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/nonogram-solving/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/nonogram-solving/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>노노그램 푸는 법</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/nonogram/">노노그램 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 12일 · 한판고 · 역사는 출처를 밝혔고, 줄마다 확정되는 칸 수와 난이도별 통계는 한판고 노노그램의 판 생성·추론 코드를 그대로 돌려 센 값입니다(난이도마다 300판, 오늘의 도전은 2026년 8월 23일~10월 12일 51일치)</p>
+
+  <section>
+    <h2>결론부터 — 찍지 말고 「겹치는 칸」부터 칠한다</h2>
+    <p>노노그램(네모로직)은 줄 옆의 숫자만 보고 칸을 칠해 그림을 완성하는 퍼즐입니다. 숫자 「3 2」는 그 줄에 칠한 덩어리가 왼쪽부터 3칸, 2칸 순서로 있고 그 사이에 빈칸이 적어도 하나 있다는 뜻입니다.</p>
+    <p>푸는 법의 뼈대는 하나입니다. <strong>한 줄에서 덩어리를 놓을 수 있는 모든 자리를 떠올렸을 때, 어느 자리에서든 칠해지는 칸만 칠한다.</strong> 한판고 <a href="/nonogram/">노노그램</a>이 판을 고를 때 쓰는 추론기도 정확히 이 방식이고, 이 방식만으로 끝까지 풀리는 판만 냅니다. 그래서 찍을 필요가 한 번도 없습니다.</p>
+  </section>
+
+  <section>
+    <h2>겹치기 공식 — 「여유」보다 긴 덩어리는 가운데가 정해진다</h2>
+    <p>먼저 그 줄의 <strong>여유</strong>를 계산합니다. 여유 = 줄 길이 − (숫자의 합 + 덩어리 수 − 1). 덩어리를 전부 왼쪽으로 붙였을 때 오른쪽에 남는 칸 수입니다. 그러면 덩어리마다 <strong>길이 − 여유</strong>만큼의 칸이 어느 자리에 놓든 겹치므로 바로 칠할 수 있습니다. 추론 코드로 10칸 줄을 계산하면 이렇습니다.</p>
+    <table>
+      <thead><tr><th>단서(10칸 줄)</th><th>여유</th><th>놓을 수 있는 자리</th><th>바로 칠하는 칸</th></tr></thead>
+      <tbody>
+        <tr><td>5</td><td>5</td><td>6가지</td><td>0칸</td></tr>
+        <tr><td>6</td><td>4</td><td>5가지</td><td>2칸</td></tr>
+        <tr><td>8</td><td>2</td><td>3가지</td><td>6칸</td></tr>
+        <tr><td>4 4</td><td>1</td><td>3가지</td><td>6칸</td></tr>
+        <tr><td>3 3</td><td>3</td><td>10가지</td><td>0칸</td></tr>
+        <tr><td>1 1 1 1</td><td>3</td><td>35가지</td><td>0칸</td></tr>
+        <tr><td>5 4 · 2 3 3 · 3 4 1</td><td>0</td><td>1가지</td><td>줄 전체</td></tr>
+      </tbody>
+    </table>
+    <p>표에서 두 가지가 보입니다. 첫째, 10칸 줄에서 숫자 하나가 5 이하이면 처음에는 한 칸도 확정되지 않습니다. 6부터 2칸씩 늘어납니다. 둘째, <strong>여유가 0인 줄은 숫자만 보고 줄 전체가 정해집니다.</strong> 「5 4」는 5+4+사이 1칸이 딱 10칸이라 칠할 칸 9개와 빈칸 1개가 한 번에 나옵니다. 그래서 첫 수는 늘 「숫자를 더해 줄 길이에 가까운 줄」입니다.</p>
+  </section>
+
+  <section>
+    <h2>그다음 네 가지 — 끝 붙이기·빈칸 표시·다 찬 줄·직각 이동</h2>
+    <ul>
+      <li><strong>끝 붙이기.</strong> 줄의 맨 끝 칸이 칠해졌다면 첫 덩어리는 거기서 시작합니다. 첫 숫자가 3이면 끝에서 3칸을 칠하고 넷째 칸은 빈칸으로 확정합니다. 빈칸으로 막힌 자리 바로 옆도 같은 방법으로 셉니다.</li>
+      <li><strong>빈칸을 ✕로 표시.</strong> 덩어리가 닿을 수 없는 칸은 ✕로 막아 둡니다. ✕는 채점에 들어가지 않지만, 줄의 길이가 짧아진 것과 같아서 여유가 줄고 겹치는 칸이 다시 생깁니다.</li>
+      <li><strong>다 찬 줄은 나머지를 모두 ✕.</strong> 칠한 칸이 숫자와 맞아떨어지면 게임이 바깥 숫자를 흐리게 바꿉니다. 그 줄의 남은 칸은 전부 빈칸이니 한꺼번에 막으세요.</li>
+      <li><strong>막히면 직각으로.</strong> 가로줄에서 더 나올 것이 없으면 세로줄로 넘어갑니다. 방금 가로에서 확정한 칸이 세로줄에서는 「끝 붙이기」의 출발점이 됩니다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>난이도별로 첫 훑기에서 얼마나 정해지나</h2>
+    <p>판 생성 코드로 난이도마다 300판씩 만들고, 빈 판에서 가로줄 전부와 세로줄 전부를 한 번씩 겹치기로 훑었을 때 정해지는 칸을 셌습니다. 「훑기 횟수」는 가로 전부→세로 전부를 한 번으로 치고, 더 정할 칸이 없음을 확인하는 마지막 훑기까지 센 값입니다. 게임이 어려움 판을 고를 때 쓰는 바로 그 숫자입니다.</p>
+    <table>
+      <thead><tr><th>10×10</th><th>칠하는 칸</th><th>첫 훑기에 정해지는 칸</th><th>훑기 횟수(평균)</th></tr></thead>
+      <tbody>
+        <tr><td>쉬움</td><td>67%</td><td>62%</td><td>3.1번</td></tr>
+        <tr><td>보통</td><td>58%</td><td>44%</td><td>3.7번</td></tr>
+        <tr><td>어려움</td><td>47%</td><td>19%</td><td>5.7번</td></tr>
+      </tbody>
+    </table>
+    <p>쉬움은 첫 훑기로 판의 절반 넘게 정해지지만, 어려움은 평균 19칸, 적게는 2칸뿐이었습니다. 어려움에서 시작부터 막막한 것은 실력 탓이 아니라 그렇게 골라 낸 판이기 때문입니다. 어려움은 최소 5번을 훑어야 끝나는 판만 나오고, 실제로는 5~11번이 걸렸습니다. 이때는 겹치기보다 <strong>✕ 표시와 끝 붙이기</strong>가 일을 합니다. 5×5 미니는 쉬움 2.2번, 어려움 3.1번이면 끝납니다.</p>
+    <p>모두가 같은 판을 받는 오늘의 도전은 10×10 보통입니다. 51일치를 그대로 만들어 보니 30일이 3번, 16일이 4번 훑기로 끝났고, 6번이 걸린 날은 하루였습니다. 첫 훑기로 정해지는 칸은 평균 47칸이었습니다.</p>
+  </section>
+
+  <section>
+    <h2>누가 만들었나 — 그리고 왜 찍기 없는 판이 귀한가</h2>
+    <p>이 퍼즐은 일본의 그래픽 편집자 이시다 논이 1987년 도쿄의 한 그림 대회에서 우승한 것을 계기로 떠올려 1988년 「창문 그림 퍼즐(Window Art Puzzles)」이라는 이름으로 처음 발표했고, 퍼즐 작가 니시오 데쓰야도 비슷한 시기에 따로 같은 퍼즐을 냈습니다. 「노노그램」이라는 이름은 영국의 퍼즐 수집가 제임스 달게티가 이시다의 이름 「논」과 다이어그램의 「그램」을 붙여 만들었고, 1990년부터 영국 선데이 텔레그래프에 실렸습니다(<a href="https://www.puzzlemuseum.com/griddler/gridhist.htm" rel="noopener">The Puzzle Museum</a>, <a href="https://en.wikipedia.org/wiki/Nonogram" rel="noopener">Wikipedia</a>). 한국에서는 네모로직, 네모네모 로직으로 더 많이 불립니다.</p>
+    <p>아무 그림이나 숫자로 바꾸면 답이 여러 개이거나, 찍지 않고는 못 푸는 판이 쉽게 나옵니다. 노노그램에 답이 있는지 가리는 문제는 컴퓨터로도 어려운 부류(NP-완전)로 알려져 있습니다(Ueda·Nagao 1996). 한판고는 그래서 줄 추론만으로 끝까지 풀리는 판만 내고, 다른 방법으로 답이 정확히 하나인지 한 번 더 셉니다.</p>
+    <p><a class="cta" href="/nonogram/">노노그램 하러 가기 →</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">How to solve a nonogram</h2>
+  <p class="updated">12 October 2026 · Hanpango · history is cited; per-line counts and difficulty statistics come from running Hanpango Nonogram's own generator and line solver (300 boards per level, plus the 51 daily boards from 23 August to 12 October 2026)</p>
+
+  <section>
+    <h2>Start with the overlap</h2>
+    <p>Compute a line's slack: length − (sum of clues + number of blocks − 1). Every block longer than the slack has length − slack cells that are filled wherever it goes. On a 10-cell line a single clue of 5 or less fixes nothing, 6 fixes 2 and 8 fixes 6; "4 4" has slack 1 and fixes 6; lines with slack 0 such as "5 4" are fully determined. After that: extend from filled edge cells, mark impossible cells with ✕ (which shrinks the slack), cross out the rest of any completed line, and switch to the perpendicular direction when stuck. Hanpango only serves boards this line logic finishes, so you never need to guess.</p>
+  </section>
+
+  <section>
+    <h2>What the numbers say</h2>
+    <p>On 10×10 boards the first row-and-column overlap pass fixes 62% of cells on easy, 44% on normal and only 19% on hard, which needs 5 to 11 passes (average 5.7, counting the final pass that finds nothing new). The daily board is 10×10 normal; 30 of its first 51 days finished in 3 passes. Nonograms were devised by Non Ishida in 1987 and independently by Tetsuya Nishio; James Dalgety coined the name, and The Sunday Telegraph has run them since 1990 (<a href="https://www.puzzlemuseum.com/griddler/gridhist.htm" rel="noopener">The Puzzle Museum</a>). Deciding whether a nonogram has a solution is NP-complete (Ueda and Nagao, 1996).</p>
+  </section>
+  </div>
+</main>
+
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
