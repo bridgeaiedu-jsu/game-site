@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>폭탄 돌리기, 누가 질 확률이 높을까 — 자리·인원·넘기는 속도로 센 확률 | Pass the Bomb: Who Is Most Likely to Lose — 한판고</title>
+<meta name="description" content="폭탄 돌리기는 자리 순서보다 넘기는 속도가 승패를 가릅니다. 도화선 25~90초인 한판고 폭탄 돌리기와 같은 규칙으로 수십만 판을 돌려, 인원별로 질 확률, 남보다 3초 느린 사람이 지는 비율(4명에서 37%), 「곧 터집니다」가 뜬 뒤 남는 시간(4.5~16.2초)을 셌습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="폭탄 돌리기, 누가 질 확률이 높을까 — 자리·인원·넘기는 속도로 센 확률 | Pass the Bomb: Who Is Most Likely to Lose — 한판고">
+<meta property="og:description" content="폭탄 돌리기는 자리 순서보다 넘기는 속도가 승패를 가릅니다. 도화선 25~90초인 한판고 폭탄 돌리기와 같은 규칙으로 수십만 판을 돌려, 인원별로 질 확률, 남보다 3초 느린 사람이 지는 비율(4명에서 37%), 「곧 터집니다」가 뜬 뒤 남는 시간(4.5~16.2초)을 셌습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/bomb-pass-odds/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/bomb-pass-odds/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>폭탄 돌리기, 누가 질 확률이 높을까</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/bomb/">폭탄 돌리기 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 14일 · 한판고 · 확률은 폭탄 돌리기와 같은 도화선 규칙(25초 보장 + 65초 균등)으로 판을 만들어, 사람마다 한 번 들고 있는 시간을 정해 두고 터질 때까지 돌려 센 값입니다(조건마다 40만 판)</p>
+
+  <section>
+    <h2>결론부터 — 자리보다 손이 빠른 사람이 산다</h2>
+    <p>한판고 <a href="/bomb/">폭탄 돌리기</a>는 3~6명이 폰 하나를 돌리며 화면의 미션에 답하고 넘기는 게임입니다. 도화선 길이는 판이 시작될 때 이미 정해지고, 화면에는 「조용합니다 → 치직거립니다 → 곧 터집니다」 세 단계만 나옵니다. 터지는 순간 폰을 든 사람이 집니다.</p>
+    <p>모두가 같은 속도로 넘긴다면 질 확률은 거의 인원수로 나눈 값입니다. 첫 번째로 받든 마지막으로 받든 차이는 몇 퍼센트포인트에 그쳤습니다. 그런데 한 사람만 남보다 3초 느리게 넘기면, 4명 판에서 그 사람이 질 확률은 25%에서 <strong>37%</strong>로 뛰었습니다. 이 게임에서 순서는 운이고, 속도는 실력입니다.</p>
+  </section>
+
+  <section>
+    <h2>인원별로 센 질 확률</h2>
+    <p>모두가 한 번에 평균 5초(3~7초 사이에서 고르게) 들고 있다가 넘긴다고 두고, 인원마다 40만 판을 돌렸습니다.</p>
+    <table>
+      <thead><tr><th>인원</th><th>공평한 몫</th><th>가장 낮은 자리</th><th>가장 높은 자리</th><th>한 판 평균 넘김</th></tr></thead>
+      <tbody>
+        <tr><td>3명</td><td>33.3%</td><td>32.4%</td><td>34.6%</td><td>11.0번</td></tr>
+        <tr><td>4명</td><td>25.0%</td><td>23.6%</td><td>26.8%</td><td>11.0번</td></tr>
+        <tr><td>5명</td><td>20.0%</td><td>17.6%</td><td>22.5%</td><td>11.0번</td></tr>
+        <tr><td>6명</td><td>16.7%</td><td>15.3%</td><td>19.1%</td><td>11.0번</td></tr>
+      </tbody>
+    </table>
+    <p>자리마다 조금씩 다른 것은 도화선이 25초보다 짧아질 수 없기 때문입니다. 처음 25초 동안은 아무도 지지 않으니, 그 시각 무렵에 폰이 돌아오는 자리가 조금 더 위험해집니다. 하지만 그 자리는 넘기는 속도에 따라 판마다 달라지므로, 미리 「몇 번째에 앉으면 안전하다」고 말할 수 있는 자리는 없습니다. 첫 사람이 바로 지는 일은 규칙이 처음부터 막아 두었습니다.</p>
+    <p>넘김 수가 인원과 상관없이 11번 안팎인 것도 눈여겨볼 만합니다. 도화선 평균이 57.5초이고 한 번에 5초씩이니, 사람이 많으면 한 바퀴가 길어질 뿐 폭탄이 손을 거치는 횟수는 같습니다. 그래서 6명 판에서는 폰이 내 손에 두 번 안팎으로 돌아오고 판이 끝납니다.</p>
+  </section>
+
+  <section>
+    <h2>느린 한 사람, 빠른 한 사람</h2>
+    <p>이번에는 한 사람만 속도를 바꿨습니다. 나머지는 그대로 평균 5초입니다.</p>
+    <table>
+      <thead><tr><th>상황</th><th>그 사람의 질 확률</th><th>공평한 몫</th></tr></thead>
+      <tbody>
+        <tr><td>3명 중 한 사람이 평균 8초</td><td>45.6%</td><td>33.3%</td></tr>
+        <tr><td>4명 중 한 사람이 평균 8초</td><td>36.7%</td><td>25.0%</td></tr>
+        <tr><td>6명 중 한 사람이 평균 8초</td><td>24.6%</td><td>16.7%</td></tr>
+        <tr><td>4명 중 한 사람이 평균 2.5초</td><td>13.7%</td><td>25.0%</td></tr>
+      </tbody>
+    </table>
+    <p>폭탄을 들고 있는 시간이 곧 위험에 노출되는 시간이라, 질 확률은 대략 <strong>들고 있는 시간의 몫</strong>을 따라갑니다. 4명 판에서 8초 쓰는 사람은 한 바퀴 23초 가운데 8초를 혼자 들고 있으니 35% 남짓이 그의 몫이 되고, 실제로도 36.7%가 나왔습니다. 반대로 절반 속도로 넘기면 질 확률도 거의 절반으로 내려갑니다.</p>
+    <p>모두가 함께 빨라지거나 느려지면 이야기가 달라집니다. 4명 모두 평균 3초로 넘기든 8초로 넘기든 각자 질 확률은 그대로 25% 안팎이었고, 넘김 수만 18.7번과 6.7번으로 갈렸습니다. 이 게임에서 이기는 속도는 절대 속도가 아니라 <strong>옆 사람보다 빠른 속도</strong>입니다.</p>
+  </section>
+
+  <section>
+    <h2>「곧 터집니다」가 뜨면 얼마나 남았나</h2>
+    <p>세 단계는 남은 초가 아니라 지나간 비율로 바뀝니다. 도화선의 55%가 지나면 「치직거립니다」, 82%가 지나면 「곧 터집니다」가 뜹니다. 그러니 「곧 터집니다」 단계는 도화선 길이의 18%만큼 이어지고, 가장 짧으면 <strong>4.5초</strong>, 가장 길면 <strong>16.2초</strong>, 절반의 판에서는 10.3초 안에 끝납니다.</p>
+    <p>여기서 쓸 만한 감각이 하나 나옵니다. 판이 오래 조용했을수록 도화선이 긴 판이고, 그만큼 마지막 단계도 깁니다. 「치직거립니다」에서 「곧 터집니다」까지 걸린 시간의 약 3분의 2가 남은 시간입니다. 25초 만에 붉어지는 짧은 판이라면 한 사람만 더 받아도 끝날 수 있고, 1분 넘게 버틴 판이라면 아직 두세 번 넘길 여유가 있습니다.</p>
+  </section>
+
+  <section>
+    <h2>지지 않는 사람들의 습관</h2>
+    <ul>
+      <li><strong>첫 생각을 바로 말한다.</strong> 완벽한 답을 찾는 3초가 위 표의 「8초 쓰는 사람」을 만듭니다. 미션의 심판은 화면이 아니라 둘러앉은 사람들입니다.</li>
+      <li><strong>받기 전에 미리 생각한다.</strong> 앞사람이 답하는 동안 화면을 같이 보면, 내 차례의 미션을 받았을 때 이미 반은 준비돼 있습니다.</li>
+      <li><strong>붉어져도 속도를 바꾸지 않는다.</strong> 「곧 터집니다」에서 허둥대며 미션을 다시 읽으면 오히려 들고 있는 시간이 늘어납니다.</li>
+      <li><strong>처음이면 4명으로.</strong> 3명은 폭탄이 너무 빨리 돌아오고, 6명은 내 차례가 한두 번뿐이라 긴장이 흩어집니다.</li>
+    </ul>
+    <p><a class="cta" href="/bomb/">폭탄 돌리기 하러 가기 →</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Pass the Bomb: who is most likely to lose?</h2>
+  <p class="updated">14 October 2026 · Hanpango · odds come from building rounds with the same fuse rule as the game (25 s guaranteed plus a uniform 65 s) and passing the phone with set holding times until it blows (400,000 rounds per setting)</p>
+
+  <section>
+    <h2>Speed beats seating</h2>
+    <p>With everyone holding the phone for about 5 seconds, each seat loses close to its fair share: 32.4–34.6% with three players, 23.6–26.8% with four, 17.6–22.5% with five and 15.3–19.1% with six. The small differences come from the guaranteed 25-second minimum, and they shift from round to round with the passing pace, so no seat is reliably safe. A round always takes about 11 passes whatever the head count. But one player averaging 8 seconds instead of 5 loses 36.7% of four-player rounds (45.6% of three-player ones), while one who passes in 2.5 seconds loses only 13.7%. If everyone speeds up together, nothing changes. What matters is being quicker than the people beside you.</p>
+  </section>
+
+  <section>
+    <h2>How long “about to blow” lasts</h2>
+    <p>The stages change at 55% and 82% of the fuse, so the final stage lasts 18% of it: between 4.5 and 16.2 seconds, and under 10.3 seconds in half of all rounds. Roughly two thirds of the time between “crackling” and “about to blow” is still left once the last stage appears. Say the first answer that comes to mind, read the next mission while you wait, keep your pace when the screen turns red, and start with four players.</p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
