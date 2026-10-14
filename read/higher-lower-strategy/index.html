@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>위냐 아래냐 잘하는 법 — 가운데로 돌아온다고 찍으면 손해인 이유 | Higher or Lower: Why Betting on the Middle Loses — 한판고</title>
+<meta name="description" content="위냐 아래냐에서 답이 정해진 자리와 반반인 자리를 가르는 규칙, 그리고 반반일 때 어느 쪽을 찍어야 하는지를 한판고 게임과 같은 규칙으로 40만 판씩 돌려 셌습니다. 가장자리 쪽으로 찍으면 평균 2.44연속, 가운데로 찍으면 1.63연속입니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="위냐 아래냐 잘하는 법 — 가운데로 돌아온다고 찍으면 손해인 이유 | Higher or Lower: Why Betting on the Middle Loses — 한판고">
+<meta property="og:description" content="위냐 아래냐에서 답이 정해진 자리와 반반인 자리를 가르는 규칙, 그리고 반반일 때 어느 쪽을 찍어야 하는지를 한판고 게임과 같은 규칙으로 40만 판씩 돌려 셌습니다. 가장자리 쪽으로 찍으면 평균 2.44연속, 가운데로 찍으면 1.63연속입니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/higher-lower-strategy/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/higher-lower-strategy/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>위냐 아래냐 잘하는 법</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/higher-lower/">위냐 아래냐 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 15일 · 한판고 · 수치는 위냐 아래냐와 같은 판 짜기 규칙(값의 종류·범위·라운드마다 줄어드는 차이·방향 반반)으로 판을 만들고, 고르는 방식마다 40만 판씩 끝까지 돌려 센 값입니다</p>
+
+  <section>
+    <h2>결론부터 — 반반일 때는 가장자리 쪽을 찍는다</h2>
+    <p>한판고 <a href="/higher-lower/">위냐 아래냐</a>는 다음 값이 지금 값보다 위인지 아래인지 하나만 고르는 게임입니다. 기록은 연속으로 맞힌 횟수이고, 한 번 틀리면 판이 끝납니다. 많은 사람이 「큰 값 다음엔 아래, 작은 값 다음엔 위」라는 감으로 가운데 쪽을 찍습니다. 답이 정해진 자리에서는 그 감이 맞지만, 반반인 자리에서까지 가운데를 찍으면 손해입니다.</p>
+    <p>같은 판으로 세 가지 방식을 겨뤄 봤습니다. 반반인 자리에서 <strong>가운데 쪽</strong>을 찍으면 평균 1.63연속, <strong>아무렇게나</strong> 찍으면 2.03연속, <strong>가까운 가장자리 쪽</strong>을 찍으면 2.44연속이었습니다. 10연속에 닿는 판은 0.17%, 0.85%, 2.41%로 열네 배 차이가 났습니다. 답이 정해진 자리는 세 방식 모두 똑같이 맞혔는데도 그렇습니다.</p>
+  </section>
+
+  <section>
+    <h2>답이 정해진 자리와 반반인 자리</h2>
+    <p>이 게임의 다음 값은 지금 값에서 <strong>정해진 차이만큼</strong> 위나 아래로 갑니다. 방향은 반반으로 정하지만, 그쪽으로 가면 범위를 벗어날 때는 반대로 뒤집습니다. 그래서 지금 값에 차이를 더해 범위를 넘으면 답은 무조건 아래, 빼서 범위 아래로 떨어지면 무조건 위입니다. 그 사이에서는 어떤 값이 와도 정확히 반반입니다. 가운데에 가깝다고 위나 아래가 더 잘 나오지 않습니다.</p>
+    <p>차이는 첫 문제에서 가장 크고 한 라운드마다 1씩 줄어듭니다. 숫자 판(1~99)이라면 이렇습니다.</p>
+    <table>
+      <thead><tr><th>라운드</th><th>차이</th><th>무조건 아래</th><th>무조건 위</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>25</td><td>75 이상</td><td>25 이하</td></tr>
+        <tr><td>5</td><td>21</td><td>79 이상</td><td>21 이하</td></tr>
+        <tr><td>10</td><td>16</td><td>84 이상</td><td>16 이하</td></tr>
+        <tr><td>20</td><td>6</td><td>94 이상</td><td>6 이하</td></tr>
+        <tr><td>24 이후</td><td>2</td><td>98 이상</td><td>2 이하</td></tr>
+      </tbody>
+    </table>
+    <p>실제 판에서 답이 정해진 자리가 나오는 비율도 셌습니다. 첫 문제는 숫자 50%, 막대 54%, 원 58%, 점 62%가 이미 정해져 있습니다. 그래서 첫 문제에서 지는 판은 어느 방식이든 22%뿐입니다. 하지만 10라운드에서는 숫자 19%, 막대 22%, 원 25%로 줄고, 점은 차이가 8에서 시작해 1까지 내려가므로 3%밖에 남지 않습니다. 후반으로 갈수록 거의 모든 문제가 동전 던지기가 됩니다.</p>
+  </section>
+
+  <section>
+    <h2>가장자리 쪽이 이기는 이유</h2>
+    <p>반반인 자리에서는 어느 쪽을 찍든 맞힐 확률이 같습니다. 차이는 <strong>맞힌 다음</strong>에 생깁니다. 맞히면 값이 내가 찍은 방향으로 움직이기 때문입니다. 가장자리 쪽을 찍어 맞히면 값이 한계에 더 다가가고, 다음 문제는 답이 정해진 공짜 문제가 될 가능성이 커집니다. 가운데 쪽을 찍어 맞히면 값이 가운데로 돌아와 다음 문제도 또 반반입니다.</p>
+    <p>실제로 가장자리 쪽을 찍은 사람이 맞힌 문제 가운데 59%는 답이 정해진 문제였고, 가운데 쪽을 찍은 사람은 39%에 그쳤습니다. 같은 운을 받아도 한쪽은 공짜 문제를 스스로 불러오고, 다른 쪽은 동전 던지기를 스스로 불러오는 셈입니다.</p>
+    <table>
+      <thead><tr><th>값의 종류</th><th>가운데 쪽</th><th>가장자리 쪽</th><th>10연속 (가장자리 쪽)</th></tr></thead>
+      <tbody>
+        <tr><td>숫자</td><td>1.50</td><td>2.41</td><td>2.72%</td></tr>
+        <tr><td>막대</td><td>1.57</td><td>2.47</td><td>2.79%</td></tr>
+        <tr><td>점</td><td>1.69</td><td>2.35</td><td>1.27%</td></tr>
+        <tr><td>원</td><td>1.74</td><td>2.54</td><td>2.89%</td></tr>
+      </tbody>
+    </table>
+    <p>점 판에서 10연속이 유독 어려운 것은 차이가 빨리 1까지 줄어 정해진 자리가 거의 사라지기 때문입니다. 40만 판 가운데 가장 긴 기록은 가장자리 쪽이 37연속, 가운데 쪽이 18연속이었습니다.</p>
+  </section>
+
+  <section>
+    <h2>오래 가는 사람들의 습관</h2>
+    <ul>
+      <li><strong>라운드 숫자를 본다.</strong> 화면 위의 라운드로 지금 차이를 알 수 있습니다. 숫자 판이라면 「25에서 라운드만큼 빼고 1을 더한 값」이 차이입니다.</li>
+      <li><strong>정해진 자리는 확인하고 누른다.</strong> 지금 값에 차이를 더해 끝을 넘는지만 보면 됩니다. 제한 시간이 없으니 서두를 이유가 없습니다.</li>
+      <li><strong>반반이면 가까운 끝 쪽으로.</strong> 60 근처면 위, 40 근처면 아래입니다. 감과 반대라 처음엔 어색하지만 기록이 달라집니다.</li>
+      <li><strong>원은 지름으로 본다.</strong> 원은 넓이로 느껴져 실제 차이보다 커 보입니다. 왼쪽과 오른쪽 끝을 견주면 덜 속습니다.</li>
+    </ul>
+    <p><a class="cta" href="/higher-lower/">위냐 아래냐 하러 가기 →</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Higher or Lower: why betting on the middle loses</h2>
+  <p class="updated">15 October 2026 · Hanpango · figures come from building games with the same layout rules as Higher or Lower (form, range, a gap that shrinks every round, a fifty-fifty direction) and playing 400,000 games per strategy to the end</p>
+
+  <section>
+    <h2>Forced calls and coin flips</h2>
+    <p>Each next value sits a fixed gap above or below the current one. The direction is a coin flip, but if it would leave the range it is reversed. So when the current value plus the gap goes past the ceiling the answer must be lower, when minus the gap falls below the floor it must be higher, and everywhere in between it is exactly fifty-fifty. On the number board (1–99) the gap is 25 in round 1, shrinks by one each round and bottoms out at 2. About half of all first calls are forced (50% numbers, 54% bars, 58% circles, 62% dots), so only 22% of games end on the first call, but by round 10 that share falls to around a fifth, and to 3% for dots.</p>
+  </section>
+
+  <section>
+    <h2>On a coin flip, call towards the nearer edge</h2>
+    <p>Calling towards the middle averages 1.63 in a row, calling at random 2.03 and calling towards the nearer edge 2.44, and a chain of ten happens in 0.17%, 0.85% and 2.41% of games respectively. The odds of the call itself are the same; the difference comes afterwards, because a correct call moves the value in the direction you chose. Calling outwards pushes the value towards a limit, so the next call is more often a free one: 59% of the edge player's correct calls were forced, against 39% for the middle player. Check the round number, confirm the forced calls, lean outwards on the coin flips, and judge circles by their diameter.</p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
