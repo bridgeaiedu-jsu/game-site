@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>한붓그리기 원리 — 홀수점이 0개나 2개면 그릴 수 있고, 칸 잇기는 체스판 색으로 본다 | One-Stroke Drawing: the Odd-Point Rule and the Checkerboard Rule — 한판고</title>
+<meta name="description" content="한붓그리기가 되는지 안 되는지는 선이 홀수 개 모이는 점의 수로 바로 알 수 있습니다. 칸을 잇는 한붓 퍼즐은 체스판 색으로 봅니다. 한판고 한붓 배달 10년치 3,650판을 게임 코드로 돌려 확인한 규칙과 요령입니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="한붓그리기 원리 — 홀수점이 0개나 2개면 그릴 수 있고, 칸 잇기는 체스판 색으로 본다 | One-Stroke Drawing: the Odd-Point Rule and the Checkerboard Rule — 한판고">
+<meta property="og:description" content="한붓그리기가 되는지 안 되는지는 선이 홀수 개 모이는 점의 수로 바로 알 수 있습니다. 칸을 잇는 한붓 퍼즐은 체스판 색으로 봅니다. 한판고 한붓 배달 10년치 3,650판을 게임 코드로 돌려 확인한 규칙과 요령입니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/one-stroke-drawing/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/one-stroke-drawing/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>한붓그리기 원리</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/hanbut/">한붓 배달 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 16일 · 한판고 · 한붓 배달 수치는 게임에 들어 있는 판 만들기 코드를 그대로 돌려, 2026년 8월 23일부터 10년치 오늘의 판 3,650개를 만들고 센 값입니다</p>
+
+  <section>
+    <h2>결론부터 — 세어 보면 그려 보기 전에 안다</h2>
+    <p>한붓그리기는 종이에서 펜을 떼지 않고, 같은 선을 두 번 지나지 않고 그림 전체를 그리는 놀이입니다. 몇 번을 시도해도 안 되는 그림은 솜씨가 아니라 <strong>그림 자체가 안 되는 그림</strong>인 경우가 많습니다. 그걸 미리 알아보는 규칙은 하나입니다. <strong>선이 홀수 개 모이는 점(홀수점)이 0개나 2개면 그릴 수 있고, 4개 이상이면 그릴 수 없습니다.</strong></p>
+    <p>한판고 <a href="/hanbut/">한붓 배달</a>처럼 선 대신 <strong>칸</strong>을 한 번씩 잇는 퍼즐에는 또 다른 규칙이 통합니다. 판을 체스판처럼 두 색으로 칠하면 한 걸음마다 색이 바뀌므로, 출발과 출구의 색만 보고 걸음 수가 홀수인지 짝수인지 알 수 있습니다. 10년치 3,650판에서 이 규칙은 한 판도 빠짐없이 맞았습니다.</p>
+  </section>
+
+  <section>
+    <h2>홀수점 규칙 — 왜 0개나 2개일까</h2>
+    <p>그림의 한 점을 지나갈 때마다 선은 그 점으로 하나 들어오고 하나 나갑니다. 그래서 중간에 지나가기만 하는 점에는 선이 늘 짝수 개 모입니다. 선이 홀수 개 모일 수 있는 곳은 <strong>시작점과 끝점</strong> 두 곳뿐입니다. 시작점과 끝점이 같으면 홀수점은 0개, 다르면 2개가 됩니다.</p>
+    <table>
+      <thead><tr><th>그림</th><th>홀수점</th><th>결과</th></tr></thead>
+      <tbody>
+        <tr><td>원, 사각형, 별 모양</td><td>0개</td><td>어디서 시작해도 됨, 제자리로 돌아옴</td></tr>
+        <tr><td>대각선 두 줄을 그은 사각형 위에 지붕을 얹은 집</td><td>2개</td><td>아래 두 모서리 중 하나에서 시작</td></tr>
+        <tr><td>쾨니히스베르크 다리 일곱 개</td><td>4개</td><td>그릴 수 없음</td></tr>
+      </tbody>
+    </table>
+    <p>홀수점이 2개일 때는 <strong>반드시 홀수점 하나에서 시작해 다른 홀수점에서 끝나야</strong> 합니다. 지붕 있는 집을 지붕 꼭대기에서 시작하면 아무리 해도 안 되는 이유가 여기 있습니다. 홀수점이 4개면 펜을 한 번 떼고 두 획으로, 6개면 세 획으로 그려야 합니다. 홀수점 수를 둘로 나눈 값이 필요한 획 수입니다. 1736년 수학자 오일러가 쾨니히스베르크 다리 문제를 이 방법으로 풀었습니다.</p>
+  </section>
+
+  <section>
+    <h2>칸을 잇는 퍼즐은 체스판 색으로 본다</h2>
+    <p>한붓 배달은 선이 아니라 칸을 지납니다. 5×5 판에서 출발 칸부터 위·아래·왼쪽·오른쪽으로 한 칸씩 이어, 배달 지점을 모두 지나고 출구에 닿으면 끝납니다. 지난 칸은 다시 밟을 수 없습니다. 이런 퍼즐에서는 판을 체스판처럼 번갈아 칠해 보면 많은 것이 보입니다.</p>
+    <ul>
+      <li><strong>한 걸음마다 색이 바뀝니다.</strong> 그래서 출발과 출구가 같은 색이면 걸음 수는 늘 짝수, 다른 색이면 늘 홀수입니다. 3,650판 가운데 출발과 출구가 같은 색인 판이 54.4%였고, 최단 걸음 수의 홀짝은 3,650판 모두 이 규칙대로였습니다.</li>
+      <li><strong>그래서 「최단보다 한 칸 더」는 나올 수 없습니다.</strong> 어떤 길로 가든 걸음 수의 홀짝은 같으므로, 최단 대비 추가 칸수는 0, 2, 4처럼 늘 짝수입니다. 결과가 「추가 2칸」이었다면 한 번만 덜 돌아가면 최단이라는 뜻입니다.</li>
+      <li><strong>막힌 판을 미리 알아봅니다.</strong> 남은 칸을 모두 지나야 하는 퍼즐이라면, 남은 두 색의 칸 수가 둘 이상 차이 날 때 그 판은 어떻게 해도 끝나지 않습니다. 두 색을 번갈아 밟으니 한 색이 둘 이상 남을 수 없기 때문입니다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한붓 배달 3,650판을 세어 보니</h2>
+    <table>
+      <thead><tr><th>최단 걸음 수</th><th>판 수</th><th>비율</th></tr></thead>
+      <tbody>
+        <tr><td>8칸</td><td>1,263</td><td>34.6%</td></tr>
+        <tr><td>9칸</td><td>1,118</td><td>30.6%</td></tr>
+        <tr><td>10칸</td><td>591</td><td>16.2%</td></tr>
+        <tr><td>11칸</td><td>454</td><td>12.4%</td></tr>
+        <tr><td>12칸</td><td>133</td><td>3.6%</td></tr>
+        <tr><td>13칸</td><td>91</td><td>2.5%</td></tr>
+      </tbody>
+    </table>
+    <p>최단은 평균 9.27칸이고, 8칸보다 짧은 판은 너무 쉬워서 만들 때 버립니다. 배달 지점은 2곳인 판이 42.3%, 3곳인 판이 57.7%였습니다. 눈여겨볼 숫자가 둘 있습니다. 배달 지점 가운데 벽과 가장자리에 막혀 <strong>드나들 칸이 둘뿐인 곳</strong>이 있는 판이 60.8%였습니다. 그런 지점은 들어오는 칸과 나가는 칸이 이미 정해져 있어 길의 한 토막이 공짜로 풀립니다. 그리고 최단 길이 <strong>딱 하나뿐인 판</strong>은 24.1%였습니다. 네 판 중 세 판은 최단으로 가는 길이 둘 이상이라, 처음 떠오른 길이 최단이 아니어도 다른 최단 길이 남아 있는 경우가 많습니다.</p>
+  </section>
+
+  <section>
+    <h2>한붓 퍼즐을 빨리 푸는 습관</h2>
+    <ul>
+      <li><strong>그리기 전에 센다.</strong> 선을 잇는 그림이면 홀수점부터, 칸을 잇는 판이면 출발과 출구의 색부터 봅니다.</li>
+      <li><strong>출입구가 둘뿐인 곳부터 잇는다.</strong> 선택지가 없는 자리를 먼저 채우면 남은 판이 빠르게 좁아집니다.</li>
+      <li><strong>판을 둘로 가르지 않는다.</strong> 선이 판을 가로질러 남은 칸이 두 덩어리로 나뉘면, 한쪽에 남은 배달 지점은 영영 갈 수 없습니다.</li>
+      <li><strong>출구는 마지막에만 밟는다.</strong> 지나간 칸은 닫히므로 배달 전에 출구를 밟으면 되돌아오지 못합니다.</li>
+    </ul>
+    <p><a class="cta" href="/hanbut/">한붓 배달 하러 가기 →</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">One-stroke drawing: the odd-point rule and the checkerboard rule</h2>
+  <p class="updated">16 October 2026 · Hanpango · One-Stroke Delivery figures come from running the game's own board generator for ten years of daily boards (3,650 boards from 23 August 2026)</p>
+
+  <section>
+    <h2>Count the odd points before you draw</h2>
+    <p>Every point you pass through takes one line in and one line out, so only the start and the end can gather an odd number of lines. A figure can be drawn in one stroke when it has zero or two odd points, and when it has two you must start on one and finish on the other. Four odd points means two strokes, six means three: the number of strokes is half the number of odd points. A square with both diagonals and a roof on top has two odd points, at its bottom corners; the seven bridges of Königsberg have four, which is how Euler showed in 1736 that the walk was impossible.</p>
+  </section>
+
+  <section>
+    <h2>Cell puzzles: colour the board like a chessboard</h2>
+    <p>In One-Stroke Delivery you link cells, not lines. Each step changes colour, so if the start and exit share a colour every route has an even length, otherwise an odd one. That held for all 3,650 boards (54.4% had start and exit on the same colour), and it means your extra moves over the shortest route are always 0, 2, 4 and so on, never 1. Shortest routes ran from 8 to 13 cells (average 9.27); 60.8% of boards had a delivery point with only two open neighbours, which fixes a piece of the route for free, and only 24.1% had a single shortest route. Count first, fill the forced cells, never split the board in two, and step on the exit last.</p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
