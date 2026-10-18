@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>암산 빨리하는 법 — 4지선다 셈은 끝자리부터 보라: 문제 122만 개로 센 비율 | Mental math faster: check the last digit first — 한판고</title>
+<meta name="description" content="암산을 빨리하려면 보기 고르는 순서부터 바꾸세요. 한판고 빠른 셈의 문제 생성 코드를 그대로 돌려 문제 1,221,900개를 만들고, 끝자리만으로 정답이 갈리는 비율(구구단 100%·두 자리 34.9%)과 십의 자리까지 봐야 하는 경우를 셌습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="암산 빨리하는 법 — 4지선다 셈은 끝자리부터 보라: 문제 122만 개로 센 비율 | Mental math faster: check the last digit first — 한판고">
+<meta property="og:description" content="암산을 빨리하려면 보기 고르는 순서부터 바꾸세요. 한판고 빠른 셈의 문제 생성 코드를 그대로 돌려 문제 1,221,900개를 만들고, 끝자리만으로 정답이 갈리는 비율(구구단 100%·두 자리 34.9%)과 십의 자리까지 봐야 하는 경우를 셌습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/mental-math-last-digit/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/mental-math-last-digit/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>암산 빨리하는 법</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/quick-math/">빠른 셈 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 18일 · 한판고 · 수치는 빠른 셈의 문제·오답 생성 코드를 그대로 돌려 만든 2만 365판(문제 1,221,900개)에서 센 값입니다</p>
+
+  <section>
+    <h2>결론부터 — 보기는 끝자리부터 대조하세요</h2>
+    <p>한판고 <a href="/quick-math/">빠른 셈</a>은 30초 동안 4지선다 암산을 몇 개 푸는지 겨루는 게임입니다. 보기를 고를 때는 답을 끝까지 계산하지 않아도 됩니다. 정답을 네 보기 중에서 가려낼 만큼만 알면 됩니다. 게임이 문제와 오답 보기를 만드는 코드를 그대로 돌려 2만 365판을 만들고, 어느 자리만 알면 정답이 하나로 갈리는지 셌습니다.</p>
+    <ul>
+      <li><strong>13번째 문제부터 나오는 구구단 곱셈·나눗셈은 끝자리만으로 100% 갈립니다.</strong> 오답이 정답에서 1~8(7 제외)만큼 떨어진 값이라, 끝자리가 정답과 같은 오답이 하나도 없습니다.</li>
+      <li><strong>두 자리 덧셈·뺄셈(6~12번)은 끝자리만으로 갈리는 경우가 34.9%입니다.</strong> 나머지 65.1%는 끝자리가 같은 오답이 섞여 있어 십의 자리까지 봐야 합니다. 끝자리와 십의 자리를 둘 다 보면 언제나 하나로 갈립니다.</li>
+      <li><strong>정답 자리는 1~4번이 정확히 25.0%씩입니다.</strong> 어느 번호를 찍어도 유리하지 않고, 아무거나 누르면 평균 1.5번 틀려 4.5초를 잃습니다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>문제 구간별 — 어느 자리만 보면 갈리나</h2>
+    <table>
+      <thead><tr><th>구간</th><th>끝자리만</th><th>십의 자리만</th><th>둘 다</th></tr></thead>
+      <tbody>
+        <tr><td>1~5번 한 자리 ±</td><td>43.0%</td><td>10.4%</td><td>100%</td></tr>
+        <tr><td>6~12번 두 자리 ±</td><td>34.9%</td><td>21.9%</td><td>100%</td></tr>
+        <tr><td>13번~ 곱셈 ×</td><td>100%</td><td>4.7%</td><td>100%</td></tr>
+        <tr><td>13번~ 나눗셈 ÷</td><td>100%</td><td>2.6%</td><td>100%</td></tr>
+      </tbody>
+    </table>
+    <p>「끝자리만」은 정답의 일의 자리만 알아도 네 보기 중 정답이 하나로 정해지는 비율입니다. 「십의 자리만」은 십의 자리만 알 때의 비율입니다. 한 자리 문제에서 십의 자리가 약한 이유는 단순합니다. 답이 0~18이라 보기 대부분의 십의 자리가 0이나 1로 같습니다.</p>
+  </section>
+
+  <section>
+    <h2>왜 그럴까 — 오답은 이렇게 만들어진다</h2>
+    <p>빠른 셈의 오답은 아무 숫자가 아니라 정답 근처에서 뽑힙니다. 덧셈·뺄셈 문제의 오답은 정답에서 <strong>±1·±2·±3·±9·±10·±11·±20</strong>만큼 떨어진 값 열네 가지 중 셋입니다. 두 자리 문제에서 이 열네 가지는 각각 7% 안팎으로 고르게 나옵니다.</p>
+    <ul>
+      <li><strong>±1·±2·±3</strong>은 끝자리가 달라 끝자리로 걸러집니다. 십의 자리는 대개 정답과 같습니다.</li>
+      <li><strong>±10·±20</strong>은 끝자리가 정답과 똑같아 끝자리로는 못 거릅니다. 대신 십의 자리가 다릅니다.</li>
+      <li><strong>±9·±11</strong>은 끝자리와 십의 자리가 둘 다 달라 어느 쪽으로도 걸러집니다.</li>
+    </ul>
+    <p>곱셈·나눗셈의 오답은 정답에서 ±1~±6과 ±8만큼 떨어진 값입니다. 10의 배수만큼 떨어진 오답이 없으니 끝자리가 정답과 겹칠 수 없습니다. 7 × 8이 나오면 「끝자리 6」만 떠올리고 6으로 끝나는 보기를 누르면 됩니다.</p>
+  </section>
+
+  <section>
+    <h2>순서를 바꾸면 얼마나 빨라지나</h2>
+    <p>두 자리 덧셈·뺄셈에서 「끝자리를 먼저 대조하고, 같은 끝자리가 둘 이상이면 십의 자리를 본다」고 하면 문제당 평균 <strong>1.65번</strong> 대조로 끝납니다. 「십의 자리를 먼저 보고, 겹치면 끝자리를 본다」고 하면 <strong>1.78번</strong>입니다. 한 자리 문제에서는 차이가 더 커서 1.58번 대 1.90번입니다.</p>
+    <p>예를 들어 47 + 38의 보기가 85·95·82·76이라면, 7 + 8의 끝자리 5로 85와 95가 남고, 40 + 30에 받아올림 1을 더한 십의 자리 8로 85가 정해집니다. 덧셈을 끝까지 하지 않아도 됩니다. 머릿속 계산은 큰 자리부터 하는 편이 편해도, <strong>보기와 맞춰 볼 때는 끝자리가 먼저</strong>입니다.</p>
+  </section>
+
+  <section>
+    <h2>30초 안에 더 푸는 습관</h2>
+    <ul>
+      <li><strong>찍지 않는다.</strong> 틀리면 3초가 깎이고 정답 자리는 네 칸이 똑같이 25%입니다. 아무거나 누르면 평균 4.5초를 잃는데, 쉬운 문제 두세 개를 풀 시간입니다.</li>
+      <li><strong>곱셈은 구구단 끝자리만 외운다.</strong> 13번째 문제부터는 끝자리 하나로 언제나 정답이 갈립니다.</li>
+      <li><strong>나눗셈은 몫이 2~9 한 자리다.</strong> 32 ÷ 4라면 「4 곱하기 몇이 32」만 떠올리면 됩니다.</li>
+      <li><strong>끝자리가 같은 보기 두 개가 보이면</strong> 그 둘은 10이나 20 차이입니다. 십의 자리만 확인하세요.</li>
+    </ul>
+    <p><a class="cta" href="/quick-math/">빠른 셈 하러 가기 →</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Mental math faster: check the last digit first</h2>
+  <p class="updated">18 October 2026 · Hanpango · Figures come from running Quick Math's own question and wrong-answer code over 20,365 rounds (1,221,900 questions)</p>
+
+  <section>
+    <h2>Which digit decides the answer</h2>
+    <p>Quick Math gives you thirty seconds of four-choice arithmetic. You never need the full answer, only enough of it to pick one option out of four. From the thirteenth question on, times-table multiplication and division are always settled by the last digit alone (100%), because the wrong options sit 1 to 8 away from the answer (never 7) and never a multiple of ten. For two-digit addition and subtraction (questions 6 to 12) the last digit settles it 34.9% of the time; otherwise a wrong option 10 or 20 away shares the last digit and the tens digit decides. Checking the last digit first takes 1.65 comparisons per question on average, against 1.78 when starting from the tens.</p>
+  </section>
+
+  <section>
+    <h2>Habits that add questions</h2>
+    <p>The correct answer sits in each of the four positions exactly 25.0% of the time, so there is no lucky slot, and tapping at random costs 1.5 misses or 4.5 seconds per question on average. Learn the last digits of the times tables, remember that division always gives a single-digit answer from 2 to 9, and when two options end in the same digit, look only at their tens.</p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
