@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>블록 쌓기 잘하는 법 — 평평하게 쌓을까, 우물을 팔까 | Block Drop: Stack Flat or Dig a Well — 한판고</title>
+<meta name="description" content="블록 낙하(테트리스식 블록 쌓기)를 잘하려면 평평하게 쌓아야 할까, 한 줄을 비워 네 줄 지우기를 노려야 할까. 같은 규칙으로 800판을 돌려 보니 우물은 줄당 점수가 1.7배였지만 홀드 없이는 셋 중 둘이 100줄 전에 무너졌습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="블록 쌓기 잘하는 법 — 평평하게 쌓을까, 우물을 팔까 | Block Drop: Stack Flat or Dig a Well — 한판고">
+<meta property="og:description" content="블록 낙하(테트리스식 블록 쌓기)를 잘하려면 평평하게 쌓아야 할까, 한 줄을 비워 네 줄 지우기를 노려야 할까. 같은 규칙으로 800판을 돌려 보니 우물은 줄당 점수가 1.7배였지만 홀드 없이는 셋 중 둘이 100줄 전에 무너졌습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/block-drop-stacking/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/block-drop-stacking/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head><body>
+
+<header>
+  <h1>블록 쌓기 잘하는 법 — 평평하게 쌓을까, 우물을 팔까</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/block-drop/">블록 낙하 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 21일 · 한판고 · 수치는 <a href="/block-drop/">블록 낙하</a>의 실제 코드(10×20 판, 일곱 조각 묶음 섞기, 줄 점수 100·300·500·800 × 레벨)를 그대로 가져와 직접 돌린 결과입니다</p>
+
+  <section>
+    <h2>두 가지 조언이 서로 다르다</h2>
+    <p>테트리스식 블록 쌓기를 잘하는 법을 찾아보면 조언이 둘로 갈립니다. 하나는 「판을 평평하게 유지하고 구멍을 만들지 마라」이고, 다른 하나는 「한쪽 끝 한 줄을 비워 두고 긴 막대로 네 줄을 한 번에 지워라」입니다. 앞의 것은 오래 버티는 법이고 뒤의 것은 점수를 많이 내는 법입니다. 둘 중 무엇을 따라야 할까요.</p>
+    <p>감으로 답하지 않으려고 컴퓨터에게 두 방식을 끝까지 두게 했습니다. 각 방식을 홀드를 쓸 때와 안 쓸 때로 나눠 200판씩, 모두 800판입니다. 컴퓨터는 매 조각마다 돌릴 수 있는 네 방향과 놓을 수 있는 모든 칸을 따져 판 모양이 가장 좋은 자리에 곧장 떨어뜨립니다. 시간 압박은 없고, 한 판은 400줄을 지우면 멈춥니다. 비교하려고 아무 데나 놓는 경우도 2,000판 돌렸는데, 평균 0.2줄을 지우고 25조각 만에 끝났습니다.</p>
+  </section>
+
+  <section>
+    <h2>800판의 성적</h2>
+    <table>
+      <thead><tr><th>방식</th><th>100줄까지 버팀</th><th>100줄 때 점수</th><th>네 줄로 지운 비율</th><th>줄당 점수</th></tr></thead>
+      <tbody>
+        <tr><td>평평하게</td><td>100%</td><td>67,578</td><td>0.4%</td><td>109</td></tr>
+        <tr><td>평평하게 + 홀드</td><td>100%</td><td>66,382</td><td>0.1%</td><td>105</td></tr>
+        <tr><td>우물</td><td>34%</td><td>89,950</td><td>33.3%</td><td>157</td></tr>
+        <tr><td>우물 + 홀드</td><td>85%</td><td>108,281</td><td>76.0%</td><td>186</td></tr>
+      </tbody>
+    </table>
+    <p>「100줄 때 점수」는 100줄에 닿은 판만의 평균이고, 「줄당 점수」는 레벨을 곱하기 전 값입니다. 한 줄씩만 지우면 줄당 100점, 네 줄씩만 지우면 줄당 200점이 됩니다.</p>
+  </section>
+
+  <section>
+    <h2>평평하게 쌓으면 무너지지 않는다</h2>
+    <p>평평하게 쌓는 방식은 200판 모두 100줄을 넘겼고, 홀드까지 쓰면 200판 모두 400줄 끝까지 갔습니다. 구멍과 높이 차이를 줄이는 것만으로 거의 무너지지 않는다는 뜻입니다. 대신 지우는 줄의 대부분이 한 줄짜리라 줄당 점수는 100점 언저리에 머뭅니다. 처음 하는 분, 레벨이 올라 손이 따라가지 못하는 분에게는 이 방식이 맞습니다. 높이 차이를 두 칸 안으로 유지하면 어떤 조각이 와도 받을 자리가 남습니다.</p>
+  </section>
+
+  <section>
+    <h2>우물은 홀드가 있어야 판다</h2>
+    <p>오른쪽 끝 한 줄을 비워 두는 우물 방식은 줄당 점수가 157~186점으로 평평한 쌓기의 1.4~1.7배입니다. 그런데 홀드 없이 우물을 파면 100줄까지 버틴 판이 셋에 하나(34%)뿐입니다. 긴 막대가 필요할 때 오지 않으면 다른 조각을 쌓아 올리다가 무너지고, 막대가 필요 없을 때 오면 둘 곳이 마땅치 않기 때문입니다.</p>
+    <p>홀드를 쓰자 같은 우물 방식이 100줄까지 버틴 판이 85%로 뛰었고, 지운 줄의 76%를 네 줄 지우기로 냈습니다. 막대를 홀드에 넣어 두었다가 네 줄이 준비된 순간 꺼내는 것, 반대로 지금 판에 맞지 않는 조각을 잠시 맡겨 두는 것이 우물을 지탱합니다. 그래도 400줄 끝까지 간 판은 48%로 평평한 쌓기(100%)보다 적습니다. 점수는 우물이, 버티기는 평평한 쌓기가 이깁니다.</p>
+  </section>
+
+  <section>
+    <h2>막대는 12조각 넘게 기다리지 않는다</h2>
+    <p>우물이 홀드와 함께라면 해볼 만한 이유가 하나 더 있습니다. 이 게임은 일곱 가지 조각을 한 묶음으로 섞어 다 쓴 뒤 다음 묶음을 섞습니다. 조각 700만 개를 뽑아 보니 긴 막대 사이에 다른 조각은 평균 6개, <strong>아무리 길어도 12개</strong>였습니다. 앞 묶음의 맨 처음과 다음 묶음의 맨 끝에 막대가 올 때가 가장 긴 경우입니다. 조각을 완전히 무작위로 뽑았다면 12개를 넘게 기다리는 일이 13.5%였고, 가장 길게는 59개를 기다렸습니다. 같은 조각이 연달아 나오는 일은 묶음이 바뀌는 순간에만 생겨 2%쯤입니다.</p>
+    <p>그러니 우물 옆을 평평하게 네 줄 쌓아 두고 기다리면, 막대가 언제쯤 올지 대강 셈할 수 있습니다. 「다음」 칸에 조각 셋이 보이므로 지금 묶음에 막대가 이미 나왔는지 세어 보는 것도 방법입니다.</p>
+  </section>
+
+  <section>
+    <h2>레벨이 오르면 우물부터 메운다</h2>
+    <p>이 시험에는 시간 압박이 없었지만 실제 게임은 열 줄마다 레벨이 오르고 블록이 빨라집니다. 게임 코드의 낙하 간격을 그대로 셈하면 한 칸 내려오는 데 레벨 1은 1초, 레벨 5는 0.36초, 레벨 8은 0.13초, 레벨 10은 0.064초가 걸리고, 레벨 15부터는 한 화면 갱신마다 한 칸씩 내려옵니다. 판 꼭대기에서 바닥까지 레벨 1은 20초, 레벨 10은 1.3초, 레벨 15 이상은 0.33초입니다.</p>
+    <ul>
+      <li><strong>레벨 1~5</strong>: 우물을 파고 홀드로 막대를 아껴 네 줄 지우기를 노립니다. 점수에 레벨이 곱해지므로 이때 쌓은 습관이 뒤에 크게 돌아옵니다.</li>
+      <li><strong>레벨 8 무렵</strong>: 판 높이가 절반을 넘으면 우물에 막대가 아닌 조각을 넣어서라도 줄을 지웁니다. 줄당 점수보다 살아남는 것이 먼저입니다.</li>
+      <li><strong>레벨 10 이후</strong>: 평평하게 쌓기로 바꿉니다. 하드 드롭으로 떨어뜨린 칸마다 2점이 붙지만 시험에서는 전체 점수의 2~4%였으니, 서두르기보다 제자리에 정확히 놓는 쪽이 낫습니다.</li>
+    </ul>
+    <p>블록 낙하에는 매일 자정에 열리는 오늘의 도전이 있어 모두가 같은 순서의 조각을 받습니다. 같은 순서에서 우물을 언제 메웠는지가 그대로 점수 차이로 드러납니다. 같은 방식으로 다른 게임을 재 본 글로는 <a href="/read/2048-corner/">2048 모서리 전략은 어디까지 통할까</a>가 있습니다.</p>
+    <p><a class="cta" href="/block-drop/">▶ 블록 낙하 한판</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Block Drop: stack flat or dig a well?</h2>
+  <p class="updated">21 October 2026 · Hanpango · figures come from the actual <a href="/block-drop/">Block Drop</a> code (10×20 board, seven-piece shuffled bags, line scores 100, 300, 500 and 800 times the level)</p>
+
+  <section>
+    <h2>Two pieces of advice that disagree</h2>
+    <p>Advice for falling-block games splits in two. One camp says keep the stack flat and never leave holes. The other says leave one edge column empty and clear four lines at once with the long bar. The first is about surviving, the second about scoring. We had the computer play both to the end, each with and without hold, 200 games apiece and 800 in all. For every piece it tries all four rotations and every column and drops straight into the spot with the best board shape. There is no time pressure and a game stops at 400 lines. For comparison, placing pieces at random cleared 0.2 lines on average and ended after 25 pieces.</p>
+  </section>
+
+  <section>
+    <h2>800 games, side by side</h2>
+    <p>Flat: 100% reached 100 lines, score at 100 lines 67,578, 0.4% of lines cleared as fours, 109 points per line. Flat with hold: 100%, 66,382, 0.1%, 105. Well: <strong>34%</strong>, 89,950, 33.3%, 157. Well with hold: <strong>85%</strong>, 108,281, <strong>76.0%</strong>, 186. Score at 100 lines averages only the games that got there, and points per line are before the level multiplier: singles alone give 100 a line, fours alone give 200.</p>
+  </section>
+
+  <section>
+    <h2>Flat survives, the well scores, hold makes the well possible</h2>
+    <p>Flat stacking got every game past 100 lines, and with hold every game reached the 400-line cap, but nearly all its clears were singles. The well paid 1.4 to 1.7 times as much per line, yet without hold only a third of those games reached 100 lines: when the bar is late you stack yourself out, and when it is early it has nowhere to go. Hold lifted the well to 85% and 76% of lines cleared as fours. Even so only 48% of well games reached 400 lines against 100% for flat. The well wins on score, flat stacking on survival.</p>
+  </section>
+
+  <section>
+    <h2>The bar never waits more than twelve pieces</h2>
+    <p>The game shuffles all seven pieces into a bag and deals the whole bag before shuffling the next. Across seven million pieces the long bar arrived after 6 other pieces on average and <strong>never after more than 12</strong>, which happens when it is first in one bag and last in the next. Fully random dealing would make you wait more than 12 pieces 13.5% of the time, and up to 59. The same piece twice in a row only happens across a bag boundary, about 2% of the time. With three pieces shown in the Next box, counting whether this bag has already dealt its bar tells you roughly when the next one comes.</p>
+  </section>
+
+  <section>
+    <h2>Fill the well as the level climbs</h2>
+    <p>Real games speed up every ten lines. Using the game's own drop formula, one row takes 1 second at level 1, 0.36 at level 5, 0.13 at level 8 and 0.064 at level 10; from level 15 the piece drops a row every screen refresh. Top to bottom takes 20 seconds at level 1, 1.3 at level 10 and 0.33 from level 15. A sensible plan: dig the well and bank bars in hold through levels 1 to 5, when the habit pays most; around level 8, once the stack passes half height, clear lines with whatever fits; after level 10 switch to flat stacking. Hard drops add 2 points per cell, but in our games that was only 2 to 4% of the score, so placing accurately beats rushing. For the same kind of test on another game, see <a href="/read/2048-corner/#en">how far the 2048 corner strategy goes</a>.</p>
+    <p><a class="cta" href="/block-drop/">▶ Play Block Drop</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
