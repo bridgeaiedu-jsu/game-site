@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>두더지잡기 점수 올리는 법 — 빠른 손보다 폭탄을 거르는 눈 | Whack-a-Mole Score Math — 한판고</title>
+<meta name="description" content="두더지잡기 60초에서 점수를 올리려면 손이 빨라야 할까, 폭탄을 가려야 할까. 같은 규칙의 판 5,000개를 돌려 보니 폭탄까지 다 누르면 평균 27점을 잃었고, 한 번 누르는 데 750ms가 걸리는 사람은 마지막 15초에 두더지의 38%를 놓쳤습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="두더지잡기 점수 올리는 법 — 빠른 손보다 폭탄을 거르는 눈 | Whack-a-Mole Score Math — 한판고">
+<meta property="og:description" content="두더지잡기 60초에서 점수를 올리려면 손이 빨라야 할까, 폭탄을 가려야 할까. 같은 규칙의 판 5,000개를 돌려 보니 폭탄까지 다 누르면 평균 27점을 잃었고, 한 번 누르는 데 750ms가 걸리는 사람은 마지막 15초에 두더지의 38%를 놓쳤습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/mole-score-math/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/mole-score-math/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head><body>
+
+<header>
+  <h1>두더지잡기 점수 올리는 법 — 빠른 손보다 폭탄을 거르는 눈</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/mole/">두더지잡기 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 23일 · 한판고 · 수치는 <a href="/mole/">두더지잡기</a>의 실제 판 생성 코드(구멍 9개, 60초, 폭탄 −2점)를 그대로 가져와 서로 다른 판 5,000개를 직접 돌린 결과입니다</p>
+
+  <section>
+    <h2>손이 빨라야 할까, 눈이 빨라야 할까</h2>
+    <p>두더지잡기는 반응 속도 게임이라고들 말합니다. 그런데 이 게임에는 폭탄이 섞여 있고, 폭탄을 누르면 점수가 깎입니다. 그렇다면 점수를 가르는 것은 손의 속도일까요, 폭탄을 가려내는 눈일까요. 감으로 답하지 않으려고 게임이 판을 만드는 코드를 그대로 떼어 와서 서로 다른 판 5,000개를 뽑아 센 뒤, 가상의 플레이어를 놓고 점수를 계산했습니다.</p>
+    <p>규칙은 이렇습니다. 60초 동안 3×3 구멍 아홉 곳에서 두더지가 하나씩 올라오고, 올라와 있는 동안 누르면 1점입니다. 가끔 두더지 대신 폭탄이 올라오고, 폭탄을 누르면 2점이 깎입니다. 놓친 두더지에는 벌점이 없고, 점수는 0 밑으로 내려가지 않습니다.</p>
+  </section>
+
+  <section>
+    <h2>한 판에 몇 번 올라올까</h2>
+    <p>한 판에는 평균 <strong>75.4번</strong>의 등장이 있었고, 그중 두더지가 61.9번, 폭탄이 13.5번입니다. 폭탄은 다섯 번 중 한 번이 채 안 됩니다. 폭탄을 한 번도 안 누르고 두더지를 전부 잡는 만점은 약 <strong>62점</strong>이라는 뜻입니다.</p>
+    <p>그리고 판이 뒤로 갈수록 빨라집니다. 첫 15초에는 표적이 평균 1,172ms 동안 올라와 있고 934ms마다 새로 등장하지만, 마지막 15초에는 838ms 올라와 있고 651ms마다 등장합니다. 같은 15초 동안 올라오는 횟수가 15.8번에서 21.5번으로 36% 늘어납니다.</p>
+  </section>
+
+  <section>
+    <h2>거의 늘 앞의 것이 아직 올라와 있다</h2>
+    <p>더 눈에 띄는 숫자는 겹침입니다. 새 두더지가 올라올 때 앞의 두더지가 아직 들어가지 않은 경우가 <strong>96.1%</strong>였습니다. 올라와 있는 시간이 다음 등장까지의 간격보다 길기 때문에, 화면에는 거의 항상 둘 이상이 떠 있습니다. 한 마리씩 차례로 잡는 놀이가 아니라, 떠 있는 것들을 어떤 순서로 처리하느냐를 겨루는 놀이입니다.</p>
+  </section>
+
+  <section>
+    <h2>가상 플레이어 점수표</h2>
+    <p>「한 번 누르는 데 걸리는 시간」은 새 표적을 찾고, 손가락을 옮기고, 누르기까지의 전체 시간입니다. 플레이어는 올라온 순서대로 하나씩 처리하고, 표적이 들어가기 전에 못 누르면 놓칩니다. 폭탄을 알아보는 시간은 이 안에 들어 있다고 보았습니다.</p>
+    <table>
+      <thead><tr><th>한 번 누르는 시간</th><th>폭탄을 건너뛰면</th><th>폭탄까지 누르면</th></tr></thead>
+      <tbody>
+        <tr><td>550ms 이하</td><td>61.9점</td><td>34.9점</td></tr>
+        <tr><td>650ms</td><td>60.2점</td><td>33.6점</td></tr>
+        <tr><td>750ms</td><td>53.5점</td><td>29.5점</td></tr>
+        <tr><td>850ms</td><td>42.7점</td><td>23.3점</td></tr>
+        <tr><td>1,000ms</td><td>21.9점</td><td>11.8점</td></tr>
+      </tbody>
+    </table>
+    <p>두 열의 차이가 이 글의 핵심입니다. 폭탄을 건너뛰는 사람과 눈에 보이는 대로 다 누르는 사람은 같은 속도에서도 약 <strong>27점</strong> 차이가 납니다. 폭탄 13.5개에 2점씩입니다. 그 27점은 두더지를 27마리 더 잡아야 메울 수 있는 값이고, 만점이 62점인 판에서는 거의 절반입니다. 650ms에 폭탄을 건너뛰는 사람(60.2점)이 550ms에 폭탄까지 누르는 사람(34.9점)을 25점 넘게 앞섭니다.</p>
+  </section>
+
+  <section>
+    <h2>느리면 마지막 15초에 무너진다</h2>
+    <p>속도가 느린 사람은 처음부터 점수를 잃는 것이 아니라 뒤에서 한꺼번에 잃습니다. 15초 구간별로 두더지를 놓친 비율을 세어 보면 이렇습니다.</p>
+    <table>
+      <thead><tr><th>한 번 누르는 시간</th><th>0~15초</th><th>15~30초</th><th>30~45초</th><th>45~60초</th></tr></thead>
+      <tbody>
+        <tr><td>650ms</td><td>0%</td><td>0%</td><td>0.1%</td><td>9.6%</td></tr>
+        <tr><td>750ms</td><td>0%</td><td>0.1%</td><td>10%</td><td>37.9%</td></tr>
+        <tr><td>850ms</td><td>0.1%</td><td>9.6%</td><td>36.5%</td><td>66.1%</td></tr>
+        <tr><td>1,000ms</td><td>19.5%</td><td>49.1%</td><td>76.7%</td><td>99.1%</td></tr>
+      </tbody>
+    </table>
+    <p>750ms 플레이어는 45초까지 거의 만점 페이스인데 마지막 15초에 두더지의 38%를 놓칩니다. 후반에는 두더지가 올라와 있는 시간이 짧아지고 등장은 잦아지기 때문입니다. 반대로 말하면 650~750ms 정도의 플레이어는 앞 30초에 거의 놓치지 않고, 점수는 후반 30초에서 갈립니다.</p>
+  </section>
+
+  <section>
+    <h2>그래서 이렇게 한다</h2>
+    <ul>
+      <li><strong>폭탄은 눌러서 확인하지 않는다</strong>: 💣 글자와 점선 테두리를 보고 거릅니다. 건너뛴 폭탄은 벌점이 없고, 누른 폭탄은 두더지 둘 값입니다.</li>
+      <li><strong>올라온 순서대로 처리한다</strong>: 거의 항상 둘 이상이 떠 있으니, 가장 먼저 올라온 것이 가장 먼저 들어갑니다. 가까워 보이는 것보다 오래된 것부터입니다.</li>
+      <li><strong>힘은 후반 30초에 쓴다</strong>: 750ms 안쪽이라면 앞 30초는 거의 놓치지 않습니다. 후반에 등장이 36% 잦아지고 머무는 시간이 짧아지니, 눈을 화면 전체에 두고 한 칸에 오래 머물지 마세요.</li>
+      <li><strong>못 잡은 것은 잊는다</strong>: 놓친 두더지는 벌점이 없습니다. 놓친 곳을 되돌아보다가 다음 표적까지 놓치는 것이 더 큰 손해입니다.</li>
+    </ul>
+    <p>가상 플레이어는 폭탄을 완벽히 알아보고 한 번 누르는 시간이 늘 같다고 가정했습니다. 사람은 이보다 들쭉날쭉하니, 절대 점수보다 위의 비교를 읽어 주세요. 매일 자정에 열리는 오늘의 도전은 모두가 같은 판을 받으니, 같은 판에서 폭탄을 몇 개 눌렀는지가 곧 점수 차이입니다. 반응 속도 기록 읽는 법은 <a href="/read/reaction-time-average/">반응속도 평균은 몇 ms일까</a>에 있습니다.</p>
+    <p><a class="cta" href="/mole/">▶ 두더지잡기 한판</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Whack-a-Mole score math: judge the bomb, not just the speed</h2>
+  <p class="updated">23 October 2026 · Hanpango · figures come from the actual <a href="/mole/">Whack-a-Mole</a> board generator (nine holes, 60 seconds, bombs cost 2 points) run on 5,000 different boards</p>
+
+  <section>
+    <h2>Fast hands or sharp eyes?</h2>
+    <p>Whack-a-mole is called a reaction game, but bombs are mixed in and a bomb costs 2 points. So what separates scores: speed, or telling the bomb from the mole? We lifted the game's own board generator, drew 5,000 different boards and scored simulated players on them. The rules: 60 seconds, a 3×3 grid, 1 point per mole tapped while it is up, minus 2 per bomb, no penalty for a miss, and the score never goes below zero.</p>
+  </section>
+
+  <section>
+    <h2>What a board looks like</h2>
+    <p>A board has 75.4 appearances on average: 61.9 moles and 13.5 bombs, so a perfect run that taps every mole and no bomb scores about <strong>62</strong>. The board speeds up: in the first 15 seconds a mole stays up 1,172 ms and a new one appears every 934 ms; in the last 15 seconds it stays 838 ms and one appears every 651 ms, 21.5 appearances against 15.8, 36% more. And <strong>96.1%</strong> of the time the previous one is still up when the next appears, so the screen almost always shows two or more. It is a game of ordering, not of tapping one at a time.</p>
+  </section>
+
+  <section>
+    <h2>Simulated players</h2>
+    <p>Time per tap covers finding the target, moving the finger and pressing. The player works through appearances in order and misses any that go down first. Skipping bombs scores 61.9 at 550 ms or faster, 60.2 at 650, 53.5 at 750, 42.7 at 850 and 21.9 at 1,000. Tapping bombs too scores 34.9, 33.6, 29.5, 23.3 and 11.8. The gap between the two is about <strong>27 points</strong> at any speed, 13.5 bombs times 2. A player who skips bombs at 650 ms (60.2) beats one who taps them at 550 ms (34.9) by more than 25 points.</p>
+  </section>
+
+  <section>
+    <h2>Slow players collapse at the end</h2>
+    <p>Miss rate by 15-second segment. At 650 ms: 0%, 0%, 0.1%, 9.6%. At 750 ms: 0%, 0.1%, 10%, <strong>37.9%</strong>. At 850 ms: 0.1%, 9.6%, 36.5%, 66.1%. At 1,000 ms: 19.5%, 49.1%, 76.7%, 99.1%. A 750 ms player is on a near-perfect pace until 45 seconds and then loses 38% of the moles. For players around 650 to 750 ms the first half barely separates them; the last 30 seconds decide the score.</p>
+  </section>
+
+  <section>
+    <h2>So play like this</h2>
+    <p>Tell bombs by their dashed outline and never tap to check; a skipped bomb costs nothing and a tapped one costs two moles. Take appearances in the order they came up, oldest first, because two or more are almost always showing. Save your attention for the last 30 seconds and keep your eyes on the whole board. Forget a missed mole: there is no penalty, and looking back for it costs the next target. The simulated player recognises bombs perfectly and takes the same time on every tap, so read the scores as a comparison only. For how to read reaction-time records, see <a href="/read/reaction-time-average/#en">what is an average reaction time</a>.</p>
+    <p><a class="cta" href="/mole/">▶ Play Whack-a-Mole</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
