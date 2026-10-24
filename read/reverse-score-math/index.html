@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>반대로 눌러 점수 올리는 법 — 느린 것은 손이 아니라 참·거짓 식 | Do the Opposite Score Math — 한판고</title>
+<meta name="description" content="반대로 눌러! 30초에서 점수를 올리려면 무엇을 줄여야 할까. 같은 규칙으로 가상 플레이어 20,000판을 돌려 보니 참·거짓 식은 지시의 25%인데 시간의 36%를 쓰고 놓침의 98.6%를 만들었고, 쉬운 지시에서 한 번 틀리면 약 2점이 사라졌습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="반대로 눌러 점수 올리는 법 — 느린 것은 손이 아니라 참·거짓 식 | Do the Opposite Score Math — 한판고">
+<meta property="og:description" content="반대로 눌러! 30초에서 점수를 올리려면 무엇을 줄여야 할까. 같은 규칙으로 가상 플레이어 20,000판을 돌려 보니 참·거짓 식은 지시의 25%인데 시간의 36%를 쓰고 놓침의 98.6%를 만들었고, 쉬운 지시에서 한 번 틀리면 약 2점이 사라졌습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/reverse-score-math/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/reverse-score-math/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head><body>
+
+<header>
+  <h1>반대로 눌러 점수 올리는 법 — 느린 것은 손이 아니라 참·거짓 식</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/reverse/">반대로 눌러! 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 25일 · 한판고 · 수치는 <a href="/reverse/">반대로 눌러!</a>의 실제 규칙(30초, 지시 간격 1,800ms에서 정답마다 45ms씩 단축·바닥 750ms, 정답 +1·오답 −1)을 그대로 옮겨 가상 플레이어 20,000판을 직접 돌린 결과입니다</p>
+
+  <section>
+    <h2>빨라지는 쪽은 게임이다</h2>
+    <p>반대로 눌러!는 지시의 반대를 누르는 30초 게임입니다. 지시는 방향·위아래·크기·참거짓 네 가지가 똑같은 확률로 나오고, 맞힐 때마다 다음 지시가 머무는 시간이 45ms씩 짧아집니다. 처음 1,800ms였던 간격이 정답 18개째에 990ms, 24개째에 바닥인 750ms가 됩니다. 점수를 가르는 것이 손의 속도인지, 틀리지 않는 것인지, 어려운 지시를 어떻게 다루느냐인지 감으로 답하지 않고 같은 규칙을 코드로 옮겨 가상 플레이어를 돌렸습니다.</p>
+    <p>가상 플레이어의 기본값은 이렇습니다. 방향·위아래는 평균 500ms, 크기는 550ms, 덧셈 식을 읽고 참인지 가려야 하는 참·거짓은 1,000ms에 누르고(표준편차 90ms), 쉬운 지시에서 원래 쪽을 눌러 틀릴 확률은 4~5%, 참·거짓에서는 8%라고 보았습니다. 이 숫자는 가정이고, 사람은 훨씬 들쭉날쭉하니 절대 점수보다 아래의 비교를 읽어 주세요.</p>
+  </section>
+
+  <section>
+    <h2>한 판의 모습</h2>
+    <p>기본 플레이어는 한 판에 지시를 약 <strong>50개</strong> 만나고, 평균 <strong>37.9점</strong>을 얻습니다. 정답 39.8개, 오답 2.0개, 놓침 7.7개입니다. 오답 하나가 −1이라 정답 수보다 점수가 조금 낮습니다.</p>
+    <p>놓침 7.7개가 어디서 나오는지가 이 글의 첫 번째 발견입니다. 참·거짓은 지시의 25%밖에 안 되는데 시간은 <strong>36%</strong>를 쓰고, 놓침의 <strong>98.6%</strong>가 참·거짓입니다. 방향·위아래·크기를 놓친 것은 판 전체에서 합쳐 거의 없습니다.</p>
+  </section>
+
+  <section>
+    <h2>간격이 내 손보다 짧아지는 순간</h2>
+    <p>왜 놓침이 참·거짓에 몰릴까요. 1,000ms에 누르는 사람에게 간격이 1,000ms 밑으로 내려가는 때가 오기 때문입니다. 정답 18개째부터 간격이 990ms라, 참·거짓 지시가 나오면 누르기 전에 지나갑니다. 기본 플레이어가 18번째 정답을 내는 때는 중앙값 12.1초, 바닥 750ms에 닿는 24번째는 16.9초입니다. 그 뒤로는 참·거짓의 대부분이 놓침입니다.</p>
+    <table>
+      <thead><tr><th>구간 (7.5초씩)</th><th>0~7.5초</th><th>7.5~15초</th><th>15~22.5초</th><th>22.5~30초</th></tr></thead>
+      <tbody>
+        <tr><td>지시를 놓친 비율</td><td>0%</td><td>10%</td><td>25.1%</td><td>25.3%</td></tr>
+      </tbody>
+    </table>
+    <p>앞 7.5초에는 하나도 놓치지 않다가 뒤 두 구간에서는 네 개 중 하나를 놓칩니다. 놓친 것은 벌점이 없지만, 그 지시가 간격이 다 흐를 때까지 화면에 서 있는 동안 시간이 갑니다.</p>
+  </section>
+
+  <section>
+    <h2>속도, 쉬운 지시, 어려운 지시</h2>
+    <p>평균 반응을 통째로 늦추면 점수가 어떻게 내려가는지 봅니다. 왼쪽부터 방향·위아래 / 크기 / 참·거짓의 평균 반응입니다.</p>
+    <table>
+      <thead><tr><th>방향·위아래 / 크기 / 참·거짓</th><th>평균 점수</th><th>마지막 7.5초 놓침</th></tr></thead>
+      <tbody>
+        <tr><td>400 / 450 / 900ms</td><td>44.6점</td><td>23.8%</td></tr>
+        <tr><td>500 / 550 / 1,000ms</td><td>37.9점</td><td>25.3%</td></tr>
+        <tr><td>600 / 650 / 1,200ms</td><td>31.2점</td><td>30.6%</td></tr>
+        <tr><td>700 / 750 / 1,400ms</td><td>25.3점</td><td>46%</td></tr>
+      </tbody>
+    </table>
+    <p>100ms 느려질 때마다 6~7점이 빠집니다. 여기서 한 가지를 더 가려 보면, 같은 노력으로 어디를 빨리 할 것인가가 갈립니다.</p>
+    <ul>
+      <li>쉬운 지시를 <strong>50ms</strong> 빠르게(450 / 500): 40.3점, 평균 +2.4점</li>
+      <li>참·거짓을 <strong>200ms</strong> 빠르게(1,000 → 800): 41.8점, 평균 +3.9점, 놓침 7.7개 → 5.3개</li>
+    </ul>
+    <p>쉬운 지시의 50ms는 사람이 줄이기 어려운 값입니다. 반면 참·거짓에서는 식 두 수를 더해 보는 방식을 바꾸면 200ms가 나올 수 있습니다. 예를 들어 끝자리만 먼저 더해서 맞는지 보면 됩니다. 줄일 여지가 큰 쪽이 점수도 더 큽니다.</p>
+  </section>
+
+  <section>
+    <h2>한 번 틀리면 약 2점</h2>
+    <p>쉬운 지시에서 원래 쪽을 눌러 틀릴 확률을 바꿔 봅니다.</p>
+    <table>
+      <thead><tr><th>쉬운 지시 오답률</th><th>평균 점수</th><th>오답 횟수</th></tr></thead>
+      <tbody>
+        <tr><td>0%</td><td>41.7점</td><td>0.0회</td></tr>
+        <tr><td>5%</td><td>37.7점</td><td>2.1회</td></tr>
+        <tr><td>10%</td><td>33.8점</td><td>4.2회</td></tr>
+        <tr><td>20%</td><td>25.8점</td><td>8.5회</td></tr>
+      </tbody>
+    </table>
+    <p>오답 한 번이 약 <strong>2점</strong>씩의 차이를 만듭니다. −1점이고, 그 시간에 맞혔다면 +1점이었기 때문입니다. 틀린 뒤에는 다음 지시가 곧바로 오지만 간격이 줄어드는 속도도 그만큼 더뎌집니다(간격은 정답 수로만 줄어듭니다). 5%만 줄여도 4점입니다. 앞의 50ms 단축보다 큽니다.</p>
+  </section>
+
+  <section>
+    <h2>어려우면 넘기라는 말은 맞을까</h2>
+    <p>이 게임에는 어려운 지시를 넘기라는 요령이 있었습니다. 틀리면 깎이고 놓치면 안 깎이니까요. 그런데 참·거짓을 아예 누르지 않고 간격이 다 흐르기를 기다리는 가상 플레이어를 돌려 보면, 그동안 다음 지시가 오지 않아 점수가 <strong>30.2점</strong>으로 고정됩니다. 누르는 쪽은 참·거짓의 정답 확률에 따라 이렇게 갈립니다.</p>
+    <table>
+      <thead><tr><th>참·거짓 정답 확률</th><th>누르면</th><th>계속 넘기면</th></tr></thead>
+      <tbody>
+        <tr><td>20%</td><td>30.2점</td><td>30.2점</td></tr>
+        <tr><td>50%</td><td>33.7점</td><td>30.2점</td></tr>
+        <tr><td>70%</td><td>35.8점</td><td>30.2점</td></tr>
+        <tr><td>90%</td><td>37.6점</td><td>30.2점</td></tr>
+      </tbody>
+    </table>
+    <p>정답 확률이 동전 던지기(50%)여도 누르는 쪽이 3.5점 높고, 20%쯤으로 떨어져야 같아집니다. 넘기는 것이 이득이 되려면 정답 확률이 20% 밑으로 떨어질 때뿐입니다. 그래서 이 게임의 요령도 고쳤습니다. 어려운 식이라도 일단 눌러 보세요. 다만 같은 식을 두 번 읽느라 간격을 다 쓰는 것은 놓치는 것과 같습니다.</p>
+  </section>
+
+  <section>
+    <h2>그래서 이렇게 한다</h2>
+    <ul>
+      <li><strong>참·거짓에서 시간을 번다</strong>: 점수를 가장 많이 올리는 곳이 여기입니다. 끝자리만 먼저 더해 맞는지 보세요.</li>
+      <li><strong>쉬운 지시는 틀리지 않는 쪽으로</strong>: 빠르게 누르다 한 번 틀리면 2점이 사라집니다. 원래 답을 먼저 떠올리고 뒤집는 한 박자가 오히려 이득입니다.</li>
+      <li><strong>찍어서라도 누른다</strong>: 확신이 없어도 정답 확률이 20%만 넘으면 누르는 쪽이 같거나 낫습니다.</li>
+      <li><strong>후반을 대비한다</strong>: 정답 18개째부터는 간격이 1,000ms 밑이라, 참·거짓에 시간이 걸리는 사람은 눈을 지시 가운데에 고정하고 손가락을 두 버튼 사이에 둡니다.</li>
+    </ul>
+    <p>가상 플레이어는 늘 같은 평균으로 누르고 긴장이나 피로가 없다고 가정했습니다. 사람의 기록은 이보다 들쭉날쭉하니, 위의 숫자는 절대 점수보다 어디를 고치면 얼마가 바뀌는지의 비교로 읽어 주세요. 매일 자정에 열리는 오늘의 도전은 모두가 같은 순서의 지시를 받으니, 같은 판에서 몇 번 틀렸는지가 곧 점수 차이입니다. 반응 속도 기록 읽는 법은 <a href="/read/reaction-time-average/">반응속도 평균은 몇 ms일까</a>에 있습니다.</p>
+    <p><a class="cta" href="/reverse/">▶ 반대로 눌러! 한판</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Do the Opposite score math: the slow part is the true/false sum, not your hand</h2>
+  <p class="updated">25 October 2026 · Hanpango · figures come from the actual <a href="/reverse/">Do the Opposite</a> rules (30 seconds, prompt time 1,800 ms shrinking 45 ms per correct answer down to a 750 ms floor, +1 right, −1 wrong) run on 20,000 simulated rounds</p>
+
+  <section>
+    <h2>The game speeds up, not you</h2>
+    <p>Prompts come from four kinds with equal probability: direction, up/down, size and true/false. Each right answer shortens the next prompt by 45 ms: 1,800 ms at the start, 990 ms after 18 right answers, the 750 ms floor after 24. We rebuilt those rules and ran simulated players. The assumptions: direction and up/down take 500 ms on average, size 550 ms, true/false (read a sum and judge it) 1,000 ms, standard deviation 90 ms, and a slip rate of 4–5% on the easy kinds and 8% on true/false. These are assumptions; real players are less even, so read the comparisons rather than the absolute scores.</p>
+  </section>
+
+  <section>
+    <h2>One round</h2>
+    <p>The base player meets about 50 prompts and averages <strong>37.9 points</strong>: 39.8 right, 2.0 wrong, 7.7 missed. The first finding is where the misses come from. True/false is 25% of the prompts but uses <strong>36%</strong> of the time and accounts for <strong>98.6%</strong> of the misses.</p>
+  </section>
+
+  <section>
+    <h2>The moment the prompt gets shorter than your hand</h2>
+    <p>A player who needs about 1,000 ms for a true/false sum is caught once the prompt time falls under 1,000 ms, which happens at the 18th right answer (median 12.1 s). The floor is reached at the 24th (16.9 s). Share of prompts missed by 7.5-second segment: 0%, 10%, 25.1%, 25.3%. Nothing is missed early; in the last half a quarter of the prompts go by.</p>
+  </section>
+
+  <section>
+    <h2>Speed, easy prompts, hard prompts</h2>
+    <p>Average score (easy kinds / size / true-false in ms): 44.6 at 400 / 450 / 900; 37.9 at 500 / 550 / 1,000; 31.2 at 600 / 650 / 1,200; 25.3 at 700 / 750 / 1,400. Every 100 ms costs 6–7 points. Where the effort goes matters: 50 ms faster on the easy kinds gives 40.3 (+2.4), while 200 ms faster on true/false gives 41.8 (+3.9) and cuts misses from 7.7 to 5.3. Fifty milliseconds on a simple tap is hard to find; 200 ms on a sum is not, for example by adding last digits first.</p>
+  </section>
+
+  <section>
+    <h2>One slip is worth about 2 points</h2>
+    <p>Slip rate on the easy kinds against average score: 0% gives 41.7, 5% gives 37.7 (2.1 wrong), 10% gives 33.8 (4.2 wrong), 20% gives 25.8 (8.5 wrong). Each wrong tap costs about <strong>2 points</strong>: the minus one, plus the plus one you would have scored. Cutting slips by 5 points is worth 4 points, more than the 50 ms above.</p>
+  </section>
+
+  <section>
+    <h2>Is "skip it when in doubt" right?</h2>
+    <p>The game's tip used to say to let hard prompts go. In the simulation a player who never taps true/false and waits each prompt out scores a flat <strong>30.2</strong>. A player who taps with 20% accuracy scores the same 30.2, with 50% accuracy 33.7, with 70% 35.8 and with 90% 37.6. Skipping only pays when your chance is below about 20%, so the tip now says to tap even when unsure, provided you do not burn a whole prompt re-reading the sum.</p>
+  </section>
+
+  <section>
+    <h2>So play like this</h2>
+    <p>Look for time on true/false first, since it is where the points are. Keep slips low on the easy kinds: recall the ordinary answer, then flip it. Tap even when unsure. And from the 18th right answer on, when prompts drop under a second, keep your eyes on the prompt and your finger between the two buttons. The simulated player never tires or tenses, so read the numbers as comparisons. The daily challenge deals everyone the same prompts, so the number of slips on the same round is your score gap. For how to read reaction-time records, see <a href="/read/reaction-time-average/#en">what is an average reaction time</a>.</p>
+    <p><a class="cta" href="/reverse/">▶ Play Do the Opposite</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
