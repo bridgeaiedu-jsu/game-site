@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>딱 맞춰! 정확도 올리는 법 — 아무렇게나 눌러도 57%, 같은 손이면 게이지가 막대를 이긴다 | Just Right Accuracy Math — 한판고</title>
+<meta name="description" content="딱 맞춰! 타이밍 게임에서 몇 퍼센트부터가 실력일까. 게임의 실제 판정 식으로 라운드 20만 개씩 돌려 보니 아무렇게나 눌러도 평균 56.7%가 나왔고, 늘 200ms 늦게 누르면 막대는 63.4%, 게이지는 81.0%였습니다. 한 바퀴 시간별 90% 허용 폭까지 정리했습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="딱 맞춰! 정확도 올리는 법 — 아무렇게나 눌러도 57%, 같은 손이면 게이지가 막대를 이긴다 | Just Right Accuracy Math — 한판고">
+<meta property="og:description" content="딱 맞춰! 타이밍 게임에서 몇 퍼센트부터가 실력일까. 게임의 실제 판정 식으로 라운드 20만 개씩 돌려 보니 아무렇게나 눌러도 평균 56.7%가 나왔고, 늘 200ms 늦게 누르면 막대는 63.4%, 게이지는 81.0%였습니다. 한 바퀴 시간별 90% 허용 폭까지 정리했습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/just-right-timing-math/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/just-right-timing-math/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head><body>
+
+<header>
+  <h1>딱 맞춰! 정확도 올리는 법 — 아무렇게나 눌러도 57%</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/just-right/">딱 맞춰! 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 27일 · 한판고 · 수치는 <a href="/just-right/">딱 맞춰!</a>의 실제 판정 식(막대는 삼각파, 게이지는 톱니파, 한 바퀴 1,100~2,300ms, 목표 자리 18~82%)을 그대로 가져와 라운드 20만 개씩 직접 돌린 결과입니다</p>
+
+  <section>
+    <h2>몇 퍼센트부터가 실력일까</h2>
+    <p>딱 맞춰!는 움직이는 막대나 차오르는 게이지를 초록 목표선에서 멈추는 게임이고, 한 판은 세 라운드, 세 라운드의 평균 정확도가 기록입니다. 그런데 정확도 70%는 잘한 걸까요, 그저 그런 걸까요. 기준이 없으면 숫자만 보고 기뻐하거나 낙담하게 됩니다. 그래서 먼저 <strong>아무 생각 없이 아무 때나 누르면 몇 퍼센트가 나오는지</strong>를 셌습니다.</p>
+    <p>답은 평균 <strong>56.7%</strong>입니다. 막대 56.7%, 게이지 56.8%로 둘이 같습니다. 목표선이 트랙 한가운데 있으면 50.0%, 가장자리 쪽(18%나 82% 자리)에 있으면 57.0%입니다. 이 게임의 정확도는 그 라운드에서 날 수 있는 가장 큰 오차를 0%로 환산하기 때문에, 눈을 감고 눌러도 절반은 넘습니다. 그러니 <strong>60% 안팎은 운과 구분되지 않는 점수</strong>이고, 실력은 80%를 넘는 자리부터 읽어야 합니다.</p>
+  </section>
+
+  <section>
+    <h2>같은 손이면 게이지가 막대보다 높다</h2>
+    <p>막대는 한 바퀴 동안 트랙을 왕복하고, 게이지는 한 번 오르고 맙니다. 한 바퀴에 걸리는 시간이 같아도 막대가 <strong>두 배 빠르게</strong> 목표선을 지나가는 셈이어서, 같은 시간만큼 어긋나면 막대의 오차가 두 배입니다. 겨냥한 순간에서 좌우로 흔들리는 폭(표준편차)별로 평균 정확도를 세었습니다. 목표선이 지나는 순간을 정확히 겨냥한다는 가정입니다.</p>
+    <table>
+      <thead><tr><th>타이밍 흔들림</th><th>막대 스톱</th><th>게이지 채우기</th></tr></thead>
+      <tbody>
+        <tr><td>±20ms</td><td>97.0%</td><td>98.5%</td></tr>
+        <tr><td>±40ms</td><td>93.9%</td><td>97.0%</td></tr>
+        <tr><td>±60ms</td><td>90.9%</td><td>95.5%</td></tr>
+        <tr><td>±80ms</td><td>87.9%</td><td>93.9%</td></tr>
+        <tr><td>±120ms</td><td>82.3%</td><td>90.8%</td></tr>
+      </tbody>
+    </table>
+    <p>손이 흔들리는 폭이 같으면 정확도의 빈틈이 막대에서 정확히 두 배로 벌어집니다. 오늘 막대가 유난히 안 맞았다면 손 탓이 아니라 문제 유형 탓일 수 있다는 뜻입니다.</p>
+  </section>
+
+  <section>
+    <h2>늦게 누르는 버릇이 가장 크게 깎는다</h2>
+    <p>흔들림보다 더 큰 손실은 늘 같은 쪽으로 어긋나는 버릇입니다. 사람은 표적이 선에 닿는 것을 <strong>보고 나서</strong> 누르기 때문에 대개 늦습니다. 얼마나 늦는지는 사람마다 달라서 50~300ms를 가정해, 목표선을 지나간 뒤 그만큼 지나서 누르는 플레이어의 평균 정확도를 셌습니다.</p>
+    <table>
+      <thead><tr><th>늘 늦는 시간</th><th>막대 스톱</th><th>게이지 채우기</th></tr></thead>
+      <tbody>
+        <tr><td>50ms</td><td>90.5%</td><td>95.3%</td></tr>
+        <tr><td>100ms</td><td>81.0%</td><td>90.5%</td></tr>
+        <tr><td>150ms</td><td>71.7%</td><td>85.8%</td></tr>
+        <tr><td>200ms</td><td>63.4%</td><td>81.0%</td></tr>
+        <tr><td>300ms</td><td>51.6%</td><td>69.6%</td></tr>
+      </tbody>
+    </table>
+    <p>200ms를 늦게 누르는 막대 플레이어는 63.4%로, 아무렇게나 누른 평균 56.7%보다 겨우 6.7포인트 위입니다. 같은 지연이어도 한 바퀴가 느린 판에서는 덜 깎입니다. 200ms 늦게 누르면 한 바퀴 1,100ms 판에서 막대 50.7%·게이지 71.7%, 2,300ms 판에서 막대 73.1%·게이지 86.6%입니다. 빠른 판일수록 같은 늦음의 값이 커집니다.</p>
+  </section>
+
+  <section>
+    <h2>90%를 받으려면 몇 ms 안에 눌러야 하나</h2>
+    <p>정확도 90%는 오차가 그 라운드 최대 오차의 10% 이내라는 뜻입니다. 이를 시간으로 바꾸면 목표선을 지나는 순간 앞뒤로 얼마나 허용되는지가 나옵니다.</p>
+    <table>
+      <thead><tr><th>한 바퀴 시간</th><th>목표 위치</th><th>막대 스톱</th><th>게이지 채우기</th></tr></thead>
+      <tbody>
+        <tr><td>1,100ms</td><td>가운데(50%)</td><td>±27.5ms</td><td>±55ms</td></tr>
+        <tr><td>1,100ms</td><td>가장자리(18%·82%)</td><td>±45ms</td><td>±90ms</td></tr>
+        <tr><td>1,700ms</td><td>가운데(50%)</td><td>±42.5ms</td><td>±85ms</td></tr>
+        <tr><td>1,700ms</td><td>가장자리(18%·82%)</td><td>±70ms</td><td>±139ms</td></tr>
+        <tr><td>2,300ms</td><td>가운데(50%)</td><td>±57.5ms</td><td>±115ms</td></tr>
+        <tr><td>2,300ms</td><td>가장자리(18%·82%)</td><td>±94ms</td><td>±189ms</td></tr>
+      </tbody>
+    </table>
+    <p>가장 어려운 경우는 가장 빠른 판의 가운데 목표를 막대로 맞추는 것으로, 앞뒤 27.5ms입니다. 눈 한 번 깜빡이는 시간보다 훨씬 짧습니다. 반대로 같은 속도라면 목표가 가장자리에 있는 편이 허용 폭이 약 <strong>1.6배</strong> 넓습니다. 가장자리일수록 날 수 있는 최대 오차가 커서 눈금이 넉넉해지기 때문입니다.</p>
+  </section>
+
+  <section>
+    <h2>그래서 이렇게 한다</h2>
+    <ul>
+      <li><strong>60% 안팎은 운으로 본다</strong>: 아무렇게나 눌러도 56.7%입니다. 80%를 넘는지로 실력을 읽으세요.</li>
+      <li><strong>자기 지연만큼 일찍 누른다</strong>: 늘 200ms 늦는 막대 플레이어가 그만큼 앞당기면 63.4%가 거의 100%로 돌아옵니다. 내 반응이 어느 정도인지는 <a href="/read/reaction-time-average/">반응속도 평균 읽을거리</a>에서 가늠해 보세요.</li>
+      <li><strong>막대는 한 바퀴를 보고 리듬부터 익힌다</strong>: 막대는 같은 시간 어긋남이 두 배로 벌어지니, 첫 바퀴는 흘려보내고 두 번째 바퀴에서 박자를 맞추는 편이 낫습니다.</li>
+      <li><strong>가운데 목표를 가장 조심한다</strong>: 가장자리 목표는 허용 폭이 넓으니 서두르지 않아도 되고, 가운데 목표는 같은 속도에서 가장 빠듯합니다.</li>
+    </ul>
+    <p>가상 플레이어는 지연이 늘 같고 흔들림은 정규분포를 따른다고 가정했습니다. 사람은 이보다 들쭉날쭉하니 절대 숫자보다 위의 비교를 읽어 주세요. 매일 자정에 열리는 오늘의 도전은 모두가 같은 세 라운드를 받으니, 같은 문제에서 내 평균 정확도를 견주기 좋습니다.</p>
+    <p><a class="cta" href="/just-right/">▶ 딱 맞춰! 한판</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Just Right accuracy math: random presses already score 57%</h2>
+  <p class="updated">27 October 2026 · Hanpango · figures use the actual scoring formulas of <a href="/just-right/">Just Right</a> (triangle wave for the bar, sawtooth for the gauge, one pass of 1,100 to 2,300 ms, target at 18% to 82% of the track) run on 200,000 rounds per cell</p>
+
+  <section>
+    <h2>What score counts as skill?</h2>
+    <p>Just Right asks you to stop a sweeping bar or a filling gauge on a green target line; a game is three rounds and your average accuracy is the record. Is 70% good? To find out we first measured what <strong>pressing at a random moment</strong> scores. It averages <strong>56.7%</strong> (bar 56.7%, gauge 56.8%), 50.0% when the target is in the middle and 57.0% near the ends. Accuracy is scaled against the largest miss the round allows, so even random presses land past halfway. Treat scores around 60% as indistinguishable from luck and read skill from 80% upward.</p>
+  </section>
+
+  <section>
+    <h2>Same hand, higher gauge score</h2>
+    <p>The bar sweeps out and back in one pass, the gauge only rises, so for the same pass time the bar crosses the target line <strong>twice as fast</strong>. The same timing miss costs twice the distance. Aiming exactly at the crossing with normally distributed jitter: at ±20 ms the bar averages 97.0% and the gauge 98.5%; ±40 ms, 93.9% and 97.0%; ±60 ms, 90.9% and 95.5%; ±80 ms, 87.9% and 93.9%; ±120 ms, 82.3% and 90.8%.</p>
+  </section>
+
+  <section>
+    <h2>Pressing late costs the most</h2>
+    <p>People press after they see the marker touch the line. If you are always late by 50 ms the bar averages 90.5% and the gauge 95.3%; 100 ms, 81.0% and 90.5%; 150 ms, 71.7% and 85.8%; 200 ms, 63.4% and 81.0%; 300 ms, 51.6% and 69.6%. A bar player who is 200 ms late is only 6.7 points above random pressing. The same lateness hurts less on slow rounds: at 200 ms late a 1,100 ms pass gives the bar 50.7% and the gauge 71.7%, while a 2,300 ms pass gives 73.1% and 86.6%.</p>
+  </section>
+
+  <section>
+    <h2>How tight is the 90% window?</h2>
+    <p>For 90% your miss must stay within 10% of the round's largest possible miss. In time, with the target in the middle: ±27.5 ms (bar) and ±55 ms (gauge) on a 1,100 ms pass, ±42.5 and ±85 ms on 1,700 ms, ±57.5 and ±115 ms on 2,300 ms. With the target near an end the window is about <strong>1.6 times wider</strong>: ±45 and ±90 ms, ±70 and ±139 ms, ±94 and ±189 ms.</p>
+  </section>
+
+  <section>
+    <h2>So play like this</h2>
+    <p>Do not celebrate 60%; random pressing gets 56.7%. Press as early as your own delay, since a bar player who is always 200 ms late would jump from 63.4% back to nearly 100% by moving the press forward by that amount. On the bar, let the first pass go and learn the rhythm on the second. Be most careful when the target sits in the middle, where the window is narrowest. The simulated player has a fixed delay and normal jitter; real people vary more, so read the comparisons rather than the absolute numbers.</p>
+    <p><a class="cta" href="/just-right/">▶ Play Just Right</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
