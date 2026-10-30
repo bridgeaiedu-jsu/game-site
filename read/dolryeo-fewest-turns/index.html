@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>돌려 맞춰 회전 수 줄이는 법 — 굽은 조각은 평균 1.5번, 곧은 조각은 0.5번 | Turn to Connect Math — 한판고</title>
+<meta name="description" content="돌려 맞춰에서 몇 번 돌려야 최소일까. 게임의 실제 판 만들기 코드로 365일치 오늘의 판을 뽑아 세어 보니 최소 회전은 3×3에서 평균 6.89번, 4×4에서 8.81번이었습니다. 굽은 조각은 평균 1.54번, 곧은 조각은 0.51번 돌고, 365일 중 364일은 답이 사실상 하나였습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="돌려 맞춰 회전 수 줄이는 법 — 굽은 조각은 평균 1.5번, 곧은 조각은 0.5번 | Turn to Connect Math — 한판고">
+<meta property="og:description" content="돌려 맞춰에서 몇 번 돌려야 최소일까. 게임의 실제 판 만들기 코드로 365일치 오늘의 판을 뽑아 세어 보니 최소 회전은 3×3에서 평균 6.89번, 4×4에서 8.81번이었습니다. 굽은 조각은 평균 1.54번, 곧은 조각은 0.51번 돌고, 365일 중 364일은 답이 사실상 하나였습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/dolryeo-fewest-turns/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/dolryeo-fewest-turns/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>돌려 맞춰 회전 수 줄이는 법 — 굽은 조각은 평균 1.5번</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/dolryeo/">돌려 맞춰 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 10월 31일 · 한판고 · 수치는 <a href="/dolryeo/">돌려 맞춰</a>의 실제 판 만들기 코드로 2026년 8월 23일(1번 판)부터 365일치 오늘의 판을 만들어 직접 센 결과입니다</p>
+
+  <section>
+    <h2>최소 회전은 보통 몇 번일까</h2>
+    <p>돌려 맞춰는 조각을 눌러 시계 방향으로 돌리며 입구에서 출구까지 길을 잇는 퍼즐이고, 기록은 <strong>회전 수가 적을수록 좋습니다</strong>. 그런데 7번에 끝냈다면 잘한 걸까요. 기준을 잡으려고 게임에 들어 있는 판 만들기 코드를 그대로 가져와 오늘의 판을 365일치 만들고, 판마다 전수 탐색으로 구한 <strong>최소 회전 수</strong>를 셌습니다.</p>
+    <table>
+      <tr><th>판 크기</th><th>일수</th><th>최소 회전 평균</th><th>돌려야 하는 조각(평균)</th><th>자물쇠 조각(평균)</th></tr>
+      <tr><td>3×3</td><td>193일</td><td>6.89번</td><td>5.46개</td><td>1.00개</td></tr>
+      <tr><td>4×4</td><td>172일</td><td>8.81번</td><td>7.55개</td><td>2.31개</td></tr>
+      <tr><td>전체</td><td>365일</td><td>7.79번</td><td>–</td><td>–</td></tr>
+    </table>
+    <p>판 크기는 날마다 3×3이나 4×4 가운데 하나로 정해지는데 365일 중 3×3이 193일, 4×4가 172일이었습니다. 최소 회전은 가장 쉬운 날 1번에서 가장 어려운 날 17번까지 퍼졌고, <strong>5번 이하인 날이 97일(26.6%)</strong>, <strong>10번 이상인 날이 106일(29.0%)</strong>이었습니다. 그러니 오늘 판이 4×4라면 최소가 8~9번 안팎이라고 보고 시작하면 됩니다. 이미 맞춰진 판은 버리고 흩어 놓기 때문에 0번인 날은 한 번도 없었습니다.</p>
+  </section>
+
+  <section>
+    <h2>조각 하나가 먹는 회전 수</h2>
+    <p>돌려야 하는 조각은 두 종류입니다. 굽은 조각은 네 방향이 모두 달라 원하는 방향까지 0~3번이 들고, 곧은 조각은 방향이 둘뿐이라 0번 아니면 1번입니다. 365일치 판에서 돌려야 하는 조각을 모두 세었습니다.</p>
+    <table>
+      <tr><th>조각</th><th>개수</th><th>0번</th><th>1번</th><th>2번</th><th>3번</th><th>평균</th></tr>
+      <tr><td>굽은 조각</td><td>1,605</td><td>379</td><td>405</td><td>404</td><td>417</td><td>1.54번</td></tr>
+      <tr><td>곧은 조각</td><td>748</td><td>364</td><td>384</td><td>–</td><td>–</td><td>0.51번</td></tr>
+    </table>
+    <p>흩는 방향은 무작위라 굽은 조각이 0·1·2·3번 필요한 경우가 거의 똑같이 나뉘고, 곧은 조각은 절반가량이 처음부터 맞습니다. 여기서 어림 공식이 나옵니다. <strong>최소 회전 ≈ 돌려야 하는 굽은 조각 수 × 1.5 + 돌려야 하는 곧은 조각 수 × 0.5</strong>. 3×3은 굽은 조각 평균 3.96개·곧은 조각 1.50개라 어림값이 6.9번(실제 6.89번), 4×4는 4.88개·2.67개라 8.9번(실제 8.81번)으로 맞아떨어집니다.</p>
+  </section>
+
+  <section>
+    <h2>답은 사실상 하나다</h2>
+    <p>돌려 맞춰는 정해 둔 배치와 비교하지 않고 실제로 이어졌는지로 판정하니, 이론상으로는 답이 여럿일 수 있습니다. 그런데 판은 길을 먼저 깔고 그 위의 조각을 흩어서 만들기 때문에 현실에서는 거의 하나입니다. 365일 중 <strong>364일은 최소 회전 수가 흩어진 조각을 처음 모양으로 돌려놓는 데 드는 회전의 합과 같았습니다</strong>. 합보다 적게 끝난 날은 11월 19일 하루뿐이었고, 그날은 12번이 아니라 8번으로 끝났습니다.</p>
+    <p>그래서 길이 이어지지 않아 막막하면 이렇게 생각하세요. 길 위의 조각은 모두 입이 정확히 둘이고 갈림길이 없습니다. 입구에서 출구까지 한 줄로 이어지는 모양을 그려 보고, 각 조각을 그 줄에 맞는 방향으로 돌려 놓으면 곧 답입니다. 다른 길로 돌아가는 방법을 찾느라 시간을 쓸 필요가 거의 없습니다.</p>
+  </section>
+
+  <section>
+    <h2>자물쇠 조각이 답의 단서다</h2>
+    <p>365일 모두 자물쇠 조각이 하나 이상 있었습니다. 3×3은 평균 1.00개, 4×4는 평균 2.31개입니다. 자물쇠 조각은 처음부터 맞는 방향으로 고정되어 있어서 <strong>길이 그 조각을 어느 쪽으로 지나가는지를 그대로 알려 줍니다</strong>. 자물쇠 조각의 이웃은 그 조각과 입이 마주 열려야 하니 방향이 거의 정해지고, 정해진 이웃의 이웃도 같은 방식으로 이어집니다.</p>
+  </section>
+
+  <section>
+    <h2>이렇게 하면 회전이 줄어든다</h2>
+    <ul>
+      <li><strong>입구·출구·자물쇠에서 시작한다</strong>: 입구 칸은 왼쪽 바깥으로, 출구 칸은 오른쪽 바깥으로 입을 열어야 합니다. 방향이 정해진 칸에서 시작해 이웃으로 번지듯 정하세요.</li>
+      <li><strong>굽은 조각부터 방향을 정한다</strong>: 굽은 조각은 평균 1.5번이 들어 가장 많이 돌리는 조각입니다. 먼저 정해 두고 그 방향이 요구하는 대로 곧은 조각을 맞추면 한 번에 끝나는 경우가 많습니다.</li>
+      <li><strong>지나쳤다면 눌러 돌리지 말고 되돌린다</strong>: 조각은 시계 방향으로만 돌아서 한 번 지나친 굽은 조각을 되돌려 놓으려면 세 번을 더 눌러야 합니다. 「한 번 되돌리기」는 그 회전을 회전 수에서 빼 주니 훨씬 이득이지만, 되돌린 횟수가 결과에 따로 남습니다.</li>
+      <li><strong>누르기 전에 센다</strong>: 어림 공식으로 오늘 판의 최소를 먼저 가늠하고, 내 회전이 그보다 많이 늘면 어딘가 잘못 돌린 것입니다.</li>
+    </ul>
+    <p>판은 날짜 하나로 정해지므로 같은 날에는 모두가 같은 판을 받습니다. 이 글의 수치는 365일치 판을 모은 평균이라 하루하루는 많이 다를 수 있으니, 절대 숫자보다 위의 비교를 읽어 주세요.</p>
+    <p><a class="cta" href="/dolryeo/">▶ 돌려 맞춰 한판</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Turn to Connect math: a curved piece costs 1.5 turns on average</h2>
+  <p class="updated">31 October 2026 · Hanpango · figures come from the board generator of <a href="/dolryeo/">Turn to Connect</a>, run for 365 daily boards starting from board #1 (23 August 2026), with the minimum turns found by exhaustive search</p>
+
+  <section>
+    <h2>How many turns is the minimum?</h2>
+    <p>Fewer turns is better, but is 7 good? Over 365 daily boards the minimum averages <strong>6.89 turns on 3×3 (193 days)</strong> and <strong>8.81 on 4×4 (172 days)</strong>, 7.79 overall, ranging from 1 to 17. Boards needing 5 turns or fewer were 97 days (26.6%) and boards needing 10 or more were 106 days (29.0%). A board is never handed over already solved, so 0 never occurred. Free pieces average 5.46 on 3×3 and 7.55 on 4×4, with 1.00 and 2.31 locked pieces.</p>
+  </section>
+
+  <section>
+    <h2>What each piece costs</h2>
+    <p>Among 1,605 curved pieces that needed turning, the turns required were 0 / 1 / 2 / 3 in 379 / 405 / 404 / 417 cases, averaging <strong>1.54</strong>. Among 748 straight pieces it was 0 or 1 turn in 364 / 384 cases, averaging <strong>0.51</strong>. A rule of thumb follows: <strong>minimum turns ≈ curved pieces × 1.5 + straight pieces × 0.5</strong>. It predicts 6.9 on 3×3 (actual 6.89) and 8.9 on 4×4 (actual 8.81).</p>
+  </section>
+
+  <section>
+    <h2>There is practically one answer</h2>
+    <p>The game checks whether the path is truly connected rather than comparing with a stored layout, but boards are built by laying a path first and then scattering pieces. On 364 of 365 days the minimum equalled the sum of turns needed to return each scattered piece to its original shape. Only 19 November was shorter, 8 turns instead of 12. Every piece on the path has exactly two openings, so draw the single line from entrance to exit and turn each piece to match it.</p>
+  </section>
+
+  <section>
+    <h2>Locked pieces are clues</h2>
+    <p>Every one of the 365 boards had at least one locked piece. A locked piece is fixed in its correct direction, so it tells you exactly how the path passes through it, and its neighbours must open toward it, which fixes them in turn.</p>
+  </section>
+
+  <section>
+    <h2>So play like this</h2>
+    <p>Start from the entrance, the exit and the locked pieces and spread outward. Decide curved pieces first, since they cost the most turns, then fit the straight ones. Turning is clockwise only, so overshooting a curved piece costs three more taps, whereas Undo removes that turn from your count (though undos are recorded separately). Estimate the minimum with the rule above and treat a much larger count as a sign of a wrong turn. The figures are averages over 365 boards, so single days vary widely.</p>
+    <p><a class="cta" href="/dolryeo/">▶ Play Turn to Connect</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
