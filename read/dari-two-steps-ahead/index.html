@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>단어 다리 잘 건너는 법 — 목표에서 두 걸음 앞까지만 알아보면 거의 최단 | Word Bridge Math — 한판고</title>
+<meta name="description" content="단어 다리에서 어떻게 건너야 빨리 닿을까. 게임의 실제 사전 11,484개와 출제표 179쌍으로 세어 보니 목표에서 두 걸음 안의 낱말은 평균 3,019개(사전의 26.3%)였습니다. 그 정도만 알아봐도 내다보는 가상 플레이어는 94.4%가 최단 길로 건넜고, 무작위로 이웃을 고르면 30걸음 안에 닿은 판이 0.2%였습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="단어 다리 잘 건너는 법 — 목표에서 두 걸음 앞까지만 알아보면 거의 최단 | Word Bridge Math — 한판고">
+<meta property="og:description" content="단어 다리에서 어떻게 건너야 빨리 닿을까. 게임의 실제 사전 11,484개와 출제표 179쌍으로 세어 보니 목표에서 두 걸음 안의 낱말은 평균 3,019개(사전의 26.3%)였습니다. 그 정도만 알아봐도 내다보는 가상 플레이어는 94.4%가 최단 길로 건넜고, 무작위로 이웃을 고르면 30걸음 안에 닿은 판이 0.2%였습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/dari-two-steps-ahead/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/dari-two-steps-ahead/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>단어 다리 잘 건너는 법 — 목표에서 두 걸음 앞까지</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/dari/">단어 다리 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 11월 1일 · 한판고 · 수치는 <a href="/dari/">단어 다리</a>가 쓰는 사전 11,484개와 출제표 179쌍을 그대로 가져와 직접 센 결과입니다(문제는 날짜로 정해집니다)</p>
+
+  <section>
+    <h2>첫 걸음에서 이미 갈린다</h2>
+    <p>단어 다리는 두 글자 낱말에서 출발해 한 번에 한 글자씩만 바꿔 목표 낱말까지 건너는 게임입니다. 출제표 179쌍의 출발 낱말은 이웃(한 글자만 바꿔 닿는 낱말)이 평균 68.9개입니다. 그런데 그 가운데 <strong>최단 길 위에 있는 낱말은 얼마나 될까요</strong>. 문제를 최단 단계 수로 나눠 세었습니다.</p>
+    <table>
+      <tr><th>최단 단계</th><th>쌍</th><th>출발 낱말의 이웃(평균)</th><th>이웃 중 최단 길 위(평균)</th></tr>
+      <tr><td>2단계</td><td>45</td><td>81.6개</td><td>1.8%</td></tr>
+      <tr><td>3단계</td><td>45</td><td>89.9개</td><td>21.8%</td></tr>
+      <tr><td>4단계</td><td>45</td><td>84.0개</td><td>57.0%</td></tr>
+      <tr><td>5단계</td><td>44</td><td>18.9개</td><td>85.1%</td></tr>
+    </table>
+    <p>2단계 문제는 이웃 80여 개 중 맞는 걸음이 사실상 하나뿐이라 아무 이웃이나 골라서는 첫 걸음부터 맞히기 어렵습니다(1.8%). 반대로 5단계 문제는 출발 낱말의 이웃이 18.9개로 적은데 그 85%가 길 위에 있어, <strong>어려운 이유가 갈림길이 많아서가 아니라 떠올릴 낱말이 적어서</strong>입니다. 무작위로 이웃을 고르며 걷게 한 가상 플레이어를 179쌍 × 400번(71,600판) 돌려 보니 30걸음 안에 목표에 닿은 판은 <strong>0.2%</strong>였습니다. 운에 맡기면 건너지 못하는 게임입니다.</p>
+  </section>
+
+  <section>
+    <h2>목표 쪽에서 거꾸로 보면 길이 넓다</h2>
+    <p>출발은 막막해도 목표에서 거꾸로 세어 보면 사정이 달라집니다. 목표 낱말에서 한 글자씩 바꿔 퍼져 나갈 때 닿는 낱말을 179개 목표 전부에서 세어 평균을 냈습니다.</p>
+    <table>
+      <tr><th>목표에서</th><th>닿는 낱말(평균)</th><th>사전 대비</th></tr>
+      <tr><td>한 걸음 안</td><td>75개</td><td>0.7%</td></tr>
+      <tr><td>두 걸음 안</td><td>3,019개</td><td>26.3%</td></tr>
+      <tr><td>세 걸음 안</td><td>9,881개</td><td>86.0%</td></tr>
+    </table>
+    <p>한 걸음 안은 75개뿐이지만, 두 걸음 안은 사전의 4분의 1이 넘고 세 걸음 안이면 사전의 86%입니다. 그러니 <strong>내 낱말이 목표에서 두 걸음 안에 들어왔는지만 알아봐도</strong> 사전의 4분의 1은 이미 내 편입니다. 다만 한 걸음 안의 75개는 평균이라, 가장 적은 목표는 이웃이 1개뿐이었습니다. 목표의 이웃이 적으면 거기서부터 거꾸로 길을 짜는 쪽이 오히려 쉽습니다.</p>
+  </section>
+
+  <section>
+    <h2>얼마나 앞을 보느냐가 결과를 가른다</h2>
+    <p>가상 플레이어를 이렇게 만들었습니다. 이웃 중에 「목표까지 k걸음 이내」인 낱말이 보이면 그중 가장 가까운 것으로 가고, 보이지 않으면 목표와 글자 하나가 같은 낱말 가운데 이웃이 많은 낱말로 갑니다. 이미 지나온 낱말에는 다시 가지 않고 30걸음까지만 걷게 했으며, 179쌍을 40번씩(7,160판) 돌렸습니다. 최단 단계의 평균은 3.49입니다.</p>
+    <table>
+      <tr><th>알아보는 거리</th><th>30걸음 안에 건넘</th><th>평균 걸음</th><th>더 걸은 수(평균)</th><th>최단으로 건넘</th></tr>
+      <tr><td>1걸음(바로 옆만)</td><td>79.3%</td><td>5.64</td><td>2.39</td><td>48.6%</td></tr>
+      <tr><td>2걸음</td><td>100%</td><td>3.63</td><td>0.14</td><td>94.4%</td></tr>
+      <tr><td>3걸음</td><td>100%</td><td>3.50</td><td>0.01</td><td>98.9%</td></tr>
+    </table>
+    <p>목표 바로 옆의 낱말만 알아보는 플레이어는 79.3%만 건너고 평균 2.39걸음을 더 걷습니다. <strong>두 걸음까지 알아보는 순간 전부 건너고 94.4%는 최단 길로 건넙니다.</strong> 세 걸음까지 보는 것과는 평균 0.13걸음밖에 차이가 나지 않으니, 두 걸음 앞이 가장 값어치가 큰 거리입니다.</p>
+  </section>
+
+  <section>
+    <h2>도착 낱말의 이웃 수가 난이도를 정한다</h2>
+    <p>목표의 이웃이 20개 이하인 쌍은 47쌍이고 최단 단계 평균이 4.49입니다. 이웃이 100개 이상인 58쌍은 평균 2.64단계입니다. 목표의 이웃이 많으면 그 이웃 어디로든 들어갈 길이 많아 짧아지고, 적으면 들어갈 문이 좁아 멀어집니다. 그래서 오늘 문제의 목표 낱말이 흔한 글자로 만들어졌으면 쉽고, 쓰임이 드문 글자 조합이면 어려운 판이라고 어림해도 크게 틀리지 않습니다.</p>
+  </section>
+
+  <section>
+    <h2>쉬운 낱말만으로는 못 건너는 판이 있다</h2>
+    <p>사전 앞쪽 1,068개는 상용어로 검수된 쉬운 낱말입니다. 출제표 179쌍의 출발·도착 낱말은 모두 이 안에 있지만, <strong>쉬운 낱말만 밟아서 건널 수 있는 쌍은 151쌍(84.4%)</strong>입니다. 나머지 28쌍은 쉬운 낱말만으로는 길이 아예 끊깁니다. 길이 있는 151쌍도 120쌍은 돌아가야 하고, 평균 1.58걸음을 더 걷습니다. 낯선 낱말이 부담스러워도 한 번쯤은 사전 속 덜 쓰는 낱말을 시도해 보는 편이 빠릅니다.</p>
+  </section>
+
+  <section>
+    <h2>이렇게 건너면 걸음이 줄어든다</h2>
+    <ul>
+      <li><strong>목표의 이웃부터 적는다</strong>: 한 글자만 바꾸면 목표가 되는 낱말을 두세 개 먼저 떠올리세요. 목표 쪽에서 내가 아는 것만 찾아도 길의 입구가 생깁니다.</li>
+      <li><strong>한 글자라도 목표와 같게 바꾼다</strong>: 이웃을 고를 때 목표와 같은 자리 글자가 맞아 떨어지는 낱말을 먼저 보세요.</li>
+      <li><strong>5단계 문제는 출발에서 막힌다</strong>: 출발 낱말의 이웃이 평균 18.9개뿐이라 떠올릴 후보가 적습니다. 그 18.9개를 먼저 훑고, 막히면 목표 쪽에서 거꾸로 두 걸음 길을 짜세요.</li>
+      <li><strong>힌트는 자리부터</strong>: 첫 번째 힌트는 몇 번째 글자를 바꿀지만 알려 줍니다. 목표와 이어지는 낱말을 찾는 데 이 한 줄이면 대개 충분합니다.</li>
+    </ul>
+    <p>문제는 날짜 하나로 정해져 누가 언제 열어도 같습니다. 이 글의 수치는 출제표 179쌍의 평균이라 하루하루는 다를 수 있으니, 절대 숫자보다 위의 비교를 읽어 주세요.</p>
+    <p><a class="cta" href="/dari/">▶ 단어 다리 한판</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Word Bridge math: seeing two steps ahead of the target gets you nearly the shortest route</h2>
+  <p class="updated">1 November 2026 · Hanpango · figures use the 11,484-word dictionary and the 179 prepared pairs of <a href="/dari/">Word Bridge</a>, counted directly</p>
+
+  <section>
+    <h2>The first step already decides a lot</h2>
+    <p>Start words in the 179 pairs have 68.9 neighbours on average (words reachable by changing one syllable). The share of those neighbours that lie on a shortest route is 1.8% for the 45 two-step pairs, 21.8% for the 45 three-step, 57.0% for the 45 four-step and 85.1% for the 44 five-step pairs, whose start words have only 18.9 neighbours. So a five-step puzzle is hard not because of many forks but because few words come to mind. A simulated player choosing a random unvisited neighbour (179 pairs × 400 runs = 71,600 runs) reached the target within 30 steps in only <strong>0.2%</strong> of runs.</p>
+  </section>
+
+  <section>
+    <h2>Count backwards from the target</h2>
+    <p>Averaged over the 179 targets, <strong>75 words</strong> (0.7% of the dictionary) lie within one step of the target, <strong>3,019</strong> (26.3%) within two steps, and <strong>9,881</strong> (86.0%) within three. Recognising that a word is within two steps of the target already covers a quarter of the dictionary.</p>
+  </section>
+
+  <section>
+    <h2>How far ahead you see decides the result</h2>
+    <p>A simulated player moves to the neighbour that is within k steps of the target if one is visible, otherwise to a word sharing one syllable with the target that has many neighbours. It never revisits a word and walks at most 30 steps; 179 pairs × 40 runs = 7,160 runs, with shortest routes averaging 3.49 steps. With k = 1 it crosses 79.3% of runs, averages 5.64 steps and walks 2.39 steps more than needed, taking the shortest route 48.6% of the time. With k = 2 it crosses 100%, averages 3.63 steps, walks 0.14 extra and takes the shortest route 94.4% of the time; with k = 3 the shortest-route share is 98.9%. Two steps ahead is the sweet spot.</p>
+  </section>
+
+  <section>
+    <h2>Target neighbours set the difficulty</h2>
+    <p>Targets with 20 or fewer neighbours (47 pairs) average 4.49 steps; targets with 100 or more (58 pairs) average 2.64. Few doors into the target means a longer route.</p>
+  </section>
+
+  <section>
+    <h2>Easy words alone are not enough</h2>
+    <p>All 179 pairs start and end inside the 1,068 easy words, yet only <strong>151 pairs (84.4%)</strong> can be crossed using easy words only. Of those 151, 120 need a detour and the average detour is 1.58 extra steps. Try a less common word now and then.</p>
+  </section>
+
+  <section>
+    <h2>So play like this</h2>
+    <p>Write down two or three neighbours of the target first. Prefer a neighbour that fixes one syllable to the target's. On five-step puzzles run through the start word's roughly 19 neighbours, and if you are stuck build the last two steps backwards from the target. The first hint only tells you which syllable to change, which is usually enough. These are averages over the 179 pairs, so single days vary.</p>
+    <p><a class="cta" href="/dari/">▶ Play Word Bridge</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
