@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>블록 퍼즐 잘하는 법 — 세 조각을 놓을 순서부터 정하기 | Block Puzzle Strategy — 한판고</title>
+<meta name="description" content="블록 퍼즐은 어떻게 놓아야 오래 갈까. 게임 코드를 그대로 돌려 같은 판 200개를 일곱 가지 방식으로 놓아 보니, 지울 수 있는 줄부터 쫓으면 평균 26.6개 만에 끝났고 왼쪽 위부터 차곡차곡 채우면 38.0개였습니다. 트레이의 세 조각을 놓을 순서와 자리를 한꺼번에 정하면 평균 173.4개·1,258점까지 갔습니다. 그렇게 해도 판이 끝날 때는 열에 다섯 넘게 3×3 조각이 놓일 자리를 못 찾았습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="블록 퍼즐 잘하는 법 — 세 조각을 놓을 순서부터 정하기 | Block Puzzle Strategy — 한판고">
+<meta property="og:description" content="블록 퍼즐은 어떻게 놓아야 오래 갈까. 게임 코드를 그대로 돌려 같은 판 200개를 일곱 가지 방식으로 놓아 보니, 지울 수 있는 줄부터 쫓으면 평균 26.6개 만에 끝났고 왼쪽 위부터 차곡차곡 채우면 38.0개였습니다. 트레이의 세 조각을 놓을 순서와 자리를 한꺼번에 정하면 평균 173.4개·1,258점까지 갔습니다. 그렇게 해도 판이 끝날 때는 열에 다섯 넘게 3×3 조각이 놓일 자리를 못 찾았습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/block-puzzle-three-pieces/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/block-puzzle-three-pieces/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>블록 퍼즐 잘하는 법 — 세 조각을 놓을 순서부터 정하기</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/block-puzzle/">블록 퍼즐 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 11월 4일 · 한판고 · 수치는 <a href="/block-puzzle/">블록 퍼즐</a>의 게임 코드(조각 뽑기·놓기·줄 지우기·점수 규칙)를 그대로 돌려, 같은 판 200개를 놓는 방식만 다른 가상 플레이어 일곱이 끝까지 놓아 본 결과입니다</p>
+
+  <section>
+    <h2>판은 점수가 아니라 자리가 없을 때 끝난다</h2>
+    <p>판은 10×10이고 조각은 돌릴 수 없습니다. 트레이에 세 조각이 오고, 세 개를 모두 놓아야 다음 세 개가 옵니다. 트레이에 남은 조각 가운데 어느 것도 놓을 자리가 없으면 그 자리에서 끝납니다. 그래서 이 게임의 실력은 줄을 몇 번 지웠느냐보다 <strong>조각을 몇 개나 놓고 버텼느냐</strong>로 갈립니다. 점수는 놓은 칸 수에, 지운 줄 수의 제곱에 10을 곱한 보너스가 붙는 구조라 오래 버틴 판이 점수도 높습니다.</p>
+  </section>
+
+  <section>
+    <h2>일곱 가지 방식, 같은 판 200개</h2>
+    <p>판마다 같은 난수 씨앗에서 시작하게 해서, 일곱 플레이어가 같은 순서의 조각을 받게 했습니다. 다른 것은 놓는 방식뿐입니다.</p>
+    <table>
+      <tr><th>놓는 방식</th><th>놓은 조각(평균)</th><th>점수(평균)</th><th>지운 줄</th><th>100개 넘긴 판</th></tr>
+      <tr><td>아무 데나</td><td>19.7</td><td>79</td><td>0.8</td><td>0</td></tr>
+      <tr><td>지울 줄이 가장 많은 자리</td><td>26.6</td><td>133</td><td>3.6</td><td>0</td></tr>
+      <tr><td>작은 조각부터</td><td>37.3</td><td>219</td><td>7.5</td><td>1</td></tr>
+      <tr><td>왼쪽 위부터 차곡차곡</td><td>38.0</td><td>227</td><td>7.4</td><td>0</td></tr>
+      <tr><td>3×3·다섯 칸 빈자리 남기기</td><td>47.2</td><td>293</td><td>11.0</td><td>6</td></tr>
+      <tr><td>큰 조각부터</td><td>48.1</td><td>304</td><td>11.3</td><td>14</td></tr>
+      <tr><td>세 조각을 한꺼번에 계획</td><td>173.4</td><td>1,258</td><td>58.1</td><td>146</td></tr>
+    </table>
+    <p>눈에 띄는 것은 두 가지입니다. 하나는 <strong>지울 줄만 쫓는 방식이 왼쪽 위부터 생각 없이 채우는 방식보다 못했다</strong>는 점입니다. 줄을 지우려고 조각을 판 곳곳에 흩어 놓다 보니, 큰 조각이 들어갈 덩어리진 빈자리가 먼저 사라졌습니다. 다른 하나는 마지막 줄입니다. 세 조각을 놓을 순서와 자리를 한꺼번에 따져 세 개를 다 놓고 난 판이 가장 넉넉한 길을 고르게 했더니, 큰 조각부터 놓는 방식보다도 조각을 3.6배 더 놓았고 200판 가운데 146판이 100개를 넘겼습니다. 최고는 5,095점이었습니다.</p>
+  </section>
+
+  <section>
+    <h2>3×3은 드물게 오지만 판을 끝낸다</h2>
+    <p>스물한 가지 모양은 무게를 달리해 뽑힙니다. 3×3 정사각형은 한 번 뽑을 때 2.3%라 한 트레이에 끼는 일은 6.9%, 열네 트레이에 한 번꼴입니다. 그런데 세 조각을 계획해 놓은 플레이어의 판이 끝난 순간을 보면, <strong>200판 중 110판(55%)에서 트레이에 남은 조각에 3×3이 끼어 있었습니다</strong>. 다섯 칸짜리가 남은 판이 78판, 그보다 작은 조각만 남은 판은 12판뿐이었습니다. 놓기를 잘할수록 판은 작은 조각이 아니라 드물게 오는 큰 조각에서 끝납니다.</p>
+    <p>그래서 3×3이 들어갈 빈자리를 늘 하나 남기는 규칙만 더해도 차이가 납니다. 같은 규칙에서 3×3 자리 한 가지만 뺐더니 평균 40.6개·240점이었고, 넣으면 47.2개·293점이었습니다.</p>
+  </section>
+
+  <section>
+    <h2>순서 규칙 하나로도 달라진다</h2>
+    <p>세 조각을 모든 경우로 따져 보는 것은 사람에게 어렵습니다. 그래서 놓는 자리는 같은 기준으로 고르고 순서만 정해 둔 두 플레이어를 비교했습니다. <strong>남은 조각 가운데 가장 큰 것부터 놓으면 평균 48.1개·304점</strong>, 가장 작은 것부터 놓으면 37.3개·219점이었습니다. 큰 조각은 넓은 빈자리가 있을 때 먼저 넣어야 하고, 한 칸이나 두 칸짜리는 나중에 남은 틈을 메우는 데 쓰는 편이 낫습니다. 작은 조각을 먼저 넣으면 그 조각이 큰 조각의 자리를 잘라 먹습니다.</p>
+  </section>
+
+  <section>
+    <h2>이렇게 놓으면 오래 간다</h2>
+    <ul>
+      <li><strong>첫 조각을 집기 전에 세 개의 자리를 다 정한다</strong>: 셋 중 하나라도 들어갈 곳이 없으면 판이 끝나니, 첫 수는 나머지 둘이 들어갈 자리를 남기는 수여야 합니다.</li>
+      <li><strong>큰 조각부터 넣는다</strong>: 다섯 칸짜리와 큰 L자를 먼저, 한두 칸짜리는 마지막 틈 메우기로 아껴 두세요.</li>
+      <li><strong>3×3 자리를 하나 비워 둔다</strong>: 드물게 오지만 오면 판을 끝냅니다. 판 한쪽에 3×3 빈칸 하나를 지켜 두세요.</li>
+      <li><strong>줄 지우기를 쫓지 않는다</strong>: 한쪽 가장자리부터 빈틈없이 채우면 줄은 저절로 지워집니다. 지우려고 조각을 흩어 놓으면 큰 빈자리가 먼저 없어집니다.</li>
+    </ul>
+    <p>이 수치는 같은 판 200개를 가상 플레이어로 놓아 본 값이라 실제 판은 사람마다 다르게 흘러갑니다. 절대 숫자보다 위의 비교를 읽어 주세요.</p>
+    <p><a class="cta" href="/block-puzzle/">▶ 블록 퍼즐 한판</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Block Puzzle strategy: decide the order of all three pieces first</h2>
+  <p class="updated">4 November 2026 · Hanpango · figures come from running the actual <a href="/block-puzzle/">Block Puzzle</a> game code (piece draw, placement, line clears and scoring) on the same 200 boards with seven simulated players that differ only in how they place pieces</p>
+
+  <section>
+    <h2>The round ends when nothing fits</h2>
+    <p>The board is 10×10, pieces cannot rotate, and the tray hands you three at a time; the next three come only after all three are placed. If no remaining piece fits anywhere, the round is over, so skill shows up as <strong>how many pieces you place</strong> before that happens. Points are the cells placed plus ten times the square of the lines cleared, so long rounds also score highest.</p>
+  </section>
+
+  <section>
+    <h2>Seven players, the same 200 boards</h2>
+    <p>Each board starts from the same random seed for every player, so they all receive the same piece order. Averages per player: anywhere at random 19.7 pieces and 79 points; the spot that clears the most lines 26.6 pieces and 133 points; smallest piece first 37.3 and 219; fill from the top left 38.0 and 227; keep room for a 3×3 and five-cell bars 47.2 and 293; biggest piece first 48.1 and 304; <strong>plan all three pieces together 173.4 pieces and 1,258 points</strong>, with 146 of 200 rounds passing 100 pieces and a best of 5,095. Chasing line clears did worse than mindlessly filling from one corner: scattering pieces to complete lines destroys the large open areas big pieces need.</p>
+  </section>
+
+  <section>
+    <h2>The rare 3×3 is what ends good rounds</h2>
+    <p>The 3×3 square is drawn 2.3% of the time, so it appears in only 6.9% of trays, about one in fourteen. Yet when the planning player's rounds ended, <strong>110 of 200 (55%) had a 3×3 among the pieces left in the tray</strong>; 78 ended on a five-cell piece and only 12 on smaller pieces. Adding a single rule that keeps room for a 3×3 lifted the same player from 40.6 pieces and 240 points to 47.2 and 293.</p>
+  </section>
+
+  <section>
+    <h2>One order rule already helps</h2>
+    <p>Checking every combination is hard for a person, so we compared two players who choose spots the same way and differ only in order. Biggest first averaged 48.1 pieces and 304 points; smallest first 37.3 and 219. Place the big pieces while wide gaps still exist and save the one- and two-cell pieces for the last gaps. These are simulated averages, so read the comparisons rather than the absolute numbers.</p>
+    <p><a class="cta" href="/block-puzzle/">▶ Play Block Puzzle</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
