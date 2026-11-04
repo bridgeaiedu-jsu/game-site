@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>슛팅 점수 올리는 법 — 2.5초 콤보를 끝까지 잇기 | Shooting Strategy — 한판고</title>
+<meta name="description" content="슛팅 점수는 무엇이 가를까. 게임 코드를 그대로 돌려 오늘의 도전 200일치 판을 일곱 가지 방식으로 움직여 보니, 가운데에 가만히 서 있으면 평균 13,933점이었고 구석에 숨으면 9,206점에 90초를 버틴 판도 200판 중 54판뿐이었습니다. 가장 아래로 내려온 표적부터 쫓으면 200판 모두 콤보가 한 번도 끊기지 않아 평균 326,612점이었습니다. 45초에 3초만 쉬어도 평균 점수가 20% 줄었습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="슛팅 점수 올리는 법 — 2.5초 콤보를 끝까지 잇기 | Shooting Strategy — 한판고">
+<meta property="og:description" content="슛팅 점수는 무엇이 가를까. 게임 코드를 그대로 돌려 오늘의 도전 200일치 판을 일곱 가지 방식으로 움직여 보니, 가운데에 가만히 서 있으면 평균 13,933점이었고 구석에 숨으면 9,206점에 90초를 버틴 판도 200판 중 54판뿐이었습니다. 가장 아래로 내려온 표적부터 쫓으면 200판 모두 콤보가 한 번도 끊기지 않아 평균 326,612점이었습니다. 45초에 3초만 쉬어도 평균 점수가 20% 줄었습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/shooting-combo-clock/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/shooting-combo-clock/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>슛팅 점수 올리는 법 — 2.5초 콤보를 끝까지 잇기</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/shooting/">슛팅 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 11월 5일 · 한판고 · 수치는 <a href="/shooting/">슛팅</a>의 게임 코드(표적 나오기·이동·자동 연사·맞음과 부딪힘 판정·콤보·분노 모드 규칙)를 그대로 돌려, 8월 23일부터 200일 동안의 오늘의 도전 판을 움직이는 방식만 다른 가상 플레이어가 90초씩 끝까지 해 본 결과입니다</p>
+
+  <section>
+    <h2>한 판에 내려오는 표적은 약 200개다</h2>
+    <p>슛팅은 쏘는 버튼이 없습니다. 기체는 0.11초마다 한 발씩 알아서 쏘고, 사람이 고르는 것은 좌우 위치 하나뿐입니다. 표적은 처음에 0.72초마다 하나, 끝으로 갈수록 0.38초마다 하나씩 내려오고 후반 45초에는 가끔 두 개가 함께 나옵니다. 200일치 판을 세어 보니 90초 동안 나오는 표적은 <strong>평균 202.4개</strong>였습니다. 하나를 부술 때마다 콤보가 1 오르고, 한 개의 점수는 기본 점수에 (1 + 콤보 × 0.1)을 곱한 값입니다. 콤보 100에서 부순 네모 하나는 1,100점, 콤보 1에서 부순 네모는 110점입니다. 그래서 이 게임의 점수는 몇 개를 부쉈느냐보다 <strong>콤보를 몇 번 끊겼느냐</strong>로 갈립니다.</p>
+  </section>
+
+  <section>
+    <h2>일곱 가지 움직임, 같은 판 200개</h2>
+    <p>표적이 나오는 순서와 자리는 날짜 씨앗으로 정해지므로 일곱 플레이어는 날마다 똑같은 표적을 받습니다. 다른 것은 기체를 어디에 두느냐뿐입니다. 표적을 쫓는 플레이어는 탄이 닿을 때쯤 표적이 있을 자리를 내다보고 섭니다.</p>
+    <table>
+      <tr><th>움직이는 방식</th><th>점수(평균)</th><th>부순 개수</th><th>최대 콤보</th><th>90초 버틴 판</th></tr>
+      <tr><td>왼쪽 구석에 숨기</td><td>9,206</td><td>37.6</td><td>15.7</td><td>54</td></tr>
+      <tr><td>가운데에 가만히</td><td>13,933</td><td>47.3</td><td>19.6</td><td>11</td></tr>
+      <tr><td>가장 가까운 표적</td><td>306,260</td><td>199.5</td><td>188.6</td><td>200</td></tr>
+      <tr><td>한 방짜리 먼저 + 피하기</td><td>307,399</td><td>199.2</td><td>189.3</td><td>200</td></tr>
+      <tr><td>가장 가까운 표적 + 피하기</td><td>314,159</td><td>199.1</td><td>192.7</td><td>200</td></tr>
+      <tr><td>가장 위에 있는 표적부터</td><td>323,898</td><td>200.4</td><td>197.0</td><td>200</td></tr>
+      <tr><td>가장 아래로 내려온 표적부터</td><td>326,612</td><td>199.3</td><td>199.3</td><td>200</td></tr>
+    </table>
+    <p>먼저 위 두 줄입니다. <strong>구석은 안전한 곳이 아니었습니다.</strong> 표적은 좌우로 흘러가다 벽에 닿으면 튕겨 나오는데, 튕기는 자리가 바로 구석의 기체 자리라서 평균 2.62번 부딪혔고 90초를 버틴 판은 54판뿐이었습니다. 가운데에 가만히 있으면 더 자주 부딪혀 200판 중 11판만 끝까지 갔고, 목숨을 다 잃은 판은 평균 49초 만에 끝났습니다. 반대로 표적을 쫓은 다섯 플레이어는 200판 모두 목숨을 남긴 채 90초를 채웠습니다. 쫓는 쪽이 오히려 덜 맞습니다. 표적을 부숴 없애면 부딪힐 표적 자체가 줄기 때문입니다.</p>
+    <p>마지막 줄은 더 분명합니다. 가장 아래로 내려온 표적부터 부순 플레이어는 <strong>200판 모두 콤보가 한 번도 끊기지 않았습니다</strong>. 부순 개수가 곧 최대 콤보(평균 199.3)였고 가장 낮은 판도 275,368점이었습니다. 부순 개수는 다섯 플레이어가 거의 같은데 점수가 2만 점 넘게 벌어진 것은, 콤보가 끊긴 횟수가 판당 0.2번이냐 0번이냐의 차이입니다.</p>
+  </section>
+
+  <section>
+    <h2>3초 쉬면 20%가 날아간다</h2>
+    <p>콤보 한 번이 얼마짜리인지 보려고, 가장 가까운 표적을 쫓으며 피하는 플레이어(평균 314,159점)에게 한 번만 3초 동안 표적이 없는 쪽으로 비켜서게 했습니다.</p>
+    <table>
+      <tr><th>3초 쉰 때</th><th>점수(평균)</th><th>안 쉰 판과 비교</th></tr>
+      <tr><td>15초째</td><td>269,999</td><td>−14%</td></tr>
+      <tr><td>45초째</td><td>251,189</td><td>−20%</td></tr>
+      <tr><td>75초째</td><td>278,516</td><td>−11%</td></tr>
+    </table>
+    <p>한가운데에서 끊길 때가 가장 아픕니다. 앞에서 쌓은 콤보가 사라지는 데다, 다시 쌓는 동안 가장 빨리 쏟아지는 후반 표적을 낮은 배수로 부수게 되기 때문입니다. 판 중간에 화면이 잠깐 비어 보여도 기체를 멈추지 말고 다음 표적 쪽으로 미리 가 있어야 하는 이유입니다.</p>
+  </section>
+
+  <section>
+    <h2>분노 모드는 아끼지 않는 편이 낫다</h2>
+    <p>분노 게이지는 한 개를 부술 때마다 7씩 차서 열다섯 개째에 터지고, 그 순간 화면의 표적을 모두 없앤 뒤 3초 동안 세 갈래 관통탄을 쏩니다. 잘 쫓는 플레이어는 한 판에 분노를 평균 8번 가까이 켰습니다. 그렇다면 게이지가 한 칸 남았을 때 표적이 화면에 몰릴 때까지 기다렸다 터뜨리면 어떨까요. 표적이 6개, 9개, 12개 모일 때까지 빈 줄에서 기다리게 해 보았습니다.</p>
+    <table>
+      <tr><th>터뜨리는 때</th><th>점수(평균)</th><th>폭발 한 번에 쓸린 표적</th><th>콤보 끊김(판당)</th></tr>
+      <tr><td>차는 대로 바로</td><td>314,159</td><td>3.9</td><td>0.1</td></tr>
+      <tr><td>표적 6개 모일 때까지</td><td>260,650</td><td>4.5</td><td>0.9</td></tr>
+      <tr><td>표적 9개 모일 때까지</td><td>244,558</td><td>4.8</td><td>1.1</td></tr>
+      <tr><td>표적 12개 모일 때까지</td><td>231,657</td><td>4.9</td><td>1.2</td></tr>
+    </table>
+    <p>기다리면 폭발 한 번에 쓸리는 표적은 한 개쯤 늘지만, 그동안 콤보 시계가 흘러 끊기는 일이 생기고 점수는 17~26% 줄었습니다. 쉬지 않는 판에서 분노가 벌어 준 점수는 전체의 18.7%뿐이고 나머지는 평범하게 한 발씩 부순 점수입니다. 분노는 몰아서 크게 쓰는 기술이 아니라 쉬지 않고 쏜 결과로 따라오는 덤이라고 보는 편이 맞습니다.</p>
+  </section>
+
+  <section>
+    <h2>손이 늦거나 빗나가면</h2>
+    <p>가상 플레이어는 사람보다 정확합니다. 그래서 화면을 0.1~0.3초 늦게 보는 경우와, 표적마다 겨누는 자리가 조금씩 어긋나는 경우를 따로 돌려 보았습니다.</p>
+    <ul>
+      <li><strong>0.1초·0.2초·0.3초 늦게 보면서 피하기도 하면</strong>: 평균 310,321점·301,651점·284,488점. 200판 모두 90초를 버텼습니다. 늦게 보는 것만으로는 크게 무너지지 않습니다.</li>
+      <li><strong>0.2초 늦게 보면서 피하지 않으면</strong>: 271,972점, 부딪힘이 판당 0.48번으로 피하는 쪽(0.17번)의 세 배쯤입니다.</li>
+      <li><strong>0.2초 늦은 데다 표적마다 겨눔이 평균 5·10·15·20·30픽셀 어긋나면</strong>: 263,550점 → 193,770점 → 112,263점 → 67,806점 → 35,637점. 90초를 버틴 판은 195 → 164 → 103 → 50 → 22판으로 줄었습니다.</li>
+    </ul>
+    <p>판정 폭은 기체 쪽이 반지름 15, 탄이 표적에 닿는 거리가 표적 반지름에 4를 더한 값(18~26)이라, 겨눔이 10픽셀을 넘게 어긋나기 시작하면 맞히지 못한 표적 밑에 서 있다가 그 표적에 부딪히는 일이 겹칩니다. 빗나간 표적에서 미련 없이 비켜서는 것이 콤보와 목숨을 함께 지킵니다.</p>
+  </section>
+
+  <section>
+    <h2>이렇게 움직이면 점수가 오른다</h2>
+    <ul>
+      <li><strong>가장 낮게 내려온 표적부터 부순다</strong>: 곧 화면 밖으로 빠질 표적을 먼저 처리해야 콤보 시계가 비지 않습니다. 실험에서 콤보가 한 번도 끊기지 않은 유일한 방식이었습니다.</li>
+      <li><strong>구석에 숨지 않는다</strong>: 벽에서 튕겨 나온 표적이 그 자리로 옵니다. 숨으면 점수도 목숨도 함께 잃습니다.</li>
+      <li><strong>화면이 비어도 멈추지 않는다</strong>: 판 한가운데에서 3초 쉬면 점수의 20%가 사라집니다. 새 표적이 나올 쪽으로 먼저 가 있으세요.</li>
+      <li><strong>분노는 차는 대로 둔다</strong>: 몰릴 때를 기다리면 폭발은 조금 커지지만 콤보가 끊겨 손해입니다.</li>
+      <li><strong>빗나간 표적 밑에 오래 서 있지 않는다</strong>: 놓친 표적은 내려와 기체에 부딪힙니다. 다음 표적으로 옮겨 가는 편이 낫습니다.</li>
+    </ul>
+    <p>이 수치는 오늘의 도전 200일치 판을 가상 플레이어로 움직여 본 값이라 실제 판의 점수는 손에 따라 크게 다릅니다. 절대 숫자보다 위의 비교를 읽어 주세요.</p>
+    <p><a class="cta" href="/shooting/">▶ 슛팅 한판</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Shooting strategy: keep the 2.5-second combo alive to the end</h2>
+  <p class="updated">5 November 2026 · Hanpango · figures come from running the actual <a href="/shooting/">Shooting</a> game code (spawning, movement, auto-fire, hit and collision checks, combo and rage rules) on 200 daily boards starting 23 August, with simulated players that differ only in how they move, each playing the full ninety seconds</p>
+
+  <section>
+    <h2>About 200 targets fall in a round</h2>
+    <p>There is no fire button: the ship shoots every 0.11 seconds and the only thing you choose is where to stand. Across 200 daily boards an average of <strong>202.4 targets</strong> came down in ninety seconds. Each target is worth its base points times (1 + combo × 0.1), so a square broken at combo 100 is worth 1,100 points and the same square at combo 1 is worth 110. The score is decided by <strong>how often your combo breaks</strong>, far more than by how many targets you break.</p>
+  </section>
+
+  <section>
+    <h2>Seven ways to move, the same 200 boards</h2>
+    <p>Averages per player: hide in the left corner 9,206 points with only 54 of 200 rounds lasting ninety seconds; stand still in the middle 13,933 with 11 rounds lasting; chase the nearest target 306,260; one-hit targets first while dodging 307,399; nearest target while dodging 314,159; highest target first 323,898; <strong>lowest target first 326,612</strong>. The corner is not a hiding place, because targets bounce off the wall right where the ship sits. Every chasing player kept at least one life for all 200 rounds, and the lowest-first player never broke its combo once in any of the 200 rounds; its weakest round still scored 275,368.</p>
+  </section>
+
+  <section>
+    <h2>Three seconds of rest costs 20%</h2>
+    <p>We made the nearest-and-dodge player step away from all targets for three seconds just once. Resting at 15 seconds averaged 269,999 points (−14%), at 45 seconds 251,189 (−20%) and at 75 seconds 278,516 (−11%). A break in the middle hurts most, because the fastest late-round targets are then broken at a low multiplier.</p>
+  </section>
+
+  <section>
+    <h2>Do not save rage mode</h2>
+    <p>The rage meter fills by 7 per target, so it fires on the fifteenth, clears the screen and gives three seconds of piercing triple shots; good players triggered it nearly eight times a round. Waiting with one notch left until 6, 9 or 12 targets were on screen made each blast sweep about one target more but dropped the average to 260,650, 244,558 and 231,657, because the combo clock ran out while waiting. Rage accounted for only 18.7% of the points in uninterrupted play.</p>
+  </section>
+
+  <section>
+    <h2>Late hands and missed aim</h2>
+    <p>Seeing the screen 0.1, 0.2 or 0.3 seconds late while still dodging averaged 310,321, 301,651 and 284,488 points with every round lasting. Adding an aim error of 5, 10, 15, 20 or 30 pixels per target on top of a 0.2-second lag dropped the average to 263,550, 193,770, 112,263, 67,806 and 35,637, and the rounds that lasted ninety seconds fell from 195 to 22. Once you miss, standing under the target you missed is how lives are lost, so move on to the next one. These are simulated averages, so read the comparisons rather than the absolute numbers.</p>
+    <p><a class="cta" href="/shooting/">▶ Play Shooting</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
