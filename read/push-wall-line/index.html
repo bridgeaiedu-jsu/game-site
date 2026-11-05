@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>밀어서 정리 잘 푸는 법 — 판을 죽이는 한 번의 밀기 | Push It Right Strategy — 한판고</title>
+<meta name="description" content="밀어서 정리는 무엇이 판을 망칠까. 판 생성기 코드를 그대로 돌려 2026년 365일치 오늘의 판을 모두 풀어 보니, 시작 화면에서 밀 수 있는 수 평균 4.6가지 중 51.5%가 그 자리에서 판을 풀 수 없게 만들었습니다. 판을 죽이는 밀기의 70.4%는 상자를 바깥 벽 줄로 보내는 것이었고 구석은 25.4%였습니다. 이 두 가지만 피해도 거리를 줄이는 쪽으로 미는 가상 플레이어가 푼 판이 38.1%에서 64.0%로 늘었습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="밀어서 정리 잘 푸는 법 — 판을 죽이는 한 번의 밀기 | Push It Right Strategy — 한판고">
+<meta property="og:description" content="밀어서 정리는 무엇이 판을 망칠까. 판 생성기 코드를 그대로 돌려 2026년 365일치 오늘의 판을 모두 풀어 보니, 시작 화면에서 밀 수 있는 수 평균 4.6가지 중 51.5%가 그 자리에서 판을 풀 수 없게 만들었습니다. 판을 죽이는 밀기의 70.4%는 상자를 바깥 벽 줄로 보내는 것이었고 구석은 25.4%였습니다. 이 두 가지만 피해도 거리를 줄이는 쪽으로 미는 가상 플레이어가 푼 판이 38.1%에서 64.0%로 늘었습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/push-wall-line/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/push-wall-line/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>밀어서 정리 잘 푸는 법 — 판을 죽이는 한 번의 밀기</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/push/">밀어서 정리 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 11월 6일 · 한판고 · 수치는 <a href="/push/">밀어서 정리</a>의 판 생성기 코드를 그대로 돌려 2026년 1월 1일부터 12월 31일까지 365일치 오늘의 판을 만들고, 각 판에서 닿을 수 있는 배치를 빠짐없이 훑어 풀리는지 아닌지를 따져 본 결과입니다</p>
+
+  <section>
+    <h2>365판을 다 풀어 보았다</h2>
+    <p>밀어서 정리의 판은 날짜 하나로 정해지고, 생성기는 판을 만들 때 그 판의 최소 밀기 수를 함께 알아냅니다. 그래서 1년치 판을 미리 다 꺼내 볼 수 있습니다. 2026년의 365판은 상자 두 개짜리가 144일, 세 개짜리가 221일이었고, 예비 판이 쓰인 날은 하루도 없었습니다. 최소 밀기는 <strong>평균 12.2번</strong>이고 10번짜리가 83일로 가장 많았습니다. 상자 두 개인 날은 평균 11.1번, 세 개인 날은 13.0번입니다. 가장 긴 판은 3월 2일의 21번 하나뿐이고, 18번을 넘는 판은 그날 말고는 없었습니다.</p>
+    <p>최소 밀기가 이렇게 짧은데도 이 퍼즐이 막히는 이유는 길이가 아니라 <strong>되돌릴 수 없는 밀기</strong>에 있습니다. 상자를 당길 수 없으니, 한 번 잘못 민 상자는 화면에 멀쩡히 남아 있어도 이미 자리에 갈 수 없는 상태가 됩니다. 아래 수치는 그 「죽은 판」이 얼마나 자주, 어떤 모양으로 생기는지를 센 것입니다.</p>
+  </section>
+
+  <section>
+    <h2>첫 밀기의 절반이 판을 죽인다</h2>
+    <p>시작 화면에서 밀 수 있는 상자와 방향은 하루 평균 4.6가지였습니다. 그 가운데 판이 여전히 풀리는 것은 평균 2.2가지뿐이고, <strong>51.5%는 첫 밀기에서 바로 판을 풀 수 없게 만들었습니다.</strong> 첫 밀기 중 하나라도 판을 죽이는 날이 365일 중 358일이었고, 살아남는 첫 밀기가 딱 하나뿐인 날도 59일이었습니다.</p>
+    <p>반대로 좋은 소식도 있습니다. 판을 죽이지 않는 첫 밀기는 <strong>365일 모두 예외 없이 최소 밀기로 가는 첫 수</strong>였습니다. 생성기가 답에서 가장 멀리 떨어진 배치를 오늘의 판으로 고르기 때문에, 처음 상태에서는 더 멀어질 방향이 없습니다. 첫 수에서 고민할 것은 「어느 쪽이 빠른가」가 아니라 「어느 쪽이 판을 죽이는가」 하나입니다.</p>
+  </section>
+
+  <section>
+    <h2>판을 죽이는 밀기는 거의 두 가지 모양이다</h2>
+    <p>첫 수뿐 아니라 풀이 도중 만나는 모든 배치로 넓혀 보았습니다. 365판에서 아직 풀리는 배치를 모두 모아 거기서 가능한 밀기를 세니 1,360,338가지였고, 그중 314,148가지(23.1%)가 판을 죽였습니다. 판을 죽인 밀기를 모양으로 나누면 이렇습니다.</p>
+    <table>
+      <tr><th>죽은 모양</th><th>밀기 수</th><th>비율</th></tr>
+      <tr><td>자리가 아닌 구석에 상자가 들어감</td><td>79,818</td><td>25.4%</td></tr>
+      <tr><td>바깥 벽 줄에 상자가 그 줄의 빈 자리보다 많아짐</td><td>221,132</td><td>70.4%</td></tr>
+      <tr><td>상자·벽 네 칸이 2×2로 뭉침</td><td>5,746</td><td>1.8%</td></tr>
+      <tr><td>그 밖의 모양</td><td>7,452</td><td>2.4%</td></tr>
+    </table>
+    <p>눈에 띄는 것은 구석보다 <strong>바깥 벽이 세 배 가까이 많다</strong>는 점입니다. 바깥 벽에 붙은 상자는 벽 쪽에 설 자리가 없어 다시 떼어 낼 수 없고, 그 줄을 따라 미끄러질 수만 있습니다. 그 줄에 빈 자리가 없거나, 있어도 이미 다른 상자가 차지할 몫이라면 그 상자는 갈 곳이 없습니다. 구석은 한눈에 위험해 보여서 피하기 쉽지만, 벽 줄은 상자가 아직 움직이니 괜찮아 보여서 더 자주 걸립니다. 게임 화면의 요령 두 가지(구석 피하기, 벽에 붙이기 전에 그 줄 확인하기)만 지켜도 판을 죽이는 밀기의 95.8%를 피할 수 있다는 뜻이기도 합니다.</p>
+    <p>나머지 2.4%에는 이런 모양이 있습니다. 아래 그림에서 #은 벽, B는 상자, o는 빈 자리, @는 나입니다.</p>
+<pre class="board">########
+#  o B #
+#    @B#
+# B    #
+#    #o#
+#    o #
+#      #
+########</pre>
+    <p>오른쪽 위 두 상자는 어느 쪽도 구석에 있지 않고, 각자 자기 줄에 빈 자리도 있습니다. 그런데 둘 사이의 빈 구석 칸에 아무도 들어갈 수 없습니다. 위 상자를 왼쪽으로 밀려면 그 구석에 서야 하고, 오른쪽 상자를 아래로 밀 때도 마찬가지입니다. <strong>빈 구석 칸의 양옆을 상자 두 개로 막으면</strong> 두 상자가 함께 얼어붙습니다.</p>
+  </section>
+
+  <section>
+    <h2>네 가지 가상 플레이어, 같은 365판</h2>
+    <p>규칙을 아는 것이 얼마나 도움이 되는지 보려고, 판마다 네 가지 방식으로 20번씩 밀게 했습니다(방식마다 7,300판). 「거리 줄이기」는 상자들과 빈 자리 사이의 칸 수(벽은 무시하고 센 가로·세로 칸 수) 합이 가장 작아지는 밀기를 고르는 플레이어입니다. 판을 죽였거나 200번을 밀어도 못 끝내면 실패로 셉니다.</p>
+    <table>
+      <tr><th>미는 방식</th><th>푼 판</th><th>죽인 판</th><th>푼 판의 평균 밀기</th></tr>
+      <tr><td>아무렇게나</td><td>0.1%</td><td>99.9%</td><td>24.0</td></tr>
+      <tr><td>아무렇게나 + 구석·벽 줄 피하기</td><td>27.3%</td><td>54.4%</td><td>87.7</td></tr>
+      <tr><td>거리 줄이기</td><td>38.1%</td><td>61.5%</td><td>13.5</td></tr>
+      <tr><td>거리 줄이기 + 구석·벽 줄 피하기</td><td>64.0%</td><td>19.9%</td><td>19.0</td></tr>
+    </table>
+    <p>아무렇게나 미는 플레이어는 평균 2.9번째 밀기에서 판을 죽였습니다. 거리만 줄이는 플레이어는 풀기만 하면 최소보다 평균 1.8번 더 미는 정도로 깔끔했고 푼 판의 약 79%는 최소 밀기 그대로였지만, 절반이 넘는 판을 평균 5.9번째 밀기에서 죽였습니다. 가까워지는 쪽이 벽 쪽이면 그대로 밀어 버리기 때문입니다. 여기에 두 요령을 더하자 죽인 판이 61.5%에서 19.9%로 줄었습니다. 나머지 16%는 판을 죽이지는 않았지만 같은 자리를 오가며 200번을 넘겼는데, 거리만 보고는 상자를 일부러 멀리 보내야 하는 순간을 찾지 못한 경우입니다.</p>
+  </section>
+
+  <section>
+    <h2>최소 풀이도 상자를 멀리 보낸다</h2>
+    <p>생성기가 아는 최소 풀이를 하나씩 따라가 보면, 거리만 줄이는 방식이 막히는 이유가 보입니다.</p>
+    <ul>
+      <li><strong>365판 중 216판(59%)</strong>의 최소 풀이에는 상자와 빈 자리 사이의 거리 합을 오히려 늘리는 밀기가 한 번 이상 들어 있었습니다. 그런 판에서 평균 1.9번입니다. 상자 뒤로 돌아갈 자리를 만들려고 한 칸 물리는 수입니다.</li>
+      <li><strong>255판(70%)</strong>의 최소 풀이는 도중에 상자를 바깥 벽 줄의 빈 자리 아닌 칸에 붙였다가 그 줄을 따라 옮겼습니다. 벽에 붙이는 것 자체가 나쁜 수가 아니라, 그 줄에 들어갈 자리가 있는지가 문제입니다.</li>
+      <li>빈 자리 951개 중 569개(59.8%)가 바깥 벽 줄에 있었습니다. 최소 풀이가 상자를 이런 자리에 넣을 때 벽과 나란히 밀어 넣은 경우가 353번, 안쪽에서 벽을 향해 밀어 넣은 경우가 230번이었습니다. 벽에 붙은 자리에도 세 방향에서 들어올 수 있으니, 한 방향만 지키려 애쓸 필요는 없습니다.</li>
+      <li>시작부터 상자 하나가 이미 빈 자리에 올라가 있는 날이 22일 있었고, 그중 18일은 최소 풀이가 그 상자를 자리에서 한 번 빼냈습니다. 제자리에 있는 상자도 길을 막고 있으면 옮겨야 합니다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>1년 중 가장 긴 판: 3월 2일</h2>
+<pre class="board">########
+#      #
+#    oo#
+#    # #
+#  B #o#
+# BB#  #
+# @    #
+########</pre>
+    <p>최소 21번이 필요한 이 판에서 첫 밀기 후보는 네 가지이고 그중 둘이 판을 죽입니다. 가운데 상자를 오른쪽으로 밀면 구석에 박히고, 아래 왼쪽 상자를 아래로 밀면 바닥 벽 줄에 붙는데 그 줄에는 빈 자리가 없습니다. 최소 풀이는 세 상자를 모두 같은 길(왼쪽 아래에서 계단처럼 위로, 오른쪽으로 올라가 둘째 줄에 닿는 길)로 한 개씩 보내고, 첫 상자를 <strong>오른쪽 벽 쪽 좁은 통로 안의 가장 깊은 자리</strong>에 먼저 넣습니다. 입구 쪽 자리부터 채우면 그 상자가 안쪽 자리로 가는 길을 막기 때문입니다. 자리가 막다른 곳에 몰려 있으면 안쪽부터 채우는 것이 순서의 기본입니다.</p>
+  </section>
+
+  <section>
+    <h2>이렇게 밀면 덜 막힌다</h2>
+    <ul>
+      <li><strong>첫 수는 「죽지 않는 쪽」만 고르면 된다</strong>: 1년치 판 모두 살아남는 첫 수는 곧 최선의 첫 수였습니다.</li>
+      <li><strong>벽 줄을 구석보다 더 경계한다</strong>: 판을 죽이는 밀기의 70%가 바깥 벽 줄이었습니다. 상자를 벽에 붙이기 전에 그 줄에 남은 빈 자리 수와 그 줄로 갈 상자 수를 견주세요.</li>
+      <li><strong>빈 구석 양옆을 상자로 막지 않는다</strong>: 두 상자 모두 멀쩡해 보여도 함께 얼어붙습니다.</li>
+      <li><strong>한 칸 물리는 수를 두려워하지 않는다</strong>: 최소 풀이의 59%에 거리를 늘리는 밀기가 들어 있습니다.</li>
+      <li><strong>막다른 곳의 자리는 안쪽부터 채운다</strong>: 입구 자리를 먼저 채우면 다음 상자의 길이 막힙니다.</li>
+    </ul>
+    <p>판이 죽었다고 느끼면 「↩ 되돌리기」로 그 밀기 직전까지 물러나면 됩니다. 되돌린 수는 밀기 수에서 빠지므로, 최소 밀기와 견주는 기록에는 손해가 없습니다.</p>
+    <p><a class="cta" href="/push/">▶ 밀어서 정리 한판</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Push It Right strategy: the single push that kills a board</h2>
+  <p class="updated">6 November 2026 · Hanpango · figures come from running the actual <a href="/push/">Push It Right</a> board generator for all 365 daily boards of 2026 and exhaustively exploring every reachable layout on each board to see which pushes leave it solvable</p>
+
+  <section>
+    <h2>All 365 boards, solved</h2>
+    <p>The daily board is fixed by the date, and the generator knows its fewest pushes. In 2026, 144 days have two boxes and 221 have three; the fallback board is never used. The fewest pushes average <strong>12.2</strong> (11.1 with two boxes, 13.0 with three), 10 is the most common value (83 days), and the longest board is 2 March at 21. What makes the puzzle hard is not length but pushes that cannot be undone.</p>
+  </section>
+
+  <section>
+    <h2>Half of all first pushes are fatal</h2>
+    <p>The starting position offers 4.6 possible pushes on average, and only 2.2 keep the board solvable: <strong>51.5% of first pushes kill the board on the spot</strong>. On 358 of 365 days at least one first push is fatal, and on 59 days only one survives. Every surviving first push, on every day, is also the start of a shortest solution, because the generator picks the layout farthest from the answer. Your first decision is only about not dying.</p>
+  </section>
+
+  <section>
+    <h2>Fatal pushes come in two shapes</h2>
+    <p>Across every solvable layout reachable on the 365 boards there are 1,360,338 possible pushes, and 314,148 of them (23.1%) are fatal. Of those, 25.4% put a box into a corner off its spot, <strong>70.4% leave more boxes on an outer-wall line than that line has spots</strong>, 1.8% form a 2×2 lump of boxes and walls, and 2.4% are other shapes, such as two boxes sealing the empty corner square between them. Avoiding corners and checking the wall line before pushing a box against it covers 95.8% of fatal pushes.</p>
+  </section>
+
+  <section>
+    <h2>Four simulated players</h2>
+    <p>Each board was played twenty times by four players (7,300 rounds each). Random pushing solved 0.1% and died on the 2.9th push on average. Random pushing that avoids corners and short wall lines solved 27.3%. A player who always reduces the total distance between boxes and spots solved 38.1%, usually near the minimum (1.8 extra pushes, about 79% exactly at the minimum), but killed 61.5% of boards. Adding the two rules raised that player to <strong>64.0% solved and cut dead boards to 19.9%</strong>; most remaining failures wandered without finding the push that moves a box away on purpose.</p>
+  </section>
+
+  <section>
+    <h2>Shortest solutions move boxes away too</h2>
+    <p>216 of the 365 shortest solutions (59%) include at least one push that increases the distance to the spots, and 255 (70%) slide a box along an outer wall on a square that is not a spot. Of 951 spots, 569 sit on an outer-wall line, and shortest solutions fill them along the wall 353 times and from the inside 230 times, so a wall spot can be entered from three sides. On 18 of the 22 days that start with a box already on a spot, the shortest solution moves that box off again. On the longest board, 2 March, all three boxes travel the same route and the first goes to the deepest spot inside the narrow right-hand pocket; filling the entrance first would block the way in.</p>
+    <p><a class="cta" href="/push/">▶ Play Push It Right</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
