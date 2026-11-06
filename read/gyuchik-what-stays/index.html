@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>규칙 찾기 문제 잘 푸는 법 — 바뀌지 않는 것부터 지운다 | Find the Rule Strategy — 한판고</title>
+<meta name="description" content="규칙 찾기는 어디부터 봐야 할까. 출제 코드를 그대로 돌려 첫날부터 365일치 1,825문제를 모두 꺼내 보니, 오답 보기 5,475개는 하나도 빠짐없이 정답과 딱 한 가지만 달랐습니다. 세 칸에서 바뀌지 않는 것만 그대로 두고 고르면 평균 5문제 중 3.39개를 맞혔고, 바뀌는 것만 쫓으면 정답률이 32.5%로 아무렇게나 찍기(25%)와 큰 차이가 없었습니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="규칙 찾기 문제 잘 푸는 법 — 바뀌지 않는 것부터 지운다 | Find the Rule Strategy — 한판고">
+<meta property="og:description" content="규칙 찾기는 어디부터 봐야 할까. 출제 코드를 그대로 돌려 첫날부터 365일치 1,825문제를 모두 꺼내 보니, 오답 보기 5,475개는 하나도 빠짐없이 정답과 딱 한 가지만 달랐습니다. 세 칸에서 바뀌지 않는 것만 그대로 두고 고르면 평균 5문제 중 3.39개를 맞혔고, 바뀌는 것만 쫓으면 정답률이 32.5%로 아무렇게나 찍기(25%)와 큰 차이가 없었습니다.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hanpango.com/read/gyuchik-what-stays/">
+<meta property="og:image" content="https://hanpango.com/og-home.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://hanpango.com/read/gyuchik-what-stays/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 개인정보(닉네임 등)는 보내지 않고,
+     광고 노출·클릭은 재지 않는다(애드센스 정책). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  /* ── 색 토큰 ─────────────────────────────────────────────────────────────
+     라이트(흰 캔버스)가 기본이다. 다크는 바로 아래 @media 에서 ★같은 이름의 값만
+     바꿔 끼운다 — HTML 마크업은 두 테마가 완전히 동일하다.
+     --sig 시그니처(칠·테두리) · --sig-ink 글자용 어두운 변형 · --on-sig 시그니처 면 위 글자 */
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#2563eb; --sig-ink:#1d4ed8; --sig-soft:#dbeafe; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f0d2e; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#f59e0b; --sig-ink:#fbbf24; --sig-soft:#2a2766; --on-sig:#1a1633;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .langbar{display:flex;gap:8px;margin:4px 0 14px;font-size:.8rem;flex-wrap:wrap}
+  .langbar a{color:var(--muted-2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.85em}
+  a{color:var(--sig-ink);word-break:break-word}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin-top:4px}
+  hr.split{border:0;border-top:1px solid var(--line);margin:26px 0 18px}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--muted-2);font-weight:600}
+  td:nth-child(n+2),th:nth-child(n+2){text-align:right}
+  pre.board{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;line-height:1.35;overflow-x:auto;margin:4px 0 10px}
+  .en-title{font-size:1.25rem;margin:0 0 10px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>규칙 찾기 문제 잘 푸는 법 — 바뀌지 않는 것부터 지운다</h1>
+  <a class="home" href="/read/">← 읽을거리</a>
+</header>
+
+<main>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/gyuchik/">규칙 찾기 하러 가기</a><a href="/">게임 목록</a></div>
+  <p class="updated">2026년 11월 7일 · 한판고 · 수치는 <a href="/gyuchik/">규칙 찾기</a>의 출제 코드를 그대로 돌려 첫날(2026년 8월 23일, #1)부터 2027년 8월 22일(#365)까지 365일치 오늘의 문제 1,825개를 모두 만들고, 보기 하나하나를 정답과 견주어 센 결과입니다</p>
+
+  <section>
+    <h2>1년치 1,825문제를 다 꺼내 보았다</h2>
+    <p>규칙 찾기는 예시 세 칸을 보고 네 번째 칸을 네 보기 중에서 고르는 퀴즈입니다. 칸마다 바뀔 수 있는 것은 세 가지입니다. <strong>채운 칸의 개수</strong>, 굵은 테두리로 표시된 <strong>자리</strong>, 그리고 <strong>모양</strong>(●▲■)입니다. 문제는 날짜 하나로 정해지므로 1년치를 미리 모두 만들어 볼 수 있습니다. 365일 1,825문제가 하나도 빠짐없이 만들어졌고, 출제가 막힌 날은 없었습니다.</p>
+    <p>규칙은 네 가지뿐입니다. 하루 다섯 문제는 네 규칙이 한 번씩 나오고 그중 하나가 한 번 더 나옵니다. 1년 동안 반복 459문제, 옮겨 가기 469문제, 늘어나기 441문제, 번갈아 나오기 456문제로 거의 고르게 나뉘었습니다. 같은 예시 세 칸이 다시 나오는 데는 가장 짧아도 15일이 걸렸습니다.</p>
+  </section>
+
+  <section>
+    <h2>오답은 모두 딱 한 가지만 틀린다</h2>
+    <p>오답 보기 5,475개를 정답과 견주어 보니 <strong>모두 정답과 딱 한 가지만 달랐습니다.</strong> 두 가지 이상 다른 보기는 하나도 없었습니다. 어긋난 곳은 개수 1,786개, 자리 1,857개, 모양 1,832개로 셋이 거의 같았습니다. 그래서 보기들은 언제나 그럴듯해 보입니다. 정답과 오답이 세 가지 중 두 가지를 공유하기 때문입니다.</p>
+    <p>그리고 문제 쪽에서도 바뀌는 것은 언제나 하나뿐이었습니다. 옮겨 가기는 자리만, 늘어나기는 개수만, 번갈아 나오기는 모양만 바뀌고 나머지 둘은 세 칸 내내 그대로였습니다. 반복은 아무것도 바뀌지 않습니다. 이 두 사실을 합치면 푸는 순서가 나옵니다.</p>
+  </section>
+
+  <section>
+    <h2>바뀌는 것보다 바뀌지 않는 것을 먼저 본다</h2>
+    <p>세 가지 풀이 습관을 같은 1,825문제에 그대로 적용해 보았습니다. 남은 보기가 여럿이면 그중 하나를 아무렇게나 고른다고 보고 정답률을 셉니다.</p>
+    <table>
+      <tr><th>푸는 습관</th><th>정답률</th><th>하루 평균(5문제 중)</th></tr>
+      <tr><td>아무렇게나 찍기</td><td>25.0%</td><td>1.25개</td></tr>
+      <tr><td>마지막 칸을 그대로 고르기</td><td>25.2%</td><td>1.26개</td></tr>
+      <tr><td>바뀌는 것만 맞추기</td><td>32.5%</td><td>1.63개</td></tr>
+      <tr><td>바뀌지 않는 것을 그대로 두기</td><td>67.8%</td><td>3.39개</td></tr>
+    </table>
+    <p>놀라운 것은 셋째 줄입니다. 바뀌는 것(예를 들어 옮겨 가는 표식의 다음 자리)만 맞게 고르면 보기가 평균 두세 개 남습니다. 오답 5,475개 중 4,117개(75.2%)는 바뀌는 것은 맞혀 놓고 <strong>그대로여야 할 개수나 모양을 슬쩍 바꾼 보기</strong>이기 때문입니다. 반대로 세 칸 내내 같은 것은 네 번째 칸에서도 같아야 한다는 것만 지키면, 그것만으로 보기가 하나만 남는 문제가 741개(40.6%), 둘이 남는 문제가 810개(44.4%), 셋이 남는 문제가 274개(15.0%)였습니다.</p>
+    <p>두 단계를 합치면 됩니다. 먼저 세 칸에서 <strong>바뀌지 않는 둘을 찾아 그것이 다른 보기를 지우고</strong>, 남은 보기 가운데에서 바뀌는 하나의 다음 값을 고릅니다. 이 순서면 1,825문제가 모두 풀립니다.</p>
+  </section>
+
+  <section>
+    <h2>마지막 칸을 베끼는 보기는 함정이다</h2>
+    <p>예시의 세 번째 칸과 똑같은 보기는 1,048문제에 들어 있었습니다. 그중 459문제는 반복이라 그것이 정답이지만, 나머지 589문제(반복이 아닌 문제의 43.1%)에서는 함정입니다. 늘어나기에서 441문제 중 241문제, 번갈아 나오기에서 456문제 중 224문제, 옮겨 가기에서 469문제 중 124문제에 이 보기가 섞여 있었습니다. 마지막 칸을 그대로 고르는 습관이 찍기와 거의 같은 25.2%에 머문 이유입니다. 세 칸이 정말 모두 같은지 확인될 때만 그 보기를 고르세요.</p>
+  </section>
+
+  <section>
+    <h2>규칙마다 알아 두면 좋은 사실</h2>
+    <ul>
+      <li><strong>옮겨 가기의 절반은 왼쪽으로 가는 것처럼 보인다</strong>: 표식은 다섯 칸을 돌아 끝에 닿으면 처음으로 돌아옵니다. 그래서 오른쪽으로 4칸은 왼쪽으로 1칸, 오른쪽으로 3칸은 왼쪽으로 2칸과 같아 보입니다. 469문제 중 오른쪽 1칸이 182, 2칸이 52, 3칸이 183, 4칸이 52문제여서, <strong>235문제(50.1%)가 왼쪽으로 가는 모양</strong>이었습니다. 「늘 오른쪽으로 한 칸」이라고 짐작하면 38.8%만 맞습니다. 표식이 4→3→2 자리로 왔다면 다음은 1입니다.</li>
+      <li><strong>끝을 넘어가는 문제가 셋에 하나</strong>: 눈에 보이는 방향대로 한 걸음 더 가면 칸 밖으로 나가는 문제가 138개(29.4%)였습니다. 이때는 반대쪽 끝에서 다시 들어옵니다.</li>
+      <li><strong>늘어나기는 언제나 한 개씩</strong>: 441문제 모두 1개씩 늘었고, 칸이 다섯뿐이라 예시는 1·2·3이나 2·3·4 둘 중 하나였습니다. 정답은 4개가 365문제, 5개가 76문제입니다. 자리와 모양은 세 칸 내내 그대로입니다.</li>
+      <li><strong>번갈아 나오기의 답은 언제나 두 번째 칸</strong>: 예시가 가·나·가로 오므로 네 번째는 나입니다. 456문제 모두 정답이 두 번째 칸과 똑같았습니다. 개수와 자리는 바뀌지 않습니다.</li>
+      <li><strong>정답 자리에는 치우침이 없다</strong>: 정답이 첫째 보기인 문제가 423개, 둘째 479개, 셋째 495개, 넷째 428개였습니다. 자리로 찍어서 나아지는 것은 없습니다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>찍기로는 다섯 개를 거의 못 맞힌다</h2>
+    <p>네 보기 중 하나를 아무렇게나 고르면 다섯 문제를 다 맞힐 확률은 0.1%, 넷 이상은 1.6%입니다. 하나도 못 맞힐 확률이 23.7%, 하나만 맞힐 확률이 39.6%로 가장 큽니다. 이 게임에는 시간 제한이 없으니, 한 문제마다 「세 칸 내내 같은 것은 무엇인가」를 먼저 소리 내어 말해 보는 것이 가장 빠른 길입니다. 막히면 힌트가 규칙 이름을 알려 주는데, 그 이름에서 바뀌는 하나를 알 수 있으니 바뀌지 않는 둘도 함께 정해집니다.</p>
+    <ul>
+      <li><strong>세 칸 내내 같은 것 둘을 먼저 찾는다</strong>: 그것만 지켜도 정답률이 25%에서 67.8%로 오릅니다.</li>
+      <li><strong>남은 보기에서 바뀌는 하나의 다음 값을 고른다</strong>: 옮겨 가기는 끝에서 돌아오는 것까지 셉니다.</li>
+      <li><strong>마지막 칸과 똑같은 보기는 반복일 때만 고른다</strong>: 반복이 아닌 문제의 43.1%에서 그 보기는 함정입니다.</li>
+    </ul>
+    <p><a class="cta" href="/gyuchik/">▶ 규칙 찾기 한판</a></p>
+  </section>
+
+  <hr class="split">
+
+  <div lang="en">
+  <h2 id="en" class="en-title">Find the Rule strategy: rule out what stays the same first</h2>
+  <p class="updated">7 November 2026 · Hanpango · figures come from running the actual <a href="/gyuchik/">Find the Rule</a> question generator for all 365 daily rounds from 23 August 2026 (#1) to 22 August 2027 (#365), 1,825 questions in total, and comparing every option with the answer</p>
+
+  <section>
+    <h2>Every wrong option is wrong in exactly one way</h2>
+    <p>Each panel has three properties: how many slots are filled, which slot carries the heavy border, and the shape. All 1,825 questions were generated with no failed day, split almost evenly across the four rule families (repetition 459, moving marker 469, growing count 441, alternation 456), and the same three examples never return within 15 days. Of the 5,475 wrong options, <strong>every single one differs from the answer in exactly one property</strong> (count 1,786, position 1,857, shape 1,832). Each question likewise changes exactly one property while the other two stay fixed.</p>
+  </section>
+
+  <section>
+    <h2>Look at what does not change</h2>
+    <p>Applied to the same questions, random guessing scores 25.0% (1.25 of 5 a day) and copying the last panel 25.2%. Matching only the property that changes scores just 32.5%, because 4,117 of the 5,475 wrong options (75.2%) get the changing property right and quietly alter one that should have stayed. Simply keeping the two unchanged properties fixed leaves a single option in 741 questions (40.6%) and scores <strong>67.8%, or 3.39 of 5</strong>. Do that first, then pick the next value of the one changing property, and every question resolves.</p>
+  </section>
+
+  <section>
+    <h2>Family facts</h2>
+    <p>An option identical to the last panel appears in 1,048 questions but is a trap in 589 of them, 43.1% of all non-repetition questions. The marker wraps around five slots, so moving four to the right looks like one to the left: <strong>235 of 469 moving questions (50.1%) appear to move left</strong>, and assuming "one step right" works only 38.8% of the time; 29.4% step past an edge and re-enter from the other side. Growing counts always rise by one (1-2-3 or 2-3-4). In alternation the answer always matches the second panel. The correct option's position is spread evenly (423, 479, 495, 428), and guessing gets all five right only 0.1% of the time.</p>
+    <p><a class="cta" href="/gyuchik/">▶ Play Find the Rule</a></p>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+</body>
+</html>
