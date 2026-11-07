@@ -65,6 +65,7 @@
   .updated{color:var(--muted);font-size:.78rem;margin:0 0 16px}
   section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
   h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  h3{font-size:.92rem;margin:14px 0 6px}
   p{margin:0 0 10px}
   ul{margin:0 0 10px;padding-left:20px}
   li{margin:0 0 6px}
@@ -83,7 +84,7 @@
 </header>
 
 <main>
-  <div class="langbar"><a href="#en">English ↓</a><a href="/daily/">오늘의 도전이란</a><a href="/about/">소개</a></div>
+  <div class="langbar"><a href="#en">English ↓</a><a href="/daily/">오늘의 도전이란</a><a href="/about/">소개</a><a href="#faq">공통 질문</a></div>
 
   <section>
     <h2>고르기 전에 정할 것은 하나입니다</h2>
@@ -121,6 +122,29 @@
     <h2>고르지 못하겠다면</h2>
     <p><a href="/today/">오늘의 한판</a>은 날짜가 대신 세 가지를 골라 줍니다. 고르는 일 자체가 귀찮은 날을 위해 만든 자리입니다.</p>
     <p><a class="cta" href="/">▶ 게임 목록 보기</a></p>
+  </section>
+
+  <section id="faq">
+    <h2>모든 게임에 공통인 질문</h2>
+    <p>게임마다 따로 적던 질문 가운데 어느 게임에나 같은 답이 나오는 것을 여기에 모았습니다. 게임 고유의 규칙이나 판정에 관한 질문은 각 게임 화면 아래의 「자주 묻는 질문」에 그대로 남아 있습니다.</p>
+    <h3>설치나 회원가입이 필요한가요?</h3>
+    <p>필요 없습니다. 주소를 열면 브라우저에서 바로 시작되고, 로그인 절차도 없습니다. 자주 한다면 휴대폰 브라우저 메뉴의 「홈 화면에 추가」를 눌러 두세요. 아이콘을 눌러 열 수 있고 주소창 없이 앱처럼 화면을 넓게 씁니다.</p>
+    <h3>인터넷이 끊겨도 할 수 있나요?</h3>
+    <p>한 번 불러온 게임은 브라우저가 사본을 기기에 보관해 두기 때문에, 연결이 끊겨도 대부분 다시 열어 계속할 수 있습니다. 다만 화면 위의 「오늘 몇 판 · 누적 몇 판」 같은 공개 집계와 광고는 연결이 돌아와야 새로 고쳐집니다.</p>
+    <h3>소리를 끌 수 있나요?</h3>
+    <p>효과음이 있는 게임은 오른쪽 위 스피커 버튼으로 끄고 켭니다. 고른 상태는 그 기기에 기억돼 다음에 와도 그대로입니다. 효과음은 내려받는 음원 파일이 아니라 브라우저가 그 자리에서 합성하는 소리라, 데이터를 거의 쓰지 않습니다.</p>
+    <h3>화면이 흔들리거나 튀는 연출이 불편합니다</h3>
+    <p>휴대폰이나 컴퓨터 설정에서 「동작 줄이기」를 켜 두면 점수와 상관없는 연출, 예를 들어 흔들림·튀어 오르기·카드가 돌아가는 움직임이 꺼집니다. 단, 멈춰!처럼 움직이는 대상 자체를 맞히는 게임에서는 그 움직임이 곧 문제라서 남겨 둡니다.</p>
+    <h3>기록은 어디에 남나요?</h3>
+    <p>최고 점수, 오늘의 도전 결과, 연속 도전 일수, 소리와 언어 설정은 지금 쓰는 기기의 브라우저 저장소에만 남습니다. 운영자는 이 값을 볼 수 없고, 다른 기기와 이어지지도 않습니다. 그래서 브라우저의 사이트 데이터를 지우거나 시크릿 창에서 하면 기록이 남지 않습니다. 휴대폰을 바꿀 때 기록을 옮기는 기능도 아직 없습니다.</p>
+    <h3>서버로는 무엇이 가나요?</h3>
+    <p>두 가지입니다. 첫째, 화면에 보이는 공개 집계를 위해 방문 한 번과 판 시작 한 번이라는 횟수가 이 사이트 서버에 더해집니다. 둘째, 판이 끝나면 어느 게임인지와 점수·걸린 시간 같은 요약 값이, 언어를 바꾸면 바꾼 언어가 통계 도구로 갑니다. 어느 쪽에도 이름이나 연락처처럼 사람을 알아볼 수 있는 정보는 들어가지 않습니다. 게임마다 보내는 항목은 그 게임의 「자주 묻는 질문」과 <a href="/privacy/">개인정보 처리방침</a>에 적어 두었습니다.</p>
+    <h3>느린 기기에서 하면 불리한가요?</h3>
+    <p>멈춰!·딱 맞춰!·몇 개였지처럼 시간을 재는 게임은 화면을 몇 번 다시 그렸는지가 아니라 브라우저가 주는 정밀한 시계로 잽니다. 누른 순간도 브라우저가 그 입력에 찍어 준 시각을 씁니다. 그래서 화면이 잠깐 버벅여도 판정이 그만큼 밀리지는 않도록 만들었습니다.</p>
+    <h3>오늘의 도전은 언제 바뀌나요?</h3>
+    <p>한국 시간 자정에 바뀝니다. 그날은 누구나 같은 판을 받고, 하루에 한 번만 도전할 수 있으며, 날마다 이어서 하면 🔥 연속 일수가 쌓입니다. 끝나면 결과를 이모지 한 줄로 복사해 친구에게 보낼 수 있습니다. 판을 날짜로 만드는 방식은 <a href="/daily/">오늘의 도전이란</a>에 자세히 적었습니다.</p>
+    <h3>오류를 찾았어요</h3>
+    <p>어느 게임의 어떤 화면에서 무엇을 눌렀더니 어떻게 되었는지, 그리고 쓰는 기기와 브라우저를 적어 <a href="/contact/">문의</a>로 보내 주세요. 같은 상황을 다시 만들 수 있으면 가장 빨리 고칠 수 있습니다.</p>
   </section>
 
   <hr class="split">
@@ -165,6 +189,17 @@
     <p><a href="/today/">Today's pick</a> lets the date choose three games for you. It exists for the days when choosing is itself the chore.</p>
     <p><a class="cta" href="/">▶ Browse all games</a></p>
   </section>
+  <section id="faq-en">
+    <h2>Questions common to every game</h2>
+    <p><strong>Install or sign-up?</strong> Neither. Open the address and the game starts in the browser. Add it to your home screen from the browser menu to open it like an app.</p>
+    <p><strong>Offline?</strong> A game you have loaded once is kept on the device by the browser, so it usually reopens without a connection. The public play counts and ads refresh only when you are back online.</p>
+    <p><strong>Sound?</strong> Games with sound effects have a speaker button at the top right, and your choice is remembered on that device. The effects are synthesised by the browser, not downloaded files.</p>
+    <p><strong>Too much motion?</strong> Turn on “reduce motion” in your device settings and decoration such as shaking, popping and card flips switches off. Where the moving target is the puzzle itself, as in Stop!, the motion stays.</p>
+    <p><strong>Where are records kept?</strong> Best scores, daily results, streaks and settings stay in this browser on this device only. Clearing site data or playing in a private window leaves nothing behind.</p>
+    <p><strong>What reaches a server?</strong> A count of visits and games started for the public counter, and, when a game ends, a summary such as which game, the score and the time taken for statistics. Nothing that identifies you is included; see the <a href="/privacy/#en">privacy policy</a>.</p>
+    <p><strong>When does the daily challenge change?</strong> At midnight Korean time. Everyone gets the same board that day, one attempt each; see <a href="/daily/#en">the daily challenge</a>.</p>
+  </section>
+
   </div>
 </main>
 
