@@ -228,9 +228,8 @@
   <details><summary data-i18n="tip2q">가장자리부터 채우세요</summary><p data-i18n="tip2a">판 가운데를 비워두면 어떤 모양이 와도 놓을 수 있습니다. 구석과 변부터 채우는 습관이 오래 버티는 비결입니다.</p></details>
   <details><summary data-i18n="tip3q">두 줄을 동시에 노리세요</summary><p data-i18n="tip3a">가로 한 줄과 세로 한 줄이 동시에 완성되도록 놓으면 콤보 보너스로 점수가 크게 오릅니다.</p></details>
   <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
-  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
-  <details><summary data-i18n="faq2q">최고 점수는 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.</p></details>
-  <details><summary data-i18n="faq3q">오프라인에서도 되나요?</summary><p data-i18n="faq3a">한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.</p></details>
+  <details><summary data-i18n="faqGq">한 번에 받는 세 조각이 같은 색일 수 있나요?</summary><p data-i18n="faqGa">아니요. 조각 색은 모양마다 일곱 색을 돌려 가며 정해 두지만, 한 번에 놓이는 세 조각 가운데 이미 쓰인 색이 나오면 다음 색으로 한 칸씩 밀어 세 조각의 색이 늘 서로 다르게 합니다. 바뀌는 것은 색뿐이고 모양과 나올 확률은 그대로입니다.</p></details>
+  <p class="faq-more" data-i18n="faqMore">설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.</p>
 </section>
 
 <section class="read" id="read">
@@ -275,10 +274,7 @@ const I18N = {
     tip1q:'큰 블록부터 처리하세요', tip1a:'3×3 정사각형이나 5칸 일자 블록은 자리가 금방 없어집니다. 트레이에 나오면 먼저 놓을 자리를 확보하세요.',
     tip2q:'가장자리부터 채우세요', tip2a:'판 가운데를 비워두면 어떤 모양이 와도 놓을 수 있습니다. 구석과 변부터 채우는 습관이 오래 버티는 비결입니다.',
     tip3q:'두 줄을 동시에 노리세요', tip3a:'가로 한 줄과 세로 한 줄이 동시에 완성되도록 놓으면 콤보 보너스로 점수가 크게 오릅니다.',
-    faqTitle:'자주 묻는 질문',
-    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
-    faq2q:'최고 점수는 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.',
-    faq3q:'오프라인에서도 되나요?', faq3a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
+    faqTitle:'자주 묻는 질문', faqGq:'한 번에 받는 세 조각이 같은 색일 수 있나요?', faqGa:'아니요. 조각 색은 모양마다 일곱 색을 돌려 가며 정해 두지만, 한 번에 놓이는 세 조각 가운데 이미 쓰인 색이 나오면 다음 색으로 한 칸씩 밀어 세 조각의 색이 늘 서로 다르게 합니다. 바뀌는 것은 색뿐이고 모양과 나올 확률은 그대로입니다.', faqMore:'설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.',
     footer:'© 2026 Block Puzzle · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
     navPrivacy:'개인정보처리방침', navTerms:'이용약관', navAbout:'소개', home:'🏠 다른 게임',
     donate:'☕ 커피 한 잔 후원하기', donateTitle:'☕ 커피 한 잔', close:'닫기',
@@ -307,10 +303,7 @@ const I18N = {
     tip1q:'Deal with big blocks first', tip1a:'3×3 squares and 5-long bars run out of room fast. When one shows up in the tray, make space for it first.',
     tip2q:'Fill the edges first', tip2a:'Keeping the center open means any shape can still fit. Building from corners and edges is how you survive longer.',
     tip3q:'Go for double clears', tip3a:'Placing a block that completes a row and a column at the same time gives a combo bonus.',
-    faqTitle:'FAQ',
-    faq1q:'Do I need to install anything?', faq1a:'No. It runs right in your browser. Add it to your home screen to use it like an app.',
-    faq2q:'Where is my best score saved?', faq2a:'Only in this device\'s browser. Nothing is sent to a server.',
-    faq3q:'Does it work offline?', faq3a:'Once loaded, you can keep playing without an internet connection.',
+    faqTitle:'FAQ', faqGq:'Can the three pieces in the tray share a colour?', faqGa:'No. Each shape has a colour assigned from a cycle of seven, but when a colour is already taken in the current tray it is shifted to the next one, so the three pieces always differ. Only the colour moves; the shapes and their odds stay the same.', faqMore:'Questions that apply to every game, such as installing, sound and where records are kept, are collected in the <a href="/guide/#faq">common questions of the guide</a>.',
     footer:'© 2026 Block Puzzle · Privacy: scores are stored only on your device; third-party cookies (e.g. Google) may be used to serve ads.',
     navPrivacy:'Privacy Policy', navTerms:'Terms', navAbout:'About', home:'🏠 More games',
     donate:'☕ Buy me a coffee', donateTitle:'☕ Buy me a coffee', close:'Close',

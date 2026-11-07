@@ -226,12 +226,9 @@
   <p data-i18n="tip3">놓침에는 벌점이 없습니다. 방금 놓친 자리를 뒤늦게 누르다 다음 것을 함께 놓치는 것이 더 큰 손해입니다.</p>
 
   <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
-  <h3 data-i18n="faq1q">설치가 필요한가요?</h3>
-  <p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p>
-  <h3 data-i18n="faq2q">기록은 어디에 저장되나요?</h3>
-  <p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.</p>
-  <h3 data-i18n="faq3q">오프라인에서도 되나요?</h3>
-  <p data-i18n="faq3a">한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.</p>
+  <h3 data-i18n="faqGq">두더지가 같은 구멍에서 연달아 나오기도 하나요?</h3>
+  <p data-i18n="faqGa">아니요. 바로 앞에 올라온 구멍은 빼고 다음 구멍을 고릅니다. 올라오는 것마다 18% 확률로 두더지 대신 폭탄이고, 올라와 있는 시간은 처음에 1.1~1.36초였다가 끝 무렵에는 0.66~0.92초로 짧아집니다.</p>
+  <p class="faq-more" data-i18n="faqMore">설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.</p>
 </section>
 
 <section class="read" id="read">
@@ -273,10 +270,7 @@ const I18N = {
     tip1t:'손보다 눈을 먼저 옮기세요', tip1:'두더지가 올라온 뒤에 찾기 시작하면 늦습니다. 아홉 칸을 한눈에 담고 바뀌는 자리를 보는 편이 빠릅니다.',
     tip2t:'폭탄은 참는 것이 이득입니다', tip2:'두더지 하나가 1점인데 폭탄 하나는 2점입니다. 헷갈릴 때 손을 멈추는 쪽이 대체로 이득입니다.',
     tip3t:'놓친 것은 잊으세요', tip3:'놓침에는 벌점이 없습니다. 방금 놓친 자리를 뒤늦게 누르다 다음 것을 함께 놓치는 것이 더 큰 손해입니다.',
-    faqTitle:'자주 묻는 질문',
-    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
-    faq2q:'기록은 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.',
-    faq3q:'오프라인에서도 되나요?', faq3a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
+    faqTitle:'자주 묻는 질문', faqGq:'두더지가 같은 구멍에서 연달아 나오기도 하나요?', faqGa:'아니요. 바로 앞에 올라온 구멍은 빼고 다음 구멍을 고릅니다. 올라오는 것마다 18% 확률로 두더지 대신 폭탄이고, 올라와 있는 시간은 처음에 1.1~1.36초였다가 끝 무렵에는 0.66~0.92초로 짧아집니다.', faqMore:'설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.',
     privacyNote:'이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
     navPrivacy:'개인정보처리방침', navTerms:'이용약관', navAbout:'소개',
     docTitle:'두더지잡기 — 60초 동안 아홉 구멍을 지키는 반응 게임 | Whack a Mole', langBtn:'EN',
@@ -309,10 +303,7 @@ const I18N = {
     tip1t:'Move your eyes before your hand', tip1:'Starting to search after a mole appears is already late. Holding all nine holes in view and watching for the change is faster.',
     tip2t:'Restraint pays against bombs', tip2:'A mole is worth one point and a bomb costs two. When you are unsure, stopping your hand is usually the better trade.',
     tip3t:'Forget what you missed', tip3:'Misses carry no penalty. Chasing the one that just went down and losing the next one as well is the larger loss.',
-    faqTitle:'FAQ',
-    faq1q:'Do I need to install anything?', faq1a:'No. It runs straight in the browser, and adding it to your home screen makes it behave like an app.',
-    faq2q:'Where are my records kept?', faq2a:'Only in the browser on the device you are using. Nothing is sent to a server.',
-    faq3q:'Does it work offline?', faq3a:'Once the page has loaded, you can keep playing without a connection.',
+    faqTitle:'FAQ', faqGq:'Can a mole come up from the same hole twice in a row?', faqGa:'No. The hole that was just used is left out when the next one is picked. Each pop-up has an 18% chance of being a bomb instead of a mole, and the time it stays up shrinks from 1.1–1.36 seconds at the start to 0.66–0.92 seconds near the end.', faqMore:'Questions that apply to every game, such as installing, sound and where records are kept, are collected in the <a href="/guide/#faq">common questions of the guide</a>.',
     privacyNote:'This game keeps records on your device only; third parties such as Google may use cookies to serve ads.',
     navPrivacy:'Privacy Policy', navTerms:'Terms', navAbout:'About',
     docTitle:'Whack a Mole — sixty seconds across nine holes | 두더지잡기', langBtn:'한국어',

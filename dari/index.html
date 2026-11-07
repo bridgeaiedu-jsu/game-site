@@ -347,14 +347,14 @@ const I18N = {
         tip2a:'최단이 아니어도 규칙만 지키면 완주로 인정됩니다. 한 자리에 넣을 글자가 떠오르지 않으면 다른 자리를 바꿔 방향을 틀어 보세요. 되돌리기 횟수는 결과에도 공유 글에도 나오지 않으니 부담 없이 시험해 봐도 됩니다.',
         tip3q:'힌트는 한 번만 눌러 보세요',
         tip3a:'첫 힌트는 바꿀 자리만 알려 줍니다. 자리를 알면 그 자리에 들어갈 글자를 더듬기가 훨씬 쉬워지니, 다음 낱말을 알려 주는 두 번째 힌트는 그래도 막힐 때 쓰세요. 결과에는 누른 횟수가 그대로 남습니다.',
-        faqTitle:'자주 묻는 질문',
+        faqTitle:'자주 묻는 질문', faqMore:'설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.',
         faq1q:'맞는 낱말인데 사전에 없다고 나와요',
         faq1a:'이 게임은 국어사전 전체가 아니라 두 글자 낱말 11,484개로 된 목록 하나만 기준으로 삼습니다. 그래서 흔히 쓰는 말이라도 목록에 없으면 받지 않습니다. 반대로 목록에 있는 낱말이면 뜻이 낯설어도 한 단계로 인정됩니다.',
         faq2q:'하루에 한 번만 할 수 있나요?',
         faq2a:'아니요. 「다시 건너기」나 「처음부터」로 같은 문제를 몇 번이든 다시 풀 수 있습니다. 새 문제는 다음 날 한국 시각 자정에 열립니다. 같은 화면에서 다시 풀면 앞서 쓴 힌트 수는 이어서 셉니다.',
         faq3q:'시간 제한이 있나요?',
         faq3a:'없습니다. 타이머가 없고 결과에도 시간이 들어가지 않습니다. 결과는 단계 수와 최단 대비 추가 단계, 힌트 수로만 나옵니다.',
-        faq4q:'기록은 어디에 저장되나요?',
+        faq4q:'단어 다리 기록은 어디에 남고, 서버로는 무엇이 가나요?',
         faq4a:'사용 중인 기기의 브라우저에 언어 설정과, 끝낸 판의 날짜·단계 수·최단·힌트 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 판을 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.', title:'단어 다리', subtitle:'한 번에 한 글자만 바꿔 목표 낱말까지 건너갑니다',
         home:'🏠 다른 게임', dayLbl:'오늘의 다리', minLbl:'최단', mineLbl:'내 단계', hintLbl:'힌트',
         goalLbl:'목표', stepUnit:'단계', stepUnit2:'단계', submit:'확인',
@@ -389,7 +389,7 @@ const I18N = {
         tip2a:'Any route that follows the rules counts as a finish, even if it is not the shortest. When nothing comes to mind for one position, change the other one and head off in a new direction. The number of undos appears neither in the result nor in the shared text, so feel free to experiment.',
         tip3q:'Press Hint just once',
         tip3a:'The first hint only tells you which position to change. Knowing the position makes it much easier to search for a syllable that fits, so keep the second hint, which names the next word, for when you are still stuck. Every press shows up in your result.',
-        faqTitle:'FAQ',
+        faqTitle:'FAQ', faqMore:'Questions that apply to every game, such as installing, sound and where records are kept, are collected in the <a href="/guide/#faq">common questions of the guide</a>.',
         faq1q:'A real word is rejected as not in the dictionary',
         faq1a:'The game does not use a complete Korean dictionary. It checks against one list of 11,484 two-syllable words, so a common word that is missing from the list is refused. Conversely, any word on the list counts as a step even if its meaning is unfamiliar.',
         faq2q:'Can I only play once a day?',
@@ -643,7 +643,8 @@ window.__dari = {
   <details><summary data-i18n="faq1q">맞는 낱말인데 사전에 없다고 나와요</summary><p data-i18n="faq1a">이 게임은 국어사전 전체가 아니라 두 글자 낱말 11,484개로 된 목록 하나만 기준으로 삼습니다. 그래서 흔히 쓰는 말이라도 목록에 없으면 받지 않습니다. 반대로 목록에 있는 낱말이면 뜻이 낯설어도 한 단계로 인정됩니다.</p></details>
   <details><summary data-i18n="faq2q">하루에 한 번만 할 수 있나요?</summary><p data-i18n="faq2a">아니요. 「다시 건너기」나 「처음부터」로 같은 문제를 몇 번이든 다시 풀 수 있습니다. 새 문제는 다음 날 한국 시각 자정에 열립니다. 같은 화면에서 다시 풀면 앞서 쓴 힌트 수는 이어서 셉니다.</p></details>
   <details><summary data-i18n="faq3q">시간 제한이 있나요?</summary><p data-i18n="faq3a">없습니다. 타이머가 없고 결과에도 시간이 들어가지 않습니다. 결과는 단계 수와 최단 대비 추가 단계, 힌트 수로만 나옵니다.</p></details>
-  <details><summary data-i18n="faq4q">기록은 어디에 저장되나요?</summary><p data-i18n="faq4a">사용 중인 기기의 브라우저에 언어 설정과, 끝낸 판의 날짜·단계 수·최단·힌트 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 판을 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.</p></details>
+  <details><summary data-i18n="faq4q">단어 다리 기록은 어디에 남고, 서버로는 무엇이 가나요?</summary><p data-i18n="faq4a">사용 중인 기기의 브라우저에 언어 설정과, 끝낸 판의 날짜·단계 수·최단·힌트 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 판을 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.</p></details>
+  <p class="faq-more" data-i18n="faqMore">설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.</p>
 </section>
 
 <section class="read" id="read">

@@ -314,7 +314,8 @@
   <details><summary data-i18n="faq2q">오늘의 도전은 정말 모두 같은 판인가요?</summary><p data-i18n="faq2a">네. 값의 종류와 값 100개가 모두, 날짜만으로 만든 씨앗에서 판을 짤 때 한 번에 뽑힙니다. 연쇄가 길어지든 짧아지든, 언어를 바꾸든 다시 열든 플레이 중의 어떤 행동도 값을 새로 뽑지 않습니다. 씨앗에는 시각이 들어가지 않으므로 그날 몇 시에 열었는지로 판이 갈리지도 않습니다.</p></details>
   <details><summary data-i18n="faq3q">화면이 느린 기기에서는 불리한가요?</summary><p data-i18n="faq3a">아니요. 애초에 이 게임의 승패에는 시간이 관여하지 않습니다 — 값의 크기 비교 하나로만 정해집니다. 화면에 흐르는 시간도 화면을 다시 그린 횟수가 아니라 실제로 흐른 시간에서 매번 새로 계산해 적기 때문에, 60Hz 든 144Hz 든 다른 탭에 갔다 오든 같은 값이 나옵니다.</p></details>
   <details><summary data-i18n="faq4q">색을 잘 구별하지 못해도 할 수 있나요?</summary><p data-i18n="faq4a">네. 두 버튼은 색이 아니라 <strong>글자와 화살표</strong>로 말합니다 — 위쪽을 가리키는 삼각형과 '위', 아래쪽을 가리키는 삼각형과 '아래'가 늘 함께 붙어 있습니다. 값 자체도 색이 아니라 숫자·길이·개수·크기로 구별합니다. 화면 낭독기를 쓰면 값이 숫자로도 읽힙니다.</p></details>
-  <details><summary data-i18n="faq5q">기록은 어디에 저장되나요?</summary><p data-i18n="faq5a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로는 판수 집계와 함께 어느 게임인지와 고른 모드·값의 종류·연속 정답 수·걸린 시간 같은 플레이 통계가, 그리고 언어를 바꾸면 그 사실이 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 브라우저 데이터를 지우면 기록도 함께 지워집니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.</p></details>
+  <details><summary data-i18n="faq5q">위냐 아래냐 기록은 어디에 남고, 서버로는 무엇이 가나요?</summary><p data-i18n="faq5a">기록 자체는 이 기기의 브라우저에만 남고, 서버로는 판수 집계와 함께 어느 게임인지와 고른 모드·값의 종류·연속 정답 수·걸린 시간 같은 플레이 통계가, 그리고 언어를 바꾸면 그 사실이 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.</p></details>
+  <p class="faq-more" data-i18n="faqMore">설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.</p>
 </section>
 
 <section class="read" id="read">
@@ -425,7 +426,7 @@ const I18N = {
     ariaSoundOn:'효과음 끄기', ariaSoundOff:'효과음 켜기', ariaLang:'언어 바꾸기', ariaHome:'다른 게임 보러 가기',
     ariaAnswers:'답 두 칸',
     ariaValue:(kind, v) => `${kind} ${v}`,
-    howTitle:'게임 방법', dailyTitle:'오늘의 도전', tipsTitle:'요령', faqTitle:'자주 묻는 질문',
+    howTitle:'게임 방법', dailyTitle:'오늘의 도전', tipsTitle:'요령', faqTitle:'자주 묻는 질문', faqMore:'설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.',
     how1:'화면 오른쪽에 지금 값이 크게 있고 왼쪽에 직전 값이 흐리게 남습니다. 여러분이 고르는 것은 <strong>다음 값</strong>이 지금 값보다 위인지 아래인지 하나입니다. 맞히면 그 값이 새 기준이 되어 연쇄가 이어지고, 틀리면 그 자리에서 판이 끝납니다. 기록은 <strong>연속으로 맞힌 횟수</strong>이므로 잘할수록 판이 길어집니다.',
     how2:'라운드가 오를수록 두 값의 <strong>차이가 줄어듭니다</strong>. 처음에는 눈에 띄게 벌어져 있어 거저 맞히지만, 뒤로 갈수록 간격이 좁아져 아슬아슬해집니다. 다만 차이가 0 이 되는 일은 없습니다 — 같은 값이 잇달아 나오지 않도록 판을 짤 때 아예 배제하기 때문에 무승부는 생기지 않습니다.',
     how3:'값의 <strong>종류</strong>는 판마다 하나로 정해집니다 — 숫자, 막대의 길이, 점의 개수, 원의 크기 넷 가운데 하나입니다. 한 판 안에서는 종류가 바뀌지 않습니다. 오늘의 도전은 그날의 종류가 하나로 정해져 모두가 같은 판을 받고, 자유 모드는 판마다 다른 종류가 나옵니다. 같은 규칙을 네 가지 감각으로 겨루는 셈입니다.',
@@ -445,8 +446,8 @@ const I18N = {
     faq3a:'아니요. 애초에 이 게임의 승패에는 시간이 관여하지 않습니다 — 값의 크기 비교 하나로만 정해집니다. 화면에 흐르는 시간도 화면을 다시 그린 횟수가 아니라 실제로 흐른 시간에서 매번 새로 계산해 적기 때문에, 60Hz 든 144Hz 든 다른 탭에 갔다 오든 같은 값이 나옵니다.',
     faq4q:'색을 잘 구별하지 못해도 할 수 있나요?',
     faq4a:'네. 두 버튼은 색이 아니라 <strong>글자와 화살표</strong>로 말합니다 — 위쪽을 가리키는 삼각형과 \'위\', 아래쪽을 가리키는 삼각형과 \'아래\'가 늘 함께 붙어 있습니다. 값 자체도 색이 아니라 숫자·길이·개수·크기로 구별합니다. 화면 낭독기를 쓰면 값이 숫자로도 읽힙니다.',
-    faq5q:'기록은 어디에 저장되나요?',
-    faq5a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로는 판수 집계와 함께 어느 게임인지와 고른 모드·값의 종류·연속 정답 수·걸린 시간 같은 플레이 통계가, 그리고 언어를 바꾸면 그 사실이 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 브라우저 데이터를 지우면 기록도 함께 지워집니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.',
+    faq5q:'위냐 아래냐 기록은 어디에 남고, 서버로는 무엇이 가나요?',
+    faq5a:'기록 자체는 이 기기의 브라우저에만 남고, 서버로는 판수 집계와 함께 어느 게임인지와 고른 모드·값의 종류·연속 정답 수·걸린 시간 같은 플레이 통계가, 그리고 언어를 바꾸면 그 사실이 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.',
     navPrivacy:'개인정보처리방침', navTerms:'이용약관', navAbout:'소개',
     footer:'© 2026 위냐 아래냐 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.'
   },
@@ -491,7 +492,7 @@ const I18N = {
     ariaSoundOn:'Turn sound off', ariaSoundOff:'Turn sound on', ariaLang:'Change language', ariaHome:'Browse other games',
     ariaAnswers:'Two answer buttons',
     ariaValue:(kind, v) => `${kind} ${v}`,
-    howTitle:'How to play', dailyTitle:'Daily challenge', tipsTitle:'Tips', faqTitle:'FAQ',
+    howTitle:'How to play', dailyTitle:'Daily challenge', tipsTitle:'Tips', faqTitle:'FAQ', faqMore:'Questions that apply to every game, such as installing, sound and where records are kept, are collected in the <a href="/guide/#faq">common questions of the guide</a>.',
     how1:'The current value sits large on the right, with the one before it faded on the left. All you choose is whether the <strong>next</strong> value is higher or lower than the current one. Call it right and that value becomes the new baseline and the chain runs on; call it wrong and the game ends right there. Your score is <strong>how many you got in a row</strong>, so the better you play the longer the game lasts.',
     how2:'The <strong>gap between the two values shrinks</strong> as the rounds go up. Early on they are far apart and the call is nearly free; later the margin narrows until every call is tight. The gap never reaches zero, though — identical neighbours are ruled out when the game is laid out, so there is no such thing as a draw here.',
     how3:'The <strong>form</strong> of the values is fixed for a whole game — numbers, the length of a bar, a count of dots, or the size of a circle. It never changes mid-game. The daily challenge fixes one form for the day so everyone gets the same game, while free play picks a new one each time. It is the same rule played through four different senses.',

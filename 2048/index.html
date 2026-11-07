@@ -240,9 +240,8 @@
   <details><summary data-i18n="tip2q">한 줄을 계단처럼 정렬하세요</summary><p data-i18n="tip2a">구석 줄을 큰 숫자부터 작은 숫자 순으로 내림차순 정렬해 두면 연쇄 합치기가 한 번에 터집니다.</p></details>
   <details><summary data-i18n="tip3q">위로 미는 습관을 버리세요</summary><p data-i18n="tip3a">큰 숫자를 아래 구석에 모으기로 했다면 위 방향은 최후의 수단입니다. 무심코 위로 밀면 구석의 큰 숫자가 빠져나와 판이 무너집니다.</p></details>
   <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
-  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
-  <details><summary data-i18n="faq2q">최고 점수는 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.</p></details>
-  <details><summary data-i18n="faq3q">오프라인에서도 되나요?</summary><p data-i18n="faq3a">한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.</p></details>
+  <details><summary data-i18n="faqGq">새 타일은 어디에 무엇이 나오나요?</summary><p data-i18n="faqGa">판이 실제로 움직였을 때만 새 타일이 하나 나옵니다. 빈 칸 가운데 한 곳을 고르게 뽑아 놓고, 숫자는 열 번에 아홉 번꼴(90%)로 2, 한 번꼴(10%)로 4입니다. 새 판도 이렇게 뽑은 타일 두 개로 시작합니다.</p></details>
+  <p class="faq-more" data-i18n="faqMore">설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.</p>
 </section>
 
 <section class="read" id="read">
@@ -288,10 +287,7 @@ const I18N = {
     tip1q:'가장 큰 숫자를 한 구석에 고정하세요', tip1a:'큰 타일이 판 가운데를 돌아다니면 작은 숫자가 갇힙니다. 한 구석(예: 왼쪽 아래)을 정해 큰 숫자를 거기에 두고, 그 방향으로만 주로 미세요.',
     tip2q:'한 줄을 계단처럼 정렬하세요', tip2a:'구석 줄을 큰 숫자부터 작은 숫자 순으로 내림차순 정렬해 두면 연쇄 합치기가 한 번에 터집니다.',
     tip3q:'위로 미는 습관을 버리세요', tip3a:'큰 숫자를 아래 구석에 모으기로 했다면 위 방향은 최후의 수단입니다. 무심코 위로 밀면 구석의 큰 숫자가 빠져나와 판이 무너집니다.',
-    faqTitle:'자주 묻는 질문',
-    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
-    faq2q:'최고 점수는 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.',
-    faq3q:'오프라인에서도 되나요?', faq3a:'한 번 불러온 뒤에는 인터넷 없이도 플레이할 수 있습니다.',
+    faqTitle:'자주 묻는 질문', faqGq:'새 타일은 어디에 무엇이 나오나요?', faqGa:'판이 실제로 움직였을 때만 새 타일이 하나 나옵니다. 빈 칸 가운데 한 곳을 고르게 뽑아 놓고, 숫자는 열 번에 아홉 번꼴(90%)로 2, 한 번꼴(10%)로 4입니다. 새 판도 이렇게 뽑은 타일 두 개로 시작합니다.', faqMore:'설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.',
     footer:'© 2026 2048 · 개인정보: 이 게임은 점수를 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
     navPrivacy:'개인정보처리방침', navTerms:'이용약관', navAbout:'소개', home:'🏠 다른 게임',
     statPlays:'오늘 <b data-hp="plays.2048.today">–</b>판 · 누적 <b data-hp="plays.2048.total">–</b>판',
@@ -327,10 +323,7 @@ const I18N = {
     tip1q:'Anchor your biggest tile in one corner', tip1a:'A big tile wandering through the middle traps the small ones. Pick a corner (say bottom-left), keep your largest number there and mostly push in that direction.',
     tip2q:'Order one row like a staircase', tip2a:'Keeping the anchor row sorted in descending order lets a whole chain of merges fire in a single move.',
     tip3q:'Break the habit of swiping up', tip3a:'If you decided to build in the bottom corner, up is a last resort. One careless up-swipe pulls the big tile out of the corner and the board collapses.',
-    faqTitle:'FAQ',
-    faq1q:'Do I need to install anything?', faq1a:'No. It runs right in your browser. Add it to your home screen to use it like an app.',
-    faq2q:'Where is my best score saved?', faq2a:'Only in this device\'s browser. Nothing is sent to a server.',
-    faq3q:'Does it work offline?', faq3a:'Once loaded, you can keep playing without an internet connection.',
+    faqTitle:'FAQ', faqGq:'Where do new tiles appear, and what are they?', faqGa:'A new tile appears only when the board actually moved. It goes into one of the empty cells chosen at random with equal odds, and it is a 2 nine times in ten (90%) and a 4 one time in ten (10%). A new game also starts with two tiles placed this way.', faqMore:'Questions that apply to every game, such as installing, sound and where records are kept, are collected in the <a href="/guide/#faq">common questions of the guide</a>.',
     footer:'© 2026 2048 · Privacy: scores are stored only on your device; third-party cookies (e.g. Google) may be used to serve ads.',
     navPrivacy:'Privacy Policy', navTerms:'Terms', navAbout:'About', home:'🏠 More games',
     statPlays:'<b data-hp="plays.2048.today">–</b> today · <b data-hp="plays.2048.total">–</b> all-time',

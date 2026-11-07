@@ -302,11 +302,10 @@
   <details><summary data-i18n="tip2q">✕ 를 아끼지 마세요</summary><p data-i18n="tip2a">확실히 빈 칸에 ✕ 를 찍어 두면 남은 칸이 눈에 확 들어옵니다. 어떤 줄의 칠이 이미 단서를 다 채웠다면 그 줄의 나머지는 전부 ✕ 입니다. 반대로 ✕ 사이에 낀 짧은 구간에는 그보다 긴 덩어리가 들어갈 수 없다는 것도 바로 보입니다.</p></details>
   <details><summary data-i18n="tip3q">가로와 세로를 번갈아</summary><p data-i18n="tip3a">한 줄에서 얻은 칸 하나가 그 줄과 교차하는 다른 줄의 단서를 풀어 줍니다. 가로줄을 한 바퀴 훑고 막히면 그대로 세로줄을 한 바퀴 훑으세요. 이 왕복을 몇 번 반복하면 아무 데도 안 풀리던 판이 갑자기 풀리기 시작합니다. 어려움 판은 이 왕복을 여러 번 해야만 풀리도록 골라 낸 판입니다.</p></details>
   <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
-  <details><summary data-i18n="faq1q">설치가 필요한가요?</summary><p data-i18n="faq1a">아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.</p></details>
   <details><summary data-i18n="faq2q">진행과 기록은 어디에 저장되나요?</summary><p data-i18n="faq2a">사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다. 브라우저 데이터를 지우면 진행도 함께 지워집니다. 어떤 항목을 저장하는지는 개인정보처리방침에 전부 적어 두었습니다.</p></details>
   <details><summary data-i18n="faq3q">답이 정말 하나뿐인가요?</summary><p data-i18n="faq3a">네. 위 '답이 하나뿐인 이유'에 적은 대로, 찍기가 들어가지 않는 줄 단위 추론만으로 판 전체가 확정되는 판만 내보냅니다. 그 조건을 통과했다는 것 자체가 답이 하나뿐이라는 증명입니다.</p></details>
   <details><summary data-i18n="faq4q">같은 날이면 정말 같은 판인가요?</summary><p data-i18n="faq4a">네. 오늘의 도전 판은 날짜만으로 정해지는 씨앗에서 만들어집니다. 게임을 하는 동안에는 난수를 한 번도 더 쓰지 않기 때문에, 누가 언제 어떻게 풀든 같은 날짜면 같은 그림이 나옵니다.</p></details>
-  <details><summary data-i18n="faq5q">소리를 끌 수 있나요?</summary><p data-i18n="faq5a">네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 그대로 유지됩니다. 효과음은 모두 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 '동작 줄이기' 를 켜면 애니메이션도 꺼집니다.</p></details>
+  <p class="faq-more" data-i18n="faqMore">설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.</p>
 </section>
 
 <section class="read" id="read">
@@ -383,12 +382,10 @@ const I18N = {
     tip2a:'확실히 빈 칸에 ✕ 를 찍어 두면 남은 칸이 눈에 확 들어옵니다. 어떤 줄의 칠이 이미 단서를 다 채웠다면 그 줄의 나머지는 전부 ✕ 입니다. 반대로 ✕ 사이에 낀 짧은 구간에는 그보다 긴 덩어리가 들어갈 수 없다는 것도 바로 보입니다.',
     tip3q:'가로와 세로를 번갈아',
     tip3a:'한 줄에서 얻은 칸 하나가 그 줄과 교차하는 다른 줄의 단서를 풀어 줍니다. 가로줄을 한 바퀴 훑고 막히면 그대로 세로줄을 한 바퀴 훑으세요. 이 왕복을 몇 번 반복하면 아무 데도 안 풀리던 판이 갑자기 풀리기 시작합니다. 어려움 판은 이 왕복을 여러 번 해야만 풀리도록 골라 낸 판입니다.',
-    faqTitle:'자주 묻는 질문',
-    faq1q:'설치가 필요한가요?', faq1a:'아니요. 브라우저에서 바로 실행됩니다. 홈 화면에 추가하면 앱처럼 쓸 수 있습니다.',
+    faqTitle:'자주 묻는 질문', faqMore:'설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.',
     faq2q:'진행과 기록은 어디에 저장되나요?', faq2a:'사용 중인 기기의 브라우저에만 저장됩니다. 서버로 전송되지 않습니다. 브라우저 데이터를 지우면 진행도 함께 지워집니다. 어떤 항목을 저장하는지는 개인정보처리방침에 전부 적어 두었습니다.',
     faq3q:'답이 정말 하나뿐인가요?', faq3a:'네. 위 \'답이 하나뿐인 이유\'에 적은 대로, 찍기가 들어가지 않는 줄 단위 추론만으로 판 전체가 확정되는 판만 내보냅니다. 그 조건을 통과했다는 것 자체가 답이 하나뿐이라는 증명입니다.',
     faq4q:'같은 날이면 정말 같은 판인가요?', faq4a:'네. 오늘의 도전 판은 날짜만으로 정해지는 씨앗에서 만들어집니다. 게임을 하는 동안에는 난수를 한 번도 더 쓰지 않기 때문에, 누가 언제 어떻게 풀든 같은 날짜면 같은 그림이 나옵니다.',
-    faq5q:'소리를 끌 수 있나요?', faq5a:'네. 오른쪽 위 스피커 버튼으로 끄고 켤 수 있고, 그 선택은 다음에 올 때도 그대로 유지됩니다. 효과음은 모두 브라우저가 그 자리에서 만들어 내는 소리라 내려받는 음원 파일이 없습니다. 기기의 \'동작 줄이기\' 를 켜면 애니메이션도 꺼집니다.',
     footer:'© 2026 노노그램 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
     navPrivacy:'개인정보처리방침', navTerms:'이용약관', navAbout:'소개'
   },
@@ -444,12 +441,10 @@ const I18N = {
     tip2a:'Marking the squares you know are empty makes the ones that are left jump out. Once a line already holds everything its clue asks for, every remaining square in it is an ✕. Working the other way, a short gap fenced in by ✕ marks clearly cannot hold a block longer than the gap.',
     tip3q:'Alternate rows and columns',
     tip3a:'One square you win in a row unlocks the clue of the column crossing it. Sweep all the rows, and when you stall, sweep all the columns instead. A few passes back and forth and a board that looked stuck starts to fall apart. Hard boards are chosen precisely because they need several of those passes.',
-    faqTitle:'FAQ',
-    faq1q:'Do I need to install anything?', faq1a:'No. It runs straight in the browser. Add it to your home screen to use it like an app.',
+    faqTitle:'FAQ', faqMore:'Questions that apply to every game, such as installing, sound and where records are kept, are collected in the <a href="/guide/#faq">common questions of the guide</a>.',
     faq2q:'Where are my progress and records stored?', faq2a:'Only in the browser on this device. Nothing is sent to a server. Clearing browser data also clears your progress. Every item that gets stored is listed in the privacy policy.',
     faq3q:'Is the solution really unique?', faq3a:'Yes. As explained under "Why there is only one solution", a board is published only when the guess-free line solver settles the entire grid on its own. Passing that test is itself the proof that no second solution exists.',
     faq4q:'Is the daily board really the same for everyone?', faq4a:'Yes. The daily board is built from a seed that depends on nothing but the date, and no further random numbers are drawn while you play. Whoever plays, whenever and however they play, the same date gives the same picture.',
-    faq5q:'Can I turn the sound off?', faq5a:'Yes — the speaker button at the top right toggles it, and your choice is remembered next time. Every effect is generated by the browser on the spot, so there are no audio files to download. Turning on "reduce motion" on your device also switches off the animations.',
     footer:'© 2026 Nonogram · Privacy: records stay on your device; third-party cookies (Google and others) may be used to serve ads.',
     navPrivacy:'Privacy policy', navTerms:'Terms', navAbout:'About'
   }

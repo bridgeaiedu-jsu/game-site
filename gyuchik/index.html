@@ -398,14 +398,14 @@ const I18N = {
         tip2a:'번갈아 나오기에서는 첫째와 셋째 칸의 모양이 같고 둘째만 다릅니다. 다음 칸은 둘째 칸의 모양을 하고, 개수와 자리는 세 칸과 똑같습니다. 모양은 맞는데 개수나 자리가 어긋난 보기가 흔한 함정입니다.',
         tip3q:'힌트 전에 한 번은 스스로 말해 보세요',
         tip3a:'「💡 규칙군 힌트」는 그 문제의 규칙 무리 이름만 알려 주고 정답 보기는 가리키지 않습니다. 한 문제에서 여러 번 눌러도 한 번으로 셉니다. 다만 힌트를 본 문제는 맞혀도 「혼자 푼 문제」에 들지 않으니, 규칙을 한 문장으로 먼저 말해 본 뒤에 누르세요.',
-        faqTitle:'자주 묻는 질문',
+        faqTitle:'자주 묻는 질문', faqMore:'설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.',
         faq1q:'다른 규칙으로도 설명되는 것 같아요',
         faq1a:'이 게임은 네 규칙 무리(반복·옮겨 가기·늘어나기·번갈아 나오기) 안에서만 답이 하나로 정해지도록 문제를 거릅니다. 그 밖의 모든 해석까지 막았다고 말하지는 않습니다. 답을 고른 뒤 나오는 해설이 그 문제에 쓰인 규칙입니다.',
         faq2q:'시간이나 감점이 있나요?',
         faq2a:'없습니다. 타이머가 없고 점수는 맞힌 개수뿐입니다. 오래 생각했다고 점수가 줄지 않고, 틀린 답에도 감점은 없습니다. 결과에는 맞힌 수, 힌트 수, 힌트 없이 맞힌 문제 수가 나옵니다.',
         faq3q:'틀린 문제를 다시 풀 수 있나요?',
         faq3a:'한 문제 안에서는 제출을 바꿀 수 없습니다. 다섯 문제를 다 푼 뒤 「다시 보기」를 누르면 같은 다섯 문제를 처음부터 다시 풀 수 있고, 이때 맞힌 수와 힌트 수는 새로 셉니다. 새 문제는 다음 날 한국 시각 자정에 열립니다.',
-        faq4q:'기록은 어디에 저장되나요?',
+        faq4q:'규칙 찾기 기록은 어디에 남고, 서버로는 무엇이 가나요?',
         faq4a:'사용 중인 기기의 브라우저에 언어 설정과, 끝낸 날의 날짜·맞힌 수·힌트 수·혼자 푼 문제 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 문제를 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.', title:'규칙 찾기', subtitle:'예시 셋을 보고 다음 한 칸을 고릅니다 — 시간 제한은 없습니다',
         home:'🏠 다른 게임', dayLbl:'오늘의 규칙', qLbl:'문제', scoreLbl:'맞힌 수', hintLbl:'힌트',
         hintBtn:'💡 규칙군 힌트', next:'다음 ▶',
@@ -436,7 +436,7 @@ const I18N = {
         tip2a:'In alternation the first and third panels share a shape and only the second differs. The next panel takes the second panel\'s shape, with the same count and position as all three. An option with the right shape but the wrong count or position is the usual trap.',
         tip3q:'Say the rule yourself before taking a hint',
         tip3a:'The 💡 Rule-family hint names only the family behind the question and never points at an option. Pressing it several times on one question still counts once. A question answered after a hint, though, does not count as solved unaided, so try putting the rule into one sentence before you press it.',
-        faqTitle:'FAQ',
+        faqTitle:'FAQ', faqMore:'Questions that apply to every game, such as installing, sound and where records are kept, are collected in the <a href="/guide/#faq">common questions of the guide</a>.',
         faq1q:'Another rule seems to fit too',
         faq1a:'Questions are filtered so that the answer is unique within the four families (repetition, moving marker, growing count and alternation). The game does not claim to rule out every other interpretation. The note shown after you answer is the rule that question used.',
         faq2q:'Is there a timer or a penalty?',
@@ -706,7 +706,8 @@ window.__gyuchik = {
   <details><summary data-i18n="faq1q">다른 규칙으로도 설명되는 것 같아요</summary><p data-i18n="faq1a">이 게임은 네 규칙 무리(반복·옮겨 가기·늘어나기·번갈아 나오기) 안에서만 답이 하나로 정해지도록 문제를 거릅니다. 그 밖의 모든 해석까지 막았다고 말하지는 않습니다. 답을 고른 뒤 나오는 해설이 그 문제에 쓰인 규칙입니다.</p></details>
   <details><summary data-i18n="faq2q">시간이나 감점이 있나요?</summary><p data-i18n="faq2a">없습니다. 타이머가 없고 점수는 맞힌 개수뿐입니다. 오래 생각했다고 점수가 줄지 않고, 틀린 답에도 감점은 없습니다. 결과에는 맞힌 수, 힌트 수, 힌트 없이 맞힌 문제 수가 나옵니다.</p></details>
   <details><summary data-i18n="faq3q">틀린 문제를 다시 풀 수 있나요?</summary><p data-i18n="faq3a">한 문제 안에서는 제출을 바꿀 수 없습니다. 다섯 문제를 다 푼 뒤 「다시 보기」를 누르면 같은 다섯 문제를 처음부터 다시 풀 수 있고, 이때 맞힌 수와 힌트 수는 새로 셉니다. 새 문제는 다음 날 한국 시각 자정에 열립니다.</p></details>
-  <details><summary data-i18n="faq4q">기록은 어디에 저장되나요?</summary><p data-i18n="faq4a">사용 중인 기기의 브라우저에 언어 설정과, 끝낸 날의 날짜·맞힌 수·힌트 수·혼자 푼 문제 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 문제를 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.</p></details>
+  <details><summary data-i18n="faq4q">규칙 찾기 기록은 어디에 남고, 서버로는 무엇이 가나요?</summary><p data-i18n="faq4a">사용 중인 기기의 브라우저에 언어 설정과, 끝낸 날의 날짜·맞힌 수·힌트 수·혼자 푼 문제 수가 저장됩니다. 서버로는 방문과 판수 집계, 그리고 어느 게임을 시작했고 오늘의 문제를 끝냈는지가 개인을 직접 알아볼 수 있는 정보 없이 전송됩니다. 저장하는 항목과 보내는 항목은 <a href="/privacy/">개인정보처리방침</a> · <a href="/terms/">이용약관</a>에 최신 목록으로 유지합니다.</p></details>
+  <p class="faq-more" data-i18n="faqMore">설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.</p>
 </section>
 
 <section class="read" id="read">
