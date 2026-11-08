@@ -90,7 +90,7 @@
 
 <main>
   <div class="langbar"><a href="#en">English ↓</a><a href="/stop/">멈춰! 하러 가기</a><a href="/">게임 목록</a></div>
-  <p class="updated">2026년 10월 29일 · 한판고 · 수치는 <a href="/stop/">멈춰!</a>의 실제 판정 식(허용폭 대비 정규화, 지점 2·크기 2·각도 1 라운드, 속도·허용폭 범위 그대로)을 가져와 라운드 2만 개씩 직접 돌린 결과입니다</p>
+  <p class="updated">2026년 10월 29일 · 11월 9일 보강 · 한판고 · 수치는 <a href="/stop/">멈춰!</a>의 실제 판정 식(허용폭 대비 정규화, 지점 2·크기 2·각도 1 라운드, 속도·허용폭 범위 그대로)을 가져와 라운드 2만 개씩 직접 돌린 결과입니다. 11월 9일에 아무 때나 누른 판 3만 개, 흔들림 실험 판 3천 개, 2027년 오늘의 판 365개를 같은 코드로 더 돌려 보탰습니다</p>
 
   <section>
     <h2>몇 점부터가 실력일까</h2>
@@ -119,6 +119,26 @@
   </section>
 
   <section>
+    <h2>운으로 70점이 나올 확률</h2>
+    <p>평균만 보면 운이 얼마나 멀리까지 데려다주는지 알 수 없습니다. 그래서 아무 때나 누르는 판을 3만 개 돌려 점수가 어떻게 퍼지는지 셌습니다. 평균은 <strong>37.8점</strong>으로 앞의 셈과 같았고, 가운데값은 37.5점입니다. 50점을 넘은 판이 <strong>19.9%</strong>, 60점을 넘은 판이 <strong>6.3%</strong>, 70점을 넘은 판은 <strong>1.25%</strong>뿐이었습니다. 다섯 판 가운데 한 판은 운만으로 50점을 넘기니 50점대 한 번에 기뻐할 일은 아니지만, 70점은 운으로는 100판에 한 번 나올까 말까 한 점수입니다. 그러니 <strong>70점을 두 번 연속 넘겼다면 실력</strong>이라고 읽어도 됩니다.</p>
+  </section>
+
+  <section>
+    <h2>기회는 생각보다 여러 번 온다</h2>
+    <p>첫 통과를 놓치면 끝이라고 여기기 쉽지만, 대상은 10초 동안 목표를 여러 번 지나갑니다. 판 3천 개에서 목표와 정확히 겹치는 순간을 1ms 간격으로 셌더니, 지점 라운드는 첫 겹침이 평균 <strong>1.07초</strong> 뒤에 오고 10초 안에 평균 <strong>6.3번</strong>(적어도 4번) 겹쳤습니다. 크기 라운드는 첫 겹침이 0.72초, 평균 9.4번(적어도 6번)이고, 각도 라운드는 첫 겹침이 1.44초, 평균 3.6번(적어도 2번)입니다. 어느 라운드든 <strong>두 번째 기회는 반드시 온다</strong>는 뜻이라, 첫 통과를 보는 데 쓰고 둘째에 누르는 전략이 손해가 아닙니다. 다만 각도는 기회가 가장 적으니 둘째 통과에서 확실히 누르세요.</p>
+  </section>
+
+  <section>
+    <h2>들쭉날쭉함보다 늦음이 더 비싸다</h2>
+    <p>사람의 누르기는 늘 같은 만큼 늦는 것이 아니라 매번 조금씩 흔들립니다. 흔들림과 늦음 중 무엇이 더 큰 손해인지 보려고, 평균은 정확하되 매번 정규분포로 흔들리는 가상 플레이어를 판 3천 개에 돌렸습니다. 흔들림의 표준편차가 25ms면 한 판 평균 <strong>96.3점</strong>, 50ms면 <strong>92.5점</strong>, 100ms면 <strong>85.2점</strong>입니다. 반대로 흔들림 없이 늘 150ms 늦으면 <strong>72.0점</strong>이고, 늘 150ms 늦으면서 50ms 흔들려도 72.2점으로 거의 같습니다. 같은 판을 늦음 0·흔들림 50ms로 치면 92.6점입니다. 정리하면 <strong>먼저 고칠 것은 늦음</strong>이고, 흔들림은 그다음입니다. 내 결과 화면에 표시되는 벗어난 양이 늘 같은 쪽으로 기울어 있다면 늦음이 문제라는 신호입니다.</p>
+  </section>
+
+  <section>
+    <h2>오늘의 판도 날마다 난이도가 다르다</h2>
+    <p>오늘의 판은 날짜 하나로 다섯 라운드의 속도·허용폭·목표가 모두 정해집니다. 2027년 365일의 판을 게임과 같은 방식으로 미리 만들어, 늘 150ms 늦는 플레이어가 받을 점수를 날마다 셌습니다. 가운데값은 <strong>72.0점</strong>인데, 가장 쉬운 날(2027년 7월 1일)은 <strong>78.7점</strong>, 가장 어려운 날(11월 17일)은 <strong>65.0점</strong>으로 같은 실력이 날짜만 바뀌어도 13.7점 벌어졌습니다. 그러니 어제보다 점수가 떨어졌다고 실력이 줄었다고 볼 필요는 없습니다. <strong>점수를 견줄 때는 같은 날의 판끼리</strong> 견주세요. 오늘의 판은 모두가 같은 판을 받으니 친구와 비교하기에 가장 공정합니다.</p>
+  </section>
+
+  <section>
     <h2>이렇게 하면 점수가 오른다</h2>
     <ul>
       <li><strong>보고 누르지 않고 앞서 누른다</strong>: 보고 난 뒤의 손은 늦습니다. 반응 속도가 사람마다 얼마나 다른지는 <a href="/read/reaction-time-average/">반응 속도 평균 읽을거리</a>에서 가늠해 보고, 내 지연만큼 앞당겨 누르세요. 늘 200ms 늦던 사람이 그만큼만 앞당기면 63.5점에서 99점대로 올라갑니다.</li>
@@ -126,7 +146,7 @@
       <li><strong>각도에서 가장 집중한다</strong>: 한 판에서 한 번뿐이지만 같은 지연에 가장 많이 깎입니다. 막대가 목표 직전에 올 때 미리 손을 준비하세요.</li>
       <li><strong>10초를 넘기지 않는다</strong>: 한 라운드에서 10초 안에 누르지 않으면 0점이니, 확신이 덜 서도 폭 안에 들 만한 순간에 누르세요.</li>
     </ul>
-    <p>가상 플레이어는 목표를 처음 지난 순간을 정확히 알고 늘 같은 시간만큼 늦는다고 가정했고, 무작위 누르기는 10초 안에서 고르게 퍼진다고 가정했습니다. 사람은 이보다 들쭉날쭉하니 절대 숫자보다 위의 비교를 읽어 주세요. 매일 자정에 열리는 오늘의 판은 모두가 같은 다섯 라운드를 받으니, 같은 문제에서 내 점수를 견주기 좋습니다.</p>
+    <p>가상 플레이어는 목표를 처음 지난 순간을 정확히 알고 늘 같은 시간만큼 늦는다고 가정했고, 무작위 누르기는 10초 안에서 고르게 퍼진다고 가정했습니다. 흔들림 실험은 그 늦음 위에 정규분포 흔들림을 더한 것이고, 판은 모두 게임의 판 짜기 함수를 그대로 썼습니다. 사람은 이보다 들쭉날쭉하니 절대 숫자보다 위의 비교를 읽어 주세요. 매일 자정에 열리는 오늘의 판은 모두가 같은 다섯 라운드를 받으니, 같은 문제에서 내 점수를 견주기 좋습니다.</p>
     <p><a class="cta" href="/stop/">▶ 멈춰! 한판</a></p>
   </section>
 
@@ -134,7 +154,7 @@
 
   <div lang="en">
   <h2 id="en" class="en-title">Stop! score math: random presses already earn 38 points</h2>
-  <p class="updated">29 October 2026 · Hanpango · figures use the actual scoring of <a href="/stop/">Stop!</a> (distance normalised by each round's tolerance; two spot, two size and one angle round; the game's speed and tolerance ranges) run on 20,000 rounds per cell</p>
+  <p class="updated">29 October 2026 · expanded 9 November · Hanpango · figures use the actual scoring of <a href="/stop/">Stop!</a> (distance normalised by each round's tolerance; two spot, two size and one angle round; the game's speed and tolerance ranges) run on 20,000 rounds per cell</p>
 
   <section>
     <h2>What score counts as skill?</h2>
@@ -150,6 +170,26 @@
   <section>
     <h2>The angle round is the harshest</h2>
     <p>The same delay costs different amounts per round. Average speeds are 150 px/s for spot, 95 px/s for size and 130°/s for angle, while the tolerance that turns a score to zero is 100 px, 52 px and 50°. Speed divided by tolerance is 1.5, 1.8 and 2.6, so 100 ms of lateness removes about 14, 17 and 25 points. In raw units 100 ms is 15 px of spot, 9.5 px of size or 13° of angle.</p>
+  </section>
+
+  <section>
+    <h2>How often does luck reach 70?</h2>
+    <p>Across 30,000 games of random taps the mean was 37.8 and the median 37.5. Random play beat 50 in <strong>19.9%</strong> of games, 60 in 6.3% and 70 in only <strong>1.25%</strong>. One game in five crosses 50 by luck, but 70 is about a one-in-a-hundred fluke, so two 70s in a row are skill.</p>
+  </section>
+
+  <section>
+    <h2>You get more than one chance</h2>
+    <p>Scanning 3,000 boards at 1 ms steps for exact alignments: spot rounds first align after 1.07 s on average and align 6.3 times in 10 s (never fewer than 4); size rounds after 0.72 s, 9.4 times (at least 6); angle rounds after 1.44 s, 3.6 times (at least 2). A second chance always comes, so watching the first pass costs nothing — just take the second pass seriously on the angle round, which offers the fewest.</p>
+  </section>
+
+  <section>
+    <h2>Lateness costs more than wobble</h2>
+    <p>A player who is accurate on average but wobbles with a standard deviation of 25, 50 or 100 ms scores 96.3, 92.5 and 85.2. A player who is always 150 ms late with no wobble scores 72.0, and adding 50 ms of wobble barely changes it (72.2). Fix lateness first; if your misses always lean the same way on the result screen, lateness is the problem.</p>
+  </section>
+
+  <section>
+    <h2>Daily boards differ in difficulty</h2>
+    <p>Generating every 2027 daily board with the game's own dealer, a player who is always 150 ms late scores a median of 72.0, but 78.7 on the easiest day (1 July) and 65.0 on the hardest (17 November) — a 13.7-point swing from the date alone. Compare scores only within the same day's board.</p>
   </section>
 
   <section>
