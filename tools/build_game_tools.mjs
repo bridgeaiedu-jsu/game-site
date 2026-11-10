@@ -3,7 +3,7 @@
  *
  * 계약(한 문장): 두 도구가 쓰는 제시어·낱말 목록·채점은 게임이 실제로 쓰는 것과 ★같다.
  *   - 라이어: liar/index.html 의 TOPICS 를 평가해 한국어 낱말만 페이지에 끼운다.
- *   - 낱말: word/index.html 의 ANSWERS_RAW·GUESSES_RAW 로 first.json 을, 자모·채점 코드는 글자 그대로 페이지에 끼운다.
+ *   - 낱말: word/index.html 의 ANSWERS_RAW·GUESSES_RAW 로 만든 순위와 자모·채점 코드를 글자 그대로 페이지에 끼운다.
  *   - 표: 페이지의 AUTO 표시 사이를 이 도구가 쓴다. 손으로 고치지 말 것.
  *
  * 사용법
@@ -87,7 +87,7 @@ function buildWord() {
   };
   const res = guesses.map(evaluate).sort((x, y) => x.sq - y.sq || (x.w < y.w ? -1 : 1));
   const avg = x => (x.sq / answers.length).toFixed(1);
-  const json = JSON.stringify({ answers: ev.ANSWERS_RAW, ranked: res.map(x => x.w).join('') }) + '\n';
+  const data = 'var DATA = ' + JSON.stringify({ answers: ev.ANSWERS_RAW, ranked: res.map(x => x.w).join('') }) + ';';
   const mid = res[Math.floor(res.length / 2)], last = res[res.length - 1];
   const stats = `<ul class="facts">
 <li><b>${num(answers.length)}</b><span>정답 낱말</span></li>
@@ -115,11 +115,11 @@ ${res.slice(-10).map((x, i) => row(x, res.length - 10 + i)).join('\n')}
   page = html(page, 'top', top);
   page = html(page, 'worst', worst);
   page = code(page, 'rule', jamoSrc + '\n' + scoreSrc);
+  page = code(page, 'data', data);
   console.log('낱말: 정답 ' + answers.length + ' · 입력 ' + res.length + ' · 1위 ' + res[0].w + ' ' + avg(res[0]) + '(' + res[0].combos +
     ') · 가운데 ' + mid.w + ' ' + avg(mid) + ' · 꼴찌 ' + last.w + ' ' + avg(last));
   return {
     'word/first/index.html': { before, after: page },
-    'word/first/first.json': { before: fs.existsSync(P('word/first/first.json')) ? fs.readFileSync(P('word/first/first.json'), 'utf8') : null, after: json },
   };
 }
 

@@ -2,7 +2,7 @@
 /* build_hanbang.mjs — 한방단어 검색기(/wordchain/hanbang/)의 데이터와 표를 ★게임 코드에서 뽑아 만든다.
  *
  * 계약(한 문장): 검색기가 쓰는 사전과 두음법칙은 끝말잇기 게임이 실제로 쓰는 것과 ★같다.
- *   - 사전: wordchain/index.html 의 `const DICT = [...]` 를 그대로 평가해 words.json 을 만든다.
+ *   - 사전: wordchain/index.html 의 `const DICT = [...]` 를 그대로 평가해 페이지 스크립트에 끼운다.
  *   - 규칙: 같은 파일의 두음법칙 코드(CHO ~ alts)를 글자 그대로 페이지 스크립트에 끼운다.
  *   - 표: 페이지의 AUTO 표시 사이를 이 도구가 쓴다. 손으로 고치지 말 것.
  *
@@ -18,7 +18,6 @@ const root = path.resolve(process.argv[2] || '.');
 const check = process.argv.includes('--check');
 const gamePath = path.join(root, 'wordchain/index.html');
 const pagePath = path.join(root, 'wordchain/hanbang/index.html');
-const wordsPath = path.join(root, 'wordchain/hanbang/words.json');
 
 function indeterminate(msg) { console.error('판정 불가: ' + msg); process.exitCode = 2; }
 
@@ -139,7 +138,7 @@ function main() {
   try { r = compute(parts.dictSrc, parts.ruleSrc); }
   catch (e) { return indeterminate('게임 코드 평가 실패: ' + e.message); }
 
-  const json = JSON.stringify(r.DICT.map(g => ({ L: g.L, c: g.ne + g.na, s: g.s }))) + '\n';
+  const data = 'var GROUPS = ' + JSON.stringify(r.DICT.map(g => ({ L: g.L, c: g.ne + g.na, s: g.s }))) + ';';
   const b = blocks(r);
   const stale = [];
   const statsLine = '사전 ' + num(r.stats.words) + ' · 끝 글자 ' + num(r.stats.ends) + ' · 한방 끝글자 ' + num(r.stats.dead) +
@@ -158,10 +157,13 @@ function main() {
   const ra = page.indexOf(ro), rb = page.indexOf(rc);
   if (ra < 0 || rb < ra) return indeterminate('페이지에 규칙 표시가 없다');
   page = page.slice(0, ra + ro.length) + '\n' + parts.ruleSrc + '\n' + page.slice(rb);
+  const dc = '/*AUTO:data*/', dd = '/*/AUTO:data*/';
+  const da = page.indexOf(dc), db = page.indexOf(dd);
+  if (da < 0 || db < da) return indeterminate('페이지에 데이터 표시가 없다');
+  page = page.slice(0, da + dc.length) + '\n' + data + '\n' + page.slice(db);
 
   if (check) {
     if (page !== before) stale.push('wordchain/hanbang/index.html');
-    if (!fs.existsSync(wordsPath) || fs.readFileSync(wordsPath, 'utf8') !== json) stale.push('wordchain/hanbang/words.json');
     if (stale.length) {
       console.error('어긋남: ' + stale.join(', ') + ' — node tools/build_hanbang.mjs . 로 다시 만들 것');
       process.exitCode = 1;
@@ -170,9 +172,8 @@ function main() {
     console.log('통과: 검색기의 사전·두음법칙·표가 게임 코드와 같다');
     return;
   }
-  fs.writeFileSync(wordsPath, json);
   fs.writeFileSync(pagePath, page);
-  console.log('만들었다: words.json ' + json.length + '자 · index.html');
+  console.log('만들었다: index.html ' + page.length + '자');
 }
 
 main();
