@@ -675,19 +675,10 @@ function renderEnd(frag, text) {
 function run() {
   var text = hangulOnly(input.value);
   while (out.firstChild) out.removeChild(out.firstChild);
-  syncUrl(text);
   if (!text) return;
   var frag = document.createDocumentFragment();
   if (state.mode === 'next') renderNext(frag, text); else renderEnd(frag, text);
   out.appendChild(frag);
-}
-function syncUrl(text) {
-  try {
-    var u = new URL(location.href);
-    if (text) u.searchParams.set('q', text); else u.searchParams.delete('q');
-    if (state.mode === 'end') u.searchParams.set('m', 'end'); else u.searchParams.delete('m');
-    history.replaceState(null, '', u.pathname + u.search);
-  } catch (e) { /* 주소 갱신은 부가 기능이다 */ }
 }
 function setMode(m) {
   state.mode = m;
@@ -704,13 +695,6 @@ btnEnd.addEventListener('click', function () { setMode('end'); run(); });
 Array.prototype.forEach.call(document.querySelectorAll('[data-eg]'), function (b) {
   b.addEventListener('click', function () { input.value = b.getAttribute('data-eg'); run(); input.focus(); });
 });
-
-try {
-  var params = new URLSearchParams(location.search);
-  if (params.get('m') === 'end') setMode('end');
-  var initial = hangulOnly(params.get('q')).slice(0, 20);
-  if (initial) input.value = initial;
-} catch (e) { /* 주소 해석 실패는 빈 검색으로 시작한다 */ }
 
 load();
 run();
