@@ -192,6 +192,20 @@
       "when": "always",
       "why": "하루 경계가 ★KST 하나인가 — 일일 도전 전수의 dayKey·회차·prevDayKey·저장 못박기·스트릭 이행을 정적 전수 + ★TZ 를 강제한 실행으로 잰다(오너 결정 2026-09-09)",
       "kind": "cli"
+    },
+    {
+      "file": "tools/build_hanbang.mjs",
+      "cmd": "node tools/build_hanbang.mjs . --check",
+      "when": "always",
+      "why": "한방단어 검색기의 사전·두음법칙·표가 끝말잇기 게임 코드와 같은가(다시 만든 결과와 저장본을 대조)",
+      "kind": "cli"
+    },
+    {
+      "file": "tools/build_game_tools.mjs",
+      "cmd": "node tools/build_game_tools.mjs . --check",
+      "when": "always",
+      "why": "제시어 뽑기·첫 낱말 평가기의 목록·채점·표가 게임 코드와 같은가(다시 만든 결과와 저장본을 대조)",
+      "kind": "cli"
     }
   ],
   "per_game": [

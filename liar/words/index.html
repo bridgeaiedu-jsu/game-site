@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="naver-site-verification" content="cc9b9670830e2fd1aaded9260c9147b2e0cfce38" />
+<meta name="naver-site-verification" content="15647470492d71996663997e5087b0e3908fb3c3" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>라이어 게임 제시어 뽑기 — 주제를 고르면 겹치지 않게 뽑아 줍니다 — 한판고</title>
+<meta name="description" content="라이어 게임 제시어를 주제별로 무작위로 뽑아 드립니다. 음식·동물·직업·장소·스포츠·물건·탈것·나라 여덟 주제에서 고르고, 한 번 나온 말은 다시 나오지 않습니다. 진행자가 있는 모임에서 바로 쓰는 무료 도구입니다.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0a24" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="라이어 게임 제시어 뽑기 — 한판고">
+<meta property="og:description" content="주제를 고르면 라이어 게임 제시어를 겹치지 않게 뽑아 드립니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hanpango.com/liar/words/">
+<meta property="og:image" content="https://hanpango.com/liar/thumb.webp">
+<meta property="og:image:width" content="640">
+<meta property="og:image:height" content="640">
+<link rel="canonical" href="https://hanpango.com/liar/words/">
+<!-- ADSENSE — 사이트 코드(2026-08-25 삽입 · pub-3063332867911744) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3063332867911744" crossorigin="anonymous"></script>
+<!-- GA4 — 측정 ID G-40KLN4QMCD · IP 익명화. 뽑은 제시어는 보내지 않는다. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40KLN4QMCD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-40KLN4QMCD', { anonymize_ip: true });
+</script>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"라이어 게임 제시어 뽑기","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","url":"https://hanpango.com/liar/words/","inLanguage":"ko","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"}}
+</script>
+<style>
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --panel2:#eceff3; --line:#e5e7eb;
+    --text:#111827; --muted:#6b7280; --muted-2:#4b5563;
+    --sig:#5a5100; --sig-ink:#5a5100; --sig-soft:#fbf7c4; --on-sig:#ffffff;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0a24; --panel:#1e1b4b; --panel2:#2a2766; --line:#3b3784;
+      --text:#f1f0ff; --muted:#a5a1d8; --muted-2:#c9c6ec;
+      --sig:#fffc66; --sig-ink:#fffbb0; --sig-soft:#3a3710; --on-sig:#1a1a00;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;line-height:1.7;font-size:.95rem}
+  header{width:100%;max-width:720px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}
+  header a.home{color:var(--sig-ink);text-decoration:none;font-size:.85rem;white-space:nowrap}
+  h1{font-size:1.25rem;margin:0}
+  main{width:100%;max-width:720px;padding:6px 16px 24px}
+  .lead{margin:4px 0 12px;color:var(--muted-2)}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px}
+  h2{font-size:1.02rem;margin:0 0 8px;color:var(--sig-ink)}
+  p{margin:0 0 10px}
+  ul,ol{margin:0 0 10px;padding-left:20px}
+  li{margin:0 0 6px}
+  a{color:var(--sig-ink);word-break:break-word}
+  .lbl{font-size:.84rem;color:var(--muted-2);margin:0 0 6px}
+  .opts{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+  .opts button{min-height:40px;border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:9px;font:inherit;font-size:.88rem;padding:4px 12px;cursor:pointer}
+  .opts button[aria-pressed="true"]{background:var(--sig);border-color:var(--sig);color:var(--on-sig);font-weight:700}
+  #draw{width:100%;min-height:52px;border:0;background:var(--sig);color:var(--on-sig);border-radius:10px;font:inherit;font-size:1.05rem;font-weight:700;cursor:pointer}
+  #result{list-style:none;padding:0;margin:12px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  #result li{margin:0;background:var(--sig-soft);border-radius:10px;padding:12px 10px;text-align:center;font-size:1.1rem;font-weight:700;word-break:keep-all}
+  #result li.one{grid-column:1 / -1;font-size:1.6rem;padding:20px 10px}
+  #status{margin:10px 0 0;font-size:.84rem;color:var(--muted-2)}
+  .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .row button{min-height:40px;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:8px;font:inherit;font-size:.85rem;padding:4px 14px;cursor:pointer}
+  ul.facts{list-style:none;padding:0;margin:0 0 10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  ul.facts li{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:0}
+  ul.facts b{display:block;font-size:1.25rem;color:var(--sig-ink)}
+  ul.facts span{font-size:.78rem;color:var(--muted-2)}
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:.88rem}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{color:var(--muted-2);font-weight:600}
+  td.end{font-weight:700;white-space:nowrap}
+  td.ex{word-break:keep-all}
+  .cta{display:inline-block;background:var(--sig);color:var(--on-sig);font-weight:700;text-decoration:none;border-radius:10px;padding:9px 16px;margin:4px 6px 0 0}
+  footer{width:100%;max-width:720px;color:var(--muted);font-size:.72rem;padding:0 16px calc(20px + var(--safe-b));text-align:center;line-height:2}
+  footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>라이어 게임 제시어 뽑기</h1>
+  <a class="home" href="/liar/">라이어 게임 하러 가기 ›</a>
+</header>
+
+<main>
+  <p class="lead">진행자가 있는 모임에서 제시어를 고르기 어려울 때 쓰는 도구입니다. 주제를 고르고 뽑기를 누르세요.</p>
+
+  <section aria-label="제시어 뽑기">
+    <p class="lbl">주제</p>
+    <div class="opts" id="topics" role="group" aria-label="주제"></div>
+    <p class="lbl">한 번에 뽑을 개수</p>
+    <div class="opts" id="counts" role="group" aria-label="개수">
+      <button type="button" data-n="1" aria-pressed="true">1개</button>
+      <button type="button" data-n="4" aria-pressed="false">4개</button>
+      <button type="button" data-n="10" aria-pressed="false">10개</button>
+    </div>
+    <button type="button" id="draw">제시어 뽑기</button>
+    <ul id="result" aria-live="polite"></ul>
+    <p id="status"></p>
+    <div class="row">
+      <button type="button" id="copy" hidden>복사</button>
+      <button type="button" id="reset">처음부터 다시</button>
+    </div>
+    <noscript><p>뽑기는 자바스크립트가 켜진 브라우저에서 동작합니다. 제시어 목록은 <a href="/read/liar-game-words/">라이어 게임 제시어 모음</a>에서 보실 수 있습니다.</p></noscript>
+  </section>
+
+  <section>
+    <h2>제시어 구성</h2>
+<!--AUTO:stats-->
+<ul class="facts">
+<li><b>8</b><span>주제</span></li>
+<li><b>401</b><span>제시어</span></li>
+</ul>
+<!--/AUTO:stats-->
+<!--AUTO:topics-->
+<table>
+<thead><tr><th>주제</th><th>제시어</th><th>예</th></tr></thead>
+<tbody>
+<tr><td class="end">음식</td><td>50</td><td class="ex">떡볶이 · 김밥 · 라면 · 비빔밥 · 불고기 · 삼겹살</td></tr>
+<tr><td class="end">동물</td><td>50</td><td class="ex">호랑이 · 사자 · 코끼리 · 기린 · 얼룩말 · 하마</td></tr>
+<tr><td class="end">직업</td><td>50</td><td class="ex">의사 · 간호사 · 약사 · 선생님 · 교수 · 경찰관</td></tr>
+<tr><td class="end">장소</td><td>50</td><td class="ex">학교 · 병원 · 도서관 · 공원 · 놀이공원 · 동물원</td></tr>
+<tr><td class="end">스포츠</td><td>50</td><td class="ex">축구 · 야구 · 농구 · 배구 · 테니스 · 배드민턴</td></tr>
+<tr><td class="end">물건</td><td>51</td><td class="ex">우산 · 가방 · 지갑 · 손목시계 · 안경 · 모자</td></tr>
+<tr><td class="end">탈것</td><td>50</td><td class="ex">자동차 · 버스 · 택시 · 트럭 · 기차 · 지하철</td></tr>
+<tr><td class="end">나라·도시</td><td>50</td><td class="ex">일본 · 중국 · 미국 · 영국 · 프랑스 · 독일</td></tr>
+</tbody>
+</table>
+<!--/AUTO:topics-->
+    <p>모두 <a href="/liar/">한판고 라이어 게임</a>에 들어 있는 제시어입니다. 게임의 목록이 바뀌면 이 도구도 함께 바뀝니다. 낱말 전체는 <a href="/read/liar-game-words/">제시어 모음 글</a>에 있습니다.</p>
+  </section>
+
+  <section>
+    <h2>진행자가 있을 때 이렇게 쓰세요</h2>
+    <ol>
+      <li>진행자가 혼자 화면을 보고 제시어를 1개 뽑습니다.</li>
+      <li>참가자를 한 사람씩 불러 제시어를 귓속말이나 쪽지로 전합니다. 라이어에게는 「라이어입니다」라고만 전합니다.</li>
+      <li>시계 방향으로 한 마디씩 설명하고, 다 함께 라이어를 지목합니다.</li>
+      <li>다음 판에는 다시 뽑기를 누릅니다. 이미 나온 제시어는 나오지 않습니다.</li>
+    </ol>
+    <p>폰 한 대를 돌려 가며 하고 싶다면 진행자가 필요 없는 <a href="/liar/">라이어 게임</a>이 더 편합니다. 이 도구는 인원이 많거나 교실·회식처럼 한 사람이 앞에서 진행하는 자리에 맞습니다.</p>
+  </section>
+
+  <section>
+    <h2>재미있는 판을 만드는 주제 고르기</h2>
+    <p>제시어의 재미는 설명할 면이 여러 개인가에 달려 있습니다. 음식은 맛·재료·먹는 때를 말할 수 있어 처음 하는 모임에 좋습니다. 직업과 장소도 사람마다 떠올리는 모습이 달라 대화가 길어집니다.</p>
+    <p>나라·도시는 지리를 아는 사람에게 유리하고, 스포츠는 규칙을 모르는 사람이 설명하기 어렵습니다. 어린이나 어르신이 함께라면 동물과 탈것처럼 누구나 아는 주제를 고르세요.</p>
+    <p>10개를 한꺼번에 뽑아 진행자가 모임에 맞는 말만 쓰는 방법도 좋습니다. 뽑은 제시어와 선택은 이 화면에만 있고, 새로고침하면 사라집니다.</p>
+    <a class="cta" href="/liar/">라이어 게임 한 판 하기</a>
+    <a class="cta" href="/read/liar-game-words/">제시어 모음 읽기</a>
+  </section>
+</main>
+
+<footer>
+  <a href="/">게임 목록</a> · <a href="/read/">읽을거리</a> · <a href="/about/">소개</a> · <a href="/privacy/">개인정보 처리방침</a> · <a href="/terms/">이용약관</a> · <a href="/contact/">문의</a>
+</footer>
+
+<script>
+(function () {
+'use strict';
+/* 제시어 — build_game_tools.mjs 가 게임 코드에서 끼운다. 손으로 고치지 말 것. */
+/*AUTO:data*/
+var TOPICS = [{"id":"food","ko":"음식","words":["떡볶이","김밥","라면","비빔밥","불고기","삼겹살","치킨","피자","햄버거","짜장면","짬뽕","탕수육","김치찌개","된장찌개","순두부찌개","냉면","칼국수","만두","떡국","삼계탕","갈비","족발","보쌈","순대","어묵","호떡","붕어빵","김치전","잡채","제육볶음","돈가스","카레","오므라이스","초밥","우동","스파게티","샌드위치","샐러드","스테이크","핫도그","감자튀김","팥빙수","아이스크림","케이크","도넛","팝콘","호빵","누룽지","곱창","떡갈비"]},{"id":"animal","ko":"동물","words":["호랑이","사자","코끼리","기린","얼룩말","하마","코뿔소","원숭이","고릴라","곰","판다","늑대","여우","토끼","다람쥐","고양이","강아지","말","소","돼지","양","염소","닭","오리","거위","독수리","부엉이","앵무새","펭귄","타조","공작","비둘기","참새","거북이","악어","뱀","개구리","도마뱀","고래","돌고래","상어","문어","오징어","게","해파리","나비","꿀벌","개미","캥거루","낙타"]},{"id":"job","ko":"직업","words":["의사","간호사","약사","선생님","교수","경찰관","소방관","군인","변호사","판사","요리사","제빵사","미용사","가수","배우","화가","작가","기자","사진작가","운동선수","조종사","승무원","택시 기사","버스 기사","집배원","농부","어부","목수","건축가","과학자","프로그래머","디자이너","수의사","치과의사","은행원","회계사","사서","마술사","개그맨","아나운서","택배 기사","정원사","통역사","상담사","코치","심판","경비원","환경미화원","우주비행사","발레리나"]},{"id":"place","ko":"장소","words":["학교","병원","도서관","공원","놀이공원","동물원","수족관","박물관","미술관","영화관","공항","기차역","버스 정류장","지하철역","항구","해수욕장","산","캠핑장","찜질방","목욕탕","수영장","헬스장","경기장","편의점","마트","시장","백화점","카페","식당","빵집","은행","우체국","경찰서","소방서","호텔","교실","놀이터","노래방","볼링장","미용실","세탁소","주차장","주유소","사무실","공장","농장","사막","섬","동굴","결혼식장"]},{"id":"sport","ko":"스포츠","words":["축구","야구","농구","배구","테니스","배드민턴","탁구","골프","볼링","수영","마라톤","태권도","유도","씨름","복싱","레슬링","펜싱","양궁","사격","스키","스노보드","피겨스케이팅","쇼트트랙","컬링","아이스하키","럭비","핸드볼","필드하키","체조","역도","사이클","승마","서핑","등산","암벽등반","줄넘기","요가","필라테스","스쿼시","당구","족구","피구","달리기","줄다리기","스케이트보드","카누","다이빙","발야구","수상스키","스피드스케이팅"]},{"id":"thing","ko":"물건","words":["우산","가방","지갑","손목시계","안경","모자","운동화","양말","장갑","목도리","휴대폰","노트북","이어폰","충전기","리모컨","텔레비전","냉장고","세탁기","선풍기","에어컨","전자레인지","밥솥","청소기","드라이기","거울","칫솔","수건","베개","이불","의자","책상","침대","소파","연필","지우개","가위","공책","달력","액자","열쇠","자물쇠","손전등","컵","숟가락","젓가락","냄비","프라이팬","양초","화분","인형","풍선"]},{"id":"ride","ko":"탈것","words":["자동차","버스","택시","트럭","기차","지하철","고속열차","비행기","헬리콥터","배","요트","보트","잠수함","자전거","오토바이","킥보드","로켓","우주선","열기구","구급차","소방차","경찰차","캠핑카","굴착기","지게차","크레인","트랙터","경운기","손수레","유모차","휠체어","케이블카","모노레일","스쿠터","마차","썰매","뗏목","여객선","유람선","화물선","전투기","탱크","트램","관광버스","경주용 자동차","견인차","쓰레기 수거차","택배 트럭","레미콘","수륙양용차"]},{"id":"world","ko":"나라·도시","words":["일본","중국","미국","영국","프랑스","독일","이탈리아","스페인","러시아","캐나다","브라질","멕시코","호주","인도","태국","베트남","필리핀","이집트","그리스","스위스","네덜란드","튀르키예","뉴질랜드","아르헨티나","몽골","서울","부산","제주도","경주","강릉","전주","인천","대구","대전","여수","도쿄","오사카","베이징","뉴욕","파리","런던","로마","방콕","하와이","싱가포르","홍콩","시드니","라스베이거스","두바이","광주"]}];
+/*/AUTO:data*/
+
+var state = { topic: 'all', count: 1, used: new Set(), last: [] };
+var topicsBox = document.getElementById('topics');
+var countsBox = document.getElementById('counts');
+var result = document.getElementById('result');
+var status = document.getElementById('status');
+var copyBtn = document.getElementById('copy');
+
+function press(box, target) {
+  Array.prototype.forEach.call(box.querySelectorAll('button'), function (b) {
+    b.setAttribute('aria-pressed', String(b === target));
+  });
+}
+function addTopic(id, name, pressed) {
+  var b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = name;
+  b.setAttribute('aria-pressed', String(pressed));
+  b.addEventListener('click', function () { state.topic = id; press(topicsBox, b); showRemaining(); });
+  topicsBox.appendChild(b);
+}
+addTopic('all', '전체', true);
+TOPICS.forEach(function (t) { addTopic(t.id, t.ko, false); });
+
+Array.prototype.forEach.call(countsBox.querySelectorAll('button'), function (b) {
+  b.addEventListener('click', function () { state.count = Number(b.getAttribute('data-n')); press(countsBox, b); });
+});
+
+function pool() {
+  var out = [];
+  TOPICS.forEach(function (t) {
+    if (state.topic !== 'all' && state.topic !== t.id) return;
+    t.words.forEach(function (w) { if (!state.used.has(w)) out.push(w); });
+  });
+  return out;
+}
+function shuffle(a) {
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+function showRemaining() {
+  status.textContent = '이 주제에서 뽑을 수 있는 제시어 ' + pool().length + '개가 남았습니다.';
+}
+function clearResult() {
+  while (result.firstChild) result.removeChild(result.firstChild);
+}
+document.getElementById('draw').addEventListener('click', function () {
+  var words = shuffle(pool()).slice(0, state.count);
+  clearResult();
+  if (!words.length) {
+    status.textContent = '이 주제의 제시어를 모두 뽑았습니다. 「처음부터 다시」를 눌러 주세요.';
+    state.last = [];
+    copyBtn.hidden = true;
+    return;
+  }
+  words.forEach(function (w) {
+    state.used.add(w);
+    var li = document.createElement('li');
+    li.textContent = w;
+    if (words.length === 1) li.className = 'one';
+    result.appendChild(li);
+  });
+  state.last = words;
+  copyBtn.hidden = false;
+  copyBtn.textContent = '복사';
+  showRemaining();
+});
+copyBtn.addEventListener('click', function () {
+  if (!navigator.clipboard) return;
+  navigator.clipboard.writeText(state.last.join(', ')).then(function () { copyBtn.textContent = '복사했습니다'; }, function () { copyBtn.textContent = '복사하지 못했습니다'; });
+});
+document.getElementById('reset').addEventListener('click', function () {
+  state.used.clear();
+  state.last = [];
+  clearResult();
+  copyBtn.hidden = true;
+  showRemaining();
+});
+showRemaining();
+})();
+</script>
+</body>
+</html>

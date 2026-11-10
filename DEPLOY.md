@@ -214,6 +214,8 @@ Sitemap: https://hanpango.com/sitemap.xml
          우회를 한 번에 잡는다. 그리고 `tools/check_card_render.js` 는 ★브라우저 페이지 문맥에서
          평가하는 검사다(node CLI 가 아니다 — 대문을 연 탭에서 이 파일을 evaluate 한다). 가상요소
          `::before` 의 배경색까지 ★그려진 값으로 본다.
+   - [ ] `node tools/build_hanbang.mjs . --check` → **rc=0 일 때만** 통과다. 한방단어 검색기가 게임의 사전·두음법칙과 같은지 잰다.
+   - [ ] `node tools/build_game_tools.mjs . --check` → **rc=0 일 때만** 통과다. 제시어 뽑기·첫 낱말 평가기가 게임의 목록·채점과 같은지 잰다.
    - [ ] `node tools/check_today_pool.mjs .` → **rc=0 일 때만** 통과다. 「오늘의 한판」 선정 규칙
          (3종 · 최소 1종 `maxMinutes<=N` · 합 `<=M`)이 어떤 게임을 **영원히 후보에서 빼는지**를
          매번 **계산해서 찍는다**. ★목록을 문서·주석에 손으로 적지 마라 — 게임이 늘거나
