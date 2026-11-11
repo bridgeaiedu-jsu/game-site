@@ -277,6 +277,9 @@
   <details><summary data-i18n="tip4q">키보드 색을 보고 남은 자모를 세어 보세요</summary><p data-i18n="tip4a">자판의 자모도 시도할 때마다 색이 쌓입니다. 회색으로 꺼진 자모를 빼고 남은 것만 놓고 생각하면 다섯 번째·여섯 번째 시도에서 헛수고를 줄일 수 있습니다.</p></details>
   <h2 data-i18n="faqTitle">자주 묻는 질문</h2>
   <details><summary data-i18n="faq3q">낱말은 어디서 가져왔나요?</summary><p data-i18n="faq3a">국립국어원이 공공누리 제1유형으로 공개한 '한국어 학습용 어휘 목록'과 '현대 국어 사용 빈도 조사' 자료에서 두 글자 낱말만 뽑아 썼습니다. 두 자료에 함께 실린 낱말만 정답 후보로 삼았습니다.</p></details>
+  <details><summary data-i18n="faqGq">같은 자모를 두 번 넣었는데 하나만 칠해져요</summary><p data-i18n="faqGa">색은 답에 든 개수만큼만 칠해집니다. 정답 1,994개를 세어 보니 757개(38.0%)가 받침 없음 표시를 빼고도 같은 자모를 두 번 이상 품고 있었고, 가장 흔한 겹침은 ㅇ(197개)과 ㄱ(149개)이었습니다. 하나가 회색으로 남았다면 그 자모는 답에 한 번만 있다는 뜻입니다.</p></details>
+  <details><summary data-i18n="faqG2q">받침 없는 낱말을 넣어 보라는 이유가 있나요?</summary><p data-i18n="faqG2a">정답 가운데 두 글자 모두 받침이 있는 낱말은 689개(34.6%), 한 글자만 없는 낱말은 952개(47.7%), 둘 다 없는 낱말은 353개(17.7%)입니다. 받침 없는 낱말을 넣으면 첫 받침 칸은 45.5%, 둘째 받침 칸은 37.7%의 확률로 초록이 되고, 초록이 아니면 그 자리에 받침이 있다는 것이 확정됩니다.</p></details>
+  <details><summary data-i18n="faqG3q">있는 말인데 목록에 없다고 나와요</summary><p data-i18n="faqG3a">입력으로 받는 두 글자 낱말은 12,313개이고, 정답은 그중 자주 쓰는 1,994개에서만 나옵니다. 목록에 없는 말은 시도 횟수를 깎지 않으니 다른 낱말로 다시 넣으면 됩니다.</p></details>
   <p class="faq-more" data-i18n="faqMore">설치·소리·기록 저장처럼 모든 게임에 해당하는 질문은 <a href="/guide/#faq">게임 고르는 법의 공통 질문</a>에 모았습니다.</p>
 </section>
 
@@ -346,6 +349,9 @@ const I18N = {
     tip4q:'키보드 색을 보고 남은 자모를 세어 보세요',
     tip4a:'자판의 자모도 시도할 때마다 색이 쌓입니다. 회색으로 꺼진 자모를 빼고 남은 것만 놓고 생각하면 다섯 번째·여섯 번째 시도에서 헛수고를 줄일 수 있습니다.',
     faq3q:'낱말은 어디서 가져왔나요?', faq3a:"국립국어원이 공공누리 제1유형으로 공개한 '한국어 학습용 어휘 목록'과 '현대 국어 사용 빈도 조사' 자료에서 두 글자 낱말만 뽑아 썼습니다. 두 자료에 함께 실린 낱말만 정답 후보로 삼았습니다.",
+    faqGq:'같은 자모를 두 번 넣었는데 하나만 칠해져요', faqGa:'색은 답에 든 개수만큼만 칠해집니다. 정답 1,994개를 세어 보니 757개(38.0%)가 받침 없음 표시를 빼고도 같은 자모를 두 번 이상 품고 있었고, 가장 흔한 겹침은 ㅇ(197개)과 ㄱ(149개)이었습니다. 하나가 회색으로 남았다면 그 자모는 답에 한 번만 있다는 뜻입니다.',
+    faqG2q:'받침 없는 낱말을 넣어 보라는 이유가 있나요?', faqG2a:'정답 가운데 두 글자 모두 받침이 있는 낱말은 689개(34.6%), 한 글자만 없는 낱말은 952개(47.7%), 둘 다 없는 낱말은 353개(17.7%)입니다. 받침 없는 낱말을 넣으면 첫 받침 칸은 45.5%, 둘째 받침 칸은 37.7%의 확률로 초록이 되고, 초록이 아니면 그 자리에 받침이 있다는 것이 확정됩니다.',
+    faqG3q:'있는 말인데 목록에 없다고 나와요', faqG3a:'입력으로 받는 두 글자 낱말은 12,313개이고, 정답은 그중 자주 쓰는 1,994개에서만 나옵니다. 목록에 없는 말은 시도 횟수를 깎지 않으니 다른 낱말로 다시 넣으면 됩니다.',
     footer:'© 2026 오늘의 낱말 · 개인정보: 이 게임은 기록을 기기에만 저장하며, 광고 제공을 위해 Google 등 제3자 쿠키가 사용될 수 있습니다.',
     dataCredit:'단어 자료: 국립국어원 <a href="https://www.korean.go.kr/front/etcData/etcDataView.do?etc_seq=71" target="_blank" rel="noopener noreferrer external">「한국어 학습용 어휘 목록」(2003)</a> · <a href="https://www.korean.go.kr/front/etcData/etcDataView.do?etc_seq=60" target="_blank" rel="noopener noreferrer external">「현대 국어 사용 빈도 조사」(2002)</a> — <a href="https://www.kogl.or.kr/info/license.do" target="_blank" rel="noopener noreferrer external">공공누리 제1유형(출처표시)</a>',
     navPrivacy:'개인정보처리방침', navTerms:'이용약관', navAbout:'소개', home:'🏠 다른 게임',
@@ -408,6 +414,9 @@ const I18N = {
     tip4q:'Read the keyboard colours',
     tip4a:'The keyboard letters build up colour as you play. Ruling out the grey letters and thinking only about what is left saves wasted guesses on the fifth and sixth tries.',
     faq3q:'Where do the words come from?', faq3a:'From two public datasets published by the National Institute of Korean Language under KOGL Type 1 — the Korean Learner Vocabulary List and the Modern Korean Usage Frequency Survey. Only two-syllable entries listed in both were used as answers.',
+    faqGq:'I typed a letter twice but only one was coloured', faqGa:'Colours are given only as many times as the letter appears in the answer. Counting all 1,994 answers, 757 (38.0%) contain the same letter part twice or more, not counting the no-final-consonant dot; the most common repeats are ㅇ (197 answers) and ㄱ (149). If one copy stays grey, the letter appears in the answer only once.',
+    faqG2q:'Why try a word without final consonants?', faqG2a:'Among the answers, 689 (34.6%) have a final consonant in both syllables, 952 (47.7%) lack one in a single syllable and 353 (17.7%) lack it in both. A word with no final consonants turns the first closing slot green 45.5% of the time and the second 37.7%; if a slot is not green, you know a final consonant sits there.',
+    faqG3q:'A real word says it is not in the list', faqG3a:'The game accepts 12,313 two-syllable words as guesses, but answers come only from the 1,994 most common of them. A word outside the list does not cost an attempt, so just try another.',
     footer:'© 2026 Daily Word · Privacy: results are stored on your device only; third-party cookies such as Google’s may be used to serve ads.',
     dataCredit:'Word data: National Institute of Korean Language — <a href="https://www.korean.go.kr/front/etcData/etcDataView.do?etc_seq=71" target="_blank" rel="noopener noreferrer external">Korean Learner Vocabulary List (2003)</a> · <a href="https://www.korean.go.kr/front/etcData/etcDataView.do?etc_seq=60" target="_blank" rel="noopener noreferrer external">Modern Korean Usage Frequency Survey (2002)</a> — <a href="https://www.kogl.or.kr/info/license.do" target="_blank" rel="noopener noreferrer external">KOGL Type 1 (Attribution)</a>',
     navPrivacy:'Privacy Policy', navTerms:'Terms', navAbout:'About', home:'🏠 More games',
