@@ -93,7 +93,7 @@
 
 <main>
   <div class="langbar"><a href="#en">English ↓</a><a href="/ladder/">사다리 타기 하러 가기</a><a href="/">게임 목록</a></div>
-  <p class="updated">2026년 10월 7일 · 한판고 · 손으로 그린 사다리는 가로줄을 무작위로 그어 판마다 10만 번씩 따라가 본 값이고, 한판고 사다리는 게임이 판을 만드는 코드를 그대로 10만 번 돌려 센 값입니다</p>
+  <p class="updated">2026년 10월 7일 · 2026년 11월 17일 보강 · 한판고 · 손으로 그린 사다리는 가로줄을 무작위로 그어 판마다 10만 번씩 따라가 본 값이고, 한판고 사다리는 게임이 판을 만드는 코드를 그대로 10만 번 돌려 센 값입니다</p>
 
   <section>
     <h2>결론부터 — 가로줄이 적으면 공정하지 않다</h2>
@@ -123,11 +123,52 @@
   </section>
 
   <section>
+    <h2>사람이 늘면 가로줄은 훨씬 더 많이 필요하다</h2>
+    <p>다섯 명에 마흔 개라는 숫자는 인원이 바뀌면 그대로 쓸 수 없습니다. 인원을 바꿔 가며 같은 방식으로 판을 10만 개씩 만들고, 출발 자리와 도착 칸의 모든 짝 가운데 가장 치우친 칸이 공평한 값에서 1%포인트 안으로 들어올 때까지 가로줄을 늘려 보았습니다. 10만 판으로 센 값이라 몇 개쯤은 오르내릴 수 있는 대략값입니다.</p>
+    <table>
+      <thead><tr><th>인원</th><th>고르게 섞이는 가로줄 수</th><th>칸 하나에 들어가는 가로줄</th></tr></thead>
+      <tbody>
+        <tr><td>3명</td><td>7개 안팎</td><td>3~4개</td></tr>
+        <tr><td>4명</td><td>18개 안팎</td><td>6개</td></tr>
+        <tr><td>5명</td><td>40개 안팎</td><td>9~10개</td></tr>
+        <tr><td>6명</td><td>65개 안팎</td><td>13개</td></tr>
+        <tr><td>8명</td><td>150개 안팎</td><td>21개</td></tr>
+        <tr><td>10명</td><td>300개 안팎</td><td>33개</td></tr>
+      </tbody>
+    </table>
+    <p>세로줄 사이의 칸은 인원보다 하나 적으니, 사람이 두 배가 되면 칸도 두 배쯤 늘어납니다. 그런데 칸마다 그어야 하는 가로줄도 함께 늘어나서, 필요한 양은 인원의 제곱보다도 빠르게 커집니다. 다섯 명에서 열 명으로 늘면 마흔 개가 삼백 개가 됩니다. 열 명이 종이 한 장에 가로줄 삼백 개를 긋기는 어렵습니다.</p>
+    <p>현실에서 그을 만한 양으로 그리면 어떻게 될까요. 열 명 사다리에 가로줄을 23개 그었더니 맨 왼쪽 사람이 맨 왼쪽 칸으로 그대로 내려갈 확률이 33.7%였고, 맨 오른쪽 칸까지 갈 확률은 10만 판에 11번(0.011%)뿐이었습니다. 공평하다면 둘 다 10%입니다. 가로줄 아홉 개로 그린 열 명 사다리에서는 맨 왼쪽 사람이 제자리로 갈 확률이 50.9%로 절반을 넘었고, 맨 오른쪽 칸에는 10만 판 동안 한 번도 닿지 못했습니다.</p>
+  </section>
+
+  <section>
+    <h2>가로줄 개수만 세어도 결과가 반쯤 보인다</h2>
+    <p>가로줄 하나는 두 사람의 자리를 맞바꿉니다. 그래서 가로줄이 홀수 개면 판 전체가 「맞바꿈을 홀수 번 한 결과」가 되고, 짝수 개면 「짝수 번 한 결과」가 됩니다. 어떤 순서로 그었든, 어느 칸에 그었든 이 성질은 바뀌지 않습니다. 사다리를 따라가 보지 않아도 가로줄 수만 세면 나올 수 있는 결과의 절반이 지워진다는 뜻입니다.</p>
+    <p>두 명이면 이것이 곧 결과입니다. 가로줄이 홀수면 반드시 서로 바뀌고, 짝수면 반드시 제자리입니다. 둘이서 종이 사다리를 타면 마지막 한 줄을 긋는 사람이 결과를 정하는 셈입니다. 세 명 사다리도 꽤 많이 드러납니다. 가로줄 세 개나 다섯 개로 그린 판 10만 개는 모두 「딱 한 사람만 제자리」였습니다. 네 개나 여섯 개로 그린 판에는 한 사람만 제자리인 판이 하나도 없었고, 셋 다 제자리이거나(네 개일 때 37.6%) 아무도 제자리가 아니었습니다(62.4%).</p>
+    <p>그러니 결과를 가릴 때는 가로줄 수도 함께 모르게 하는 편이 낫습니다. 결과 칸을 접어 둔 채 여럿이 나눠 그으면, 몇 개가 그어졌는지 한 사람이 다 알기 어렵습니다.</p>
+  </section>
+
+  <section>
+    <h2>벌칙 칸이 보이면 서는 자리가 곧 운이 된다</h2>
+    <p>종이 사다리에서 결과 칸을 가리지 않으면 어떤 일이 생기는지도 세어 보았습니다. 다섯 명 사다리의 맨 오른쪽 칸에 벌칙을 적어 두고, 출발 자리마다 그 칸에 닿을 확률을 셌습니다. 자리는 왼쪽부터 첫째에서 다섯째입니다.</p>
+    <table>
+      <thead><tr><th>가로줄</th><th>첫째</th><th>둘째</th><th>셋째</th><th>넷째</th><th>다섯째</th></tr></thead>
+      <tbody>
+        <tr><td>5개</td><td>1.2%</td><td>5.2%</td><td>16.1%</td><td>32.3%</td><td>45.1%</td></tr>
+        <tr><td>10개</td><td>6.9%</td><td>11.7%</td><td>19.7%</td><td>28.0%</td><td>33.7%</td></tr>
+        <tr><td>20개</td><td>15.1%</td><td>16.9%</td><td>20.0%</td><td>23.2%</td><td>24.8%</td></tr>
+      </tbody>
+    </table>
+    <p>가로줄이 다섯 개라면 벌칙 바로 위에 선 사람이 맨 왼쪽 사람보다 서른일곱 배쯤 걸리기 쉽습니다. 스무 개를 그어도 1.6배 차이가 남습니다. 벌칙이 어디 있는지 보이는 상태에서 자리를 먼저 고르면 추첨이 아니라 선택이 됩니다. 아래 요령에서 결과 칸을 접어 두라고 하는 까닭입니다.</p>
+  </section>
+
+  <section>
     <h2>종이 사다리를 공평하게 쓰는 요령</h2>
     <ul>
       <li><strong>가로줄을 넉넉히.</strong> 사람 수가 다섯이면 마흔 개, 적어도 칸마다 열 개쯤을 목표로 그으세요.</li>
       <li><strong>결과를 가린 뒤 여럿이 나눠 긋기.</strong> 한 사람이 다 그으면 무의식중에 결과를 알게 됩니다. 결과 칸을 접어 가리고, 돌아가며 한두 줄씩 보태면 아무도 길을 미리 알 수 없습니다.</li>
       <li><strong>자리는 줄을 다 그은 뒤에 고르기.</strong> 자리를 먼저 정하고 줄을 그으면, 줄을 긋는 사람이 결과를 조종할 수 있습니다.</li>
+      <li><strong>둘이서는 종이 사다리를 쓰지 않기.</strong> 가로줄 수가 홀수인지 짝수인지로 결과가 이미 정해집니다. 동전을 던지거나, 결과를 먼저 고르게 뽑는 방식이 낫습니다.</li>
+      <li><strong>인원이 많으면 종이를 포기하기.</strong> 여덟 명만 넘어도 고르게 섞으려면 가로줄이 백 개를 훌쩍 넘습니다.</li>
     </ul>
   </section>
 
@@ -136,6 +177,8 @@
     <p><a href="/ladder/">한판고 사다리 타기</a>는 가로줄을 무작위로 긋지 않습니다. 순서가 반대입니다. 먼저 <strong>누가 어느 결과로 갈지를 카드 섞듯 고르게 뽑고</strong>, 그 결과가 나오도록 가로줄을 그립니다. 그래서 가로줄 개수와 상관없이 모든 자리가 모든 결과로 같은 확률로 갑니다.</p>
     <p>게임이 판을 만드는 코드를 그대로 다섯 명 판으로 10만 번 돌려 보니, 25개 칸이 모두 <strong>19.8%에서 20.3% 사이</strong>였습니다. 다섯 명이 모두 제자리로 내려가는 판도 0.83% 나왔는데, 이는 정확히 120가지 순서 중 하나가 나올 확률(120분의 1)입니다. 「제자리는 안 나오게」 같은 손질을 하지 않았다는 뜻이기도 합니다. 세 명 판에서는 같은 값이 16.6%로, 여섯 가지 중 하나(6분의 1)와 맞습니다.</p>
     <p>몇 가지 규칙을 더 지킵니다. 판은 처음 만들 때 가로줄까지 <strong>전부 정해지고</strong>, 이름을 누르거나 전체 공개를 할 때는 난수를 한 번도 쓰지 않습니다. 모든 세로줄은 적어도 한 번은 가로줄에 닿도록, 필요하면 서로 상쇄되는 가로줄 한 쌍을 끼워 넣습니다. 그리고 판은 링크 하나에 담겨서, 그 링크를 연 사람은 누구나 똑같은 사다리를 봅니다.</p>
+    <p>한판고 사다리도 앞에서 말한 홀짝 규칙에서 벗어나지는 않습니다. 사다리라면 어떤 것이든 따르는 성질이기 때문입니다. 게임 코드로 인원마다 판 10만 개를 만들어 보니, 가로줄 수의 홀짝과 결과의 홀짝이 모든 판에서 맞았습니다. 다만 결과를 먼저 고르게 뽑기 때문에 판이 만들어지기 전에는 가로줄이 홀수일 확률이 반반입니다(다섯 명 판 50.05%). 두 명 판이라면 가로줄이 하나인 판은 서로 바뀌는 판, 둘인 판은 제자리인 판이고, 두 경우가 각각 50.0%로 나왔습니다. 사다리는 원래 보이는 줄을 따라가는 놀이라 감출 것은 없습니다. 누가 무엇을 받을지를 판이 만들어지기 전에 사람이 정할 수 없다는 점이 중요합니다.</p>
+    <p>가로줄에 한 번도 닿지 않는 세로줄이 생기면 상쇄되는 한 쌍을 끼워 넣는다고 했는데, 그런 판이 생각보다 많습니다. 두 명 판의 50.0%, 세 명 판의 50.1%, 다섯 명 판의 35.7%, 열 명 판의 19.4%가 이 한 쌍을 받았습니다. 제자리로 가는 사람 가운데는 가로줄을 하나도 거치지 않아도 되는 경우가 있기 때문입니다. 끼워 넣는 가로줄은 언제나 한 쌍씩, 곧 짝수 개라서 홀짝도, 결과도 바꾸지 않습니다. 열 명 판의 가로줄은 평균 22.9개로, 종이 사다리였다면 크게 치우쳤을 개수입니다. 그런데도 모든 칸이 10% 언저리로 고르게 나오는 것은 가로줄을 많이 그어서가 아니라 결과를 먼저 뽑기 때문입니다.</p>
     <p><a class="cta" href="/ladder/">사다리 타기 하러 가기 →</a></p>
   </section>
 
@@ -148,11 +191,14 @@
   <section>
     <h2>Few rungs, big bias</h2>
     <p>With five players and only five random rungs, the leftmost player lands on the leftmost result 44.8% of the time and on the rightmost result only 1.1% of the time, against a fair 20%. With 10 rungs the figures are 33.5% and 7.2%, with 20 rungs 25.1% and 15.2%, and only at about 40 rungs (ten per gap) do they approach 20%. Each rung only swaps two neighbouring lines, so a sparse ladder barely mixes the players.</p>
+    <p>Bigger groups need far more rungs. Before every start–result pair sits within one percentage point of fair, it takes about 7 rungs for three players, 18 for four, 40 for five, 65 for six, 150 for eight and roughly 300 for ten. A ten-player ladder with 23 rungs kept the leftmost player in place 33.7% of the time and reached the far right only 11 times in 100,000 boards.</p>
+    <p>Because every rung is a swap, the parity of the rung count fixes the parity of the outcome. With two players an odd count always swaps and an even count never does. With three players, every one of 100,000 boards drawn with three or five rungs left exactly one person in place. And if the penalty slot is visible, where you stand matters: with five rungs the player right above it is hit 45.1% of the time against 1.2% for the far-left player.</p>
   </section>
 
   <section>
     <h2>How our ladder avoids it</h2>
     <p>Hanpango draws the outcome first, as a uniformly shuffled order, and then builds rungs that produce it. In 100,000 five-player boards every start–result pair fell between 19.8% and 20.3%, and the all-stay-in-place board appeared 0.83% of the time, exactly one in 120. The board is fixed when created, no randomness is used while revealing, and the whole board travels in one shareable link.</p>
+    <p>Our boards obey the same parity rule on every one of 100,000 boards per size, but because the outcome is drawn first, an odd rung count comes up half the time (50.05% for five players). The cancelling pair that guarantees every line is touched was added to 50.0% of two-player boards, 35.7% of five-player boards and 19.4% of ten-player boards; ten-player boards average 22.9 rungs and still spread evenly, because fairness comes from drawing the result first, not from the number of rungs.</p>
   </section>
   </div>
 </main>
