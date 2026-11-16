@@ -60,9 +60,22 @@ const MUTATIONS = {
   },
   /* ①-A 보기 넷의 구성이 어긋난다(정답이 보기에 없다) */
   'options-drop-answer': {
-    catcher: '보기 넷은 정답을 둘째로 하는 등차 넷이다',
-    from: 'const optionsFor = n => { const d = gapFor(n); return [n - d, n, n + d, n + 2 * d]; };',
-    to:   'const optionsFor = n => { const d = gapFor(n); return [n - d, n + d, n + 2 * d, n + 3 * d]; };'
+    catcher: '보기 넷은 정답을 k번째 값으로 하는 등차 넷이다',
+    from: 'return [0, 1, 2, 3].map(i => n + (i - k) * d); };',
+    to:   'return [0, 1, 2, 3].map(i => n + (i - k + (i >= k ? 1 : 0)) * d); };'
+  },
+  /* ①-B ★2026-11-16 실제로 배포돼 있던 결함 — 정답의 값 순위를 고정한다(예전 꼴 = 늘 두 번째로 작은 수).
+     화면 자리는 섞여도 '두 번째로 작은 수' 만 고르면 도형을 안 보고 8/8 이었다. */
+  'answer-rank-fixed': {
+    catcher: '정답의 값 순위가 한쪽에 쏠리지 않는다',
+    from: '    const rank = Math.min(OPTIONS - 1, Math.floor(rnd() * OPTIONS));',
+    to:   '    const rank = 1;'
+  },
+  /* ①-C 순위를 뽑기는 하되 끝(가장 작음·가장 큼)을 뺀다 = '양 끝은 정답이 아니다' 가 실마리가 된다 */
+  'answer-rank-no-edges': {
+    catcher: '라운드마다 정답의 값 순위 넷이 모두 나온다',
+    from: '    const rank = Math.min(OPTIONS - 1, Math.floor(rnd() * OPTIONS));',
+    to:   '    const rank = 1 + Math.floor(rnd() * 2);'
   },
   /* ② 난이도 곡선 — 노출이 안 줄어든다 */
   'exposure-not-shrinking': {
@@ -648,26 +661,36 @@ section('1. 규격과 순수 함수');
 
   /* ★보기 — 쓰이는 전 구간(n=7~24)을 전수로 훑는다. 몇 점만 보면 '최소'가 참이 아니다. */
   const lo = Math.min(...C.COUNT_RANGE.map(r => r[0])), hi = Math.max(...C.COUNT_RANGE.map(r => r[1]));
-  let nearestMin = Infinity, nearestAt = 0, pairMin = Infinity;
+  let nearestMin = Infinity, nearestAt = '', pairMin = Infinity, valueMin = Infinity;
   const shapeBad = [], gapBad = [];
   for (let n = lo; n <= hi; n++){
     const d = gapOf(n);
-    const opts = A.hm.optionsFor(n);
-    if (JSON.stringify(opts) !== JSON.stringify([n - d, n, n + d, n + 2 * d])) shapeBad.push(n);
     if (A.hm.gapFor(n) !== d) gapBad.push(n);
-    /* ★비율은 ★제품이 실제로 내놓은 보기에서 잰다 · 하네스가 셈한 d 로 재면 제품이 간격을
-       바꿔도(round·n/10 로 되돌려도) 이 검사는 조용해진다(자기 셈을 재는 검사가 된다). */
-    const sorted = opts.slice().sort((a, b) => a - b);
-    const near = Math.min(...sorted.filter(v => v !== n).map(v => v > n ? v / n : n / v));
-    if (near < nearestMin){ nearestMin = near; nearestAt = n; }
-    for (let q = 1; q < sorted.length; q++) pairMin = Math.min(pairMin, sorted[q] / sorted[q - 1]);
+    /* ★2026-11-16 · 정답의 값 순위 k 는 판마다 뽑힌다 — k 네 가지를 전부 훑는다(끝 자리 k=0·3 은
+       한쪽 이웃만 있어 최근접 오답이 달라진다). */
+    for (let k = 0; k < 4; k++){
+      const opts = A.hm.optionsFor(n, k);
+      const want = [0, 1, 2, 3].map(i => n + (i - k) * d);
+      if (JSON.stringify(opts) !== JSON.stringify(want)) shapeBad.push(n + '/k' + k);
+      /* ★비율은 ★제품이 실제로 내놓은 보기에서 잰다 · 하네스가 셈한 d 로 재면 제품이 간격을
+         바꿔도(round·n/10 로 되돌려도) 이 검사는 조용해진다(자기 셈을 재는 검사가 된다). */
+      const sorted = opts.slice().sort((a, b) => a - b);
+      const wrong = sorted.filter(v => v !== n);
+      if (wrong.length !== 3){ shapeBad.push(n + '/k' + k + ':정답없음'); continue; }
+      const near = Math.min(...wrong.map(v => v > n ? v / n : n / v));
+      if (near < nearestMin){ nearestMin = near; nearestAt = 'n=' + n + ' k=' + k; }
+      for (let q = 1; q < wrong.length; q++) pairMin = Math.min(pairMin, wrong[q] / wrong[q - 1]);
+      valueMin = Math.min(valueMin, sorted[0]);
+    }
   }
   eq('보기 간격이 개수의 8분의 1(올림)과 같다', gapBad, []);
-  eq('보기 넷은 정답을 둘째로 하는 등차 넷이다', shapeBad, []);
+  eq('보기 넷은 정답을 k번째 값으로 하는 등차 넷이다', shapeBad, []);
+  ok('보기 값은 모두 1 이상이다', valueMin >= 1, '최소 보기 ' + valueMin);
   ok('정답과 최근접 오답의 비율이 하한을 지킨다', nearestMin >= CONTRACT.NEAREST_MIN,
-     '최소 ' + nearestMin.toFixed(4) + ' (n=' + nearestAt + ') < ' + CONTRACT.NEAREST_MIN);
-  note('정답 대 최근접 오답 최소 ' + nearestMin.toFixed(4) + ' (n=' + nearestAt + ')'
-       + ' · 보기끼리 최근접 최소 ' + pairMin.toFixed(4) + ' (부수 관측 · 둘 다 오답이라 공정성 계약이 아니다)');
+     '최소 ' + nearestMin.toFixed(4) + ' (' + nearestAt + ') < ' + CONTRACT.NEAREST_MIN);
+  note('정답 대 최근접 오답 최소 ' + nearestMin.toFixed(4) + ' (' + nearestAt + ')'
+       + ' · 오답끼리 최근접 최소 ' + pairMin.toFixed(4) + ' (부수 관측 · 둘 다 오답이라 공정성 계약이 아니다)'
+       + ' · 가장 작은 보기 ' + valueMin);
 
   /* ★겹침의 근거 — 칸 수와 최소 중심거리. 무대는 4:3 이라 세로 백분율은 0.75 를 곱해 환산한다. */
   ok('격자 칸 수가 최대 개수 이상이다', C.GRID_COLS * C.GRID_ROWS >= hi,
@@ -690,6 +713,7 @@ section('2. 판');
   const stats = [];
   const rangeBad = [], spotBad = [], overlapBad = [], cellBad = [], optBad = [], capBad = [];
   let ascendingOthers = 0;
+  const rankAll = [0, 0, 0, 0], rankByRound = Array.from({ length: C.ROUNDS }, () => [0, 0, 0, 0]);
   for (const key of KEYS){
     const p = A.hm.plan(key);
     if (p.rounds.length !== C.ROUNDS){ rangeBad.push(key + ':라운드수'); continue; }
@@ -699,10 +723,13 @@ section('2. 판');
       if (r.n < C.COUNT_RANGE[i][0] || r.n > C.COUNT_RANGE[i][1]) rangeBad.push(key + '/R' + (i+1) + ':' + r.n);
       if (r.exposure !== C.EXPOSURE_MS[i]) rangeBad.push(key + '/R' + (i+1) + ':노출');
       if (r.spots.length !== r.n) spotBad.push(key + '/R' + (i+1));
-      /* 보기 — 정답 자리에 개수가 있고 넷이 서로 다르며 등차 넷과 같은 집합이다 */
-      const want = A.hm.optionsFor(r.n).slice().sort((a, b) => a - b).join(',');
-      const got = r.options.slice().sort((a, b) => a - b).join(',');
-      if (r.options[r.answer] !== r.n || new Set(r.options).size !== 4 || got !== want) optBad.push(key + '/R' + (i+1));
+      /* 보기 — 정답 자리에 개수가 있고 넷이 서로 다르며 간격 gapOf(n) 의 등차 넷이다.
+         ★정답의 값 순위는 제품이 따로 알려 주지 않는다 — 내놓은 보기에서 직접 센다. */
+      const srt = r.options.slice().sort((a, b) => a - b);
+      const arith = srt.every((v, q) => q === 0 || v - srt[q - 1] === gapOf(r.n));
+      if (r.options[r.answer] !== r.n || new Set(r.options).size !== 4 || !arith) optBad.push(key + '/R' + (i+1));
+      const vr = srt.indexOf(r.n);
+      if (vr >= 0){ rankAll[vr]++; rankByRound[i][vr]++; }
       /* 나머지 셋이 크기순으로만 놓여 있으면 실마리가 된다 — 몇 판이나 그런지 센다 */
       const others = r.options.filter((_, s) => s !== r.answer);
       if (others.every((v, s) => s === 0 || others[s-1] < v)) ascendingOthers++;
@@ -730,6 +757,20 @@ section('2. 판');
   eq('도형이 서로 겹치지 않는다', overlapBad.slice(0, 5), []);
   eq('보기 넷은 서로 다르고 정답 자리에 개수가 있다', optBad.slice(0, 5), []);
   eq('정답 자리 쏠림이 상한 안이다', capBad.slice(0, 5), []);
+  /* ★정답의 ★값 순위(보기 넷 중 몇 번째로 작은가) — 2026-11-16 실제로 배포돼 있던 결함의 자리.
+     화면 자리를 아무리 섞어도 값 순위가 고정이면 '두 번째로 작은 수' 만 골라 8/8 이 나온다.
+     고르게 뽑혔다면 넷이 각각 1/4 언저리다(씨앗 200 × 8 라운드 = 1600 · 표준편차 약 17).
+     전체 비율은 0.18~0.32 밖이면 붉히고, 라운드마다 넷이 모두 0.10 이상 나와야 한다
+     (라운드 하나에서만 고정해도 그 라운드의 다른 순위가 0 이 돼 잡힌다). */
+  const rankN = rankAll.reduce((a, b) => a + b, 0);
+  ok('정답의 값 순위가 한쪽에 쏠리지 않는다',
+     rankN > 0 && rankAll.every(c => c / rankN >= 0.18 && c / rankN <= 0.32), rankAll.join('/') + ' of ' + rankN);
+  const rankRoundBad = rankByRound.map((c, i) => {
+    const t = c.reduce((a, b) => a + b, 0);
+    return c.every(x => t > 0 && x / t >= 0.10) ? null : 'R' + (i + 1) + ':' + c.join('/');
+  }).filter(Boolean);
+  eq('라운드마다 정답의 값 순위 넷이 모두 나온다', rankRoundBad, []);
+  note('정답의 값 순위(가장 작음→가장 큼) ' + rankAll.join('/') + ' of ' + rankN + ' (고르면 각 1/4)');
   /* ★나머지 셋이 늘 크기순이면(=섞이지 않으면) 오름차순이 깨진 자리가 정답이라는 실마리가 된다.
      섞였다면 3! = 6 가지 중 오름차순은 1/6 쯤이어야 한다 — '늘 그렇다'만 붉힌다. */
   const totalRounds = stats.length * C.ROUNDS;

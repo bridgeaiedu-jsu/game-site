@@ -54,7 +54,9 @@ FAIL_RE = re.compile(r'^  FAIL  (.+?)(?: — |$)', re.M)
 MUTS = [
     ('gap-uses-round', '정답과 최근접 오답의 비율이 하한을 지킨다'),
     ('gap-uses-tenth', '정답과 최근접 오답의 비율이 하한을 지킨다'),
-    ('options-drop-answer', '보기 넷은 정답을 둘째로 하는 등차 넷이다'),
+    ('options-drop-answer', '보기 넷은 정답을 k번째 값으로 하는 등차 넷이다'),
+    ('answer-rank-fixed', '정답의 값 순위가 한쪽에 쏠리지 않는다'),
+    ('answer-rank-no-edges', '라운드마다 정답의 값 순위 넷이 모두 나온다'),
     ('exposure-not-shrinking', '개수당 노출이 라운드마다 줄어든다'),
     ('ranges-detached', '개수 구간이 서로 맞닿는다'),
     ('exposure-floor-lowered', '노출의 바닥이 선언된 값과 같다'),
@@ -93,7 +95,7 @@ QUIET = [
     ('dot-color-changed', '도형 색은 계약이 아니다(지름·자리는 계약이고 위에서 붉게 잡힌다)'),
 ]
 
-EXPECTED_COUNT = 35          # ★tools/README.md 의 '사본 N종' 과 같은 수여야 한다(아래에서 대조한다)
+EXPECTED_COUNT = 37          # ★tools/README.md 의 '사본 N종' 과 같은 수여야 한다(아래에서 대조한다)
 README_COUNT_RE = re.compile(r'몇 개였지 의 계약을 하나씩 깨뜨린 사본 (\d+)종')
 
 
