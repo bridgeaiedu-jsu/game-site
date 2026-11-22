@@ -90,7 +90,7 @@
 
 <main>
   <div class="langbar"><a href="#en">English ↓</a><a href="/2048/">2048 하러 가기</a><a href="/">게임 목록</a></div>
-  <p class="updated">2026년 9월 27일 · 한판고 · 수치는 게임과 같은 규칙(4×4 판, 새 타일은 2가 90%·4가 10%, 합쳐진 값이 점수)으로 직접 돌린 결과입니다</p>
+  <p class="updated">2026년 9월 27일 · 11월 23일 보강(2027년 오늘의 도전 365판) · 한판고 · 수치는 게임과 같은 규칙(4×4 판, 새 타일은 2가 90%·4가 10%, 합쳐진 값이 점수)으로 직접 돌린 결과입니다</p>
 
   <section>
     <h2>누구나 한 번은 듣는 요령</h2>
@@ -126,6 +126,32 @@
   </section>
 
   <section>
+    <h2>2027년 오늘의 도전 365판을 미리 둬 보면</h2>
+    <p>위 표의 8,100판은 컴퓨터가 판마다 새로 섞은 판입니다. 이번에는 한판고 2048의 「오늘의 도전」을 2027년 1월 1일(#132)부터 12월 31일(#496)까지 365판 그대로 만들었습니다. 게임 코드에서 날짜 씨앗과 새 타일 뽑기, 밀기·합치기를 그대로 떼어 와 돌렸기 때문에, 그날 접속한 사람이 받는 타일과 순서도 자리도 같습니다.</p>
+    <p>플레이어는 둘을 세웠습니다. 하나는 표의 ②와 같은 규칙(아래 → 왼쪽 → 오른쪽 → 위)이고, 다른 하나는 밀고 난 뒤 빈칸마다 2와 4가 떨어지는 경우를 모두 넣어 한 수 더 내다보는 플레이어입니다. 둘째는 표의 ⑤와 내다보는 깊이도 판 모양 점수도 달라서, 아래 숫자를 ⑤의 숫자와 곧바로 견주면 안 됩니다.</p>
+    <table>
+      <thead><tr><th>플레이어</th><th>평균 점수</th><th>가운데값</th><th>1024 도달</th><th>2048 도달</th></tr></thead>
+      <tbody>
+        <tr><td>②와 같은 모서리 규칙</td><td>2,580</td><td>2,384</td><td>0일</td><td>0일</td></tr>
+        <tr><td>한 수 더 내다보기</td><td>30,506</td><td>31,240</td><td>338일 (92.6%)</td><td>253일 (69.3%)</td></tr>
+      </tbody>
+    </table>
+    <p>모서리 규칙은 2027년 365판에서도 1024에 한 번도 닿지 못했고, 512에 닿은 날은 20일(5.5%)입니다. 무작위 2,000판에서 본 4.2%와 비슷한 자리입니다. 내다보는 플레이어는 365일 가운데 <strong>363일</strong> 모서리 규칙보다 점수가 높았고, 60일(16.4%)은 4096까지 만들었습니다. 2048에 닿은 날은 평균 999수째에 닿았습니다. 가장 빠른 5월 23일이 920수, 가장 늦은 날이 1,297수였습니다.</p>
+  </section>
+
+  <section>
+    <h2>같은 규칙인데 날마다 몇 배씩 다르다</h2>
+    <p>오늘의 도전은 모두가 같은 판을 받으니 공정합니다. 하지만 판끼리 견주면 쉬운 날과 어려운 날이 뚜렷합니다. 모서리 규칙으로 가장 낮은 날은 12월 21일로, 82수 만에 64 타일에서 막혀 596점에 그쳤습니다. 가장 높은 날은 8월 20일로, 512까지 가서 7,280점입니다. 같은 규칙인데 <strong>12.2배</strong> 차이가 납니다.</p>
+    <p>내다보는 플레이어도 마찬가지입니다. 7월 23일에는 3,357수를 두며 4096을 만들고 73,036점까지 갔지만, 10월 30일에는 208수 만에 256에서 막혀 2,444점으로 끝났습니다. 이 플레이어가 1024를 만들기 전에 끝난 날도 27일 있습니다. 그러니 어제보다 점수가 낮다고 실력이 줄었다고 볼 일은 아닙니다. 견줄 상대는 어제의 내가 아니라, 같은 날 같은 판을 받은 친구입니다.</p>
+  </section>
+
+  <section>
+    <h2>4가 떨어지는 비율도 날마다 다르다</h2>
+    <p>새 타일이 4일 확률은 10%로 정해져 있지만, 한 판 안에서 실제로 받는 4의 비율은 날마다 흔들립니다. 내다보는 플레이어가 받은 새 타일 가운데 4는 365판 평균 10.0%였고, 적은 날은 7.8%, 많은 날은 14.5%였습니다. 4가 많이 오는 날은 같은 칸에 2와 4가 엇갈려 쌓이기 쉬워 빈칸을 더 아껴야 합니다.</p>
+    <p>판이 열릴 때 놓이는 첫 두 타일에 4가 섞인 날은 53일(14.5%)이고, 둘 다 4인 날도 4일 있습니다. 첫 두 타일 가운데 하나가 네 모서리 칸에 놓인 날은 159일(43.6%)입니다. 나머지 날은 첫 몇 수를 큰 수를 모을 모서리를 정하는 데 쓰게 됩니다.</p>
+  </section>
+
+  <section>
     <h2>사람이 쓸 수 있는 내다보기</h2>
     <p>⑤는 매 수마다 수십 가지 경우를 계산하지만, 사람이 머리로 따라 할 수 있는 핵심은 몇 가지로 추려집니다.</p>
     <ul>
@@ -142,7 +168,7 @@
 
   <div lang="en">
   <h2 id="en" class="en-title">How far the 2048 corner strategy goes</h2>
-  <p class="updated">27 September 2026 · Hanpango · figures come from games played under the same rules as ours (4×4 board, new tiles are 2 with 90% and 4 with 10% probability, merges score their value)</p>
+  <p class="updated">27 September 2026 · updated 23 November 2026 (the 365 daily boards of 2027) · Hanpango · figures come from games played under the same rules as ours (4×4 board, new tiles are 2 with 90% and 4 with 10% probability, merges score their value)</p>
 
   <section>
     <h2>The tip everyone hears</h2>
@@ -162,6 +188,23 @@
   <section>
     <h2>The wall is the one move that breaks the corner</h2>
     <p>Watching strategy ② fail, one scene keeps coming up. You push left while the bottom row still has a gap, and a new 2 lands in it; now the big tile cannot get back and small tiles wedge between large ones. Or every other direction is blocked, you push up, the corner empties and a 2 drops straight into it. Strategies ① to ④ only look at the board in front of them. ⑤ differs in one thing, where the next tile might land, and that alone multiplies the average by seven and gets more than half of its games to 2048. What separates players is not the resolve to guard the corner but <strong>seeing the empty square before the tile arrives</strong>.</p>
+  </section>
+
+  <section>
+    <h2>The 365 daily boards of 2027, played in advance</h2>
+    <p>The 8,100 games in the table above were freshly shuffled each time. This time we rebuilt Hanpango 2048's daily challenge for every day from 1 January 2027 (#132) to 31 December 2027 (#496). The date seed, the new-tile draw and the slide-and-merge code were taken straight from the game, so the tiles arrive in the same order and squares a player would see that day.</p>
+    <p>Two players took part. One uses the same rule as strategy ② (down, left, right, then up). The other looks one move further, weighing every empty square where a 2 or a 4 could land after each push. Its depth and board score differ from strategy ⑤, so its figures should not be set directly against ⑤'s.</p>
+    <p>The corner rule never reached 1024 across the 2027 boards and reached 512 on 20 days (5.5%), close to the 4.2% seen in 2,000 random games. Its average was 2,580 (median 2,384). The lookahead player averaged 30,506 (median 31,240), reached 1024 on 338 days (92.6%) and 2048 on 253 days (69.3%), and built a 4096 on 60 days (16.4%). It outscored the corner rule on <strong>363 of 365 days</strong>. On days it reached 2048 it got there on move 999 on average, fastest on 23 May (move 920), slowest at move 1,297.</p>
+  </section>
+
+  <section>
+    <h2>Same rule, very different days</h2>
+    <p>A daily board is fair because everyone gets the same one, but some boards are much kinder than others. The corner rule's worst day is 21 December: stuck at a 64 tile after 82 moves, 596 points. Its best is 20 August: a 512 tile and 7,280 points, <strong>12.2 times</strong> as much under the same rule. The lookahead player built a 4096 and 73,036 points over 3,357 moves on 23 July, yet on 30 October it stalled at 256 after 208 moves with 2,444 points, and it finished below 1024 on 27 days. A lower score than yesterday does not mean you got worse; the fair comparison is a friend who played the same board on the same day.</p>
+  </section>
+
+  <section>
+    <h2>The share of 4s shifts from day to day</h2>
+    <p>A new tile is a 4 with fixed 10% odds, yet the share you actually receive in one game moves around. Across the lookahead player's 365 games, 4s made up 10.0% of new tiles on average, from 7.8% on the lightest day to 14.5% on the heaviest. The two opening tiles include a 4 on 53 days (14.5%) and are both 4s on 4 days. One of the two opening tiles sits in a corner square on 159 days (43.6%); on the other days the first few moves go into choosing which corner will hold the big tiles.</p>
   </section>
 
   <section>
