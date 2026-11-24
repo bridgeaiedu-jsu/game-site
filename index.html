@@ -144,6 +144,7 @@
   .card[href="/gyuchik/"]{--sig:#245421;--sig-ink:#0f2d0d}
   .card[href="/dari/"]{--sig:#3b6d5f;--sig-ink:#16332b}
   .card[href="/liar/"]{--sig:#a69600;--sig-ink:#5a5100}
+  .card[href="/namdo/"]{--sig:#943205;--sig-ink:#5c2003}
   @media (prefers-color-scheme: dark){
     /* 다크 — 카드마다 그 게임의 다크 시그니처로 갈아 끼운다. ★라이트 규칙 뒤에 와야 이긴다(@media 는 명시도를 안 올린다). */
     .card[href="/block-puzzle/"]{--sig:#376fec;--sig-ink:#789ef2}
@@ -183,6 +184,7 @@
     .card[href="/gyuchik/"]{--sig:#71c266;--sig-ink:#a5dc9d}
     .card[href="/dari/"]{--sig:#27b49a;--sig-ink:#7fe3cd}
     .card[href="/liar/"]{--sig:#fffc66;--sig-ink:#fffbb0}
+    .card[href="/namdo/"]{--sig:#ffa30a;--sig-ink:#ffd08a}
   }
   .thumb{position:relative;width:100%;aspect-ratio:1/1;background:var(--panel2);display:block}
   .thumb img{width:100%;height:100%;object-fit:cover;display:block}
@@ -298,6 +300,12 @@
          게임을 추가·수정하면 games.json / FALLBACK / 이 noscript 를 반드시 함께 갱신할 것. -->
     <noscript>
       <ul class="grid">
+        <li><a class="card" href="/namdo/">
+          <span class="thumb"><img src="/namdo/thumb.webp" alt="남도 특산물 받기 / Namdo Harvest Catch" width="640" height="640" decoding="async">
+            <span class="badges"><span class="badge">한 판 1~3분 / 1-3 min a round</span></span></span>
+          <span class="body"><h2>남도 특산물 받기 / Namdo Harvest Catch</h2>
+            <p>하늘에서 떨어지는 전남 특산물 다섯 가지를 바구니로 받는 도트 게임 — 돌멩이·벌레에 세 번 맞으면 끝난다<br>Catch five South Jeolla specialties falling from the sky in a pixel-art basket game — three hits from stones or bugs ends the round</p></span>
+        </a></li>
         <li><a class="card" href="/block-puzzle/">
           <span class="thumb"><img src="/block-puzzle/thumb.webp" alt="블록 퍼즐 / Block Puzzle" width="640" height="640" decoding="async">
             <span class="badges"><span class="badge">한 판 1~3분 / 1–3 min a round</span><span class="badge daily">🔥 오늘의 도전 / Daily challenge</span></span></span>
@@ -569,7 +577,7 @@ const I18N = {
     note:'게임은 하나씩 늘려갑니다.',
     navAbout:'소개', navPrivacy:'개인정보 처리방침', navTerms:'이용약관', navContact:'문의',
     navGuide:'게임 고르는 법', navDaily:'오늘의 도전이란', navRead:'읽을거리',
-    daily:'오늘의 도전', hot:'👍 인기',
+    daily:'오늘의 도전', hot:'👍 인기', newGame:'✨ 새 게임',
     install:'📲 홈 화면에 추가',
     donate:'☕ 후원', donateTitle:'☕ 커피 한 잔', close:'닫기',
     donateHelp:'카카오톡 또는 카카오페이 앱 카메라로 스캔하세요 · 금액은 자유입니다.', donateLink:'💛 카카오페이로 후원하기', donateHint:'위 버튼을 누르면 카카오페이가 열립니다.',
@@ -583,7 +591,7 @@ const I18N = {
     note:'More games are added one at a time.',
     navAbout:'About', navPrivacy:'Privacy Policy', navTerms:'Terms', navContact:'Contact',
     navGuide:'How to choose', navDaily:'Daily challenge, explained', navRead:'Reading',
-    daily:'Daily challenge', hot:'👍 Popular',
+    daily:'Daily challenge', hot:'👍 Popular', newGame:'✨ New',
     install:'📲 Add to Home Screen',
     donate:'☕ Support', donateTitle:'☕ Buy me a coffee', close:'Close',
     donateHelp:'Scan with the KakaoTalk or KakaoPay app · any amount is welcome.', donateLink:'💛 Donate via KakaoPay', donateHint:'Tap the button above to open KakaoPay.',
@@ -596,6 +604,13 @@ const T = (k) => I18N[lang][k];
 
 /* fetch 실패(오프라인·file:// 등) 시 쓰는 인라인 폴백 — games.json 과 같은 모양 */
 const FALLBACK = [{
+  id:'namdo', path:'/namdo/',
+  title:{ko:'남도 특산물 받기',en:'Namdo Harvest Catch'},
+  desc:{ko:'하늘에서 떨어지는 전남 특산물 다섯 가지를 바구니로 받는 도트 게임 — 돌멩이·벌레에 세 번 맞으면 끝난다',en:'Catch five South Jeolla specialties falling from the sky in a pixel-art basket game — three hits from stones or bugs ends the round'},
+  thumb:'/namdo/thumb.webp',
+  playtime:{ko:'한 판 1~3분',en:'1-3 min a round'},
+  maxMinutes:3, daily:false, category:'stress', released:'2026-11-24', tags:['arcade','catch','reflex','pixel'], pin:true
+},{
   id:'block-puzzle', path:'/block-puzzle/',
   title:{ko:'블록 퍼즐',en:'Block Puzzle'},
   desc:{ko:'10×10 판에 블록을 놓고 가로·세로 줄을 지우는 퍼즐',en:'Drop blocks on a 10×10 board and clear rows and columns'},
@@ -862,6 +877,7 @@ const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','
 
 function tile(g, hot){
   const badges = [
+    g.pin ? `<span class="badge hot">${esc(T('newGame'))}</span>` : '',
     hot ? `<span class="badge hot">${esc(T('hot'))}</span>` : '',
     g.playtime ? `<span class="badge">${esc(g.playtime[lang] || g.playtime.ko)}</span>` : '',
     g.daily ? `<span class="badge daily">🔥 ${esc(T('daily'))}</span>` : ''
@@ -896,16 +912,19 @@ const nameOf = g => g.title[lang] || g.title.ko;
 function ordered(){
   const byName = (a, b) => nameOf(a).localeCompare(nameOf(b), lang === 'ko' ? 'ko' : 'en');
   const score = g => { const p = plays && plays[keyOf(g)]; return p ? (p.today * 10 + p.total) : 0; };
-  const hot = plays ? games.filter(g => score(g) > 0)
+  /* ★고정(pin:true) 게임은 판수와 상관없이 맨 앞이다 — 오너 지시(2026-11-24 · 남도 특산물 받기 첫 카드).
+     인기 6칸은 고정 게임을 빼고 센다. 고정이 없으면 예전과 똑같다. */
+  const pin = games.filter(g => g.pin);
+  const hot = plays ? games.filter(g => !g.pin && score(g) > 0)
                            .sort((a, b) => score(b) - score(a) || byName(a, b))
                            .slice(0, HOT_N) : [];
-  const rest = games.filter(g => !hot.includes(g)).sort(byName);
-  return { hot, rest };
+  const rest = games.filter(g => !g.pin && !hot.includes(g)).sort(byName);
+  return { hot: pin.concat(hot), rest };
 }
 
 function render(){
   const { hot, rest } = ordered();
-  document.getElementById('grid').innerHTML = hot.map(g => tile(g, true)).join('') + rest.map(g => tile(g, false)).join('');
+  document.getElementById('grid').innerHTML = hot.map(g => tile(g, !g.pin)).join('') + rest.map(g => tile(g, false)).join('');
   /* 다시 그리면 숫자가 지워진다 — 언어 전환·목록 갱신 뒤에 다시 채운다.
      hp-stats.js 는 defer 라 첫 렌더보다 늦을 수 있으므로 있는지 보고 부른다. */
   if (window.hpStats) window.hpStats();

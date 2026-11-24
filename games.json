@@ -1,5 +1,33 @@
 [
   {
+    "id": "namdo",
+    "path": "/namdo/",
+    "title": {
+      "ko": "남도 특산물 받기",
+      "en": "Namdo Harvest Catch"
+    },
+    "desc": {
+      "ko": "하늘에서 떨어지는 전남 특산물 다섯 가지를 바구니로 받는 도트 게임 — 돌멩이·벌레에 세 번 맞으면 끝난다",
+      "en": "Catch five South Jeolla specialties falling from the sky in a pixel-art basket game — three hits from stones or bugs ends the round"
+    },
+    "thumb": "/namdo/thumb.webp",
+    "playtime": {
+      "ko": "한 판 1~3분",
+      "en": "1-3 min a round"
+    },
+    "maxMinutes": 3,
+    "daily": false,
+    "category": "stress",
+    "released": "2026-11-24",
+    "tags": [
+      "arcade",
+      "catch",
+      "reflex",
+      "pixel"
+    ],
+    "pin": true
+  },
+  {
     "id": "block-puzzle",
     "path": "/block-puzzle/",
     "title": {

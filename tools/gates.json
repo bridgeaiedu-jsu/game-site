@@ -413,6 +413,11 @@
       "file": "tools/verify_liar.js",
       "game": "liar",
       "kind": "검증기(판 결정론·라이어 1명·기본 모드 제시어 부재·누르는 동안만 표시·역전 보기·최근 낱말·흐름)"
+    },
+    {
+      "file": "tools/verify_namdo.js",
+      "game": "namdo",
+      "kind": "검증기(원작 밸런스 보존·페이지 안 게임 — 키·터치 가로채기는 판 중에만·화면 밖 멈춤·저장 키·설명 숫자 코드 대조)"
     }
   ],
   "non_gate_tools": [
