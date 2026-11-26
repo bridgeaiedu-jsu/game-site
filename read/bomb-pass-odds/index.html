@@ -91,6 +91,7 @@
 <main>
   <div class="langbar"><a href="#en">English ↓</a><a href="/bomb/">폭탄 돌리기 하러 가기</a><a href="/">게임 목록</a></div>
   <p class="updated">2026년 10월 14일 · 한판고 · 확률은 폭탄 돌리기와 같은 도화선 규칙(25초 보장 + 65초 균등)으로 판을 만들어, 사람마다 한 번 들고 있는 시간을 정해 두고 터질 때까지 돌려 센 값입니다(조건마다 40만 판)</p>
+  <p class="updated">2026년 11월 27일 덧붙임 — 게임 코드의 판 짜기 함수를 그대로 돌려, 붉어진 뒤에 받은 사람의 질 확률, 한 판에 보는 미션, 열 판을 했을 때 벌칙이 몰리는 정도를 더했습니다(인원마다 20만 판, 열 판 묶음 10만 번)</p>
 
   <section>
     <h2>결론부터 — 자리보다 손이 빠른 사람이 산다</h2>
@@ -137,6 +138,36 @@
   </section>
 
   <section>
+    <h2>「곧 터집니다」 뒤에 폭탄을 받으면</h2>
+    <p>폭탄 돌리기의 판 짜기 함수를 그대로 떼어 와, 모두가 한 번에 3~7초씩 들고 넘긴다고 두고 인원마다 20만 판을 돌렸습니다. 폭탄을 받은 순간이 어느 단계였는지로 나눠 보면 차이가 극단적입니다. 「조용합니다」에서 받은 사람은 한 명도 지지 않았고, 「치직거립니다」에서 받은 사람도 0.3~0.4%만 졌습니다. 그런데 「곧 터집니다」가 뜬 뒤에 받은 사람은 <strong>47.8%</strong>가 졌습니다. 3명이든 6명이든 거의 같은 값입니다.</p>
+    <table>
+      <thead><tr><th>붉어진 뒤 폭탄이 넘어간 횟수</th><th>판의 비율(4명)</th></tr></thead>
+      <tbody>
+        <tr><td>0번 — 붉어질 때 든 사람이 그대로 짐</td><td>1.1%</td></tr>
+        <tr><td>1번</td><td>25.8%</td></tr>
+        <tr><td>2번</td><td>42.1%</td></tr>
+        <tr><td>3번</td><td>26.9%</td></tr>
+        <tr><td>4번 이상</td><td>4.0%</td></tr>
+      </tbody>
+    </table>
+    <p>붉어진 뒤에는 폭탄이 대개 두세 번 더 오갑니다. 마지막 단계가 4.5~16.2초인데 한 번에 3~7초씩 들고 있으니, 그사이 폭탄을 받는 사람은 보통 둘에서 셋이고 그중 한 명이 집니다. 붉은 화면을 받은 사람의 절반 가까이가 지는 까닭입니다. 거꾸로 붉어지기 전에 받은 차례에서 지는 일은 거의 없습니다. 붉은 화면을 받았다면 할 일은 하나, 들고 있는 시간을 줄이는 것뿐입니다.</p>
+  </section>
+  <section>
+    <h2>한 판에 미션은 몇 개, 같은 문제가 또 나올까</h2>
+    <p>미션은 31가지입니다. 그중 12가지가 「ㄱ 으로 시작하는 과일」 같은 초성 미션이고, 나머지 19가지는 「냉장고에 있는 것 하나」처럼 떠올리기만 하면 되는 미션입니다. 판이 시작될 때 60개를 미리 뽑아 두되, 바로 앞 4개와 같은 것은 뽑지 않습니다. 같은 20만 판에서 한 판에 실제로 화면에 나온 미션은 평균 12개, 그중 서로 다른 것은 10.9개였고 초성 미션은 4.7개 섞였습니다. 같은 미션이 한 판 안에서 두 번 나온 판은 60%였습니다.</p>
+    <p>눈여겨볼 것은 <strong>같은 사람이 같은 미션을 두 번 받는</strong> 경우입니다. 앞 4개와 겹치지 않게 막는 규칙 때문에, 4명 판에서는 내 바로 다음 차례(4개 뒤)에 같은 미션이 올 수 없습니다. 그래서 같은 사람이 같은 미션을 다시 받은 판은 4명에서 17.3%로 가장 적었고, 3명 30.3%·5명 28.8%·6명 22.5%였습니다. 5명 판은 다섯 개 뒤가 내 차례라 막는 범위를 막 벗어나고, 3명 판은 한 판에 내 차례가 네 번 안팎이라 기회가 많습니다. 같은 문제를 다시 받으면 앞에서 쓴 답은 둘러앉은 사람들이 받아 주지 않을 수 있으니, 미션마다 답을 하나 더 품고 있는 편이 낫습니다.</p>
+  </section>
+  <section>
+    <h2>열 판을 하면 벌칙이 한 사람에게 몰릴까</h2>
+    <p>모두가 같은 속도로 넘기는 4명이 열 판을 한다고 두고 10만 번을 돌렸습니다. 공평하게 나누면 한 사람이 2.5번씩 지지만, 실제로는 그렇게 고르게 나뉘지 않습니다.</p>
+    <ul>
+      <li>가장 많이 진 사람이 <strong>4번 이상</strong> 진 밤이 79.6%였습니다(4번 48.1%·5번 23.4%·6번 6.6%·7번 이상 1.5%). 가장 많이 진 사람이 3번에 그친 고른 밤은 20.4%뿐입니다.</li>
+      <li>열 판 동안 한 번도 안 진 사람이 나온 밤은 22.5%였습니다.</li>
+      <li>같은 사람이 두 판 연달아 진 일이 한 번이라도 있는 밤은 92.6%, 세 판 연달아 진 일이 있는 밤은 35.6%였습니다.</li>
+    </ul>
+    <p>그러니 누군가 연달아 진다고 해서 게임이 그 사람을 노린다고 볼 근거는 없습니다. 도화선과 미션은 판이 시작될 때 씨앗 하나로 정해지고, 넘기는 손은 난수를 한 톨도 쓰지 않습니다. 몰림은 고른 운이 원래 그리는 모양입니다. 벌칙을 정할 때 「세 번 지면 그날은 면제」 같은 상한을 두면 한 사람에게 몰리는 밤을 막을 수 있습니다.</p>
+  </section>
+  <section>
     <h2>지지 않는 사람들의 습관</h2>
     <ul>
       <li><strong>첫 생각을 바로 말한다.</strong> 완벽한 답을 찾는 3초가 위 표의 「8초 쓰는 사람」을 만듭니다. 미션의 심판은 화면이 아니라 둘러앉은 사람들입니다.</li>
@@ -161,6 +192,18 @@
   <section>
     <h2>How long “about to blow” lasts</h2>
     <p>The stages change at 55% and 82% of the fuse, so the final stage lasts 18% of it: between 4.5 and 16.2 seconds, and under 10.3 seconds in half of all rounds. Roughly two thirds of the time between “crackling” and “about to blow” is still left once the last stage appears. Say the first answer that comes to mind, read the next mission while you wait, keep your pace when the screen turns red, and start with four players.</p>
+  </section>
+  <section>
+    <h2>After the screen turns red</h2>
+    <p>Running the game's own round-building function with everyone holding the phone for 3–7 seconds (200,000 rounds per table size), nobody who received the bomb during “quiet” lost, only 0.3–0.4% of those who got it during “crackling” lost, but <strong>47.8%</strong> of those who got it after “about to blow” appeared lost, at every table size. Once it turns red the bomb usually changes hands two or three more times: never in 1.1% of four-player rounds, once in 25.8%, twice in 42.1%, three times in 26.9% and four or more times in 4.0%.</p>
+  </section>
+  <section>
+    <h2>Missions and repeats</h2>
+    <p>Each list has 31 missions (twelve of the Korean ones are initial-consonant prompts). Sixty are drawn when a round starts, never repeating any of the previous four. A round shows about 12 missions, 10.9 of them different, and 60% of rounds show some mission twice. Because of the four-back rule, a four-player table can never hand you the mission you had on your previous turn, so the same person meets the same mission twice in only 17.3% of four-player rounds, against 30.3% with three, 28.8% with five and 22.5% with six. Keep a second answer ready for each prompt.</p>
+  </section>
+  <section>
+    <h2>Ten rounds in one night</h2>
+    <p>For four equally quick players playing ten rounds (100,000 simulated nights), someone loses four or more times in 79.6% of nights, a perfectly even night with nobody above three losses happens only 20.4% of the time, someone never loses in 22.5%, and the same person loses two rounds in a row at least once in 92.6% of nights (three in a row: 35.6%). Streaks are what fair luck looks like. A house rule such as “three losses and you sit out the forfeits” stops a night from piling onto one person.</p>
   </section>
   </div>
 </main>
